@@ -115,16 +115,16 @@ const ServiceForms = () => {
         });
 
         // Show alert only once if there are invalid options
-        if (!isValid && !alertTriggered && invalidOptions.length > 0) {
-            const invalidOptionsDetails = invalidOptions.map(option => `ShowText: ${option.showText || "N/A"}`).join("\n");
+        // if (!isValid && !alertTriggered && invalidOptions.length > 0) {
+        //     const invalidOptionsDetails = invalidOptions.map(option => `ShowText: ${option.showText || "N/A"}`).join("\n");
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Incomplete Form',
-                text: `Please fill options for all dropdowns. Invalid options:\n${invalidOptionsDetails}`,
-            });
-            alertTriggered = true;
-        }
+        //     Swal.fire({
+        //         icon: 'error',
+        //         title: 'Incomplete Form',
+        //         text: `Please fill options for all dropdowns. Invalid options:\n${invalidOptionsDetails}`,
+        //     });
+        //     alertTriggered = true;
+        // }
 
         // If the form is valid, add a new row
         if (isValid) {
@@ -285,25 +285,25 @@ const ServiceForms = () => {
         let isValid = true;
         let alertTriggered = false;
 
-        if (step !== 1) {
-            formData.rows.forEach(row => {
-                row.inputs.forEach(input => {
-                    if (input.type === "dropdown" &&
-                        (!input.options || input.options.length <= 0 ||
-                            !input.options.every(option => option.showText))) {
-                        isValid = false;
-                        if (!alertTriggered) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Incomplete Form',
-                                text: 'Please fill options for all dropdowns!',
-                            });
-                            alertTriggered = true;
-                        }
-                    }
-                });
-            });
-        }
+        // if (step !== 1) {
+        //     formData.rows.forEach(row => {
+        //         row.inputs.forEach(input => {
+        //             if (input.type === "dropdown" &&
+        //                 (!input.options || input.options.length <= 0 ||
+        //                     !input.options.every(option => option.showText))) {
+        //                 isValid = false;
+        //                 if (!alertTriggered) {
+        //                     Swal.fire({
+        //                         icon: 'error',
+        //                         title: 'Incomplete Form',
+        //                         text: 'Please fill options for all dropdowns!',
+        //                     });
+        //                     alertTriggered = true;
+        //                 }
+        //             }
+        //         });
+        //     });
+        // }
 
         if (isValid && step < 3) {
             setStep(step + 1);
@@ -414,8 +414,8 @@ const ServiceForms = () => {
 
 
     return (
-        <div className="bg-[#f7fafc] w-10/12 mx-auto mt-10 border border-gray-300 p-6 rounded-lg shadow-lg">
-            <h2 className="text-3xl font-bold py-3 text-center text-[#2d3b44] mb-4">
+        <div className="bg-[#f7fafc] md:w-10/12 md:mx-auto m-4 mt-10 border border-gray-300 md:p-6 p-3 rounded-lg shadow-lg">
+            <h2 className="md:text-3xl font-bold py-3 text-center text-[#2d3b44] mb-4">
                 GENERATE REPORT SERVICE FORM
             </h2>
 
@@ -435,9 +435,9 @@ const ServiceForms = () => {
                     </div>
                     <label className="block text-sm font-medium text-gray-700">Headers:</label>
 
-                    <div className="mb-4 grid grid-cols-2">
+                    <div className="mb-4 md:grid grid-cols-2 gap-2">
                         {formData.headers.filter(header => header !== "PARTICULARS").map((header, index) => (
-                            <div key={index} className="flex items-center space-x-2 mb-2">
+                            <div key={index} className="flex justify-between items-center space-x-2 mb-2">
                                 <input
                                     type="text"
                                     value={header}
@@ -476,7 +476,7 @@ const ServiceForms = () => {
                 </div>
             )}
             {step === 2 && (
-                <div className="bg-white p-6 w-full border-t border-gray-300 mx-auto rounded-lg">
+                <div className="bg-white md:p-6 p-2 w-full border-t border-gray-300 mx-auto rounded-lg">
                     <h3 className="text-lg font-semibold mb-3">Step 2: Define Labels and Inputs</h3>
 
                     {formData.rows.map((row, rowIndex) => (
@@ -489,7 +489,7 @@ const ServiceForms = () => {
                                     ✖
                                 </button>
                             </div>
-                            <div className="p-4 rounded-md space-y-2">
+                            <div className="md:p-4 rounded-md space-y-2">
 
 
                                 <div >
@@ -512,11 +512,11 @@ const ServiceForms = () => {
                                                     </h4>
                                                 )}
 
-                                                <div className="flex items-center justify-between">
+                                                <div className="md:flex items-center justify-between">
                                                     <select
                                                         value={input.type}
                                                         onChange={(e) => handleInputChange(e, rowIndex, inputIndex, 'type')}
-                                                        className="border border-gray-300 rounded-lg p-2 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                        className="border border-gray-300 rounded-lg p-2 mb-2 w-full md:w-10/12 focus:outline-none focus:ring-2 focus:ring-blue-400"
                                                     >
                                                         <option value="text">Text</option>
                                                         <option value="dropdown">Dropdown</option>
@@ -539,7 +539,7 @@ const ServiceForms = () => {
                                                     <div className="mt-4">
                                                         <h4 className="text-lg font-semibold mb-2">Options</h4>
                                                         {input.options?.map((option, optionIndex) => (
-                                                            <div key={optionIndex} className="flex items-center gap-4 mb-2">
+                                                            <div key={optionIndex} className="md:flex items-center gap-4 mb-2">
                                                                 <div className="flex-1">
                                                                     <input
                                                                         type="text"
@@ -548,7 +548,7 @@ const ServiceForms = () => {
                                                                             handleOptionChange(e, rowIndex, inputIndex, optionIndex, 'value')
                                                                         }
                                                                         placeholder="Option value"
-                                                                        className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                                        className="border border-gray-300 mb-2 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                                                                     />
                                                                 </div>
                                                                 <div className="flex-1">
@@ -559,7 +559,7 @@ const ServiceForms = () => {
                                                                             handleOptionChange(e, rowIndex, inputIndex, optionIndex, 'showText')
                                                                         }
                                                                         placeholder="Option text"
-                                                                        className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                                        className="border border-gray-300 mb-2 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
                                                                     />
                                                                 </div>
                                                                 <button
@@ -643,9 +643,10 @@ const ServiceForms = () => {
                     <h3 className="text-lg font-semibold mb-3">Step 3: Preview</h3>
                     <div className="py-3">
                         <div className='bg-green-500 border  border-white rounded-t-md p-4'>
-                            <h3 className="text-center text-2xl font-semibold text-white">{formData.heading}</h3>
+                            <h3 className="text-center md:text-2xl font-semibold text-white">{formData.heading}</h3>
                         </div>
-                        <table className="border-green-500 border border-t-0 rounded-md w-full">
+                        <div className='overflow-x-auto'>
+                        <table className=" border border-t-0 rounded-md w-full">
                             <thead>
                                 <tr className="bg-gray-100">
                                     <th className="py-2 px-4 border border-gray-300 text-left">PARTICULARS</th>
@@ -731,7 +732,7 @@ const ServiceForms = () => {
                                 ))}
                             </tbody>
                         </table>
-
+                        </div>
                     </div>
                     <div className="flex justify-between mt-6">
 

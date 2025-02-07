@@ -2,32 +2,56 @@ import React from 'react';
 import { RiLoginCircleFill } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../ApiContext';
+import Swal from 'sweetalert2';
 
 const Logout = () => {
     const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
 
     const API_URL = useApi();
     const navigate = useNavigate();
+
     const handleLogout = async () => {
         const storedBranchData = localStorage.getItem("branch");
         const storedToken = localStorage.getItem("branch_token");
 
-        try {
-            const response = await fetch(`${API_URL}/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
-                method: 'GET',
-            });
+        // Show a confirmation dialog before proceeding with logout
+        const confirmation = await Swal.fire({
+            title: "Are you sure?",
+            text: "You are about to log out. Do you want to continue?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, log me out",
+            cancelButtonText: "No, cancel",
+        });
 
-            if (!response.ok) {
-                throw new Error('Logout failed');
+        // If the user confirms, proceed with logout
+        if (confirmation.isConfirmed) {
+            try {
+                const response = await fetch(`${API_URL}/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Logout failed');
+                }
+
+                // Remove items from localStorage
+                localStorage.removeItem("branch");
+                localStorage.removeItem("branch_token");
+
+                // Redirect the user to the login page
+                navigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
+            } catch (error) {
+                console.error('Error during logout:', error);
+                Swal.fire({
+                    title: "Error",
+                    text: error.message || "An error occurred during logout. Please try again.",
+                    icon: "error",
+                    confirmButtonText: "Ok",
+                });
             }
-
-            localStorage.removeItem("branch");
-            localStorage.removeItem("branch_token");
-
-
-            navigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
-        } catch (error) {
-            console.error('Error during logout:', error);
+        } else {
+            console.log("Logout canceled.");
         }
     };
 

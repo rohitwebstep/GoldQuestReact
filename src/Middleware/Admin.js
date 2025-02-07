@@ -86,7 +86,12 @@ const Admin = ({ children }) => {
       }
     } catch (error) {
       console.error("Error validating login:", error.response?.data?.message || error.message);
-     
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Error validating login.",
+        icon: "error",
+        confirmButtonText: "Ok",
+      }).then(() => redirectToLogin(error.response?.data?.message || "Error validating login."));
     } finally {
       setIsApiLoading(false); // Make sure to reset the loading state
     }

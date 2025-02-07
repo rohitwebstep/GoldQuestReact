@@ -154,6 +154,10 @@ const Tickets = () => {
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then((result) => {
+                        const newToken = result._token || result.token;
+                        if (newToken) {
+                            localStorage.setItem("_token", newToken); // Update the token if available
+                        }
                         if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                             // Session expired, redirect to login page
                             Swal.fire({
@@ -168,11 +172,7 @@ const Tickets = () => {
                             return; // Stop further execution after redirecting
                         }
 
-                        // If no session expired error, handle other errors
-                        const newToken = result._token || result.token;
-                        if (newToken) {
-                            localStorage.setItem("_token", newToken); // Update the token if available
-                        }
+                        
 
                         throw new Error(result.message || 'Error sending message');
                     });
@@ -318,6 +318,10 @@ const Tickets = () => {
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then((result) => {
+                        const newToken = result._token || result.token;
+                        if (newToken) {
+                            localStorage.setItem("_token", newToken);  // Update token if available
+                        }
                         // Check for invalid token and redirect if necessary
                         if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                             const newToken = result._token || result.token;
@@ -380,9 +384,6 @@ const Tickets = () => {
             });
     };
 
-
-
-
     useEffect(() => {
         if (!isApiLoading) {
             fetchTickets();
@@ -418,7 +419,15 @@ const Tickets = () => {
                 fetch(`https://api.goldquestglobal.in/ticket/delete?ticket_number=${ticket_number}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
                     .then((response) => {
                         if (!response.ok) {
+                            const newToken = response._token || response.token;
+                            if (newToken) {
+                                localStorage.setItem("_token", newToken);  // Update token if available
+                            }
                             return response.json().then((result) => {
+                                const newToken = result._token || result.token;
+                                if (newToken) {
+                                    localStorage.setItem("_token", newToken);  // Update token if available
+                                }
                                 if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                                     // Session expired, redirect to login page
                                     Swal.fire({

@@ -216,8 +216,8 @@ const CallbackAdmin = () => {
                     <input type="checkbox" className="me-2" />
                     {index + 1 + (currentPage - 1) * itemsPerPage}
                   </td>
-                  <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{item.customer_name || 'NIL'}</td>
-                  <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{item.branch_name || 'NIL'}</td>
+                  <td className="py-3 px-4 border-b border-r text-start whitespace-nowrap">{item.customer_name || 'NIL'}</td>
+                  <td className="py-3 px-4 border-b border-r text-start whitespace-nowrap">{item.branch_name || 'NIL'}</td>
                   <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{item.single_point_of_contact || 'NIL'}</td>
                   <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">
                     {new Date(item.requested_at).getDate()}-

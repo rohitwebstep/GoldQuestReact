@@ -179,82 +179,82 @@ const ServiceReportForm = () => {
                     />
                 </div>
                 <div className={`${previewData ? 'hidden' : ''} min-w-full border-collapse border border-black`}>
-                <div className="overflow-x-auto py-6 px-4">
-                    {loading ? (
-                        <div className='flex justify-center items-center py-6 h-full'>
-                            <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
-                        </div>
-                    ) : currentItems.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className={`min-w-full border-collapse border border-black`}>
-                                <thead>
-                                    <tr className="bg-green-500 whitespace-nowrap text-white text-left">
-                                        <th className="uppercase border border-black px-4 py-2 text-center">SI</th>
-                                        <th className="uppercase border border-black px-4 py-2">Service Title</th>
-                                        <th className="uppercase border border-black px-4 py-2">Short Code</th>
-                                        <th className="uppercase border border-black px-4 py-2">Group Name</th>
-                                        <th className="uppercase border border-black px-4 py-2 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {currentItems.map((service, index) => (
-                                        <tr key={service.id}>
-                                            <td className="border border-black px-4 py-2 text-center">{index + 1 + (currentPage - 1) * itemsPerPage}
-                                            </td>
-                                            <td className="border border-black px-4 py-2 whitespace-nowrap">{service.title}</td>
-                                            <td className="border border-black px-4 py-2">{service.short_code}</td>
-                                            <td className="border border-black px-4 py-2 whitespace-nowrap">{service.group}</td>
-                                            <td className="border border-black px-4 py-2">
-                                                <div className="flex justify-center ">
-                                                    <button
-                                                        className="ml-2 p-2 px-4 text-green-500 border border-green-400  rounded-md"
-                                                        onClick={() => handleEdit(service)}
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        className="ml-2 p-2 px-4 text-white bg-green-500 hover:bg-green-600 rounded-md"
-                                                        onClick={() => handlePreview(service.id)}
-                                                    >
-                                                        Preview
-                                                    </button>
-                                                </div>
-                                            </td>
+                    <div className="overflow-x-auto py-6 px-4">
+                        {loading ? (
+                            <div className='flex justify-center items-center py-6 h-full'>
+                                <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
+                            </div>
+                        ) : currentItems.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className={`min-w-full border-collapse border border-black`}>
+                                    <thead>
+                                        <tr className="bg-green-500 whitespace-nowrap text-white text-left">
+                                            <th className="uppercase border border-black px-4 py-2 text-center">SI</th>
+                                            <th className="uppercase border border-black px-4 py-2">Service Title</th>
+                                            <th className="uppercase border border-black px-4 py-2">Short Code</th>
+                                            <th className="uppercase border border-black px-4 py-2">Group Name</th>
+                                            <th className="uppercase border border-black px-4 py-2 text-center">Action</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-6">
-                            <p>No Data Found</p>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody>
+                                        {currentItems.map((service, index) => (
+                                            <tr key={service.id}>
+                                                <td className="border border-black px-4 py-2 text-center">{index + 1 + (currentPage - 1) * itemsPerPage}
+                                                </td>
+                                                <td className="border border-black px-4 py-2 whitespace-nowrap">{service.title}</td>
+                                                <td className="border border-black px-4 py-2">{service.short_code}</td>
+                                                <td className="border border-black px-4 py-2 whitespace-nowrap">{service.group}</td>
+                                                <td className="border border-black px-4 py-2">
+                                                    <div className="flex justify-center ">
+                                                        <button
+                                                            className="ml-2 p-2 px-4 text-green-500 border border-green-400  rounded-md"
+                                                            onClick={() => handleEdit(service)}
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            className="ml-2 p-2 px-4 text-white bg-green-500 hover:bg-green-600 rounded-md"
+                                                            onClick={() => handlePreview(service.id)}
+                                                        >
+                                                            Preview
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center py-6">
+                                <p>No Data Found</p>
+                            </div>
+                        )}
 
-                </div>
-
-                {/* Pagination Controls */}
-                <div className="flex items-center justify-end rounded-md bg-white  py-3 sm:px-6  mt-2">
-                    <button
-                        onClick={showPrev}
-                        disabled={currentPage === 1}
-                        className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        aria-label="Previous page"
-                    >
-                        <MdArrowBackIosNew />
-                    </button>
-                    <div className="flex items-center">
-                        {renderPagination()}
                     </div>
-                    <button
-                        onClick={showNext}
-                        disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        aria-label="Next page"
-                    >
-                        <MdArrowForwardIos />
-                    </button>
-                </div>
+
+                    {/* Pagination Controls */}
+                    <div className="flex items-center justify-end rounded-md bg-white  py-3 sm:px-6  mt-2">
+                        <button
+                            onClick={showPrev}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            aria-label="Previous page"
+                        >
+                            <MdArrowBackIosNew />
+                        </button>
+                        <div className="flex items-center">
+                            {renderPagination()}
+                        </div>
+                        <button
+                            onClick={showNext}
+                            disabled={currentPage === totalPages}
+                            className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            aria-label="Next page"
+                        >
+                            <MdArrowForwardIos />
+                        </button>
+                    </div>
                 </div>
                 {/* Preview Section */}
                 {previewData && (
@@ -270,71 +270,72 @@ const ServiceReportForm = () => {
                                 {previewData.heading}
                             </h3>
                         </div>
-                        <table className="border-white border border-t-0 rounded-md w-full">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="py-2 px-4 border border-gray-300 text-left">PARTICULARS</th>
-                                    {previewData.headers.map((header, index) => (
-                                        <th key={index} className="py-2 px-4 border border-gray-300 text-left">
-                                            {header}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {previewData.rows.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        <React.Fragment key={rowIndex}>
-                                            <td className="py-2 px-4 border border-gray-300">
-                                                {row.inputs[0]?.label} {/* Assuming the label for the first input */}
-                                            </td>
-                                            {row.inputs.map((input, inputIndex) => (
-
-                                                <td className="py-2 px-4 border border-gray-300">
-                                                    {input.type === "text" ? (
-                                                        <input
-                                                            type="text"
-                                                            name={input.name}
-                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                            readOnly
-                                                        />
-                                                    ) : input.type === "datepicker" ? (
-                                                        <input
-                                                            type="date"
-                                                            name={input.name}
-                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                            readOnly
-                                                        />
-                                                    ) : input.type === "file" ? (
-                                                        <input
-                                                            type="file"
-                                                            name={input.name}
-                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                            readOnly
-                                                            multiple={input.multiple || false}
-                                                            required={input.required || false}
-                                                        />
-                                                    ) : input.type === "dropdown" ? (
-                                                        <select
-                                                            name={input.name}
-                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                            readOnly
-                                                        >
-                                                            {input.options.map((option, optionIndex) => (
-                                                                <option key={optionIndex} value={option.value}>
-                                                                    {option.showText}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    ) : null}
-                                                </td>
-                                            ))}
-                                        </React.Fragment>
+                        <div className="overflow-x-auto">
+                            <table className="border-white border border-t-0 rounded-md w-full">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="py-2 px-4 border border-gray-300 text-left">PARTICULARS</th>
+                                        {previewData.headers.map((header, index) => (
+                                            <th key={index} className="py-2 px-4 border border-gray-300 text-left">
+                                                {header}
+                                            </th>
+                                        ))}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {previewData.rows.map((row, rowIndex) => (
+                                        <tr key={rowIndex}>
+                                            <React.Fragment key={rowIndex}>
+                                                <td className="py-2 px-4 border border-gray-300">
+                                                    {row.inputs[0]?.label} {/* Assuming the label for the first input */}
+                                                </td>
+                                                {row.inputs.map((input, inputIndex) => (
 
+                                                    <td className="py-2 px-4 border border-gray-300">
+                                                        {input.type === "text" ? (
+                                                            <input
+                                                                type="text"
+                                                                name={input.name}
+                                                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                readOnly
+                                                            />
+                                                        ) : input.type === "datepicker" ? (
+                                                            <input
+                                                                type="date"
+                                                                name={input.name}
+                                                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                readOnly
+                                                            />
+                                                        ) : input.type === "file" ? (
+                                                            <input
+                                                                type="file"
+                                                                name={input.name}
+                                                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                readOnly
+                                                                multiple={input.multiple || false}
+                                                                required={input.required || false}
+                                                            />
+                                                        ) : input.type === "dropdown" ? (
+                                                            <select
+                                                                name={input.name}
+                                                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                readOnly
+                                                            >
+                                                                {input.options.map((option, optionIndex) => (
+                                                                    <option key={optionIndex} value={option.value}>
+                                                                        {option.showText}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        ) : null}
+                                                    </td>
+                                                ))}
+                                            </React.Fragment>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>

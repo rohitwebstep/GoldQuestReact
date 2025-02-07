@@ -47,13 +47,13 @@ const tabNames = {
   acknowledgment: (<><MdEmail className="h-6 w-6 mr-3 text-gray-600" />Acknowledgment Email</>),
   holiday_management: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Holiday Management</>),
   callback: (<><IoCall className="h-6 w-6 mr-3 text-gray-600" />Callback Request</>),
-  // developers_tool: {
-  //   icon: (<><FaCode className="h-6 w-6 mr-3 text-gray-600" />Developers</>),
-  //   subItems: [
-  //     { id: 'developers', name: 'Developer', icon: <MdOutlineDeveloperMode   className="h-5 w-5 mr-2 text-gray-500" /> },
-  //     { id: 'report_forms', name: 'Services Forms', icon: <FaServicestack  className="h-5 w-5 mr-2 text-gray-500" /> },
-  //   ]
-  // },
+  developers_tool: {
+    icon: (<><FaCode className="h-6 w-6 mr-3 text-gray-600" />Developers</>),
+    subItems: [
+      { id: 'developers', name: 'Developer', icon: <MdOutlineDeveloperMode   className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'report_forms', name: 'Services Forms', icon: <FaServicestack  className="h-5 w-5 mr-2 text-gray-500" /> },
+    ]
+  },
   // file_manager: (<><FaFileAlt className="h-6 w-6 mr-3 text-gray-600" />File Manager</>),
 };
 
