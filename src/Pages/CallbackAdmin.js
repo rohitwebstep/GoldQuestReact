@@ -88,12 +88,28 @@ const CallbackAdmin = () => {
     const storedToken = localStorage.getItem('_token');
     setIsApiLoading(true);
     setLoading(true);
-
+  
     try {
-      const response = await fetch(`https://api.goldquestglobal.in/admin/callback/list?admin_id=${admin_id}&_token=${storedToken}`);
-      const result = await response.json(); // Parse the JSON response
-
-      // Check for session expiration by looking for token issues in the message
+  
+      // Make the API request
+      const response = await fetch(`https://api.goldquestglobal.in/admin/callback/list?admin_id=${admin_id}&_token=${storedToken}`, {
+        headers: {
+          'Cache-Control': 'no-cache', // Prevent caching
+        },
+      });
+      
+      // Parse the response JSON
+      const result = await response.json();
+      
+      console.log("API Response:", result);
+  
+      const newToken = result._token || result.token;
+      if (newToken) {
+        localStorage.setItem("_token", newToken); // Update the token in localStorage
+        const updatedToken = localStorage.getItem("_token"); // Retrieve the updated token
+      }
+  
+      // Check for session expiration by looking for token-related issues
       if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
         Swal.fire({
           title: "Session Expired",
@@ -106,23 +122,17 @@ const CallbackAdmin = () => {
         });
         return; // Stop further processing if the session has expired
       }
-
-      // Update token if the response contains a new token
-      const newToken = result._token || result.token;
-      if (newToken) {
-        localStorage.setItem("_token", newToken);
-      }
-
+  
       // Handle response errors (if status is not OK)
       if (!response.ok) {
         Swal.fire('Error!', `An error occurred: ${result.message || 'Unknown error'}`, 'error');
         return;
       }
-
+  
       // Successfully fetched data
       const customers = result.callbackRequests || [];
       setData(customers); // Update the customers data
-
+  
     } catch (error) {
       console.error('Fetch error:', error);
       Swal.fire('Error!', 'An unexpected error occurred while fetching data.', 'error');
@@ -131,6 +141,7 @@ const CallbackAdmin = () => {
       setIsApiLoading(false); // Stop loading regardless of success or error
     }
   }, []);
+  
 
 
 

@@ -52,6 +52,10 @@ const CandidateBGV = () => {
         )
             .then(res => {
                 return res.json().then(data => {
+                    const newToken = data.token || data._token || '';
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken); // Save the new token in localStorage
+                    }
                     if (data.message && data.message.toLowerCase().includes("invalid") && data.message.toLowerCase().includes("token")) {
                         // Session expired, redirect to login
                         Swal.fire({
@@ -103,10 +107,7 @@ const CandidateBGV = () => {
         }
 
     }, [fetchData]);
-    const getFileExtension = (url) => {
-        const ext = url.split('.').pop().toLowerCase();
-        return ext;
-    };
+   
     const FileViewer = ({ fileUrl }) => {
         if (!fileUrl) {
             return <p>No file provided</p>; // Handle undefined fileUrl

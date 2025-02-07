@@ -52,7 +52,10 @@ const CandidateExcelTrackerStatus = () => {
         fetch(`${API_URL}/candidate-master-tracker/applications-by-branch?branch_id=${branch_id}&admin_id=${adminId}&_token=${token}`, requestOptions)
             .then(response => {
                 return response.json().then(result => {
-                    // Check for invalid token message early
+                    const newToken = result._token || result.token;
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken); // Update the token in localStorage
+                    }
                     if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                         Swal.fire({
                             title: "Session Expired",
@@ -66,11 +69,7 @@ const CandidateExcelTrackerStatus = () => {
                         return; // Stop further execution if token is invalid
                     }
 
-                    // Handle new token if available
-                    const newToken = result._token || result.token;
-                    if (newToken) {
-                        localStorage.setItem("_token", newToken); // Update the token in localStorage
-                    }
+
 
                     // If response is not OK, show error message
                     if (!response.ok) {
@@ -86,6 +85,10 @@ const CandidateExcelTrackerStatus = () => {
                 });
             })
             .then((result) => {
+                const newToken = result._token || result.token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken); // Update the token in localStorage
+                }
                 setLoading(false);
                 setData(result.data.applications || []);
             })
@@ -286,7 +289,10 @@ const CandidateExcelTrackerStatus = () => {
                 return result; // Return the successful result if no errors
             })) // Assuming the response is JSON
             .then((result) => {
-                // Check for invalid token
+                const newToken = result._token || result.token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken); // Update the token in localStorage
+                }
                 if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                     Swal.fire({
                         title: "Session Expired",

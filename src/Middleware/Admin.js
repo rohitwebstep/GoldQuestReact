@@ -16,15 +16,15 @@ const Admin = ({ children }) => {
   const checkAuthentication = async () => {
     const storedAdminData = localStorage.getItem("admin");
     const storedToken = localStorage.getItem("_token");
-
+  
     // If no admin or token data in localStorage, clear session and redirect to login
     if (!storedAdminData || !storedToken) {
       redirectToLogin("No active session found. Please log in again.");
       return;
     }
-
+  
     setIsApiLoading(true);
-
+  
     let adminData;
     try {
       adminData = JSON.parse(storedAdminData);
@@ -38,21 +38,28 @@ const Admin = ({ children }) => {
       }).then(() => redirectToLogin());
       return;
     }
-
+  
     try {
       // Send the verification request to the server
       const response = await axios.post(`${API_URL}/admin/verify-admin-login`, {
         admin_id: adminData.id,
         _token: storedToken,
       });
-
+  
       const responseData = response.data;
-
+  
       if (responseData.status) {
+        // Check if a new token is returned and update localStorage
+        const newToken = responseData._token || responseData.token;
+        if (newToken) {
+          console.log("New Token received:", newToken); // Log the new token for debugging
+          localStorage.setItem("_token", newToken); // Store the new token in localStorage
+        }
+        
         setLoading(false);
       } else {
         const errorMessage = responseData.message || "An unknown error occurred";
-
+  
         if (
           errorMessage.toLowerCase().includes("invalid") &&
           errorMessage.toLowerCase().includes("token")
@@ -68,7 +75,7 @@ const Admin = ({ children }) => {
           });
           return;
         }
-
+  
         // Handle other login verification errors
         Swal.fire({
           title: "Login Verification Failed",
@@ -79,16 +86,12 @@ const Admin = ({ children }) => {
       }
     } catch (error) {
       console.error("Error validating login:", error.response?.data?.message || error.message);
-      Swal.fire({
-        title: "Error",
-        text: error.response?.data?.message || "Error validating login.",
-        icon: "error",
-        confirmButtonText: "Ok",
-      }).then(() => redirectToLogin(error.response?.data?.message || "Error validating login."));
+     
     } finally {
-      setIsApiLoading(false);  // Make sure to reset the loading state
+      setIsApiLoading(false); // Make sure to reset the loading state
     }
   };
+  
 
   // Redirect to login page and clear session data
   const redirectToLogin = (errorMessage = "Please log in again.") => {

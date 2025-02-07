@@ -39,6 +39,7 @@ import CandidiateDav from './Pages/CandidateDAV';
 import { LoginProvider } from './Pages/InternalLoginContext';
 import { AiOutlineArrowUp } from "react-icons/ai";
 import { ApiCallProvider } from './ApiCallContext';
+import { ServicesProvider } from './Pages/ServicesContext';
 
 const App = () => {
   const [showGoToTop, setShowGoToTop] = useState(false);
@@ -82,7 +83,7 @@ const App = () => {
                             <HolidayManagementProvider>
                               <DashboardProvider>
                                 <LoginProvider>
-                                 
+                                 <ServicesProvider>
                                   {/* Setting the basename='/' globally */}
                                   <Router basename="/">
                                     <Routes>
@@ -123,6 +124,7 @@ const App = () => {
                                       </div>
                                     )}
                                   </Router>
+                                  </ServicesProvider>
                                 </LoginProvider>
                               </DashboardProvider>
                             </HolidayManagementProvider>

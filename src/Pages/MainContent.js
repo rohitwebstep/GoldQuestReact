@@ -26,6 +26,7 @@ import GenerateReportList from './GenerateReportList';
 import DeletionCertification from './DeletionCertification';
 import CallbackAdmin from './CallbackAdmin';
 import ServiceForms from './ServiceForms';
+import ServiceReportForm from './ServicesReportForm';
 
 
 
@@ -57,12 +58,11 @@ const tabComponents = {
   callback:<CallbackAdmin/>,
   file_manager:<FolderGrid/>,
 
-
-
   generate_invoice: <CreateInvoice />,
   edit: <ClientEditForm />,
   holiday_management: <HolidayManagement />,
-  developers: <ServiceForms />
+  developers: <ServiceForms />,
+  report_forms: <ServiceReportForm />
 };
 
 const MainContent = () => {

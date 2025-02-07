@@ -166,6 +166,10 @@ const ClientManagementList = () => {
         });
       })
       .then((data) => {
+        const newToken = data._token || data.token;
+        if (newToken) {
+          localStorage.setItem("_token", newToken);
+        }
         // Only set branches if the request was successful
         setBranches(data.branches || []);
       })

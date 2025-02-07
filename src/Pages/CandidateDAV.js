@@ -73,6 +73,10 @@ const CandidiateDav = () => {
         fetch(`https://api.goldquestglobal.in/candidate-master-tracker/dav-application-by-id?application_id=${applicationId}&branch_id=${branchId}&admin_id=${admin_id}&_token=${token}`)
             .then(res => res.json())
             .then(result => {
+                const newToken = result.token || result._token || '';
+                if (newToken) {
+                    localStorage.setItem("_token", newToken); // Save the new token in localStorage
+                }
                 setLoading(false);  // Stop loading spinner when the request is complete.
     
                 if (!result.status) {

@@ -41,6 +41,10 @@ export const DataProvider = ({ children }) => {
         })
         .then((response) => {
             if (!response.ok) {
+                const newToken = response._token || response.token;
+                if (newToken) {
+                  localStorage.setItem("_token", newToken); // Update the token in localStorage
+                }
                 return response.json().then((result) => {
                     if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                         Swal.fire({

@@ -77,10 +77,17 @@ const CreateInvoice = () => {
     fetch(`https://api.goldquestglobal.in/generate-invoice?${queryString}`, requestOptions)
       .then((response) => {
         if (!response.ok) {
+          const newToken = response._token || response.token;
+          if (newToken) {
+              localStorage.setItem("_token", newToken);
+          }
           // If response is not OK, handle the error
           return response.json().then((result) => {
             const errorMessage = result?.message || "An unknown error occurred";
-
+            const newToken = result._token || result.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
             // Check if the error message contains "invalid token" (case-insensitive)
             if (result?.message && result.message.toLowerCase().includes("invalid token")) {
               Swal.fire({
@@ -104,6 +111,10 @@ const CreateInvoice = () => {
         return response.json();
       })
       .then((data) => {
+        const newToken = data._token || data.token;
+        if (newToken) {
+          localStorage.setItem("_token", newToken); // Update the token in localStorage
+        }
         // **Check for token expiration again if it's not handled earlier**
         if (data.message && data.message.toLowerCase().includes("invalid token")) {
           Swal.fire({
@@ -119,10 +130,7 @@ const CreateInvoice = () => {
         }
 
         // Handle new token if it exists in the response
-        const newToken = data._token || data.token;
-        if (newToken) {
-          localStorage.setItem("_token", newToken); // Update the token in localStorage
-        }
+      
 
         let applications = [];
         if (Array.isArray(data.applications)) {

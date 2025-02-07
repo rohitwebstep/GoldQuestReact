@@ -4,12 +4,12 @@ import { BiSolidPackage } from "react-icons/bi";
 import { HomeIcon, UserIcon } from "@heroicons/react/24/outline";
 import { IoMdPersonAdd } from "react-icons/io";
 import { RiAiGenerate } from "react-icons/ri";
-import { FaFileInvoiceDollar, FaEye, FaEyeSlash, FaFileAlt, FaCode } from "react-icons/fa";
+import { FaFileInvoiceDollar, FaEye, FaEyeSlash, FaServicestack , FaCode } from "react-icons/fa";
 import { FaSquarePollHorizontal, FaTicketSimple } from "react-icons/fa6";
 import { TiCloudStorage } from "react-icons/ti";
 import { TbReportSearch } from "react-icons/tb";
 import { VscLinkExternal } from "react-icons/vsc";
-import { MdOutlineTrackChanges, MdOutlineDelete, MdEmail, MdAccessTime } from "react-icons/md";
+import { MdOutlineTrackChanges, MdOutlineDelete, MdEmail, MdAccessTime,MdOutlineDeveloperMode  } from "react-icons/md";
 import { IoNotificationsCircle } from "react-icons/io5";
 import { GrServices } from "react-icons/gr";
 import classNames from 'classnames';
@@ -47,12 +47,18 @@ const tabNames = {
   acknowledgment: (<><MdEmail className="h-6 w-6 mr-3 text-gray-600" />Acknowledgment Email</>),
   holiday_management: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Holiday Management</>),
   callback: (<><IoCall className="h-6 w-6 mr-3 text-gray-600" />Callback Request</>),
-  // developers: (<><FaCode className="h-6 w-6 mr-3 text-gray-600" />Developers</>),
+  // developers_tool: {
+  //   icon: (<><FaCode className="h-6 w-6 mr-3 text-gray-600" />Developers</>),
+  //   subItems: [
+  //     { id: 'developers', name: 'Developer', icon: <MdOutlineDeveloperMode   className="h-5 w-5 mr-2 text-gray-500" /> },
+  //     { id: 'report_forms', name: 'Services Forms', icon: <FaServicestack  className="h-5 w-5 mr-2 text-gray-500" /> },
+  //   ]
+  // },
   // file_manager: (<><FaFileAlt className="h-6 w-6 mr-3 text-gray-600" />File Manager</>),
 };
 
 const Sidebar = () => {
-  const { isApiLoading, setIsApiLoading } = useApiCall();
+  const { isApiLoading } = useApiCall();
   console.log('isApiLoading', isApiLoading)
 
   const [toggle, setToggle] = useState(false);

@@ -54,7 +54,10 @@ const ClientMasterTrackerList = () => {
         })
             .then(response => {
                 return response.json().then(result => {
-                    // Check for invalid or expired token
+                    const newToken = result._token || result.token;
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken);
+                    }
                     if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                         Swal.fire({
                             title: "Session Expired",
@@ -79,14 +82,15 @@ const ClientMasterTrackerList = () => {
                     }
 
                     // Optionally update token if available
-                    const newToken = result._token || result.token;
-                    if (newToken) {
-                        localStorage.setItem("_token", newToken);
-                    }
+                  
                     return result;
                 });
             })
             .then((result) => {
+                const newToken = result._token || result.token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken);
+                }
                 // Set data after successful response
                 setData(result.data.customers || []);
                 setOptions(result.data.filterOptions);

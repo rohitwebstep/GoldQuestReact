@@ -113,6 +113,10 @@ const ClientManagementData = () => {
     
             // Making the request directly without confirmation prompt
             const res = await fetch(`${API_URL}/customer/add-customer-listings?admin_id=${admin_id}&_token=${storedToken}`);
+            const newToken = res._token || res.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
     
             if (!res.ok) {
                 const errorResponse = await res.json();
@@ -137,14 +141,12 @@ const ClientManagementData = () => {
     
             // Parse the response JSON
             const result = await res.json();
-    
-            // Handle token refresh if available in the response
-            const newToken = result._token || result.token;
-            if (newToken) {
-                localStorage.setItem("_token", newToken);
+            const newToken2 = res._token || res.token;
+
+            if (newToken2) {
+                localStorage.setItem("_token", newToken2);
             }
     
-            console.log('Response:', result); // Log full response for debugging
     
             // If invalid token message is in the result after parsing
             if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {

@@ -59,7 +59,10 @@ const AdminChekin = () => {
                 if (!response.ok) {
                     // Handle non-OK response (e.g., 500, 400 status)
                     return response.json().then(result => {
-                        console.error("Error response result:", result); // Log the error details
+                        const newToken = result._token || result.token;
+                        if (newToken) {
+                          localStorage.setItem("_token", newToken); // Update the token in localStorage
+                        }
 
                         // Check if the error message contains "Invalid token"
                         if (result.message && result.message.toLowerCase().includes("invalid token")) {
@@ -94,7 +97,6 @@ const AdminChekin = () => {
                 return response.json(); // Parse response if OK
             })
             .then((result) => {
-                console.log("Response data:", result); // Log the API response data
 
                 // Handle potential new token in the response and update localStorage
                 const newToken = result._token || result.token;

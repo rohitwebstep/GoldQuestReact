@@ -109,7 +109,7 @@ const ServiceList = () => {
   };
 
   const handleDelete = (serviceId) => {
-    
+
     Swal.fire({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
@@ -244,9 +244,10 @@ const ServiceList = () => {
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((item) => (
+              {currentItems.map((item,index) => (
                 <tr key={item.id}>
-                  <td className="py-2 px-4 border-l border-r text-sm border-b whitespace-nowrap">{item.index}</td>
+                  <td className="py-2 px-4 border-l border-r text-sm border-b whitespace-nowrap">                        {index + 1 + (currentPage - 1) * itemsPerPage}
+                  </td>
                   <td className="py-2 px-4 border-r text-sm border-b whitespace-nowrap">{item.title}</td>
                   <td className="py-2 px-4 border-r text-sm border-b">{item.description}</td>
                   <td className="py-2 px-4 border-r text-sm border-b">{item.sac_code}</td>

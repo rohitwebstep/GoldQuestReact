@@ -52,6 +52,10 @@ const CandidateMasterTrackerList = () => {
         })
             .then(response => {
                 return response.json().then(result => {
+                    const newToken = result._token || result.token;
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken);
+                    }
                     // Check for session expiry (invalid token)
                     if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                         // Handle session expiry (expired token)
@@ -68,10 +72,7 @@ const CandidateMasterTrackerList = () => {
                     }
 
                     // Handle new token if available
-                    const newToken = result._token || result.token;
-                    if (newToken) {
-                        localStorage.setItem("_token", newToken);
-                    }
+                  
 
                     // Handle other errors if response is not OK
                     if (!response.ok) {
@@ -87,7 +88,10 @@ const CandidateMasterTrackerList = () => {
                 });
             })
             .then((result) => {
-                // Update data state with the result
+                const newToken = result._token || result.token;
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken);
+                    }
                 setData(result.data.customers || []);
             })
             .catch((error) => {

@@ -5,7 +5,7 @@ import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApiCall } from '../../ApiCallContext';
 
 const GenerateReport = () => {
-    const {isApiLoading,setIsApiLoading} = useApiCall();
+    const { isApiLoading, setIsApiLoading } = useApiCall();
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [servicesForm, setServicesForm] = useState('');
@@ -124,12 +124,12 @@ const GenerateReport = () => {
     const fetchServicesJson = useCallback(async (servicesList) => {
         setIsApiLoading(true);  // Start global loading
         setLoading(true);       // Set specific loading state
-    
+
         try {
             const adminData = JSON.parse(localStorage.getItem("admin"));
             const adminId = adminData?.id;
             const token = localStorage.getItem("_token");
-    
+
             // Return an empty array if servicesList is empty or undefined
             if (!servicesList || servicesList.length === 0) {
                 console.warn("Services list is empty.");
@@ -137,7 +137,7 @@ const GenerateReport = () => {
                 setIsApiLoading(false); // Stop global loading
                 return [];
             }
-    
+
             // Ensure necessary parameters are available
             if (!adminId || !token) {
                 console.error("Missing admin ID or token.");
@@ -145,36 +145,36 @@ const GenerateReport = () => {
                 setIsApiLoading(false); // Stop global loading
                 return [];
             }
-    
+
             const requestOptions = {
                 method: "GET",
                 redirect: "follow",
             };
-    
+
             // Construct the URL with service IDs
             const url = new URL("https://api.goldquestglobal.in/client-master-tracker/services-annexure-data");
             url.searchParams.append("service_ids", servicesList);
             url.searchParams.append("application_id", applicationId);
             url.searchParams.append("admin_id", adminId);
             url.searchParams.append("_token", token);
-    
+
             const response = await fetch(url, requestOptions);
-    
+
             if (!response.ok) {
                 console.error("Failed to fetch service data:", response.statusText);
                 setLoading(false); // Stop loading for this operation
                 setIsApiLoading(false); // Stop global loading
                 return [];
             }
-    
+
             const result = await response.json();
-    
+
             // Update the token if a new one is provided
             const newToken = result.token || result._token || "";
             if (newToken) {
                 localStorage.setItem("_token", newToken);
             }
-    
+
             // Handle invalid or expired token
             if (result.message && result.message.startsWith("INVALID TOKEN")) {
                 Swal.fire({
@@ -190,12 +190,12 @@ const GenerateReport = () => {
                 setIsApiLoading(false); // Stop global loading
                 return;
             }
-    
+
             // Filter out null or invalid items
             const filteredResults = result.results?.filter((item) => item != null) || [];
             setServicesDataInfo(filteredResults); // Set service data
             return filteredResults;
-    
+
         } catch (error) {
             console.error("Error fetching service data:", error);
             setLoading(false); // Stop loading for this operation
@@ -207,11 +207,11 @@ const GenerateReport = () => {
             setIsApiLoading(false); // Stop global loading
         }
     }, [applicationId, setServicesDataInfo]); // Add dependencies where necessary
-    
+
 
     useEffect(() => {
-        if(!isApiLoading){
-        fetchServicesJson();
+        if (!isApiLoading) {
+            fetchServicesJson();
         }
     }, [fetchServicesJson]);
 
@@ -251,9 +251,13 @@ const GenerateReport = () => {
 
         fetch(`https://api.goldquestglobal.in/client-master-tracker/application-by-id?application_id=${applicationId}&branch_id=${branchid}&admin_id=${adminId}&_token=${token}`, requestOptions)
             .then((response) => {
-              return  response.json()
+                return response.json()
             })
             .then((result) => {
+                const newToken = result.token || result._token || '';
+                if (newToken) {
+                    localStorage.setItem("_token", newToken); // Save the new token in localStorage
+                }
 
                 // Check for error message in response
                 if (result.message && result.message.toLowerCase().startsWith("message")) {
@@ -268,13 +272,7 @@ const GenerateReport = () => {
                     return; // Exit early if there's an error
                 }
 
-                // Check if a new token is present in the response
-                const newToken = result.token || result._token || '';
-                if (newToken) {
-                    localStorage.setItem("_token", newToken); // Save the new token in localStorage
-                }
 
-                // Handle token expiration check if "token expired" is in the message
                 if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                     Swal.fire({
                         title: "Session Expired",
@@ -420,7 +418,7 @@ const GenerateReport = () => {
     }, [applicationId, branchid, fetchServicesJson, setServicesForm, setServicesData, setBranchInfo, setCustomerInfo, setFormData]);
 
     useEffect(() => {
-        if(!isApiLoading){
+        if (!isApiLoading) {
             fetchApplicationData();
         }
 
@@ -453,27 +451,27 @@ const GenerateReport = () => {
     };
     const fetchAdminList = useCallback(() => {
         setIsApiLoading(true);  // Start the global loading state
-    
+
         setLoading(true);  // Start specific loading state
-    
+
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
-    
+
         if (!admin_id || !storedToken) {
             console.error("Admin ID or token is missing.");
             setLoading(false);  // Stop loading state if conditions are not met
             setIsApiLoading(false);  // Stop global loading state as well
             return;  // Exit early if missing data
         }
-    
+
         // Construct the URL with query parameters
         const url = `https://api.goldquestglobal.in/admin/list?admin_id=${admin_id}&_token=${storedToken}`;
-    
+
         const requestOptions = {
             method: 'GET',  // GET request doesn't need a body
             redirect: 'follow', // Handling redirects, if any
         };
-    
+
         fetch(url, requestOptions)
             .then((response) => {
                 return response.json().then((result) => {
@@ -494,7 +492,7 @@ const GenerateReport = () => {
                         id: spoc.id,
                         name: spoc.name
                     }));
-    
+
                     setAdminNames(spocsWithIds || []);
                 } else {
                     console.error('Error: ', result.message);
@@ -509,10 +507,10 @@ const GenerateReport = () => {
                 setIsApiLoading(false);  // Stop global loading state once everything is done
             });
     }, []);  // Empty dependency array, so it only runs once on component mount
-    
+
     useEffect(() => {
-        if(!isApiLoading){
-        fetchAdminList();
+        if (!isApiLoading) {
+            fetchAdminList();
         }
     }, [fetchAdminList]);
 
@@ -718,11 +716,11 @@ const GenerateReport = () => {
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setIsApiLoading(true); // Start global loading spinner
-    
+
         setLoading(true); // Start specific loading spinner
-    
+
         const fileCount = Object.keys(files).length;
-    
+
         // Swal instance to show loading spinner while processing
         const swalInstance = Swal.fire({
             title: 'Processing...',
@@ -733,11 +731,11 @@ const GenerateReport = () => {
             allowOutsideClick: false, // Prevent closing Swal while processing
             showConfirmButton: false, // Hide the confirm button
         });
-    
+
         try {
             const adminData = JSON.parse(localStorage.getItem("admin"));
             const token = localStorage.getItem("_token");
-    
+
             // Prepare submission data
             const submissionData = servicesDataInfo
                 .map((serviceData, index) => {
@@ -745,25 +743,25 @@ const GenerateReport = () => {
                         const formJson = serviceData.reportFormJson?.json
                             ? JSON.parse(serviceData.reportFormJson.json)
                             : null;
-    
+
                         if (!formJson) {
                             console.warn(`Invalid formJson for service at index ${index}`);
                             return null;
                         }
-    
+
                         const annexure = {};
-    
+
                         // Map through rows and inputs to build annexure
                         formJson.rows.forEach((row) => {
                             row.inputs.forEach((input) => {
                                 let fieldName = input.name;
                                 const fieldValue =
                                     serviceData.annexureData?.[fieldName] || "";
-    
+
                                 if (fieldName.endsWith("[]")) {
                                     fieldName = fieldName.slice(0, -2); // Remove array indicator
                                 }
-    
+
                                 if (fieldName.startsWith("annexure.")) {
                                     const [, category, key] = fieldName.split(".");
                                     if (!annexure[category]) annexure[category] = {};
@@ -775,32 +773,32 @@ const GenerateReport = () => {
                                 }
                             });
                         });
-    
+
                         const category = formJson.db_table || "default_category";
                         const status = selectedStatuses?.[index] || "";
                         if (annexure[category]) {
                             annexure[category].status = status;
                         }
-    
+
                         return { annexure };
                     }
                     return null;
                 })
                 .filter(Boolean); // Remove null values
-    
+
             if (!submissionData.length) {
                 console.warn("No valid submission data found.");
                 Swal.fire("Error", "No data to submit. Please check your inputs.", "error");
                 setLoading(false);
                 return;
             }
-    
+
             // Flatten and clean up annexure data
             const filteredSubmissionData = submissionData.reduce(
                 (acc, item) => ({ ...acc, ...item.annexure }),
                 {}
             );
-    
+
             Object.keys(filteredSubmissionData).forEach((key) => {
                 const data = filteredSubmissionData[key];
                 Object.keys(data).forEach((subKey) => {
@@ -809,7 +807,7 @@ const GenerateReport = () => {
                     }
                 });
             });
-    
+
             // Prepare request payload
             const raw = JSON.stringify({
                 admin_id: adminData?.id || "",
@@ -821,30 +819,30 @@ const GenerateReport = () => {
                 annexure: filteredSubmissionData,
                 send_mail: fileCount === 0 ? 1 : 0,
             });
-    
+
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: raw,
             };
-    
+
             // API Request
             const response = await fetch(
                 `https://api.goldquestglobal.in/client-master-tracker/generate-report`,
                 requestOptions
             );
-    
+
             const result = await response.json();
             const newToken = result._token || result.token;
             if (newToken) {
                 localStorage.setItem("_token", newToken);
             }
-    
+
             if (!response.ok) {
                 const errorMessage = result.message || `HTTP error! Status: ${response.status}`;
                 throw new Error(errorMessage);
             }
-    
+
             // Success Handling
             const successMessage = result.success_message || "Application updated successfully.";
             if (fileCount == 0) {
@@ -864,7 +862,7 @@ const GenerateReport = () => {
                     confirmButtonText: "Ok",
                 });
             }
-    
+
         } catch (error) {
             console.error("Error during submission:", error);
             Swal.fire("Error", error.message || "Failed to submit the application. Please try again.", "error");
@@ -874,7 +872,7 @@ const GenerateReport = () => {
             setIsApiLoading(false); // Stop global loading spinner
         }
     }, [servicesDataInfo, branchid, branchInfo, applicationId, formData, selectedStatuses, files]);
-    
+
 
 
     return (

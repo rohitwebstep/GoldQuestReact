@@ -20,15 +20,15 @@ const Customer = ({ children }) => {
     const checkAuthentication = async () => {
       const storedAdminData = localStorage.getItem("branch");
       const storedToken = localStorage.getItem("branch_token");
-
+  
       // If no branch or token data in localStorage, redirect to login
       if (!storedAdminData || !storedToken) {
         redirectToLogin();
         return;
       }
-
+  
       setIsBranchApiLoading(true);
-
+  
       let adminData;
       try {
         adminData = JSON.parse(storedAdminData);
@@ -37,15 +37,23 @@ const Customer = ({ children }) => {
         redirectToLogin();
         return;
       }
-
+  
       try {
         // Send verification request to the server
         const response = await axios.post(`${API_URL}/branch/verify-branch-login`, {
           branch_id: adminData.id,
           _token: storedToken,
         });
-
+  
+        // Check if the session is valid
         if (response.data.status) {
+          // Check if there's a new token and update localStorage if it exists
+          const newToken = response.data._token || response.data.token;
+          if (newToken) {
+            console.log("New Token received:", newToken); // Log for debugging purposes
+            localStorage.setItem("branch_token", newToken); // Update the token in localStorage
+          }
+  
           setLoading(false);  // If session is valid, stop loading
         } else {
           // Session expired or invalid token, handle accordingly
@@ -54,15 +62,15 @@ const Customer = ({ children }) => {
       } catch (error) {
         console.error('Error validating login:', error);
         handleLoginError();
-      }finally{
+      } finally {
         setIsBranchApiLoading(false);
       }
     };
-
+  
     const redirectToLogin = () => {
       navigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
     };
-
+  
     const handleSessionExpired = (message) => {
       // Check if the message contains an invalid token
       if (message && message.toLowerCase().includes("invalid") && message.toLowerCase().includes("token")) {
@@ -78,7 +86,7 @@ const Customer = ({ children }) => {
         handleLoginError();  // Handle any other errors
       }
     };
-
+  
     const handleLoginError = () => {
       // Remove session data from localStorage and redirect to login
       localStorage.removeItem("branch");
@@ -86,10 +94,10 @@ const Customer = ({ children }) => {
       setIsBranchApiLoading(false);
       redirectToLogin();
     };
-
+  
     checkAuthentication();
   }, [navigate, setLoading, setIsBranchApiLoading, API_URL, branchEmail]);
-
+  
   // If the component is loading, show a loader
   if (loading) {
     return <Loader />;
