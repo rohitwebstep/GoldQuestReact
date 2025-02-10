@@ -309,6 +309,7 @@ const CandidateForm = () => {
                                     <option value="">Select Purpose</option>
                                     <option value="Tenant">Tenant</option>
                                     <option value="Nursing">Nursing</option>
+                                    <option value="Bgv">BGV</option>
                                 </select>
                             </div>
                             <div className="mb-4">

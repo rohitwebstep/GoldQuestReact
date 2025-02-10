@@ -644,23 +644,28 @@ const BackgroundForm = () => {
                     setCompanyName(result.data?.application?.branch_name || '');
                     setNationality(result.data?.application?.nationality || '');
                     setPurpose(result.data?.application?.purpose_of_application || '');
-                    const parsedData = result.data?.serviceData || '';
+                    const parsedData = result.data?.serviceData || [];
 
                     let allJsonData = [];
                     const sortedData = Object.entries(parsedData)
-                    .sort(([, a], [, b]) => a.group.localeCompare(b.group)) // Sorting by group
-                    .reduce((acc, [key, value]) => {
-                        acc[key] = value;  // Reconstruct the object with sorted entries
-                        return acc;
-                    }, {});
-                
+                        .sort(([, a], [, b]) => {
+                            // Check for null or undefined before calling localeCompare
+                            const groupA = a.group || '';  // Default to empty string if a.group is null or undefined
+                            const groupB = b.group || '';  // Default to empty string if b.group is null or undefined
+                            return groupA.localeCompare(groupB);
+                        })
+                        .reduce((acc, [key, value]) => {
+                            acc[key] = value;  // Reconstruct the object with sorted entries
+                            return acc;
+                        }, {});
+
                     for (const key in sortedData) {
                         if (sortedData.hasOwnProperty(key)) {
                             const jsonData = sortedData[key].jsonData;
                             allJsonData.push(jsonData);  // Store jsonData in the array
                         }
                     }
-                    
+
                     const fileInputs = allJsonData
                         .flatMap(item =>
                             item.rows.flatMap(row =>
@@ -671,8 +676,9 @@ const BackgroundForm = () => {
                                     }))
                             )
                         );
-                        setServiceDataImageInputNames(fileInputs);
-                        setServiceData(allJsonData);
+                    setServiceDataImageInputNames(fileInputs);
+                    setServiceData(allJsonData);
+
                 } else {
                     // Application does not exist or other error: Hide the form and show an alert
                     const form = document.getElementById('bg-form');
@@ -710,7 +716,7 @@ const BackgroundForm = () => {
         fetchApplicationStatus();
     }, []); // The empty array ensures this runs only once, on mount
 
-  
+
     useEffect(() => {
         const currentDate = new Date().toISOString().split('T')[0];
         setFormData((prevData) => ({
@@ -722,7 +728,7 @@ const BackgroundForm = () => {
         }));
     }, []);
 
- 
+
 
     const handleFileChange = (dbTable, fileName, e) => {
         const selectedFiles = Array.from(e.target.files); // Convert FileList to array
@@ -1065,9 +1071,10 @@ const BackgroundForm = () => {
                                     <h5 className="text-lg font-bold text-center md:text-start">Company name: <span className="text-lg font-normal">{companyName}</span></h5>
                                 </div>
                                 <div className="md:mb-6 mb-2 py-4 rounded-md">
-                                    <h5 className="text-lg font-bold text-center md:text-start">Purpose of Application: <span className="text-lg font-normal">{purpose}</span></h5>
+                                    <h5 className="text-lg font-bold text-center md:text-start">Purpose of Application: <span className="text-lg font-normal">{purpose || 'NIL'}</span></h5>
                                 </div>
                             </div>
+
 
                             <div className="mb-6 flex p-2 filter-menu overflow-x-auto border rounded-md items-center flex-nowrap relative space-x-4">
                                 {/* Personal Information Tab */}
@@ -1148,24 +1155,26 @@ const BackgroundForm = () => {
                                 {activeTab === 0 && (
                                     <div>
                                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 border rounded-md  p-4" >
-                                            <div className="form-group col-span-2" >
-                                                <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
-                                                <input
-                                                    type="file"
-                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                            {purpose == 'Bgv' && (
+                                                <div className="form-group col-span-2" >
+                                                    <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
+                                                    <input
+                                                        type="file"
+                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
 
-                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                    name="resume_file"
-                                                    id="resume_file"
-                                                    onChange={(e) => handleFileChange("applications_resume_file", "resume_file", e)}
-                                                    ref={(el) => (refs.current["resume_file"] = el)} // Attach ref here
+                                                        className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                        name="resume_file"
+                                                        id="resume_file"
+                                                        onChange={(e) => handleFileChange("applications_resume_file", "resume_file", e)}
+                                                        ref={(el) => (refs.current["resume_file"] = el)} // Attach ref here
 
-                                                />
-                                                {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
-                                                <p className="text-gray-500 text-sm mt-2" >
-                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                </p>
-                                            </div>
+                                                    />
+                                                    {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
+                                                    <p className="text-gray-500 text-sm mt-2" >
+                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                    </p>
+                                                </div>
+                                            )}
                                             < div className="form-group col-span-2" >
                                                 <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span></label >
                                                 <input
@@ -1182,6 +1191,7 @@ const BackgroundForm = () => {
                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                 </p>
                                             </div>
+
 
 
                                             {
@@ -1927,9 +1937,9 @@ const BackgroundForm = () => {
                                     // Only render the correct service tab based on activeTab
                                     if (activeTab === serviceIndex + 2) {
                                         return (
-                                            <div key={serviceIndex} className="p-6" >
-                                                <h2 className="text-2xl font-bold mb-6" > {service.heading} </h2>
-                                                < div className="space-y-6" id="servicesForm" >
+                                            <div key={serviceIndex} className="p-6">
+                                                <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
+                                                <div className="space-y-6" id="servicesForm">
                                                     {
                                                         service.rows.map((row, rowIndex) => {
                                                             if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
@@ -1937,15 +1947,14 @@ const BackgroundForm = () => {
                                                             }
 
                                                             return (
-                                                                <div key={rowIndex} >
-                                                                    {
-                                                                        row.row_heading && (
-                                                                            <h3 className="text-sm font-semibold mb-4"> {row.row_heading} </h3>
-                                                                        )
-                                                                    }
+                                                                <div key={rowIndex}>
+                                                                    {/* Render row heading if it exists */}
+                                                                    {row.heading || row.row_heading && (
+                                                                        <h3 className="text-lg font-bold mb-4">{row.heading || row.row_heading}</h3>
+                                                                    )}
 
                                                                     {/* Form inputs for the row */}
-                                                                    <div className="space-y-4" >
+                                                                    <div className="space-y-4">
                                                                         <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : '3'} gap-3`}>
                                                                             {
                                                                                 row.inputs.map((input, inputIndex) => {
@@ -1966,165 +1975,114 @@ const BackgroundForm = () => {
                                                                                     }
 
                                                                                     return (
-                                                                                        <div key={inputIndex} className="flex flex-col space-y-2" >
-                                                                                            <label className="text-sm block font-medium mb-2 text-gray-700 capitalize" >
+                                                                                        <div key={inputIndex} className="flex flex-col space-y-2">
+                                                                                            <label className="text-sm block font-medium mb-2 text-gray-700 capitalize">
                                                                                                 {input.label.replace(/[\/\\]/g, '')}
-                                                                                                {input.required && <span className="text-red-500" >* </span>}
+                                                                                                {input.required && <span className="text-red-500">*</span>}
                                                                                             </label>
 
                                                                                             {/* Various input types */}
-                                                                                            {
-                                                                                                input.type === 'input' && (
-                                                                                                    <>
-                                                                                                        <input
-                                                                                                            type="text"
-                                                                                                            name={input.name}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                        />
+                                                                                            {input.type === 'input' && (
+                                                                                                <input
+                                                                                                    type="text"
+                                                                                                    name={input.name}
+                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                />
+                                                                                            )}
+                                                                                            {input.type === 'textarea' && (
+                                                                                                <textarea
+                                                                                                    name={input.name}
+                                                                                                    rows={1}
+                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                />
+                                                                                            )}
+                                                                                            {input.type === 'datepicker' && (
+                                                                                                <input
+                                                                                                    type="date"
+                                                                                                    name={input.name}
+                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                    className="mt-3 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                />
+                                                                                            )}
+                                                                                            {input.type === 'number' && (
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    name={input.name}
+                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                />
+                                                                                            )}
+                                                                                            {input.type === 'email' && (
+                                                                                                <input
+                                                                                                    type="email"
+                                                                                                    name={input.name}
+                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                />
+                                                                                            )}
+                                                                                            {input.type === 'select' && (
+                                                                                                <select
+                                                                                                    name={input.name}
+                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                >
+                                                                                                    {Object.entries(input.options).map(([key, option], optionIndex) => (
+                                                                                                        <option key={optionIndex} value={key}>
+                                                                                                            {option}
+                                                                                                        </option>
+                                                                                                    ))}
+                                                                                                </select>
+                                                                                            )}
+                                                                                            {input.type === 'file' && (
+                                                                                                <input
+                                                                                                    type="file"
+                                                                                                    name={input.name}
+                                                                                                    multiple
+                                                                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
+                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
+                                                                                                    onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
+                                                                                                />
+                                                                                            )}
+                                                                                            {input.type === 'checkbox' && (
+                                                                                                <div className="flex items-center space-x-3">
+                                                                                                    <input
+                                                                                                        type="checkbox"
+                                                                                                        name={input.name}
+                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                        className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                                                                        onChange={(e) => {
+                                                                                                            handleCheckboxChange(input.name, e.target.checked);
+                                                                                                            toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
+                                                                                                        }}
+                                                                                                    />
+                                                                                                    <span className="text-sm text-gray-700">{input.label}</span>
+                                                                                                </div>
+                                                                                            )}
 
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm" > {errors[input.name]} </p>}
-                                                                                                    </>
-                                                                                                )
-                                                                                            }
-                                                                                            {
-                                                                                                input.type === 'textarea' && (
-                                                                                                    <>
-                                                                                                        <textarea
-                                                                                                            name={input.name}
-                                                                                                            rows={1}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-
-                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)
-                                                                                                            }
-
-                                                                                                        />
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm" > {errors[input.name]} </p>}
-                                                                                                    </>
-                                                                                                )
-                                                                                            }
-                                                                                            {
-                                                                                                input.type === 'datepicker' && (
-                                                                                                    <>
-                                                                                                        <input
-                                                                                                            type="date"
-                                                                                                            name={input.name}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-
-                                                                                                            className="mt-3 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)
-                                                                                                            }
-                                                                                                        />
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm" > {errors[input.name]} </p>}
-
-                                                                                                    </>
-                                                                                                )}
-                                                                                            {
-                                                                                                input.type === 'number' && (
-                                                                                                    <>
-                                                                                                        <input
-                                                                                                            type="number"
-                                                                                                            name={input.name}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-
-                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)
-                                                                                                            }
-                                                                                                        />
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm" > {errors[input.name]} </p>}
-                                                                                                    </>
-
-                                                                                                )}
-                                                                                            {
-                                                                                                input.type === 'email' && (
-                                                                                                    <>
-                                                                                                        <input
-                                                                                                            type="email"
-                                                                                                            name={input.name}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-
-                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)
-                                                                                                            }
-                                                                                                        />
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm" > {errors[input.name]} </p>}
-
-                                                                                                    </>
-                                                                                                )}
-                                                                                            {
-                                                                                                input.type === 'select' && (
-                                                                                                    <>
-                                                                                                        <select
-                                                                                                            name={input.name}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-
-                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)
-                                                                                                            }
-                                                                                                        >
-                                                                                                            {
-                                                                                                                Object.entries(input.options).map(([key, option], optionIndex) => (
-                                                                                                                    <option key={optionIndex} value={key} >
-                                                                                                                        {option}
-                                                                                                                    </option>
-                                                                                                                ))
-                                                                                                            }
-                                                                                                        </select>
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm" > {errors[input.name]} </p>}
-                                                                                                    </>
-
-                                                                                                )}
-                                                                                            {
-                                                                                                input.type === 'file' && (
-                                                                                                    <>
-                                                                                                        <input
-                                                                                                            type="file"
-                                                                                                            name={input.name}
-                                                                                                            multiple
-                                                                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
-                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
-                                                                                                            onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
-                                                                                                        />
-                                                                                                        {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
-                                                                                                    </>
-                                                                                                )
-                                                                                            }
-
-                                                                                            {
-                                                                                                input.type === 'checkbox' && (
-                                                                                                    <div className="flex items-center space-x-3">
-                                                                                                        <input
-                                                                                                            type="checkbox"
-                                                                                                            name={input.name}
-                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}  // Correctly bind value to state
-
-                                                                                                            className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                                                                                                            onChange={(e) => {
-                                                                                                                handleCheckboxChange(input.name, e.target.checked);
-                                                                                                                toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked); // Optional for any additional row toggle logic
-                                                                                                            }}
-                                                                                                        />
-                                                                                                        <span className="text-sm text-gray-700">{input.label}</span>
-                                                                                                    </div>
-                                                                                                )
-                                                                                            }
-
+                                                                                            {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
                                                                                         </div>
                                                                                     );
-                                                                                })}
+                                                                                })
+                                                                            }
                                                                         </div>
-
                                                                     </div>
                                                                 </div>
                                                             );
-                                                        })}
+                                                        })
+                                                    }
                                                 </div>
                                             </div>
                                         );
                                     }
-                                    return null;  // Return null if the activeTab doesn't match this service
+                                    return null; // Return null if the activeTab doesn't match this service
                                 })}
 
                                 {/* Step 3 logic */}
