@@ -7,7 +7,6 @@ const Callback = () => {
     
         // Check if branch data exists and can be parsed correctly
         if (!branchData) {
-            console.log("Error: Branch data is missing or corrupted.");
             Swal.fire({
                 title: 'Error',
                 text: 'Branch data is missing. Please log in again.',
@@ -22,7 +21,6 @@ const Callback = () => {
         try {
             parsedBranchData = JSON.parse(branchData);
         } catch (e) {
-            console.log("Error: Unable to parse branch data from localStorage", e);
             Swal.fire({
                 title: 'Error',
                 text: 'There was an issue with your session data. Please log in again.',
@@ -35,10 +33,6 @@ const Callback = () => {
         const branch_id = parsedBranchData?.id;
         const branch_token = localStorage.getItem("branch_token");
     
-        // Log branchData and token for debugging purposes
-        console.log("Branch Data:", parsedBranchData);
-        console.log("Branch ID:", branch_id);
-        console.log("Branch Token:", branch_token);
     
         // Ensure the required data is available before making the request
         if (!branch_id || !branch_token) {
@@ -79,19 +73,14 @@ const Callback = () => {
         });
     
         // Start fetch request
-        console.log("Sending request to API...");
     
         fetch("https://api.goldquestglobal.in/branch/callback-request", requestOptions)
             .then((response) => {
-                // Log the raw response for debugging
-                console.log("Raw API Response:", response);
     
                 // If the response is not okay, process the error
                 if (!response.ok) {
-                    console.log("Response is not OK, handling error...");
                     return response.json().then((result) => {
                         const errorMessage = result.message || 'An unexpected error occurred.';
-                        console.log("Error Response:", result); // Log error response
     
                         // Check for invalid token in the error message
                         if (
@@ -120,21 +109,19 @@ const Callback = () => {
                 }
     
                 // Log the response if OK
-                console.log("API Response OK:", response);
-    
+
+                
                 // Convert the response to JSON
                 return response.json();
             })
             .then((result) => {
                 // Log the parsed result
-                console.log("Parsed Result:", result);
     
                 Swal.close(); // Close loading spinner
     
                 // Check if the response contains a new token and store it
                 const newToken = result._token || result.token;
                 if (newToken) {
-                    console.log("New Token:", newToken);
                     localStorage.setItem("branch_token", newToken);
                 }
     

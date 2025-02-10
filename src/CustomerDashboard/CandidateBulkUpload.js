@@ -92,7 +92,6 @@ const CandidateBulkUpload = () => {
                 setSpocName(result.data.customer.spoc_details[0].name);
             } else {
                 setLoading(false);
-                console.log('Error fetching data:', response.statusText);
             }
         } catch (error) {
             setLoading(false);
@@ -201,7 +200,6 @@ const CandidateBulkUpload = () => {
                         navigate("/user-candidateManager");  // Replace with your route
                     }
                 });
-                console.log("Submission successful:", result);
             } else {
                 Swal.fire({
                     icon: "error",
@@ -238,7 +236,6 @@ const CandidateBulkUpload = () => {
         });
 
         // Optional: Log the updated services to verify
-        console.log(services);
     };
 
     const handlePackageChange = (selectedOptions) => {
@@ -251,11 +248,9 @@ const CandidateBulkUpload = () => {
                     service.isSelected = false;
                 });
             });
-            console.log("All services have been deselected");
         } else {
             // Otherwise, select services that match the selected package IDs
             selectPackageById(selectedPackageIds);
-            console.log(`Selected Package IDs: `, selectedPackageIds);
         }
 
         // Update the form data with the selected package IDs
@@ -287,17 +282,14 @@ const CandidateBulkUpload = () => {
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file && file.type === 'text/csv') {
-            console.log("File selected:", file.name); // Log file selection
 
             const reader = new FileReader();
             reader.onload = () => {
                 const fileContent = reader.result;
-                console.log("File content loaded:", fileContent); // Log CSV content
                 setFileName(file.name);
                 setIsFileValid(true);
                 const parsedData = parseCSV(fileContent);
                 const csvHeaders = csvHeadings(fileContent); // Ass-uming csvHeadings correctly returns column headers.
-                console.log("Headers:", csvHeaders); // Log headers
 
                 const newData = [];
                 let hasError = false;
@@ -309,11 +301,9 @@ const CandidateBulkUpload = () => {
                     const someEmpty = values.some((val) => val === '') && !allEmpty;
 
                     if (allEmpty) {
-                        console.log(`Skipping row ${index + 1}: Empty row.`); // Skip empty rows
                     } else if (someEmpty) {
                         setFileName('');
                         setIsFileValid(false);
-                        console.log(`Error in row ${index + 1}: Missing values.`); // Log error for incomplete rows
                         hasError = true;
 
                         // Check which fields are missing
@@ -332,18 +322,15 @@ const CandidateBulkUpload = () => {
                 });
 
                 if (hasError) {
-                    console.log("Errors found. Not processing file further."); // Stop processing on error
                     return;
                 }
 
                 // Set valid data if no errors
                 setData(newData);
-                console.log("Processed and set valid data:", newData); // Log valid data
             };
 
             reader.readAsText(file);
         } else {
-            console.log("Invalid file type selected."); // Log invalid file type
             Swal.fire({
                 icon: 'error',
                 title: 'Invalid File',

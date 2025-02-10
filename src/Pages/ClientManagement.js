@@ -518,7 +518,6 @@ const ClientManagement = () => {
         // Handle successful upload response (Optional, if required)
         if (response.data.status === "success") {
           // Optionally handle success scenario
-          console.log(`File uploaded successfully for category: ${key}`);
         } else {
           throw new Error(response.data.message || "Unexpected error occurred.");
         }

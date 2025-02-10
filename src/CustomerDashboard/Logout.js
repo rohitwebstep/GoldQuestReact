@@ -51,7 +51,6 @@ const Logout = () => {
                 });
             }
         } else {
-            console.log("Logout canceled.");
         }
     };
 

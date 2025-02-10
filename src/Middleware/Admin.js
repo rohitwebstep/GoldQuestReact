@@ -52,7 +52,6 @@ const Admin = ({ children }) => {
         // Check if a new token is returned and update localStorage
         const newToken = responseData._token || responseData.token;
         if (newToken) {
-          console.log("New Token received:", newToken); // Log the new token for debugging
           localStorage.setItem("_token", newToken); // Store the new token in localStorage
         }
         

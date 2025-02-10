@@ -36,6 +36,8 @@ export const DropBoxProvider = ({ children }) => {
         employee_id: "",
         mobile_number: "",
         email: "",
+        nationality:"",
+        purpose_of_application:"",
         services: [],
         package: [],
         candidate_application_id: ''

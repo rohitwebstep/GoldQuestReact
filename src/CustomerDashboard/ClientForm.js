@@ -243,7 +243,6 @@ const ClientForm = () => {
                 );
 
                 const result = await response.json();
-                console.log('API Response:', result); // Log the full response for debugging
 
                 if (!response.ok) {
                     const errorMessage = result.message || "Unknown error occurred";

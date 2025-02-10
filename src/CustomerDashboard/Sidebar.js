@@ -51,7 +51,6 @@ const Sidebar = () => {
   const [toggle, setToggle] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const { isBranchApiLoading } = useApiCall();
-console.log('isBranchApiLoading',isBranchApiLoading)
   const handleToggle = () => {
     setToggle(!toggle);
   };

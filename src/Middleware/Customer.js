@@ -50,7 +50,6 @@ const Customer = ({ children }) => {
           // Check if there's a new token and update localStorage if it exists
           const newToken = response.data._token || response.data.token;
           if (newToken) {
-            console.log("New Token received:", newToken); // Log for debugging purposes
             localStorage.setItem("branch_token", newToken); // Update the token in localStorage
           }
   

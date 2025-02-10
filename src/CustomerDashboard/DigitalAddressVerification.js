@@ -150,7 +150,6 @@ const DigitalAddressVerification = () => {
                 }
             }));
         } else {
-            console.log('printerfdtaha',formData);
             setFormData(prev => ({
                 ...prev,
                 personal_information: {
@@ -365,9 +364,6 @@ const DigitalAddressVerification = () => {
         }
     };
     
-
-
-    console.log('data', data)
     return (
         <>
 

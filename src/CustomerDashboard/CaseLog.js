@@ -480,7 +480,6 @@ const CaseLog = () => {
         })
             .then((response) => response.json()) // Convert response to JSON
             .then((data) => {
-                console.log('Response:', data); // Log the API response
 
                 // Handle session expiry if token is invalid
                 if (data.status === false && data.message === "Invalid token provided") {
@@ -490,7 +489,6 @@ const CaseLog = () => {
                         icon: "warning",
                         confirmButtonText: "OK",
                     }).then(() => {
-                        console.log("Redirecting to login...");
                         window.location.href = `/customer-login?email=${encodeURIComponent(branchData?.email || "")}`;
                     });
                     return; // Stop further execution after redirecting
@@ -631,7 +629,6 @@ const CaseLog = () => {
                         return response.json();
                     })
                     .then((result) => {
-                        console.log(result);
 
                         // Show success message
                         Swal.fire({

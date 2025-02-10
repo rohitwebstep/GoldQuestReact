@@ -83,12 +83,10 @@ const GenerateReportList = () => {
         return result; // Return the successful result if no errors
       }))
       .then((result) => {
-        console.log("Parsed result:", result); // Log the parsed result
 
         // Handle new token if available
         const newToken = result._token || result.token;
         if (newToken) {
-          console.log("New token received:", newToken); // Log new token
           localStorage.setItem("_token", newToken); // Store the new token in localStorage
         }
 
@@ -98,14 +96,12 @@ const GenerateReportList = () => {
           result.message.toLowerCase().includes("invalid") &&
           result.message.toLowerCase().includes("token")
         ) {
-          console.log("Invalid token detected. Showing session expired alert...");
           Swal.fire({
             title: "Session Expired",
             text: "Your session has expired. Please log in again.",
             icon: "warning",
             confirmButtonText: "Ok",
           }).then(() => {
-            console.log("Redirecting to login page...");
             window.location.href = "/admin-login"; // Redirect to login page
           });
           throw new Error("Session expired"); // Stop further processing
@@ -113,7 +109,6 @@ const GenerateReportList = () => {
 
         // If status is false, show the error message from API
         if (result.status === false) {
-          console.log("API response indicates failure:", result.message); // Log failure message
           Swal.fire({
             icon: "error",
             title: "Oops...",
@@ -123,7 +118,6 @@ const GenerateReportList = () => {
         }
 
         // Proceed with handling the data if everything is successful
-        console.log("Processing result data...");
 
         // Flatten the data to match the table structure
         const flattenedReports = result.result.flatMap((customer) =>
@@ -137,7 +131,6 @@ const GenerateReportList = () => {
           )
         );
 
-        console.log("Flattened reports:", flattenedReports); // Log flattened reports
         setData(flattenedReports); // Set the flattened data to the state
       })
       .catch((error) => {
@@ -145,7 +138,6 @@ const GenerateReportList = () => {
 
       })
       .finally(() => {
-        console.log("Fetch complete, loading stopped.");
         setLoading(false);
         setIsApiLoading(false); // Stop loading after fetch completes
       });

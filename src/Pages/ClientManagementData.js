@@ -150,7 +150,6 @@ const ClientManagementData = () => {
     
             // If invalid token message is in the result after parsing
             if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
-                console.log('Invalid token, redirecting...');
                 Swal.fire({
                     title: "Session Expired",
                     text: "Your session has expired. Please log in again.",
@@ -158,7 +157,6 @@ const ClientManagementData = () => {
                     confirmButtonText: "Ok",
                 }).then(() => {
                     setTimeout(() => {
-                        console.log('Redirecting now...');
                         window.location.href = "/admin-login"; // Redirect to the login page
                     }, 100);
                 });

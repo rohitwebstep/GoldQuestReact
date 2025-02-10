@@ -91,7 +91,6 @@ const ClientBulkUpload = () => {
                 setSpocName(result.data.customer.spoc_details[0].name);
             } else {
                 setLoading(false);
-                console.log('Error fetching data:', response.statusText);
             }
         } catch (error) {
             setLoading(false);
@@ -199,7 +198,6 @@ const ClientBulkUpload = () => {
                     if (result.isConfirmed) {
                     }
                 });
-                console.log("Submission successful:", result);
             } else {
                 Swal.fire({
                     icon: "error",
@@ -232,7 +230,6 @@ const ClientBulkUpload = () => {
             });
         });
 
-        console.log(services);
     };
 
     const handlePackageChange = (selectedOptions) => {
@@ -244,10 +241,8 @@ const ClientBulkUpload = () => {
                     service.isSelected = false;
                 });
             });
-            console.log("All services have been deselected");
         } else {
             selectPackageById(selectedPackageIds);
-            console.log(`Selected Package IDs: `, selectedPackageIds);
         }
 
         setFormData({
@@ -276,17 +271,14 @@ const ClientBulkUpload = () => {
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file && file.type === 'text/csv') {
-            console.log("File selected:", file.name); 
 
             const reader = new FileReader();
             reader.onload = () => {
                 const fileContent = reader.result;
-                console.log("File content loaded:", fileContent); 
                 setFileName(file.name);
                 setIsFileValid(true);
                 const parsedData = parseCSV(fileContent);
                 const csvHeaders = csvHeadings(fileContent); // Ass-uming csvHeadings correctly returns column headers.
-                console.log("Headers:", csvHeaders); // Log headers
 
                 const newData = [];
                 let hasError = false;
@@ -298,11 +290,9 @@ const ClientBulkUpload = () => {
                     const someEmpty = values.some((val) => val === '') && !allEmpty;
 
                     if (allEmpty) {
-                        console.log(`Skipping row ${index + 1}: Empty row.`); // Skip empty rows
                     } else if (someEmpty) {
                         setFileName('');
                         setIsFileValid(false);
-                        console.log(`Error in row ${index + 1}: Missing values.`); // Log error for incomplete rows
                         hasError = true;
 
                         // Check which fields are missing
@@ -321,18 +311,15 @@ const ClientBulkUpload = () => {
                 });
 
                 if (hasError) {
-                    console.log("Errors found. Not processing file further."); // Stop processing on error
                     return;
                 }
 
                 // Set valid data if no errors
                 setData(newData);
-                console.log("Processed and set valid data:", newData); // Log valid data
             };
 
             reader.readAsText(file);
         } else {
-            console.log("Invalid file type selected."); // Log invalid file type
             Swal.fire({
                 icon: 'error',
                 title: 'Invalid File',

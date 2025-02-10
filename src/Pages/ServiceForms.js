@@ -327,7 +327,7 @@ const ServiceForms = () => {
             return;
         }
 
-        const db_table = formData.heading.replace(/\s+/g, '_');  // Replace all spaces with underscores
+        const db_table = formData.heading.replace(/\s+/g, '_').toLowerCase();  // Replace spaces with underscores and convert to lowercase
 
         const updatedFormData = {
             ...formData,

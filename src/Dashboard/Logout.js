@@ -95,7 +95,6 @@ const Logout = () => {
       }
     } else {
       // If the user cancels, do nothing
-      console.log("Logout canceled.");
     }
   };
   

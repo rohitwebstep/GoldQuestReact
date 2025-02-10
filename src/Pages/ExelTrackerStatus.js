@@ -38,7 +38,6 @@ const AdminChekin = () => {
 
     const fetchData = useCallback(() => {
         if (!branch_id || !adminId || !token) {
-            console.log("Essential data is missing. Branch ID, Admin ID, or Token is required.");
             return; // Prevent fetch if essential data is missing
         } else {
             setLoading(true); // Show loading indicator
@@ -51,11 +50,9 @@ const AdminChekin = () => {
         };
 
         const url = `${API_URL}/client-master-tracker/applications-by-branch?branch_id=${branch_id}&admin_id=${adminId}&_token=${token}`;
-        console.log(`Making request to: ${url}`); // Log the URL for debugging
 
         fetch(url, requestOptions)
             .then((response) => {
-                console.log("Response received:", response); // Log the response
                 if (!response.ok) {
                     // Handle non-OK response (e.g., 500, 400 status)
                     return response.json().then(result => {
@@ -66,7 +63,6 @@ const AdminChekin = () => {
 
                         // Check if the error message contains "Invalid token"
                         if (result.message && result.message.toLowerCase().includes("invalid token")) {
-                            console.log("Invalid token detected. Redirecting to login...");
 
                             // Show a session expired message
                             Swal.fire({
@@ -76,7 +72,6 @@ const AdminChekin = () => {
                                 confirmButtonText: "Ok",
                             }).then(() => {
                                 // Redirect to login page after the alert
-                                console.log("Redirecting to login page...");
                                 window.location.href = "/admin-login"; // Redirect to login page
                             });
 
@@ -110,12 +105,10 @@ const AdminChekin = () => {
 
             })
             .catch((error) => {
-                console.error("Error fetching data:", error); // Log error in case of failure
             })
             .finally(() => {
                 setLoading(false);
                 setIsApiLoading(false); // Stop loading after fetch is done
-                console.log("Fetch completed, stopping loading..."); // Log when fetch is done
             });
 
     }, [branch_id, adminId, token, setData, setOptions]);
@@ -123,7 +116,6 @@ const AdminChekin = () => {
 
 
     const fetchAdminList = useCallback(() => {
-        console.log("Fetching admin list...");
         setIsApiLoading(true);
         setLoading(true); // Start loading before fetching data
         const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
@@ -131,14 +123,12 @@ const AdminChekin = () => {
 
         if (!adminId || !token) {
             // If there's no adminId or token, stop execution and alert
-            console.log("No valid session found. Redirecting to login...");
             Swal.fire({
                 title: "Session Expired",
                 text: "No valid session found. Please log in again.",
                 icon: "warning",
                 confirmButtonText: "Ok",
             }).then(() => {
-                console.log("Redirecting to login page...");
                 window.location.href = "/admin-login"; // Force redirect to login page
             });
             setLoading(false); // Stop loading
@@ -156,10 +146,8 @@ const AdminChekin = () => {
 
         fetch(`${API_URL}/client-master-tracker/list?admin_id=${adminId}&_token=${token}`, requestOptions)
             .then(response => {
-                console.log("Response received:", response);
                 if (!response.ok) {
                     return response.json().then(result => {
-                        console.log("Error result:", result);
                         throw new Error(result.message || 'Failed to load data'); // Throw error if response is not OK
                     });
                 }
@@ -169,14 +157,12 @@ const AdminChekin = () => {
 
                 // Check for invalid or expired token in the response message
                 if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
-                    console.log("Invalid token detected. Showing session expired alert...");
                     Swal.fire({
                         title: "Session Expired",
                         text: "Your session has expired. Please log in again.",
                         icon: "warning",
                         confirmButtonText: "Ok",
                     }).then(() => {
-                        console.log("Redirecting to login page...");
                         setTimeout(() => {
                             window.location.href = "/admin-login"; // Force redirect after a short delay to ensure Swal completes
                         }, 500); // Delay to allow Swal to process
@@ -559,7 +545,6 @@ const AdminChekin = () => {
         });
 
         addFooter(doc);
-        console.log('servicesData', servicesData)
         const secondTableData = servicesData.map(item => {
             const sourceKey = item.annexureData
                 ? Object.keys(item.annexureData).find(key => key.startsWith('info_source') || key.startsWith('information_source'))
@@ -930,16 +915,7 @@ const AdminChekin = () => {
                         const imageBases = await fetchImageToBase(annexureImagesStr.trim());
                         if (imageBases) {
                             imageBases.forEach((image, index) => {
-                                /*
-                                console.log(`Image ${index + 1}:`);
-                                console.log(`URL: ${image.imageUrl}`);
-                                console.log(`Base64: ${image.base64}`);
-                                console.log(`Type: ${image.type}`);
-                                console.log(`Width: ${image.width}`);
-                                console.log(`Height: ${image.height}`);
-                                */
-
-                                // Ensure valid base64 string
+                               
                                 if (!image.base64 || !image.base64.startsWith('data:image/')) {
                                     console.error(`Invalid base64 data for image ${index + 1}`);
                                     return;
@@ -972,45 +948,7 @@ const AdminChekin = () => {
                             });
                         }
 
-                        /*
-                        for (const [index, imageUrl] of annexureImagesSplitArr.entries()) {
-                            const imageUrlFull = `${imageUrl.trim()}`;
-                            const imageFormat = getImageFormat(imageUrlFull);
-                            console.log('imageUrlFull', imageUrlFull);
-    
-                            if (!(await checkImageExists(imageUrlFull))) continue;
-    
-                            const imgBlob = await validateImage(imageUrlFull);
-                            if (!imgBlob) continue;
-    
-                            try {
-                                const img = await createImageFromBlob(imgBlob);
-                                const { width, height } = scaleImage(img, doc.internal.pageSize.width - 20, 80);
-                                if (yPosition + height > doc.internal.pageSize.height - 20) {
-                                    doc.addPage();
-                                    yPosition = 10;
-                                }
-    
-                                const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
-                                const textWidth = doc.getTextWidth(annexureText);
-                                const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-    
-                                doc.setFont("helvetica", "bold");
-                                doc.setFontSize(10);
-                                doc.setTextColor(0, 0, 0);
-                                doc.text(annexureText, centerX, yPosition + 10);
-                                yPosition += 15;
-    
-                                const centerXImage = (doc.internal.pageSize.width - width) / 2;
-                                doc.addImage(img.src, imageFormat, centerXImage, yPosition, width, height);
-                                yPosition += height + 15;
-    
-                            } catch (error) {
-                                console.error(`Failed to add image to PDF: ${imageUrlFull}`, error);
-                            }
-                        }
-                        */
-
+                      
                     }
                 } else {
                     doc.setFont("helvetica", "italic");

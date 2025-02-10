@@ -18,7 +18,6 @@ const DemoBgForm = () => {
     const [files, setFiles] = useState({});
     const [serviceData, setServiceData] = useState([]);
     const [status, setStatus] = useState([]);
-    console.log('errors', errors)
 
     // Handler to toggle row visibility
     const [fileNames, setFileNames] = useState([]);
@@ -178,11 +177,7 @@ const DemoBgForm = () => {
                         // Check if createdFileName is valid and the structure exists in 'files'
                         const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
 
-                        // Log files and createdFileName for debugging
-                        console.log('createdFileName:', createdFileName);
-                        console.log('files structure:', files);
-                        console.log('filesToCheck:', filesToCheck);
-
+                
 
                         // If files exist for the input, perform file validation
                         if (filesToCheck && filesToCheck.length > 0) {
@@ -207,7 +202,6 @@ const DemoBgForm = () => {
 
                     // Validate files for all required file inputs
                     const fileInputKeys = row.inputs.filter(input => input.type === 'file').map(input => input.name);
-                    console.log('fileInputKeys', fileInputKeys)
 
                     fileInputKeys.forEach((fileField) => {
                         const fileErrors = validateFile(fileField);

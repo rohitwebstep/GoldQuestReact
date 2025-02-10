@@ -716,11 +716,10 @@ const GenerateReport = () => {
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setIsApiLoading(true); // Start global loading spinner
-
         setLoading(true); // Start specific loading spinner
-
+    
         const fileCount = Object.keys(files).length;
-
+    
         // Swal instance to show loading spinner while processing
         const swalInstance = Swal.fire({
             title: 'Processing...',
@@ -731,11 +730,11 @@ const GenerateReport = () => {
             allowOutsideClick: false, // Prevent closing Swal while processing
             showConfirmButton: false, // Hide the confirm button
         });
-
+    
         try {
             const adminData = JSON.parse(localStorage.getItem("admin"));
             const token = localStorage.getItem("_token");
-
+    
             // Prepare submission data
             const submissionData = servicesDataInfo
                 .map((serviceData, index) => {
@@ -743,25 +742,25 @@ const GenerateReport = () => {
                         const formJson = serviceData.reportFormJson?.json
                             ? JSON.parse(serviceData.reportFormJson.json)
                             : null;
-
+    
                         if (!formJson) {
                             console.warn(`Invalid formJson for service at index ${index}`);
                             return null;
                         }
-
+    
                         const annexure = {};
-
+    
                         // Map through rows and inputs to build annexure
                         formJson.rows.forEach((row) => {
                             row.inputs.forEach((input) => {
                                 let fieldName = input.name;
                                 const fieldValue =
                                     serviceData.annexureData?.[fieldName] || "";
-
+    
                                 if (fieldName.endsWith("[]")) {
                                     fieldName = fieldName.slice(0, -2); // Remove array indicator
                                 }
-
+    
                                 if (fieldName.startsWith("annexure.")) {
                                     const [, category, key] = fieldName.split(".");
                                     if (!annexure[category]) annexure[category] = {};
@@ -773,32 +772,32 @@ const GenerateReport = () => {
                                 }
                             });
                         });
-
+    
                         const category = formJson.db_table || "default_category";
                         const status = selectedStatuses?.[index] || "";
                         if (annexure[category]) {
                             annexure[category].status = status;
                         }
-
+    
                         return { annexure };
                     }
                     return null;
                 })
                 .filter(Boolean); // Remove null values
-
+    
             if (!submissionData.length) {
                 console.warn("No valid submission data found.");
                 Swal.fire("Error", "No data to submit. Please check your inputs.", "error");
                 setLoading(false);
                 return;
             }
-
+    
             // Flatten and clean up annexure data
             const filteredSubmissionData = submissionData.reduce(
                 (acc, item) => ({ ...acc, ...item.annexure }),
                 {}
             );
-
+    
             Object.keys(filteredSubmissionData).forEach((key) => {
                 const data = filteredSubmissionData[key];
                 Object.keys(data).forEach((subKey) => {
@@ -807,7 +806,7 @@ const GenerateReport = () => {
                     }
                 });
             });
-
+    
             // Prepare request payload
             const raw = JSON.stringify({
                 admin_id: adminData?.id || "",
@@ -819,30 +818,30 @@ const GenerateReport = () => {
                 annexure: filteredSubmissionData,
                 send_mail: fileCount === 0 ? 1 : 0,
             });
-
+    
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: raw,
             };
-
+    
             // API Request
             const response = await fetch(
                 `https://api.goldquestglobal.in/client-master-tracker/generate-report`,
                 requestOptions
             );
-
+    
             const result = await response.json();
             const newToken = result._token || result.token;
             if (newToken) {
                 localStorage.setItem("_token", newToken);
             }
-
+    
             if (!response.ok) {
                 const errorMessage = result.message || `HTTP error! Status: ${response.status}`;
-                throw new Error(errorMessage);
+                throw new Error(errorMessage); // Show API error message
             }
-
+    
             // Success Handling
             const successMessage = result.success_message || "Application updated successfully.";
             if (fileCount == 0) {
@@ -862,9 +861,11 @@ const GenerateReport = () => {
                     confirmButtonText: "Ok",
                 });
             }
-
+    
         } catch (error) {
             console.error("Error during submission:", error);
+    
+            // If an error occurs, show the error message from the API
             Swal.fire("Error", error.message || "Failed to submit the application. Please try again.", "error");
         } finally {
             swalInstance.close(); // Close the Swal spinner
@@ -872,7 +873,7 @@ const GenerateReport = () => {
             setIsApiLoading(false); // Stop global loading spinner
         }
     }, [servicesDataInfo, branchid, branchInfo, applicationId, formData, selectedStatuses, files]);
-
+    
 
 
     return (

@@ -78,31 +78,39 @@ const CandidateForm = () => {
 
     const validate = () => {
         const NewErr = {};
-
+    
         const name = String(input.name || '').trim();
         const employee_id = String(input.employee_id || '').trim();
+        const nationality = String(input.nationality || '').trim();
         const mobile_number = String(input.mobile_number || '').trim();
         const email = String(input.email || '').trim();
-
+    
+        // Name validation
         if (!name) {
             NewErr.name = 'Name is required';
         }
-
-
+    
+        // Nationality validation for select box
+        if (!nationality || nationality === "") {
+            NewErr.nationality = 'Nationality is required';
+        }
+        
+    
+        // Employee ID validation
         if (/\s/.test(employee_id)) {  // Check for spaces
             NewErr.employee_id = 'Employee ID cannot contain spaces';
         } else if (/[^a-zA-Z0-9-]/.test(employee_id)) {
             NewErr.employee_id = 'Employee ID should only contain letters, numbers, and hyphens';
         }
-
-
-
+    
+        // Mobile number validation
         if (!mobile_number) {
             NewErr.mobile_number = 'Mobile number is required';
         } else if (!/^\d{10}$/.test(mobile_number)) {
             NewErr.mobile_number = "Please enter a valid phone number, containing 10 digits.";
         }
-
+    
+        // Email validation
         if (!email) {
             NewErr.email = 'Email is required';
         } else {
@@ -113,9 +121,10 @@ const CandidateForm = () => {
                 input.email = email.toLowerCase();
             }
         }
-
+    
         return NewErr;
     };
+    
 
 
 
@@ -145,6 +154,8 @@ const CandidateForm = () => {
                 package: input.package,
                 services: servicesString,
                 candidate_application_id: input.candidate_application_id,
+                nationality:input.nationality,
+                purpose_of_application:input.purpose_of_application
             });
 
             const requestOptions = {
@@ -291,6 +302,23 @@ const CandidateForm = () => {
                                 <label htmlFor="email" className='text-sm'>Email ID<span className='text-red-500'>*</span></label>
                                 <input type="email" name="email" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.email} />
                                 {error.email && <p className='text-red-500'>{error.email}</p>}
+                            </div>
+                            <div className="mb-4">
+                                <label htmlFor="email" className='text-sm'>Purpose of Application</label>
+                                <select name="purpose_of_application" onChange={handleChange} value={input.purpose_of_application} className="border w-full rounded-md p-2 mt-2" id="purpose_of_application">
+                                    <option value="">Select Purpose</option>
+                                    <option value="Tenant">Tenant</option>
+                                    <option value="Nursing">Nursing</option>
+                                </select>
+                            </div>
+                            <div className="mb-4">
+                                <label htmlFor="email" className='text-sm'>Nationality<span className='text-red-500'>*</span></label>
+                                <select name="nationality" onChange={handleChange} value={input.nationality} className="border w-full rounded-md p-2 mt-2" id="nationality">
+                                    <option value="">Select Nationality</option>
+                                    <option value="Indian">Indian</option>
+                                    <option value="Other">Other</option> {/* Correct option for "Other" */}
+                                </select>
+                                {error.nationality && <p className='text-red-500'>{error.nationality}</p>}
                             </div>
                         </div>
                         <div className="col bg-white shadow-md rounded-md p-3 mt-5 md:mt-0 md:p-6">

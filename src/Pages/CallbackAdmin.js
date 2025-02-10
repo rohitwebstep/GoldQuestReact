@@ -100,9 +100,7 @@ const CallbackAdmin = () => {
       
       // Parse the response JSON
       const result = await response.json();
-      
-      console.log("API Response:", result);
-  
+        
       const newToken = result._token || result.token;
       if (newToken) {
         localStorage.setItem("_token", newToken); // Update the token in localStorage

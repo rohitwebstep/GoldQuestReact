@@ -38,7 +38,7 @@ const ServiceReportForm = () => {
 
         try {
             const response = await fetch(url);
-            const newToken = response.token || response._token || storedToken;
+            const newToken = response.token || response._token;
 
             if (newToken) {
                 console.log("Token is saved:", newToken);

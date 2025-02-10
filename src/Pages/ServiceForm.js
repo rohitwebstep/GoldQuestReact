@@ -18,7 +18,8 @@ const ServiceForm = () => {
     d_name: "",
     short_code: "",
     sac_code: "",
-    group: ""
+    group: "",
+    email_description:"",
   });
   const [error, setError] = useState({});
 
@@ -34,6 +35,7 @@ const ServiceForm = () => {
         sac_code: selectedService.sac_code || '',
         group: selectedService.group || '',
         short_code: selectedService.short_code || '',
+        email_description: selectedService.email_description || '',
       });
       setIsEdit(true);
     } else {
@@ -43,6 +45,8 @@ const ServiceForm = () => {
         short_code: "",
         sac_code: "",
         group: "",
+        email_description:""
+
       });
       setIsEdit(false);
     }
@@ -64,6 +68,9 @@ const ServiceForm = () => {
     }
     if (!serviceInput.group) {
       newErrors.group = 'This Field is Required!';
+    }
+    if (!serviceInput.email_description) {
+      newErrors.email_description = 'This Field is Required!';
     }
     return newErrors;
   };
@@ -96,6 +103,7 @@ const ServiceForm = () => {
           short_code: serviceInput.short_code,
           group: serviceInput.group,
           sac_code: serviceInput.sac_code,
+          email_description: serviceInput.email_description,
           admin_id: adminId,
           _token: storedToken,
         }),
@@ -161,7 +169,7 @@ const ServiceForm = () => {
           }
 
           fetchData(); // Refresh data
-          setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "" });
+          setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "",email_description:"" });
           setIsEdit(false);
         })
         .catch((error) => {
@@ -242,6 +250,17 @@ const ServiceForm = () => {
           onChange={handleChange}
           className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.group && <p className='text-red-500'>{error.group}</p>}
+      </div>
+      <div className="mb-4">
+        <label htmlFor="email_description" className="block">Email Description<span className='text-red-500'>*</span></label>
+        <input
+          type="text"
+          name="email_description"
+          id="email_description"
+          value={serviceInput.email_description}
+          onChange={handleChange}
+          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+        {error.email_description && <p className='text-red-500'>{error.email_description}</p>}
       </div>
       <button
         className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}

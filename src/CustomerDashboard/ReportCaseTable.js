@@ -214,7 +214,6 @@ const ReportCaseTable = () => {
 
     // Return an empty array if servicesList is empty or undefined
     if (!servicesList || servicesList.length === 0) {
-      console.log("Services list is empty or undefined. Returning empty array.");
       setIsBranchApiLoading(false);  // Stop loading if servicesList is empty
       return [];
     }
@@ -236,7 +235,6 @@ const ReportCaseTable = () => {
         // Ensure the token is available in the response
         const newToken = result.token || result._token || "";
         if (newToken) {
-          console.log('New Token:', newToken);  // Check if newToken is correctly extracted
           localStorage.setItem("branch_token", newToken); // Save new token to localStorage
         }
 
@@ -270,7 +268,6 @@ const ReportCaseTable = () => {
             icon: "warning",
             confirmButtonText: "Ok",
           }).then(() => {
-            console.log("Redirecting to login...");
             window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
           });
         } else {
@@ -1005,16 +1002,8 @@ const ReportCaseTable = () => {
           const imageBases = await fetchImageToBase(annexureImagesStr.trim());
           if (imageBases) {
             imageBases.forEach((image, index) => {
-              /*
-                            console.log(`Image ${index + 1}:`);
-                            console.log(`URL: ${image.imageUrl}`);
-                            console.log(`Base64: ${image.base64}`);
-                            console.log(`Type: ${image.type}`);
-                            console.log(`Width: ${image.width}`);
-                            console.log(`Height: ${image.height}`);
-                            */
-
-              // Ensure valid base64 string
+           
+                         
               if (!image.base64 || !image.base64.startsWith("data:image/")) {
                 console.error(`Invalid base64 data for image ${index + 1}`);
                 return;
@@ -1061,44 +1050,7 @@ const ReportCaseTable = () => {
             });
           }
 
-          /*
-                    for (const [index, imageUrl] of annexureImagesSplitArr.entries()) {
-                        const imageUrlFull = `${imageUrl.trim()}`;
-                        const imageFormat = getImageFormat(imageUrlFull);
-                        console.log('imageUrlFull', imageUrlFull);
-
-                        if (!(await checkImageExists(imageUrlFull))) continue;
-
-                        const imgBlob = await validateImage(imageUrlFull);
-                        if (!imgBlob) continue;
-
-                        try {
-                            const img = await createImageFromBlob(imgBlob);
-                            const { width, height } = scaleImage(img, doc.internal.pageSize.width - 20, 80);
-                            if (yPosition + height > doc.internal.pageSize.height - 20) {
-                                doc.addPage();
-                                yPosition = 10;
-                            }
-
-                            const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
-                            const textWidth = doc.getTextWidth(annexureText);
-                            const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-
-                            doc.setFont("helvetica", "bold");
-                            doc.setFontSize(10);
-                            doc.setTextColor(0, 0, 0);
-                            doc.text(annexureText, centerX, yPosition + 10);
-                            yPosition += 15;
-
-                            const centerXImage = (doc.internal.pageSize.width - width) / 2;
-                            doc.addImage(img.src, imageFormat, centerXImage, yPosition, width, height);
-                            yPosition += height + 15;
-
-                        } catch (error) {
-                            console.error(`Failed to add image to PDF: ${imageUrlFull}`, error);
-                        }
-                    }
-                    */
+        
         }
       } else {
         doc.setFont("helvetica", "italic");
@@ -1108,61 +1060,8 @@ const ReportCaseTable = () => {
         yPosition += 15;
       }
 
-      // Function to convert Blob to Image
-      async function createImageFromBlob(blob) {
-        const img = new Image();
-        const url = URL.createObjectURL(blob);
-        img.src = url;
 
-        return new Promise((resolve) => {
-          img.onload = () => resolve(img);
-        });
-      }
-
-      async function checkImageExists(url) {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-          img.src = url;
-        });
-      }
-
-      async function validateImage(imageUrl) {
-        try {
-          const response = await fetch(imageUrl);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch image: ${response.statusText}`);
-          }
-
-          const arrayBuffer = await response.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-
-          // Check for PNG signature (first 8 bytes should be 89 50 4E 47 0D 0A 1A 0A)
-          const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
-          const isValidPNG = pngSignature.every(
-            (byte, index) => byte === uint8Array[index]
-          );
-
-          if (!isValidPNG) {
-            throw new Error("Invalid PNG format");
-          }
-
-          // Return the image as a Blob for further use (e.g., rendering)
-          return await response.blob();
-        } catch (error) {
-          console.error(`Invalid image: ${imageUrl}`, error);
-          return null;
-        }
-      }
-
-      function getImageFormat(url) {
-        const ext = url.split(".").pop().toLowerCase();
-        if (ext === "png") return "PNG";
-        if (ext === "jpg" || ext === "jpeg") return "JPEG";
-        if (ext === "webp") return "WEBP";
-        return "PNG"; // Default to PNG if the format is unrecognized
-      }
+   
 
       function scaleImageForPDF(imageWidth, imageHeight, maxWidth, maxHeight) {
         let width = imageWidth;
@@ -1535,7 +1434,6 @@ const ReportCaseTable = () => {
                                 onClick={() => {
                                   const reportDownloadFlag =
                                     data.overall_status === "completed" && data.is_verify === "yes" ? 1 : 0;
-                                  console.log(`reportDownloadFlag: ${reportDownloadFlag}, index: ${index}`);
 
                                   // Set the button to loading
                                   setLoadingStates((prevState) => ({
