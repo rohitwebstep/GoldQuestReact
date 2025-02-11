@@ -1010,11 +1010,8 @@ const ReportCaseTable = () => {
 
         const adjustedDisclaimerButtonHeight = disclaimerButtonHeight + buttonBottomPadding;
 
-        const disclaimerTextPart1 = `his report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the
-purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any
-other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the
-information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on
-the information responsible for employment decisions based on the information provided in this report.`;
+        const disclaimerTextPart1 = `This report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information responsible for employment decisions based on the information provided in this report.`;
+        
         const anchorText = "";
         const disclaimerTextPart2 = "";
 
