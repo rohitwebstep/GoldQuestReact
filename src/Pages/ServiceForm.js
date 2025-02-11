@@ -69,9 +69,7 @@ const ServiceForm = () => {
     if (!serviceInput.group) {
       newErrors.group = 'This Field is Required!';
     }
-    if (!serviceInput.email_description) {
-      newErrors.email_description = 'This Field is Required!';
-    }
+    
     return newErrors;
   };
 
@@ -252,7 +250,7 @@ const ServiceForm = () => {
         {error.group && <p className='text-red-500'>{error.group}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="email_description" className="block">Email Description<span className='text-red-500'>*</span></label>
+        <label htmlFor="email_description" className="block">Email Description</label>
         <input
           type="text"
           name="email_description"

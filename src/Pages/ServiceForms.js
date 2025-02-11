@@ -66,7 +66,6 @@ const ServiceForms = () => {
 
 
 
-    console.log('formData', formData);
 
     // Handling heading change
     const handleHeadingChange = (e) => {
