@@ -446,6 +446,7 @@ const BackgroundForm = () => {
 
     const validate1 = () => {
         const newErrors = {}; // Object to hold validation errors
+        const resumeFileErrors = []; // Separate array for resume file errors
 
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
@@ -453,29 +454,32 @@ const BackgroundForm = () => {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ]; // Allowed file types
+
         // Define the required fields for the first tab
         const requiredFields = [
             "full_name", "former_name", "mb_no", "father_name", "dob",
             "gender", "declaration_date", "nationality", "marital_status",
         ];
 
+        // Add additional fields if status === 1
         if (status === 1) {
-            // Additional fields for status === 1
             const additionalFields = [
                 "emergency_details_name", "emergency_details_relation", "emergency_details_contact_number",
                 "aadhar_card_name", "pan_card_name", "food_coupon"
             ];
-
-            // Add additional fields to the required fields
             requiredFields.push(...additionalFields);
         }
+
+        // Add resume_file to requiredFields if purpose is 'Bgv'
+
 
         // Validate file uploads
         const validateFile = (fileName) => {
             let file;
             let createdFileName;
+            const fileErrors = [];
 
-            if (["govt_id", "resume_file", "passport_photo", "aadhar_card_image", "pan_card_image"].includes(fileName)) {
+            if (["govt_id", "passport_photo", "aadhar_card_image", "pan_card_image"].includes(fileName)) {
                 createdFileName = `applications_${fileName}`;
                 file = files[createdFileName]?.[fileName];
             } else {
@@ -484,7 +488,6 @@ const BackgroundForm = () => {
                 file = createdFileName ? files[createdFileName]?.[fileName] : undefined;
             }
 
-            let fileErrors = [];
             if (file) {
                 file.forEach((fileItem) => {
                     if (fileItem.size > maxSize) {
@@ -506,7 +509,7 @@ const BackgroundForm = () => {
         };
 
         // Define required file inputs for the first tab
-        const requiredFileInputsRaw = ["govt_id", "resume_file"];
+        const requiredFileInputsRaw = ["govt_id"];
         const requiredFileInputs = [...requiredFileInputsRaw];
 
         if (status === 1) {
@@ -514,6 +517,7 @@ const BackgroundForm = () => {
             requiredFileInputs.push(...additionalImagesFields);
         }
 
+        // Validate files for the required fields
         requiredFileInputs.forEach((field) => {
             const agrUploadErrors = validateFile(field);
             if (agrUploadErrors.length > 0) {
@@ -528,8 +532,24 @@ const BackgroundForm = () => {
             }
         });
 
+        // If the purpose is 'Bgv', check for resume_file specifically
+        if (purpose === 'Bgv') {
+            if (!files['applications_resume_file']) {
+                resumeFileErrors.push('Resume file is required.');
+            }
+
+            // Add the resume file errors separately to newErrors if any exist
+            if (resumeFileErrors.length > 0) {
+                newErrors["resume_file"] = resumeFileErrors;
+            }
+        }
+
         return newErrors;
     };
+
+
+    console.log('errors', errors);
+
     const validateSec = () => {
         const newErrors = {}; // Object to hold validation errors
 
@@ -1455,23 +1475,24 @@ const BackgroundForm = () => {
                                                     </div>
                                                 )}
 
-                                                {
-                                                    status == 0 && nationality === "Other" && (
-                                                        <div className="form-group" >
-                                                            <label className='text-sm' > Social Security Number(if applicable): </label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.ssn_number}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                                name="ssn_number"
 
-                                                            />
-                                                        </div>
-                                                    )
-                                                }
 
                                             </div>
+                                            {
+                                                status == 0 && nationality === "Other" && (
+                                                    <div className="form-group" >
+                                                        <label className='text-sm' > Social Security Number(if applicable): </label>
+                                                        < input
+                                                            onChange={handleChange}
+                                                            value={formData.ssn_number}
+                                                            type="text"
+                                                            className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                            name="ssn_number"
+
+                                                        />
+                                                    </div>
+                                                )
+                                            }
                                             {nationality === "Other" && (
                                                 <>
                                                     < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
@@ -1508,17 +1529,17 @@ const BackgroundForm = () => {
 
                                                             />
                                                         </div>
-                                                        <div className="form-group" >
-                                                            <label className='text-sm' >TAX No</label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.tax_no}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                                name="tax_no"
 
-                                                            />
-                                                        </div>
+                                                    </div>
+                                                    <div className="form-group" >
+                                                        <label className='text-sm' >TAX No</label>
+                                                        < input
+                                                            onChange={handleChange}
+                                                            value={formData.tax_no}
+                                                            type="text"
+                                                            className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                            name="tax_no"
+                                                        />
                                                     </div>
 
                                                 </>
