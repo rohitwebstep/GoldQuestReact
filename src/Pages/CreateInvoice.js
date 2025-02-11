@@ -645,7 +645,7 @@ const CreateInvoice = () => {
 
     addFooter(doc)
     // Finalize and Save PDF
-    doc.save('invoice.pdf');
+    doc.save(`Invoice-${clientCode}`);
   }
   function addNotesPage(doc) {
     doc.addPage();

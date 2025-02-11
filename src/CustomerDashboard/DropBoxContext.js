@@ -40,7 +40,8 @@ export const DropBoxProvider = ({ children }) => {
         purpose_of_application:"",
         services: [],
         package: [],
-        candidate_application_id: ''
+        candidate_application_id: '',
+        customPurpose:""
     });
 
 

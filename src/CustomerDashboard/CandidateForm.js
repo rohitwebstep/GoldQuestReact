@@ -7,6 +7,12 @@ import { useApiCall } from '../ApiCallContext';
 
 const CandidateForm = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
 
     const { services, uniquePackages, input, setInput, fetchClient, isEditCandidate, setIsEditCandidate, candidateLoading } = useContext(DropBoxContext);
     const [formLoading, setFormLoading] = useState(false);
@@ -74,42 +80,79 @@ const CandidateForm = () => {
             }));
 
         }
+       
     };
+    const handleCustomInputChange = (event) => {
+        const { name, value, checked } = event.target;
 
+        if (name === 'services') {
+            setInput((prev) => {
+                let updatedServices = [...prev.services];
+
+                if (checked) {
+                    // If checked, add the service
+                    updatedServices.push(value);
+                } else {
+                    // If unchecked, remove the service
+                    updatedServices = updatedServices.filter((serviceId) => serviceId !== value);
+                }
+
+                return { ...prev, services: updatedServices };
+            });
+        } else {
+            setInput((prev) => ({
+                ...prev, [name]: name === 'employee_id' ? value.replace(/\s+/g, '').toUpperCase() : value
+            }));
+
+        }
+       
+    };
+    
+    const handleSaveCustomState = () => {
+        // Add the custom state to options
+        if (input.customPurpose) {
+          
+            setInput((prevState) => ({
+                ...prevState,
+                purpose_of_application: input.customPurpose, // Set the custom state as selected
+                customPurpose: '', // Clear customState after saving
+            }));
+        }
+    };
     const validate = () => {
         const NewErr = {};
-    
+
         const name = String(input.name || '').trim();
         const employee_id = String(input.employee_id || '').trim();
         const nationality = String(input.nationality || '').trim();
         const mobile_number = String(input.mobile_number || '').trim();
         const email = String(input.email || '').trim();
-    
+
         // Name validation
         if (!name) {
             NewErr.name = 'Name is required';
         }
-    
+
         // Nationality validation for select box
         if (!nationality || nationality === "") {
             NewErr.nationality = 'Nationality is required';
         }
-        
-    
+
+
         // Employee ID validation
         if (/\s/.test(employee_id)) {  // Check for spaces
             NewErr.employee_id = 'Employee ID cannot contain spaces';
         } else if (/[^a-zA-Z0-9-]/.test(employee_id)) {
             NewErr.employee_id = 'Employee ID should only contain letters, numbers, and hyphens';
         }
-    
+
         // Mobile number validation
         if (!mobile_number) {
             NewErr.mobile_number = 'Mobile number is required';
         } else if (!/^\d{10}$/.test(mobile_number)) {
             NewErr.mobile_number = "Please enter a valid phone number, containing 10 digits.";
         }
-    
+
         // Email validation
         if (!email) {
             NewErr.email = 'Email is required';
@@ -121,10 +164,10 @@ const CandidateForm = () => {
                 input.email = email.toLowerCase();
             }
         }
-    
+
         return NewErr;
     };
-    
+
 
 
 
@@ -154,8 +197,8 @@ const CandidateForm = () => {
                 package: input.package,
                 services: servicesString,
                 candidate_application_id: input.candidate_application_id,
-                nationality:input.nationality,
-                purpose_of_application:input.purpose_of_application
+                nationality: input.nationality,
+                purpose_of_application: input.purpose_of_application
             });
 
             const requestOptions = {
@@ -306,12 +349,49 @@ const CandidateForm = () => {
                             <div className="mb-4">
                                 <label htmlFor="email" className='text-sm'>Purpose of Application</label>
                                 <select name="purpose_of_application" onChange={handleChange} value={input.purpose_of_application} className="border w-full rounded-md p-2 mt-2" id="purpose_of_application">
-                                    <option value="">Select Purpose</option>
-                                    <option value="Tenant">Tenant</option>
-                                    <option value="Nursing">Nursing</option>
-                                    <option value="Bgv">BGV</option>
+                                    <option value="">SELECT PURPOSE</option>
+                                    <option value="TENANT VERIFICATION(TENANCY VERIFICATION)">TENANT VERIFICATION(TENANCY VERIFICATION)</option>
+                                    <option value="TENANT VERIFICATION">TENANT VERIFICATION</option>
+                                    <option value="JUNIOR STAFF(MAID)">JUNIOR STAFF(MAID)</option>
+                                    <option value="JUNIOR STAFF(NANNY)">JUNIOR STAFF(NANNY)</option>
+                                    <option value="JUNIOR STAFF(BABY SITTER)">JUNIOR STAFF(BABY SITTER)</option>
+                                    <option value="JUNIOR STAFF(PATIENT ATTENDER)">JUNIOR STAFF(PATIENT ATTENDER)</option>
+                                    <option value="JUNIOR STAFF(DRIVER)">JUNIOR STAFF(DRIVER)</option>
+                                    <option value="NORMAL BGV(EMPLOYMENT)">NORMAL BGV(EMPLOYMENT)</option>
+                                    <option value="CUSTOM">CUSTOM</option>
                                 </select>
                             </div>
+                            {isModalOpen && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                                    <div className="bg-white rounded-md p-4 max-w-lg w-full">
+                                        <div className="mb-4">
+                                            <label htmlFor="customPurpose" className="text-sm">Please specify the custom purpose</label>
+                                            <input
+                                                type="text"
+                                                name="customPurpose"
+                                                value={input.customPurpose}
+                                                onChange={handleCustomInputChange}
+                                                className="border w-full rounded-md p-2 mt-2"
+                                                id="customPurpose"
+                                            />
+                                        </div>
+                                        <div className="flex justify-end space-x-4">
+                                            <button
+                                                onClick={handleCloseModal}
+                                                className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                                            >
+                                                Close
+                                            </button>
+                                            <button
+                                                onClick={handleSaveCustomState} // Save the custom state to the state field and add it to options
+                                                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                                            >
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <div className="mb-4">
                                 <label htmlFor="email" className='text-sm'>Nationality<span className='text-red-500'>*</span></label>
                                 <select name="nationality" onChange={handleChange} value={input.nationality} className="border w-full rounded-md p-2 mt-2" id="nationality">

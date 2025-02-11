@@ -75,7 +75,7 @@ const ClientForm = () => {
         });
 
         // Validate required text fields
-        ['name', 'employee_id', 'spoc', 'location', 'batch_number', 'sub_client'].forEach((field) => {
+        ['name', 'employee_id', 'spoc',].forEach((field) => {
             if (!clientInput[field] || clientInput[field].trim() === "") {
                 newErrors[field] = "This Field is Required";
             }
@@ -467,18 +467,18 @@ const ClientForm = () => {
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="location" className='text-sm'>Location<span className="text-red-500">*</span></label>
+                                <label htmlFor="location" className='text-sm'>Location</label>
                                 <input type="text" name="location" id="Locations" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
                                 {inputError.location && <p className='text-red-500'>{inputError.location}</p>}
                             </div>
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="batch_number" className='text-sm'>Batch number<span className="text-red-500">*</span></label>
+                                    <label htmlFor="batch_number" className='text-sm'>Batch number</label>
                                     <input type="text" name="batch_number" id="Batch-Number" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
                                     {inputError.batch_number && <p className='text-red-500'>{inputError.batch_number}</p>}
                                 </div>
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="sub_client" className='text-sm'>Sub client<span className="text-red-500">*</span></label>
+                                    <label htmlFor="sub_client" className='text-sm'>Sub client</label>
                                     <input type="text" name="sub_client" id="SubClient" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
                                     {inputError.sub_client && <p className='text-red-500'>{inputError.sub_client}</p>}
                                 </div>

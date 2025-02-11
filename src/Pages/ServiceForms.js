@@ -312,7 +312,7 @@ const ServiceForms = () => {
 
 
     const handleSubmit = () => {
-        
+
         setIsApiLoading(true);
         setLoading(true);
 
@@ -490,7 +490,9 @@ const ServiceForms = () => {
                             </div>
                             <div className="md:p-4 rounded-md space-y-2">
 
-
+                                <h4 className="text-sm font-medium text-gray-800">
+                                   {row.row_heading || row.heading || 'NIL'}
+                                </h4>
                                 <div >
                                     {row.inputs.map((input, inputIndex) => (
                                         <>
@@ -645,92 +647,92 @@ const ServiceForms = () => {
                             <h3 className="text-center md:text-2xl font-semibold text-white">{formData.heading}</h3>
                         </div>
                         <div className='overflow-x-auto'>
-                        <table className=" border border-t-0 rounded-md w-full">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="py-2 px-4 border border-gray-300 text-left">PARTICULARS</th>
-                                    {formData.headers
-                                        .filter(header => header !== "PARTICULARS")
-                                        .map((header, index) => (
-                                            <th key={index} className="py-2 px-4 border border-gray-300 text-left">
-                                                {header}
-                                            </th>
-                                        ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {formData?.rows?.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        {/* Render the label in the first column */}
-                                        <td className="py-2 px-4 border border-gray-300">
-                                            {row.inputs[0]?.label} {/* Assuming the label for the first input */}
-                                        </td>
-
-                                        {/* Render the corresponding input fields */}
-                                        {row.inputs.map((input, inputIndex) => (
-                                            <td key={inputIndex} className="py-2 px-4 border border-gray-300">
-                                                {input.type === "text" ? (
-                                                    <input
-                                                        type="text"
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    />
-                                                ) : input.type === "checkbox" ? (
-                                                    <input
-                                                        type="checkbox"
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    />
-                                                ) : input.type === "email" ? (
-                                                    <input
-                                                        type="email"
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    />
-                                                ) : input.type === "dropdown" ? (
-                                                    <select
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    >
-                                                        <option value="">Select an option</option>
-                                                        {input.options.map((option, optionIndex) => (
-                                                            <option key={optionIndex} value={option.value}>
-                                                                {option.showText}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                ) : input.type === "file" ? (
-                                                    <input
-                                                        type="file"
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    />
-                                                ) : input.type === "datepicker" ? (
-                                                    <input
-                                                        type="date"
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    />
-                                                ) : input.type === "number" ? (
-                                                    <input
-                                                        type="number"
-                                                        name={input.name}
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        readOnly
-                                                    />
-                                                ) : null}
-                                            </td>
-                                        ))}
+                            <table className=" border border-t-0 rounded-md w-full">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="py-2 px-4 border border-gray-300 text-left">PARTICULARS</th>
+                                        {formData.headers
+                                            .filter(header => header !== "PARTICULARS")
+                                            .map((header, index) => (
+                                                <th key={index} className="py-2 px-4 border border-gray-300 text-left">
+                                                    {header}
+                                                </th>
+                                            ))}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {formData?.rows?.map((row, rowIndex) => (
+                                        <tr key={rowIndex}>
+                                            {/* Render the label in the first column */}
+                                            <td className="py-2 px-4 border border-gray-300">
+                                                {row.inputs[0]?.label} {/* Assuming the label for the first input */}
+                                            </td>
+
+                                            {/* Render the corresponding input fields */}
+                                            {row.inputs.map((input, inputIndex) => (
+                                                <td key={inputIndex} className="py-2 px-4 border border-gray-300">
+                                                    {input.type === "text" ? (
+                                                        <input
+                                                            type="text"
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        />
+                                                    ) : input.type === "checkbox" ? (
+                                                        <input
+                                                            type="checkbox"
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        />
+                                                    ) : input.type === "email" ? (
+                                                        <input
+                                                            type="email"
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        />
+                                                    ) : input.type === "dropdown" ? (
+                                                        <select
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        >
+                                                            <option value="">Select an option</option>
+                                                            {input.options.map((option, optionIndex) => (
+                                                                <option key={optionIndex} value={option.value}>
+                                                                    {option.showText}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    ) : input.type === "file" ? (
+                                                        <input
+                                                            type="file"
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        />
+                                                    ) : input.type === "datepicker" ? (
+                                                        <input
+                                                            type="date"
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        />
+                                                    ) : input.type === "number" ? (
+                                                        <input
+                                                            type="number"
+                                                            name={input.name}
+                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            readOnly
+                                                        />
+                                                    ) : null}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     <div className="flex justify-between mt-6">
