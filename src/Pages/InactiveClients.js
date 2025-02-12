@@ -20,7 +20,6 @@ const InactiveClients = () => {
     item.item_unique_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  console.log('services', services)
 
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -226,7 +225,6 @@ const InactiveClients = () => {
     const selectedValue = parseInt(e.target.value, 10);
     setItemsPerPage(selectedValue);
   };
-  console.log('data', data);
   const hasMultipleServices = services.length > 1;
 
 
@@ -394,7 +392,7 @@ const InactiveClients = () => {
         <button
           onClick={showPrev}
           disabled={currentPage === 1}
-          className="relative inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           aria-label="Previous page"
         >
           <MdArrowBackIosNew />
@@ -405,7 +403,7 @@ const InactiveClients = () => {
         <button
           onClick={showNext}
           disabled={currentPage === totalPages}
-          className="relative inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           aria-label="Next page"
         >
           <MdArrowForwardIos />

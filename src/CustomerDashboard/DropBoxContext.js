@@ -6,7 +6,7 @@ import { useApiCall } from '../ApiCallContext';
 const DropBoxContext = createContext();
 
 export const DropBoxProvider = ({ children }) => {
-    const {setIsBranchApiLoading } = useApiCall();
+    const { setIsBranchApiLoading } = useApiCall();
 
     const [inputError, setInputError] = useState({});
     const API_URL = useApi();
@@ -30,18 +30,20 @@ export const DropBoxProvider = ({ children }) => {
         services: [],
         package: [],
         client_application_id: '',
+        purpose_of_application: "",
+        customPurpose: ""
     });
     const [input, setInput] = useState({
         name: "",
         employee_id: "",
         mobile_number: "",
         email: "",
-        nationality:"",
-        purpose_of_application:"",
+        nationality: "",
+        purpose_of_application: "",
         services: [],
         package: [],
         candidate_application_id: '',
-        customPurpose:""
+        customPurpose: ""
     });
 
 

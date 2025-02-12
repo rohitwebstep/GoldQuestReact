@@ -80,7 +80,6 @@ const UpdatePasswordForm = () => {
                   return result;
               })
                 .then((result) => {
-                    console.log(result);
                     // Clear form and errors on successful update
                     setNewPass({ newpass: '', c_newpass: '' });
                     setPassError({});

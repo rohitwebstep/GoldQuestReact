@@ -9,7 +9,6 @@ const ServiceForms = () => {
 
     const { selectedService } = useService();
     const [loading, setLoading] = useState(false);
-    console.log('selectedService', selectedService)
     const [step, setStep] = useState(1);
     const [disableAdinput, setDisableAdinput] = useState(null);
     const [formData, setFormData] = useState(() => {
@@ -30,13 +29,10 @@ const ServiceForms = () => {
             }
 
             if (serviceArray) {
-                console.log('Parsed serviceArray:', serviceArray); // Debug log for service data
 
                 const heading = serviceArray.heading || '';
-                console.log('heading', heading);
                 const rows = serviceArray.rows || []; // Ensure rows are handled safely
 
-                console.log('Rows from serviceArray:', rows); // Debug log for rows data
 
                 return {
                     heading: heading,

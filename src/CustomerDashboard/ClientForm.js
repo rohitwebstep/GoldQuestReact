@@ -24,7 +24,11 @@ const ClientForm = () => {
         navigate('/ClientBulkUpload')
     }
     const { isEditClient, setIsEditClient, inputError, setInputError, fetchClientDrop, setClientInput, services, uniquePackages, clientInput, loading } = useContext(DropBoxContext);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
     const validate = () => {
         const newErrors = {};
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
@@ -134,6 +138,30 @@ const ClientForm = () => {
             return restErrors;
         });
     };
+    const handleCustomInputChange = (e) => {
+        const { name, value } = e.target;
+        setClientInput((prevInput) => ({
+            ...prevInput,
+            [name]: value
+        }));
+
+        // Open the modal when "CUSTOM" is selected
+        if (value === 'CUSTOM') {
+            setIsModalOpen(true);
+        } else {
+            setIsModalOpen(false);
+        }
+    };
+
+    const handleSaveCustomState = () => {
+        if (clientInput.customPurpose) {
+            setClientInput((prevState) => ({
+                ...prevState,
+                purpose_of_application: clientInput.customPurpose, // Save custom value
+            }));
+            setIsModalOpen(false); // Close the modal after saving
+        }
+    };
 
 
 
@@ -141,7 +169,7 @@ const ClientForm = () => {
         const fileCount = Object.keys(files).length;
         const serviceData = JSON.stringify(services);
         setIsBranchApiLoading(true);  // Start loading
-    
+
         try {
             // Loop through the files to upload
             for (const [index, [key, value]] of Object.entries(files).entries()) {
@@ -150,13 +178,13 @@ const ClientForm = () => {
                 customerLogoFormData.append('_token', branch_token);
                 customerLogoFormData.append('customer_code', customer_code);
                 customerLogoFormData.append('client_application_id', insertedId);
-    
+
                 // Append each file in the category to FormData
                 for (const file of value) {
                     customerLogoFormData.append('images', file);
                 }
                 customerLogoFormData.append('upload_category', key);
-    
+
                 // Append additional data on the last iteration
                 if (fileCount === (index + 1)) {
                     if (isEditClient) {
@@ -168,7 +196,7 @@ const ClientForm = () => {
                     customerLogoFormData.append('client_application_name', clientInput.name);
                     customerLogoFormData.append('client_application_generated_id', new_application_id);
                 }
-    
+
                 // Perform the upload
                 await axios.post(`${API_URL}/branch/client-application/upload`, customerLogoFormData, {
                     headers: {
@@ -183,7 +211,7 @@ const ClientForm = () => {
             setIsBranchApiLoading(false);  // Stop loading once all files are processed
         }
     };
-    
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -197,13 +225,18 @@ const ClientForm = () => {
             const fileCount = Object.keys(files).length;
 
             // Prepare the request body
+            // Remove customPurpose from clientInput using destructuring
+            const { customPurpose, ...finalData } = clientInput;
+
+            // Construct requestBody based on fileCount
+            let requestBody;
             if (fileCount === 0) {
                 requestBody = {
                     customer_id,
                     branch_id,
                     send_mail: 1, // No file uploaded, so we send mail
                     _token: branch_token,
-                    ...clientInput,
+                    ...finalData, // Spread the remaining data
                 };
             } else {
                 requestBody = {
@@ -211,9 +244,10 @@ const ClientForm = () => {
                     branch_id,
                     send_mail: 0, // File uploaded, so we don't send mail initially
                     _token: branch_token,
-                    ...clientInput,
+                    ...finalData, // Spread the remaining data
                 };
             }
+
 
             setIsBranchApiLoading(true);
 
@@ -492,6 +526,64 @@ const ClientForm = () => {
                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                                 </p>
                             </div>
+                            <div className="mb-4">
+                                <label htmlFor="email" className='text-sm'>Purpose of Application</label>
+                                <select
+                                    name="purpose_of_application"
+                                    onChange={handleCustomInputChange}
+                                    value={clientInput.purpose_of_application || clientInput.customPurpose}
+                                    className="border w-full rounded-md p-2 mt-2"
+                                    id="purpose_of_application"
+                                >
+                                    <option value="">SELECT PURPOSE</option>
+                                    <option value="TENANT VERIFICATION(TENANCY VERIFICATION)">TENANT VERIFICATION(TENANCY VERIFICATION)</option>
+                                    <option value="TENANT VERIFICATION">TENANT VERIFICATION</option>
+                                    <option value="JUNIOR STAFF(MAID)">JUNIOR STAFF(MAID)</option>
+                                    <option value="JUNIOR STAFF(NANNY)">JUNIOR STAFF(NANNY)</option>
+                                    <option value="JUNIOR STAFF(BABY SITTER)">JUNIOR STAFF(BABY SITTER)</option>
+                                    <option value="JUNIOR STAFF(PATIENT ATTENDER)">JUNIOR STAFF(PATIENT ATTENDER)</option>
+                                    <option value="JUNIOR STAFF(DRIVER)">JUNIOR STAFF(DRIVER)</option>
+                                    <option value="NORMAL BGV(EMPLOYMENT)">NORMAL BGV(EMPLOYMENT)</option>
+                                    <option value="CUSTOM">CUSTOM</option>
+                                    {clientInput.customPurpose && (
+                                        <option value={clientInput.customPurpose} selected>{clientInput.customPurpose}</option>
+                                    )}
+                                </select>
+                            </div>
+
+                            {isModalOpen && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                                    <div className="bg-white rounded-md p-4 max-w-lg w-full">
+                                        <div className="mb-4">
+                                            <label htmlFor="customPurpose" className="text-sm">Please specify the custom purpose</label>
+                                            <input
+                                                type="text"
+                                                name="customPurpose"
+                                                value={clientInput.customPurpose}
+                                                onChange={handleChange}
+                                                className="border w-full rounded-md p-2 mt-2"
+                                                id="customPurpose"
+                                            />
+                                        </div>
+                                        <div className="flex justify-end space-x-4">
+                                            <button
+                                                type='button'
+                                                onClick={handleCloseModal}
+                                                className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                                            >
+                                                Close
+                                            </button>
+                                            <button
+                                                type='button'
+                                                onClick={handleSaveCustomState} // Save custom state to purpose_of_application
+                                                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                                            >
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="col bg-white shadow-md rounded-md p-3 md:p-6 md:mt-0 mt-5">
                             <div className="flex flex-wrap flex-col-reverse">

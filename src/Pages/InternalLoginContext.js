@@ -50,7 +50,6 @@ export const LoginProvider = ({ children }) => {
             service_groups: selectedAdmin.role !== "admin" ? parsedServiceGroups : [], // Clear service_groups for "admin" role
         });
 
-        console.log('selectedAdmin', selectedAdmin);
     };
 
 
@@ -106,7 +105,6 @@ export const LoginProvider = ({ children }) => {
 
             const data = await response.json();
 
-            console.log("API Response:", data);
 
             // Check for invalid or expired token in the response
             if (

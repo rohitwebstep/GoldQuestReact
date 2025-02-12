@@ -27,6 +27,7 @@ import DeletionCertification from './DeletionCertification';
 import CallbackAdmin from './CallbackAdmin';
 import ServiceForms from './ServiceForms';
 import ServiceReportForm from './ServicesReportForm';
+import AdminDeletionRequest from './AdminDeletionRequest';
 
 
 
@@ -62,7 +63,8 @@ const tabComponents = {
   edit: <ClientEditForm />,
   holiday_management: <HolidayManagement />,
   developers: <ServiceForms />,
-  report_forms: <ServiceReportForm />
+  report_forms: <ServiceReportForm />,
+  deletion_requests: <AdminDeletionRequest />,
 };
 
 const MainContent = () => {

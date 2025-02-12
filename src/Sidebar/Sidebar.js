@@ -16,6 +16,7 @@ import classNames from 'classnames';
 import Logout from '../Dashboard/Logout';
 import { IoCall } from "react-icons/io5";
 import { useApiCall } from '../ApiCallContext';
+import { AiOutlineSafetyCertificate } from "react-icons/ai";
 
 const tabNames = {
   dashboard: (<><HomeIcon className="h-6 w-6 mr-3 text-gray-600" />DashBoard</>),
@@ -38,8 +39,14 @@ const tabNames = {
       { id: 'generate_report', name: 'Generate Report', icon: <RiAiGenerate className="h-5 w-5 mr-2 text-gray-500" /> },
     ]
   },
+  delete: {
+    icon: (<><AiOutlineSafetyCertificate className="h-6 w-6 mr-3 text-gray-600" />Deletion Certification</>),
+    subItems: [
+      { id: 'deletion_certificate', name: 'Deletion Certificate', icon: <MdOutlineDelete className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'deletion_requests', name: 'Deletion Certificate Requests', icon: <AiOutlineSafetyCertificate className="h-5 w-5 mr-2 text-gray-500" /> },
+    ]
+  },
   external: (<><VscLinkExternal className="h-6 w-6 mr-3 text-gray-600" />External Login Credentials</>),
-  deletion_certificate: (<><MdOutlineDelete className="h-6 w-6 mr-3 text-gray-600" />Deletion Certificate</>),
   client_master: (<><MdOutlineTrackChanges className="h-6 w-6 mr-3 text-gray-600" />Client Master Tracker</>),
   candidate_master: (<><MdAccessTime className="h-6 w-6 mr-3 text-gray-600" />Candidate Master Tracker</>),
   tickets: (<><FaTicketSimple className="h-6 w-6 mr-3 text-gray-600" />Tickets</>),
@@ -59,7 +66,6 @@ const tabNames = {
 
 const Sidebar = () => {
   const { isApiLoading } = useApiCall();
-  console.log('isApiLoading', isApiLoading)
 
   const [toggle, setToggle] = useState(false);
   const [expandedTab, setExpandedTab] = useState(null);
@@ -78,7 +84,7 @@ const Sidebar = () => {
   return (
     <div className="flex flex-col md:flex-row  h-full md:w-[20%] ">
       <button
-        className="md:hidden p-3 fixed top-0 left-0 z-50 bg-green-400 text-white w-full  focus:outline-none"
+        className="md:hidden p-3 fixed top-0 left-0 bg-green-400 text-white w-full  focus:outline-none"
         onClick={handleToggle}
         aria-label="Toggle Sidebar"
       >
@@ -90,7 +96,7 @@ const Sidebar = () => {
       </button>
       {/* Sidebar */}
       <div
-        className={`w-full  bg-white border-e fixed md:relative top-0 left-0  z-40 transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
+        className={`w-full  bg-white border-e fixed md:relative top-0 left-0  transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
           } md:translate-x-0`}
       >
         <div className="px-3 py-4 mt-10 md:mt-0 overflow-auto h-[500px]" id='menuitem'>

@@ -34,7 +34,11 @@ const CreateInvoice = () => {
   const options = listData.map((client) => ({
     name: client.name + `(${client.client_unique_id})`,
     value: client.main_id,
+    clientId:client.client_unique_id
+
   }));
+ 
+
 
   useEffect(() => {
     if (!isApiLoading) {
@@ -49,7 +53,7 @@ const CreateInvoice = () => {
     setIsApiLoading(true);
     const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
     const storedToken = localStorage.getItem("_token");
-  
+
     const queryString = new URLSearchParams({
       customer_id: clientCode,
       admin_id: admin_id,
@@ -57,12 +61,12 @@ const CreateInvoice = () => {
       month: formData.month,
       year: formData.year,
     }).toString();
-  
+
     const requestOptions = {
       method: "GET",
       redirect: "follow",
     };
-  
+
     const swalInstance = Swal.fire({
       title: 'Processing...',
       text: 'Please wait while we generate your invoice',
@@ -72,7 +76,7 @@ const CreateInvoice = () => {
       allowOutsideClick: false, // Prevent closing Swal while processing
       showConfirmButton: false, // Hide the confirm button
     });
-  
+
     // Make the fetch call to generate the invoice
     fetch(`https://api.goldquestglobal.in/generate-invoice?${queryString}`, requestOptions)
       .then((response) => {
@@ -88,7 +92,7 @@ const CreateInvoice = () => {
             if (newToken) {
               localStorage.setItem("_token", newToken);
             }
-  
+
             // Check if the error message contains "invalid token" (case-insensitive)
             if (result?.message && result.message.toLowerCase().includes("invalid token")) {
               Swal.fire({
@@ -102,7 +106,7 @@ const CreateInvoice = () => {
               });
               return; // Prevent further execution if session has expired
             }
-  
+
             // Show the error message from API response
             Swal.fire({
               title: "Error",
@@ -110,11 +114,11 @@ const CreateInvoice = () => {
               icon: "error",
               confirmButtonText: "Ok",
             });
-  
+
             throw new Error(errorMessage); // Throw error to skip further code execution
           });
         }
-  
+
         // If response is OK, parse the JSON body and proceed
         return response.json();
       })
@@ -123,7 +127,7 @@ const CreateInvoice = () => {
         if (newToken) {
           localStorage.setItem("_token", newToken); // Update the token in localStorage
         }
-  
+
         // **Check for token expiration again if it's not handled earlier**
         if (data.message && data.message.toLowerCase().includes("invalid token")) {
           Swal.fire({
@@ -137,20 +141,20 @@ const CreateInvoice = () => {
           });
           return; // Stop further execution if session has expired
         }
-  
+
         let applications = [];
         if (Array.isArray(data.applications)) {
           applications = data.applications; // Set applications from response if valid
         }
-  
+
         const serviceNames = data?.serviceNames || [];
         const customer = data?.customer || [];
         const companyInfo = data?.companyInfo || [];
         const {
-          costInfo: { overallServiceAmount, cgst, sgst, totalTax, totalAmount } = {} ,
+          costInfo: { overallServiceAmount, cgst, sgst, totalTax, totalAmount } = {},
           serviceInfo = [],
         } = data?.finalArr || {}; // Destructure costInfo and serviceInfo from finalArr
-  
+
         // If there are applications, generate the PDF
         if (applications.length > 0) {
           generatePdf(
@@ -165,7 +169,7 @@ const CreateInvoice = () => {
             serviceInfo,
             sgst
           );
-  
+
           Swal.fire({
             title: "Success!",
             text: "PDF generated successfully.",
@@ -198,7 +202,7 @@ const CreateInvoice = () => {
         // Hide loader after process is complete
       });
   };
-  
+
 
 
 
@@ -358,11 +362,26 @@ const CreateInvoice = () => {
     doc.text("BILL TO:", billToXPosition, billToYPosition + 5); // Left-aligned in the first column
     doc.setFont("helvetica", "normal");
     doc.text(`Attention: ${customer.name}`, billToXPosition, billToYPosition + 13);
-    doc.text(`Location: ${customer.address}`, billToXPosition, billToYPosition + 18);
+    const address = customer.address;
+
+    // Find the index of the second comma
+    const firstCommaIndex = address.indexOf(',');
+    const secondCommaIndex = address.indexOf(',', firstCommaIndex + 1);
+    
+    // Split the address into two parts at the second comma
+    const part1 = address.substring(0, secondCommaIndex).trim();  // Text before the second comma
+    const part2 = address.substring(secondCommaIndex + 1).trim();  // Text after the second comma
+    
+    // Display the parts in the PDF
+    let currentYPosition = billToYPosition + 18;
+    doc.text('Location:'+part1, billToXPosition, currentYPosition);
+    currentYPosition += 6; // Adjust vertical spacing
+    doc.text(part2, billToXPosition, currentYPosition);
+    
+
 
 
     const billToEndYPosition = billToYPosition + 25; // Adjust based on the content height
-
 
     const invoiceDetailsXPosition = billToXPosition + columnWidth; // Start at the middle of the section
     let invoiceYPosition = billToEndYPosition - 20; // Add spacing between BILL TO and Invoice Details
@@ -624,7 +643,7 @@ const CreateInvoice = () => {
       : [];
 
 
-    const tableWidthNew = doc.internal.pageSize.width * 0.8; // Set the width to 60% of page width
+    const tableWidthNew = doc.internal.pageSize.width-20; // Set the width to 60% of page width
     const leftMarginNew = (doc.internal.pageSize.width - tableWidthNew) / 2; // Center the table horizontally
 
     doc.autoTable({
@@ -644,8 +663,16 @@ const CreateInvoice = () => {
     addNotesPage(doc)
 
     addFooter(doc)
-    // Finalize and Save PDF
-    doc.save(`Invoice-${clientCode}`);
+    if (customer.id === clientCode) {
+      // If the customer ID matches the clientCode, use the client_unique_id
+      const clientUniqueId = customer.client_unique_id;
+      
+      // Finalize and Save PDF using customer.client_unique_id in the filename
+      doc.save(`${clientUniqueId}_${formData.invoice_date}_Invoice`);
+    } else {
+      // If the IDs don't match, you can handle this case as needed
+    }
+    
   }
   function addNotesPage(doc) {
     doc.addPage();
@@ -694,7 +721,7 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
   }
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear - 1, currentYear - 2];
-
+console.log('clientCode',options)
 
   return (
     <div className="p-2 md:p-12">
@@ -708,7 +735,7 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
               value={clientCode}
               name="language"
               placeholder="Choose client code"
-              onChange={(value) => setClientCode(value)}
+              onChange={(value) => setClientCode(value,options)}
               search
             />
           </div>

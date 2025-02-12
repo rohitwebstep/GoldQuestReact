@@ -328,7 +328,6 @@ const InternalLoginForm = () => {
             setFormData((prev) => ({ ...prev, service_groups: selected }));
         }
     };
-    console.log('employee_id', formData.employee_id)
 
 
     return (

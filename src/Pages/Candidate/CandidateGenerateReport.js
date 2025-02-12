@@ -349,7 +349,6 @@ const CandidateGenerateReport = () => {
                 }));
             })
             .catch((error) => {
-                console.log('error', error)
             }).finally(() => {
                 setLoading(false);
 

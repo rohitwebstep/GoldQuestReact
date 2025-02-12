@@ -15,7 +15,7 @@ const BackgroundForm = () => {
     const [showModal, setShowModal] = useState(false);  // Control modal visibility
     const [progress, setProgress] = useState(0);
     const [files, setFiles] = useState({});
-    const [serviceData, setServiceData] = useState([]);
+    const [serviceDataMain, setServiceDataMain] = useState([]);
     const [status, setStatus] = useState([]);
     const [fileNames, setFileNames] = useState([]);
     const [serviceDataImageInputNames, setServiceDataImageInputNames] = useState([]);
@@ -48,6 +48,7 @@ const BackgroundForm = () => {
             permanent_address_stay_to: '',
             current_address_nearest_police_station: '',
             permanent_address_nearest_police_station: '',
+            insurance_details_contact_number: '',
             nationality: '',
             marital_status: '',
             name_declaration: '',
@@ -64,10 +65,288 @@ const BackgroundForm = () => {
             passport_no: '',
             dme_no: '',
             tax_no: '',
+            pan_card_number: "",
 
         },
     });
+    const duplicateRow = (serviceIndex, rowIndex, row) => {
+        // Ensure serviceDataMain exists and is structured correctly
+        if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
+            console.error("serviceDataMain is not available or is not an array");
+            return;
+        }
+    
+        // Retrieve the correct service data object
+        const service = serviceDataMain[serviceIndex];
+        if (!service || !service.rows) {
+            console.error("Invalid service data or rows not found");
+            return;
+        }
+    
+        // Extract the target row classes from the data-action attribute
+        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
+        if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
+            console.error("No valid target row classes found in the button data");
+            return;
+        }
+    
+        const matchingRows = service.rows.filter((serviceRow) => {
+            return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
+        });
+    
+        if (matchingRows.length === 0) {
+            return;
+        }
+    
+        // Find the highest input index across all rows
+        let inputIndex = 1; // Start with index 1 for the first set of rows
+        service.rows.forEach((row) => {
+            row.inputs.forEach((input) => {
+                const match = input.name.match(/_(\d+)$/); // Check for the trailing number in input name
+                if (match) {
+                    const currentIndex = parseInt(match[1], 10);
+                    inputIndex = Math.max(inputIndex, currentIndex + 1); // Get the highest input index + 1
+                }
+            });
+        });
+    
+        // Set the next available index for rows (this is row-wise)
+        let maxIndex = 0;
+        service.rows.forEach((row) => {
+            const match = row.class?.match(/row-(\d+)/); // Match row-<number>
+            if (match) {
+                const currentIndex = parseInt(match[1], 10);
+                maxIndex = Math.max(maxIndex, currentIndex); // Get the highest index
+            }
+        });
+    
+        // Calculate the next available row index
+        let rowIndexToUse = maxIndex + 1; 
+    
+        // Iterate over all matching rows and create duplicates
+        const newRows = matchingRows.map((matchingRow) => {
+            const newRow = {
+                ...matchingRow,  // Copy the properties from the matched row
+                class: `row-${rowIndexToUse}`, // Add the next available index to the outer row class
+                inputs: matchingRow.inputs.map((input) => {
+                    // Apply the same index to all inputs in the duplicated row (e.g., all inputs will be `gap_from_gap_validation_1`)
+                    const newInput = {
+                        ...input,
+                        name: `${input.name.replace(/_\d+$/, '')}_${inputIndex}`, // Update the name with the current input index
+                    };
+    
+                    return newInput;
+                }),
+            };
+    
+            rowIndexToUse++; // Increment rowIndexToUse to ensure the rows are in order
+            return newRow;
+        });
+    
+        // Append the new duplicated rows before the button's row
+        const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
+    
+        if (buttonRowIndex === -1) {
+            console.error("Button row not found");
+            return;
+        }
+    
+        const updatedRows = [
+            ...service.rows.slice(0, buttonRowIndex),
+            ...newRows,  // Insert new rows before the button
+            ...service.rows.slice(buttonRowIndex),
+        ];
+    
+        // Update the serviceDataMain with the new rows
+        const updatedServiceData = [...serviceDataMain];
+        updatedServiceData[serviceIndex] = {
+            ...service,
+            rows: updatedRows,  // Update the rows array with the new rows
+        };
+    
+        // Persist updated serviceDataMain to localStorage
+        localStorage.setItem('serviceDataMain', JSON.stringify(updatedServiceData));
+    
+        setServiceDataMain(updatedServiceData); 
+        console.log('localStorage',localStorage) // Update the entire serviceDataMain with the new rows
+    };
+    
+    // On page load, retrieve the serviceDataMain from localStorage
+    useEffect(() => {
+        const savedServiceData = localStorage.getItem('serviceDataMain');
+        if (savedServiceData) {
+            setServiceDataMain(JSON.parse(savedServiceData));
+        }
+    }, []);
 
+    const fetchApplicationStatus = async () => {
+        if (
+            isValidApplication &&
+            decodedValues.app_id &&
+            decodedValues.branch_id &&
+            decodedValues.customer_id
+        ) {
+            try {
+                const response = await fetch(
+                    `https://api.goldquestglobal.in/branch/candidate-application/backgroud-verification/is-application-exist?candidate_application_id=${decodedValues.app_id}&branch_id=${decodedValues.branch_id}&customer_id=${decodedValues.customer_id}`
+                );
+
+                const result = await response.json();
+                if (result?.status) {
+                    // Application exists and is valid
+                    setServiceIds(result.data?.application?.services || '');
+                    setStatus(result.data?.application?.is_custom_bgv || '');
+                    setCompanyName(result.data?.application?.branch_name || '');
+                    setNationality(result.data?.application?.nationality || '');
+                    setPurpose(result.data?.application?.purpose_of_application || '');
+
+                    const cefData = result.data?.cefApplication || [];
+                    
+                    setFormData({
+                        ...formData,
+                        personal_information: {
+                            full_name: cefData?.full_name || formData.full_name,
+                            former_name: cefData?.former_name || formData.former_name,
+                            mb_no: cefData?.mb_no || formData.mb_no,
+                            father_name: cefData?.father_name || formData.father_name,
+                            husband_name: cefData?.husband_name || formData.husband_name,
+                            dob: cefData?.dob || formData.dob,
+                            gender: cefData?.gender || formData.gender,
+                            permanent_address: cefData?.permanent_address || formData.permanent_address,
+                            current_address_pin_code: cefData?.current_address_pin_code || formData.current_address_pin_code,
+                            permanent_pin_code: cefData?.permanent_pin_code || formData.permanent_pin_code,
+                            declaration_date: cefData?.declaration_date || formData.declaration_date,
+                            current_address: cefData?.current_address || formData.current_address,
+                            current_address_landline_number: cefData?.current_address_landline_number || formData.current_address_landline_number,
+                            permanent_address_landline_number: cefData?.permanent_address_landline_number || formData.permanent_address_landline_number,
+                            current_address_state: cefData?.current_address_state || formData.current_address_state,
+                            permanent_address_state: cefData?.permanent_address_state || formData.permanent_address_state,
+                            current_prominent_landmark: cefData?.current_prominent_landmark || formData.current_prominent_landmark,
+                            permanent_prominent_landmark: cefData?.permanent_prominent_landmark || formData.permanent_prominent_landmark,
+                            current_address_stay_to: cefData?.current_address_stay_to || formData.current_address_stay_to,
+                            permanent_address_stay_to: cefData?.permanent_address_stay_to || formData.permanent_address_stay_to,
+                            current_address_nearest_police_station: cefData?.current_address_nearest_police_station || formData.current_address_nearest_police_station,
+                            permanent_address_nearest_police_station: cefData?.permanent_address_nearest_police_station || formData.permanent_address_nearest_police_station,
+                            insurance_details_contact_number: cefData?.insurance_details_contact_number || formData.insurance_details_contact_number,
+                            nationality: cefData?.nationality || formData.nationality,
+                            marital_status: cefData?.marital_status || formData.marital_status,
+                            name_declaration: cefData?.name_declaration || formData.name_declaration,
+                            blood_group: cefData?.blood_group || formData.blood_group,
+                            pan_card_name: cefData?.pan_card_name || formData.pan_card_name,
+                            aadhar_card_name: cefData?.aadhar_card_name || formData.aadhar_card_name,
+                            aadhar_card_number: cefData?.aadhar_card_number || formData.aadhar_card_number,
+                            emergency_details_name: cefData?.emergency_details_name || formData.emergency_details_name,
+                            emergency_details_relation: cefData?.emergency_details_relation || formData.emergency_details_relation,
+                            emergency_details_contact_number: cefData?.emergency_details_contact_number || formData.emergency_details_contact_number,
+                            icc_bank_acc: cefData?.icc_bank_acc || formData.icc_bank_acc,
+                            food_coupon: cefData?.food_coupon || formData.food_coupon,
+                            ssn_number: cefData?.ssn_number || formData.ssn_number,
+                            passport_no: cefData?.passport_no || formData.passport_no,
+                            dme_no: cefData?.dme_no || formData.dme_no,
+                            tax_no: cefData?.tax_no || formData.tax_no,
+                            pan_card_number: cefData?.pan_card_number || formData.pan_card_number,
+                        },
+                    });
+
+                    const parsedData = result.data?.serviceData || [];
+
+                    let allJsonData = [];
+                    let allJsonDataValue = [];
+
+                    // Sorting and restructuring the parsed data
+                    const sortedData = Object.entries(parsedData)
+                    .sort(([, a], [, b]) => {
+                        const groupA = a.group || '';  // Default to empty string if a.group is null or undefined
+                        const groupB = b.group || '';  // Default to empty string if b.group is null or undefined
+                        return groupA.localeCompare(groupB);
+                    })
+                    .reduce((acc, [key, value]) => {
+                        acc[key] = value;  // Reconstruct the object with sorted entries
+                        return acc;
+                    }, {});
+                
+                // Collecting jsonData and jsonDataValue
+                for (const key in parsedData) {
+                    if (parsedData.hasOwnProperty(key)) {
+                        const jsonData = parsedData[key]?.jsonData;  // Safe navigation in case it's null or undefined
+                        if (jsonData) {
+                            allJsonData.push(jsonData);  // Store jsonData in the array
+                        }
+                        
+                        const jsonDataValue = parsedData[key]?.data;  // Safe navigation in case it's null or undefined
+                        if (jsonDataValue) {
+                            allJsonDataValue.push(jsonDataValue);  // Store jsonData in the array
+                        }
+                    }
+                }
+                
+                // Constructing the annexureData object
+                
+                // Loop through the service data and match values
+                allJsonData.forEach(service => {
+                    service?.rows?.forEach(row => {  // Check if rows exist before iterating
+                        row?.inputs?.forEach(input => {  // Check if inputs exist before iterating
+                            const fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty(input.name)); // Check for null or undefined before accessing `hasOwnProperty`
+                
+                            if (fieldValue) {
+                                // If field is found, assign value to annexureData
+                                if (!annexureData[service.db_table]) {
+                                    annexureData[service.db_table] = {};
+                                }
+                                annexureData[service.db_table][input.name] = fieldValue[input.name] || "No value available";
+                            }
+                        });
+                    });
+                });
+                
+                // Set the annexureData
+                setAnnexureData(annexureData);
+                
+
+
+                    // Process file inputs if any
+                    const fileInputs = allJsonData
+                        .flatMap(item =>
+                            item.rows.flatMap(row =>
+                                row.inputs
+                                    .filter(input => input.type === "file")
+                                    .map(input => ({
+                                        [input.name]: `${item.db_table}_${input.name}`
+                                    }))
+                            )
+                        );
+
+                    setServiceDataImageInputNames(fileInputs);
+                    setServiceDataMain(allJsonData);
+
+                }
+                else {
+                    // Application does not exist or other error: Hide the form and show an alert
+                    const form = document.getElementById('bg-form');
+                    if (form) {
+                        form.remove();
+                    } else {
+                    }
+                    setApiStatus(false);
+
+                    // Show message from the response
+                    Swal.fire({
+                        title: 'Notice',
+                        text: result.message || 'Application does not exist.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK',
+                    });
+                }
+            } catch (err) {
+                Swal.fire({
+                    title: 'Error',
+                    text: err.message || 'An unexpected error occurred.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+            }
+        }
+    };
 
     const handleAddressCheckboxChange = (e) => {
         setIsSameAsPermanent(e.target.checked);
@@ -177,7 +456,7 @@ const BackgroundForm = () => {
         ]; // Allowed file types
 
         let newErrors = {}; // Object to store errors
-        const service = serviceData[activeTab - 2];
+        const service = serviceDataMain[activeTab - 2];
 
         // Check if any checkbox is checked in any row of this service to skip the validation for the entire service
         const shouldSkipServiceValidation = service.rows.some(row =>
@@ -304,7 +583,7 @@ const BackgroundForm = () => {
     const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
         setHiddenRows((prevState) => {
             const newState = { ...prevState };
-            const serviceRows = serviceData[serviceIndex].rows;
+            const serviceRows = serviceDataMain[serviceIndex].rows;
             const row = serviceRows[rowIndex];
 
             const fileInputs = row.inputs.filter(input => input.type === 'file');
@@ -324,7 +603,7 @@ const BackgroundForm = () => {
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = prevFileInputs.filter(fileInput => {
                             const fileInputName = Object.values(fileInput)[0];
-                            const isCurrentServiceFile = fileInputName.startsWith(`${serviceData[serviceIndex].db_table}_`);
+                            const isCurrentServiceFile = fileInputName.startsWith(`${serviceDataMain[serviceIndex].db_table}_`);
 
                             const isCheckboxRelated = row.inputs.some(input =>
                                 input.type === 'checkbox' &&
@@ -412,6 +691,7 @@ const BackgroundForm = () => {
 
 
 
+
     const handleNext = () => {
         let validationErrors = {};
 
@@ -420,9 +700,9 @@ const BackgroundForm = () => {
             validationErrors = validate1(); // Ensure validate1() returns an error object
         } else if (activeTab === 1) {
             validationErrors = validateSec(); // Ensure validateSec() returns an error object
-        } else if (activeTab > 0 && activeTab <= serviceData.length) {
+        } else if (activeTab > 0 && activeTab <= serviceDataMain.length) {
             validationErrors = validate(); // Call the modified validate function for service validation
-        } else if (activeTab === serviceData.length + 2) {
+        } else if (activeTab === serviceDataMain.length + 2) {
             validationErrors = validate2(); // Ensure validate2() handles declaration validation
         }
 
@@ -430,7 +710,7 @@ const BackgroundForm = () => {
         if (Object.keys(validationErrors).length === 0) {
             // No errors, proceed to the next tab
             setErrors({}); // Clear previous errors
-            if (activeTab < serviceData.length + 2) {
+            if (activeTab < serviceDataMain.length + 2) {
                 setActiveTab(activeTab + 1); // Move to the next tab
             }
         } else {
@@ -458,7 +738,7 @@ const BackgroundForm = () => {
         // Define the required fields for the first tab
         const requiredFields = [
             "full_name", "former_name", "mb_no", "father_name", "dob",
-            "gender", "declaration_date", "nationality", "marital_status",
+            "gender", "nationality", "marital_status",
         ];
 
         // Add additional fields if status === 1
@@ -470,7 +750,7 @@ const BackgroundForm = () => {
             requiredFields.push(...additionalFields);
         }
 
-        // Add resume_file to requiredFields if purpose is 'Bgv'
+        // Add resume_file to requiredFields if purpose is 'NORMAL BGV(EMPLOYMENT)'
 
 
         // Validate file uploads
@@ -532,8 +812,8 @@ const BackgroundForm = () => {
             }
         });
 
-        // If the purpose is 'Bgv', check for resume_file specifically
-        if (purpose === 'Bgv') {
+        // If the purpose is 'NORMAL BGV(EMPLOYMENT)', check for resume_file specifically
+        if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
             if (!files['applications_resume_file']) {
                 resumeFileErrors.push('Resume file is required.');
             }
@@ -644,88 +924,9 @@ const BackgroundForm = () => {
 
 
 
-    const fetchApplicationStatus = async () => {
-        if (
-            isValidApplication &&
-            decodedValues.app_id &&
-            decodedValues.branch_id &&
-            decodedValues.customer_id
-        ) {
-            try {
-                const response = await fetch(
-                    `https://api.goldquestglobal.in/branch/candidate-application/backgroud-verification/is-application-exist?candidate_application_id=${decodedValues.app_id}&branch_id=${decodedValues.branch_id}&customer_id=${decodedValues.customer_id}`
-                );
 
-                const result = await response.json();
-                if (result?.status) {
-                    // Application exists and is valid
-                    setServiceIds(result.data?.application?.services || '');
-                    setStatus(result.data?.application?.is_custom_bgv || '');
-                    setCompanyName(result.data?.application?.branch_name || '');
-                    setNationality(result.data?.application?.nationality || '');
-                    setPurpose(result.data?.application?.purpose_of_application || '');
-                    const parsedData = result.data?.serviceData || [];
 
-                    let allJsonData = [];
-                    const sortedData = Object.entries(parsedData)
-                        .sort(([, a], [, b]) => {
-                            // Check for null or undefined before calling localeCompare
-                            const groupA = a.group || '';  // Default to empty string if a.group is null or undefined
-                            const groupB = b.group || '';  // Default to empty string if b.group is null or undefined
-                            return groupA.localeCompare(groupB);
-                        })
-                        .reduce((acc, [key, value]) => {
-                            acc[key] = value;  // Reconstruct the object with sorted entries
-                            return acc;
-                        }, {});
 
-                    for (const key in sortedData) {
-                        if (sortedData.hasOwnProperty(key)) {
-                            const jsonData = sortedData[key].jsonData;
-                            allJsonData.push(jsonData);  // Store jsonData in the array
-                        }
-                    }
-
-                    const fileInputs = allJsonData
-                        .flatMap(item =>
-                            item.rows.flatMap(row =>
-                                row.inputs
-                                    .filter(input => input.type === "file")
-                                    .map(input => ({
-                                        [input.name]: `${item.db_table}_${input.name}`
-                                    }))
-                            )
-                        );
-                    setServiceDataImageInputNames(fileInputs);
-                    setServiceData(allJsonData);
-
-                } else {
-                    // Application does not exist or other error: Hide the form and show an alert
-                    const form = document.getElementById('bg-form');
-                    if (form) {
-                        form.remove();
-                    } else {
-                    }
-                    setApiStatus(false);
-
-                    // Show message from the response
-                    Swal.fire({
-                        title: 'Notice',
-                        text: result.message || 'Application does not exist.',
-                        icon: 'warning',
-                        confirmButtonText: 'OK',
-                    });
-                }
-            } catch (err) {
-                Swal.fire({
-                    title: 'Error',
-                    text: err.message || 'An unexpected error occurred.',
-                    icon: 'error',
-                    confirmButtonText: 'OK',
-                });
-            }
-        }
-    };
 
     const handleTabClick = (heading) => {
         setActiveTab(heading);
@@ -968,9 +1169,9 @@ const BackgroundForm = () => {
             setShowModal(false);
         }
     };
-
-
-
+  
+console.log('files',files)
+    
 
     const uploadCustomerLogo = async (cef_id, fileCount, custombgv) => {
         if (custombgv == 1) {
@@ -1127,7 +1328,7 @@ const BackgroundForm = () => {
                                 </div>
 
                                 {/* Service Tabs */}
-                                {serviceData.filter(service => service).map((service, index) => {
+                                {serviceDataMain.filter(service => service).map((service, index) => {
                                     // Check if the current tab is filled (this is a flag to check if the tab is filled)
                                     const isTabFilled = formData[`tab${index + 1}`]; // Check if the tab is filled based on formData
 
@@ -1156,12 +1357,12 @@ const BackgroundForm = () => {
                                 {/* Declaration and Authorization Tab */}
                                 <div className="text-center">
                                     <button
-                                        onClick={() => handleTabClick(serviceData.length + 2)} // Set tab to the last one (declaration)
-                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceData.length + 2 ? "text-green-500" : "text-gray-700"}`}
-                                        disabled={!formData[`tab${serviceData.length}`]} // Disable the tab if the last form is not filled
+                                        onClick={() => handleTabClick(serviceDataMain.length + 2)} // Set tab to the last one (declaration)
+                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceDataMain.length + 2 ? "text-green-500" : "text-gray-700"}`}
+                                        disabled={!formData[`tab${serviceDataMain.length}`]} // Disable the tab if the last form is not filled
                                     >
                                         <FaCheckCircle
-                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceDataMain.length + 2 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
                                         />
                                         Declaration and Authorization
                                     </button>
@@ -1175,13 +1376,12 @@ const BackgroundForm = () => {
                                 {activeTab === 0 && (
                                     <div>
                                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 border rounded-md  p-4" >
-                                            {purpose == 'Bgv' && (
+                                            {purpose == 'NORMAL BGV(EMPLOYMENT)' && (
                                                 <div className="form-group col-span-2" >
                                                     <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
                                                     <input
                                                         type="file"
                                                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-
                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                         name="resume_file"
                                                         id="resume_file"
@@ -1354,7 +1554,7 @@ const BackgroundForm = () => {
                                                         < option value="female" > Female </option>
                                                         < option value="other" > Other </option>
                                                     </select>
-                                                    {errors.gender && <p className="text-red-500 text-sm" > {errors.gender} </p>}
+                                                    {errors.gender && <p className="text-red-500 text-sm" >{errors.gender} </p>}
                                                 </div>
                                             </div>
                                             < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
@@ -1496,17 +1696,7 @@ const BackgroundForm = () => {
                                             {nationality === "Other" && (
                                                 <>
                                                     < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
-                                                        <div className="form-group" >
-                                                            <label className='text-sm' > Social Security Number(if applicable): </label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.ssn_number}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                                name="ssn_number"
 
-                                                            />
-                                                        </div>
                                                         <div className="form-group" >
                                                             <label className='text-sm' >Passport No</label>
                                                             < input
@@ -1567,6 +1757,7 @@ const BackgroundForm = () => {
                                                         name="marital_status"
                                                         id="marital_status"
                                                         onChange={handleChange}
+                                                        value={formData.personal_information.marital_status}
 
                                                     >
                                                         <option value="" > SELECT Marital STATUS </option>
@@ -1952,162 +2143,175 @@ const BackgroundForm = () => {
                                         </div>
                                     </>
                                 )}
-
-                                {/* Render Service Tabs Dynamically */}
-                                {serviceData.map((service, serviceIndex) => {
-                                    // Only render the correct service tab based on activeTab
+                                {serviceDataMain.map((service, serviceIndex) => {
                                     if (activeTab === serviceIndex + 2) {
                                         return (
                                             <div key={serviceIndex} className="p-6">
                                                 <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
-                                                <div className="space-y-6" id="servicesForm">
-                                                    {
-                                                        service.rows.map((row, rowIndex) => {
-                                                            if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
-                                                                return null;
-                                                            }
+                                                <div className="space-y-6" id="servicesForm" key={serviceIndex}>
+                                                    {service.rows.map((row, rowIndex) => {
+                                                        if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
+                                                            return null;
+                                                        }
 
-                                                            return (
-                                                                <div key={rowIndex}>
-                                                                    {/* Render row heading if it exists */}
-                                                                    {row.heading || row.row_heading && (
-                                                                        <h3 className="text-lg font-bold mb-4">{row.heading || row.row_heading}</h3>
-                                                                    )}
+                                                        return (
+                                                            <div key={rowIndex} className={`${row.class || 'grid'}`}>
+                                                                {/* Render row heading if it exists */}
+                                                                {row.heading && (
+                                                                    <h3 className="text-lg font-bold mb-4">{row.heading}</h3>
+                                                                )}
 
-                                                                    {/* Form inputs for the row */}
-                                                                    <div className="space-y-4">
-                                                                        <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : '3'} gap-3`}>
-                                                                            {
-                                                                                row.inputs.map((input, inputIndex) => {
-                                                                                    // Determine if the input is a checkbox
-                                                                                    const isCheckbox = input.type === 'checkbox';
-                                                                                    const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
-                                                                                    const isChecked = checkedCheckboxes[input.name];
+                                                                {/* Render row description if it exists */}
+                                                                {row.description && (
+                                                                    <p className="text-sm text-gray-600">{row.description}</p>
+                                                                )}
 
-                                                                                    // Handle logic for checkbox checked state
-                                                                                    if (isDoneCheckbox && isChecked) {
-                                                                                        // Hide all rows except the one with the checked checkbox
-                                                                                        service.rows.forEach((otherRow, otherRowIndex) => {
-                                                                                            if (otherRowIndex !== rowIndex) {
-                                                                                                hiddenRows[`${serviceIndex}-${otherRowIndex}`] = true; // Hide other rows
-                                                                                            }
-                                                                                        });
-                                                                                        hiddenRows[`${serviceIndex}-${rowIndex}`] = false; // Ensure current row stays visible
+                                                                <div className="space-y-4">
+                                                                <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
+
+                                                                {row.inputs.map((input, inputIndex) => {
+                                                                          
+                                                                            const isCheckbox = input.type === 'checkbox';
+                                                                            const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
+                                                                            const isChecked = checkedCheckboxes[input.name];
+
+                                                                            // Handle logic for checkbox checked state
+                                                                            if (isDoneCheckbox && isChecked) {
+                                                                                // Hide all rows except the one with the checked checkbox
+                                                                                service.rows.forEach((otherRow, otherRowIndex) => {
+                                                                                    if (otherRowIndex !== rowIndex) {
+                                                                                        hiddenRows[`${serviceIndex}-${otherRowIndex}`] = true; // Hide other rows
                                                                                     }
-
-                                                                                    return (
-                                                                                        <div key={inputIndex} className="flex flex-col space-y-2">
-                                                                                            <label className="text-sm block font-medium mb-2 text-gray-700 capitalize">
-                                                                                                {input.label.replace(/[\/\\]/g, '')}
-                                                                                                {input.required && <span className="text-red-500">*</span>}
-                                                                                            </label>
-
-                                                                                            {/* Various input types */}
-                                                                                            {input.type === 'input' && (
-                                                                                                <input
-                                                                                                    type="text"
-                                                                                                    name={input.name}
-                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                />
-                                                                                            )}
-                                                                                            {input.type === 'textarea' && (
-                                                                                                <textarea
-                                                                                                    name={input.name}
-                                                                                                    rows={1}
-                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                />
-                                                                                            )}
-                                                                                            {input.type === 'datepicker' && (
-                                                                                                <input
-                                                                                                    type="date"
-                                                                                                    name={input.name}
-                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                    className="mt-3 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                />
-                                                                                            )}
-                                                                                            {input.type === 'number' && (
-                                                                                                <input
-                                                                                                    type="number"
-                                                                                                    name={input.name}
-                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                />
-                                                                                            )}
-                                                                                            {input.type === 'email' && (
-                                                                                                <input
-                                                                                                    type="email"
-                                                                                                    name={input.name}
-                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                />
-                                                                                            )}
-                                                                                            {input.type === 'select' && (
-                                                                                                <select
-                                                                                                    name={input.name}
-                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                                >
-                                                                                                    {Object.entries(input.options).map(([key, option], optionIndex) => (
-                                                                                                        <option key={optionIndex} value={key}>
-                                                                                                            {option}
-                                                                                                        </option>
-                                                                                                    ))}
-                                                                                                </select>
-                                                                                            )}
-                                                                                            {input.type === 'file' && (
-                                                                                                <input
-                                                                                                    type="file"
-                                                                                                    name={input.name}
-                                                                                                    multiple
-                                                                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
-                                                                                                    className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
-                                                                                                    onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
-                                                                                                />
-                                                                                            )}
-                                                                                            {input.type === 'checkbox' && (
-                                                                                                <div className="flex items-center space-x-3">
-                                                                                                    <input
-                                                                                                        type="checkbox"
-                                                                                                        name={input.name}
-                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                        className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                                                                                                        onChange={(e) => {
-                                                                                                            handleCheckboxChange(input.name, e.target.checked);
-                                                                                                            toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
-                                                                                                        }}
-                                                                                                    />
-                                                                                                    <span className="text-sm text-gray-700">{input.label}</span>
-                                                                                                </div>
-                                                                                            )}
-
-                                                                                            {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
-                                                                                        </div>
-                                                                                    );
-                                                                                })
+                                                                                });
+                                                                                hiddenRows[`${serviceIndex}-${rowIndex}`] = false; // Ensure current row stays visible
                                                                             }
-                                                                        </div>
+
+                                                                            return (
+                                                                                <div key={inputIndex} className={row.inputs.length === 5 && (inputIndex === 3 || inputIndex === 4) ? 'col-span-3' : ''}>
+                                                                                    <label className="text-sm block font-medium mb-0 text-gray-700 capitalize">
+                                                                                        {input.label.replace(/[\/\\]/g, '')}
+                                                                                        {input.required && <span className="text-red-500">*</span>}
+                                                                                    </label>
+
+                                                                                    {/* Render input types dynamically */}
+                                                                                    {input.type === 'input' && (
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            name={input.name}
+                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                        />
+                                                                                    )}
+                                                                                    {input.type === 'textarea' && (
+                                                                                        <textarea
+                                                                                            name={input.name}
+                                                                                            rows={1}
+                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                        />
+                                                                                    )}
+                                                                                    {input.type === 'datepicker' && (
+                                                                                        <input
+                                                                                            type="date"
+                                                                                            name={input.name}
+                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                        />
+                                                                                    )}
+                                                                                    {input.type === 'number' && (
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            name={input.name}
+                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                        />
+                                                                                    )}
+                                                                                    {input.type === 'email' && (
+                                                                                        <input
+                                                                                            type="email"
+                                                                                            name={input.name}
+                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                        />
+                                                                                    )}
+                                                                                    {input.type === 'select' && (
+                                                                                        <select
+                                                                                            name={input.name}
+                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                        >
+                                                                                            {Object.entries(input.options).map(([key, option], optionIndex) => (
+                                                                                                <option key={optionIndex} value={key}>
+                                                                                                    {option}
+                                                                                                </option>
+                                                                                            ))}
+                                                                                        </select>
+                                                                                    )}
+                                                                                    {input.type === 'file' && (
+                                                                                        <input
+                                                                                            type="file"
+                                                                                            name={input.name}
+                                                                                            multiple
+                                                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
+                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
+                                                                                            onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
+                                                                                        />
+                                                                                    )}
+                                                                                    {input.type === 'checkbox' && (
+                                                                                        <div className="flex items-center space-x-3">
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                name={input.name}
+                                                                                                value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                                                                onChange={(e) => {
+                                                                                                    handleCheckboxChange(input.name, e.target.checked);
+                                                                                                    toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
+                                                                                                }}
+                                                                                            />
+                                                                                            <span className="text-sm text-gray-700">{input.label}</span>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
+                                                                                </div>
+                                                                            );
+                                                                        })}
                                                                     </div>
                                                                 </div>
-                                                            );
-                                                        })
-                                                    }
+
+                                                                {/* Check for duplicate button */}
+                                                                {row.inputs.some(input => input.type === 'button' && input['data-action'] === 'duplicate') && (
+                                                                    <div className="flex justify-start mt-4">
+                                                                        <button
+                                                                            type="button"
+                                                                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                                                                            onClick={() => duplicateRow(serviceIndex, rowIndex, row)}
+                                                                        >
+                                                                            {row.inputs.find(input => input.type === 'button').tooltip || 'Add More'}
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         );
                                     }
-                                    return null; // Return null if the activeTab doesn't match this service
+                                    return null;
                                 })}
 
+
+
                                 {/* Step 3 logic */}
-                                {activeTab === serviceData.length + 2 && (
+                                {activeTab === serviceDataMain.length + 2 && (
                                     <div>
                                         <div className='mb-6  p-4 rounded-md border shadow-md bg-white mt-8' >
                                             <h4 className="md:text-start text-start md:text-xl text-sm my-6 font-bold" > Declaration and Authorization </h4>
@@ -2155,7 +2359,7 @@ const BackgroundForm = () => {
                                                     <label className='text-sm' > Date < span className='text-red-500' >* </span></label >
                                                     <input
                                                         onChange={handleChange}
-                                                        value={formData.personal_information.declaration_date}
+                                                        value={formData.declaration_date}
                                                         type="date"
                                                         className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                         name="declaration_date"
@@ -2210,7 +2414,7 @@ const BackgroundForm = () => {
                                 </button>
                                 <button
                                     onClick={(e) => {
-                                        if (activeTab === serviceData.length + 2) {
+                                        if (activeTab === serviceDataMain.length + 2) {
                                             handleSubmit(1, e); // Pass 1 when Submit is clicked (on the last tab)
                                         } else {
                                             handleNext(); // Otherwise, move to the next tab
@@ -2222,7 +2426,7 @@ const BackgroundForm = () => {
                                         }`}
                                     disabled={!isFormFilled} // Disable button if form is not filled
                                 >
-                                    {activeTab === serviceData.length + 2 ? 'Submit' : 'Next'} {/* Change button text based on the active tab */}
+                                    {activeTab === serviceDataMain.length + 2 ? 'Submit' : 'Next'} {/* Change button text based on the active tab */}
                                 </button>
                             </div>
                         </div>

@@ -324,9 +324,7 @@ input,select{
   margin: 10px 0;
 }
 }
-#servicesForm input[type="date"] {
-  margin-top: 15px !important;
-}
+
 #servicesForm label {
   line-height: 27px;
 }

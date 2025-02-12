@@ -344,7 +344,7 @@ const InternalLoginList = () => {
                 <button
                     onClick={showPrev}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     aria-label="Previous page"
                 >
                     <MdArrowBackIosNew />
@@ -355,7 +355,7 @@ const InternalLoginList = () => {
                 <button
                     onClick={showNext}
                     disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     aria-label="Next page"
                 >
                     <MdArrowForwardIos />

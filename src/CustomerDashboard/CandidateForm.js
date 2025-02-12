@@ -9,7 +9,6 @@ const CandidateForm = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
@@ -18,8 +17,34 @@ const CandidateForm = () => {
     const [formLoading, setFormLoading] = useState(false);
     const API_URL = useApi();
     const branch_name = JSON.parse(localStorage.getItem("branch"));
-
     const [error, setError] = useState({});
+
+    const handleCustomInputChange = (e) => {
+        const { name, value } = e.target;
+        setInput((prevInput) => ({
+            ...prevInput,
+            [name]: value
+        }));
+
+        // Open the modal when "CUSTOM" is selected
+        if (value === 'CUSTOM') {
+            setIsModalOpen(true);
+        } else {
+            setIsModalOpen(false);
+        }
+    };
+
+    const handleSaveCustomState = () => {
+        if (input.customPurpose) {
+            setInput((prevState) => ({
+                ...prevState,
+                purpose_of_application: input.customPurpose, // Save custom value
+            }));
+            setIsModalOpen(false); // Close the modal after saving
+        }
+    };
+
+
 
 
     const handlePackageChange = (e) => {
@@ -80,45 +105,9 @@ const CandidateForm = () => {
             }));
 
         }
-       
+
     };
-    const handleCustomInputChange = (event) => {
-        const { name, value, checked } = event.target;
 
-        if (name === 'services') {
-            setInput((prev) => {
-                let updatedServices = [...prev.services];
-
-                if (checked) {
-                    // If checked, add the service
-                    updatedServices.push(value);
-                } else {
-                    // If unchecked, remove the service
-                    updatedServices = updatedServices.filter((serviceId) => serviceId !== value);
-                }
-
-                return { ...prev, services: updatedServices };
-            });
-        } else {
-            setInput((prev) => ({
-                ...prev, [name]: name === 'employee_id' ? value.replace(/\s+/g, '').toUpperCase() : value
-            }));
-
-        }
-       
-    };
-    
-    const handleSaveCustomState = () => {
-        // Add the custom state to options
-        if (input.customPurpose) {
-          
-            setInput((prevState) => ({
-                ...prevState,
-                purpose_of_application: input.customPurpose, // Set the custom state as selected
-                customPurpose: '', // Clear customState after saving
-            }));
-        }
-    };
     const validate = () => {
         const NewErr = {};
 
@@ -348,7 +337,13 @@ const CandidateForm = () => {
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="email" className='text-sm'>Purpose of Application</label>
-                                <select name="purpose_of_application" onChange={handleChange} value={input.purpose_of_application} className="border w-full rounded-md p-2 mt-2" id="purpose_of_application">
+                                <select
+                                    name="purpose_of_application"
+                                    onChange={handleCustomInputChange}
+                                    value={input.purpose_of_application || input.customPurpose}
+                                    className="border w-full rounded-md p-2 mt-2"
+                                    id="purpose_of_application"
+                                >
                                     <option value="">SELECT PURPOSE</option>
                                     <option value="TENANT VERIFICATION(TENANCY VERIFICATION)">TENANT VERIFICATION(TENANCY VERIFICATION)</option>
                                     <option value="TENANT VERIFICATION">TENANT VERIFICATION</option>
@@ -359,8 +354,12 @@ const CandidateForm = () => {
                                     <option value="JUNIOR STAFF(DRIVER)">JUNIOR STAFF(DRIVER)</option>
                                     <option value="NORMAL BGV(EMPLOYMENT)">NORMAL BGV(EMPLOYMENT)</option>
                                     <option value="CUSTOM">CUSTOM</option>
+                                    {input.customPurpose && (
+                                        <option value={input.customPurpose} selected>{input.customPurpose}</option>
+                                    )}
                                 </select>
                             </div>
+
                             {isModalOpen && (
                                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
                                     <div className="bg-white rounded-md p-4 max-w-lg w-full">
@@ -370,23 +369,25 @@ const CandidateForm = () => {
                                                 type="text"
                                                 name="customPurpose"
                                                 value={input.customPurpose}
-                                                onChange={handleCustomInputChange}
+                                                onChange={handleChange}
                                                 className="border w-full rounded-md p-2 mt-2"
                                                 id="customPurpose"
                                             />
                                         </div>
                                         <div className="flex justify-end space-x-4">
                                             <button
+                                                type='button'
                                                 onClick={handleCloseModal}
                                                 className="bg-gray-500 text-white px-4 py-2 rounded-md"
                                             >
                                                 Close
                                             </button>
                                             <button
-                                                onClick={handleSaveCustomState} // Save the custom state to the state field and add it to options
+                                                type='button'
+                                                onClick={handleSaveCustomState} // Save custom state to purpose_of_application
                                                 className="bg-blue-500 text-white px-4 py-2 rounded-md"
                                             >
-                                                Submit
+                                                Save
                                             </button>
                                         </div>
                                     </div>

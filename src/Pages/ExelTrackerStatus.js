@@ -1000,7 +1000,11 @@ const AdminChekin = () => {
 
         const adjustedDisclaimerButtonHeight = disclaimerButtonHeight + buttonBottomPadding;
 
-        const disclaimerTextPart1 = `This report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information responsible for employment decisions based on the information provided in this report.`;
+        const disclaimerTextPart1 = `his report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the
+purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any
+other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the
+information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on
+the information responsible for employment decisions based on the information provided in this report.`;
         const anchorText = "";
         const disclaimerTextPart2 = "";
 
@@ -1122,11 +1126,13 @@ const AdminChekin = () => {
         doc.addImage(imgPath, 'JPEG', centerX, centerY, imgWidth, imgHeight);
 
         // Continue with adding the footer and saving the document
-        addFooter(doc);
-        doc.save(`${reportInfo.application_id}-${reportInfo.name}`);
 
-        // Continue with saving the document
-        doc.save(`${reportInfo.application_id}-${reportInfo.name}`);
+       const FomratedDate= reportInfo.report_date && !isNaN(new Date(reportInfo.report_date))
+            ? `${String(new Date(reportInfo.report_date).getDate()).padStart(2, '0')}-${String(new Date(reportInfo.report_date).getMonth() + 1).padStart(2, '0')}-${new Date(reportInfo.report_date).getFullYear()}`
+            : 'NIL'
+        addFooter(doc);
+
+        doc.save(`${reportInfo.application_id}-${reportInfo.name}-${FomratedDate}`);
 
     };
 
@@ -1522,7 +1528,7 @@ const AdminChekin = () => {
                     <button
                         onClick={showPrev}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         aria-label="Previous page"
                     >
                         <MdArrowBackIosNew />
@@ -1533,7 +1539,7 @@ const AdminChekin = () => {
                     <button
                         onClick={showNext}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         aria-label="Next page"
                     >
                         <MdArrowForwardIos />

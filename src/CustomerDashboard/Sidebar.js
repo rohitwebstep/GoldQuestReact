@@ -19,6 +19,7 @@ import CaseLog from './CaseLog'
 import Callback from './Callback'
 import { IoCall } from "react-icons/io5";
 import { useApiCall } from '../ApiCallContext';
+import DeletionRequest from "./DeletionRequest";
 
 const tabComponents = {
   dashboard: <DashBoard />,
@@ -31,7 +32,7 @@ const tabComponents = {
   update_password: <UpdatePassword />,
   escalation: <EscalationMatrix />,
   case_logs: <CaseLog />,
-  // callback:<Callback/>,
+  callback:<DeletionRequest/>,
 
 };
 
@@ -41,7 +42,7 @@ const tabNames = {
   report_case: (<><GrServices className="h-6 w-6 mr-3 text-gray-600" />Report & Case Status</>),
   dropbox: (<><FaDropbox className="h-6 w-6 mr-3 text-gray-600" />Client DropBox</>),
   case_logs: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Case Logs</>),
-  // callback: (<><IoCall className="h-6 w-6 mr-3 text-gray-600" />Request Callback</>),
+  callback: (<><IoCall className="h-6 w-6 mr-3 text-gray-600" /> Deletion Requests</>),
   Candidate: (<><AiFillDropboxCircle className="h-6 w-6 mr-3 text-gray-600" />Candidate DropBox</>),
   update_password: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Update Password</>),
 
@@ -66,7 +67,7 @@ const Sidebar = () => {
       <CustomerHeader />
       <div className="flex flex-col md:flex-row h-full">
         <button
-          className="md:hidden p-3 fixed top-0 left-0 z-50 bg-green-400 text-white w-full  focus:outline-none"
+          className="md:hidden p-3 fixed top-0 left-0  bg-green-400 text-white w-full  focus:outline-none"
           onClick={handleToggle}
           aria-label="Toggle Sidebar"
         >
@@ -80,7 +81,7 @@ const Sidebar = () => {
 
         {/* Sidebar */}
         <div
-          className={`w-full md:w-1/5 mt-10 md:mt-0 flex flex-col bg-white border-e fixed md:relative top-0 left-0  h-full z-40 transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
+          className={`w-full md:w-1/5 mt-10 md:mt-0 flex flex-col bg-white border-e fixed md:relative top-0 left-0  h-full  transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
             } md:translate-x-0`}
         >
           <div className="h-screen">
