@@ -53,7 +53,6 @@ const CustomerLoginForm = () => {
 
         if (!adminData || !storedToken) {
             console.error('Missing admin data or token');
-            window.location.href = "/admin-login"; // Replace with your actual login route
 
             return;
         }

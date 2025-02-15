@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
+
 import axios from 'axios';
 import LogoBgv from '../Images/LogoBgv.jpg'
 import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
 const BackgroundForm = () => {
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [loadingData, setLoadingData] = useState(false)
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
     const [errors, setErrors] = useState({});
@@ -20,8 +24,10 @@ const BackgroundForm = () => {
     const [fileNames, setFileNames] = useState([]);
     const [serviceDataImageInputNames, setServiceDataImageInputNames] = useState([]);
     const [apiStatus, setApiStatus] = useState(true);
+    const [cefDataApp, setCefDataApp] = useState([]);
     const [annexureData, setAnnexureData] = useState({});
     const [nationality, setNationality] = useState([]);
+    const [annexureImageData, setAnnexureImageData] = useState([]);
     const [purpose, setPurpose] = useState([]);
     const [serviceIds, setServiceIds] = useState(''); // Expecting a comma-separated string
     const [formData, setFormData] = useState({
@@ -69,117 +75,10 @@ const BackgroundForm = () => {
 
         },
     });
-    const duplicateRow = (serviceIndex, rowIndex, row) => {
-        // Ensure serviceDataMain exists and is structured correctly
-        if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
-            console.error("serviceDataMain is not available or is not an array");
-            return;
-        }
-    
-        // Retrieve the correct service data object
-        const service = serviceDataMain[serviceIndex];
-        if (!service || !service.rows) {
-            console.error("Invalid service data or rows not found");
-            return;
-        }
-    
-        // Extract the target row classes from the data-action attribute
-        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
-        if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
-            console.error("No valid target row classes found in the button data");
-            return;
-        }
-    
-        const matchingRows = service.rows.filter((serviceRow) => {
-            return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
-        });
-    
-        if (matchingRows.length === 0) {
-            return;
-        }
-    
-        // Find the highest input index across all rows
-        let inputIndex = 1; // Start with index 1 for the first set of rows
-        service.rows.forEach((row) => {
-            row.inputs.forEach((input) => {
-                const match = input.name.match(/_(\d+)$/); // Check for the trailing number in input name
-                if (match) {
-                    const currentIndex = parseInt(match[1], 10);
-                    inputIndex = Math.max(inputIndex, currentIndex + 1); // Get the highest input index + 1
-                }
-            });
-        });
-    
-        // Set the next available index for rows (this is row-wise)
-        let maxIndex = 0;
-        service.rows.forEach((row) => {
-            const match = row.class?.match(/row-(\d+)/); // Match row-<number>
-            if (match) {
-                const currentIndex = parseInt(match[1], 10);
-                maxIndex = Math.max(maxIndex, currentIndex); // Get the highest index
-            }
-        });
-    
-        // Calculate the next available row index
-        let rowIndexToUse = maxIndex + 1; 
-    
-        // Iterate over all matching rows and create duplicates
-        const newRows = matchingRows.map((matchingRow) => {
-            const newRow = {
-                ...matchingRow,  // Copy the properties from the matched row
-                class: `row-${rowIndexToUse}`, // Add the next available index to the outer row class
-                inputs: matchingRow.inputs.map((input) => {
-                    // Apply the same index to all inputs in the duplicated row (e.g., all inputs will be `gap_from_gap_validation_1`)
-                    const newInput = {
-                        ...input,
-                        name: `${input.name.replace(/_\d+$/, '')}_${inputIndex}`, // Update the name with the current input index
-                    };
-    
-                    return newInput;
-                }),
-            };
-    
-            rowIndexToUse++; // Increment rowIndexToUse to ensure the rows are in order
-            return newRow;
-        });
-    
-        // Append the new duplicated rows before the button's row
-        const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
-    
-        if (buttonRowIndex === -1) {
-            console.error("Button row not found");
-            return;
-        }
-    
-        const updatedRows = [
-            ...service.rows.slice(0, buttonRowIndex),
-            ...newRows,  // Insert new rows before the button
-            ...service.rows.slice(buttonRowIndex),
-        ];
-    
-        // Update the serviceDataMain with the new rows
-        const updatedServiceData = [...serviceDataMain];
-        updatedServiceData[serviceIndex] = {
-            ...service,
-            rows: updatedRows,  // Update the rows array with the new rows
-        };
-    
-        // Persist updated serviceDataMain to localStorage
-        localStorage.setItem('serviceDataMain', JSON.stringify(updatedServiceData));
-    
-        setServiceDataMain(updatedServiceData); 
-        console.log('localStorage',localStorage) // Update the entire serviceDataMain with the new rows
-    };
-    
-    // On page load, retrieve the serviceDataMain from localStorage
-    useEffect(() => {
-        const savedServiceData = localStorage.getItem('serviceDataMain');
-        if (savedServiceData) {
-            setServiceDataMain(JSON.parse(savedServiceData));
-        }
-    }, []);
+
 
     const fetchApplicationStatus = async () => {
+        setLoadingData(true);
         if (
             isValidApplication &&
             decodedValues.app_id &&
@@ -201,7 +100,8 @@ const BackgroundForm = () => {
                     setPurpose(result.data?.application?.purpose_of_application || '');
 
                     const cefData = result.data?.cefApplication || [];
-                    
+                    setCefDataApp(cefData);
+
                     setFormData({
                         ...formData,
                         personal_information: {
@@ -255,53 +155,54 @@ const BackgroundForm = () => {
 
                     // Sorting and restructuring the parsed data
                     const sortedData = Object.entries(parsedData)
-                    .sort(([, a], [, b]) => {
-                        const groupA = a.group || '';  // Default to empty string if a.group is null or undefined
-                        const groupB = b.group || '';  // Default to empty string if b.group is null or undefined
-                        return groupA.localeCompare(groupB);
-                    })
-                    .reduce((acc, [key, value]) => {
-                        acc[key] = value;  // Reconstruct the object with sorted entries
-                        return acc;
-                    }, {});
-                
-                // Collecting jsonData and jsonDataValue
-                for (const key in parsedData) {
-                    if (parsedData.hasOwnProperty(key)) {
-                        const jsonData = parsedData[key]?.jsonData;  // Safe navigation in case it's null or undefined
-                        if (jsonData) {
-                            allJsonData.push(jsonData);  // Store jsonData in the array
-                        }
-                        
-                        const jsonDataValue = parsedData[key]?.data;  // Safe navigation in case it's null or undefined
-                        if (jsonDataValue) {
-                            allJsonDataValue.push(jsonDataValue);  // Store jsonData in the array
+                        .sort(([, a], [, b]) => {
+                            const groupA = a.group || '';  // Default to empty string if a.group is null or undefined
+                            const groupB = b.group || '';  // Default to empty string if b.group is null or undefined
+                            return groupA.localeCompare(groupB);
+                        })
+                        .reduce((acc, [key, value]) => {
+                            acc[key] = value;  // Reconstruct the object with sorted entries
+                            return acc;
+                        }, {});
+
+                    // Collecting jsonData and jsonDataValue
+                    for (const key in parsedData) {
+                        if (parsedData.hasOwnProperty(key)) {
+                            const jsonData = parsedData[key]?.jsonData;  // Safe navigation in case it's null or undefined
+                            if (jsonData) {
+                                allJsonData.push(jsonData);  // Store jsonData in the array
+                            }
+
+                            const jsonDataValue = parsedData[key]?.data;  // Safe navigation in case it's null or undefined
+                            if (jsonDataValue) {
+                                allJsonDataValue.push(jsonDataValue);  // Store jsonData in the array
+                            }
                         }
                     }
-                }
-                
-                // Constructing the annexureData object
-                
-                // Loop through the service data and match values
-                allJsonData.forEach(service => {
-                    service?.rows?.forEach(row => {  // Check if rows exist before iterating
-                        row?.inputs?.forEach(input => {  // Check if inputs exist before iterating
-                            const fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty(input.name)); // Check for null or undefined before accessing `hasOwnProperty`
-                
-                            if (fieldValue) {
-                                // If field is found, assign value to annexureData
-                                if (!annexureData[service.db_table]) {
-                                    annexureData[service.db_table] = {};
+                    setAnnexureImageData(allJsonDataValue);
+
+                    // Constructing the annexureData object
+
+                    // Loop through the service data and match values
+                    allJsonData.forEach(service => {
+                        service?.rows?.forEach(row => {  // Check if rows exist before iterating
+                            row?.inputs?.forEach(input => {  // Check if inputs exist before iterating
+                                const fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty(input.name)); // Check for null or undefined before accessing `hasOwnProperty`
+
+                                if (fieldValue) {
+                                    if (!annexureData[service.db_table]) {
+                                        annexureData[service.db_table] = {};
+                                    }
+                                    annexureData[service.db_table][input.name] = fieldValue[input.name] || "No value available";
                                 }
-                                annexureData[service.db_table][input.name] = fieldValue[input.name] || "No value available";
-                            }
+
+                            });
                         });
                     });
-                });
-                
-                // Set the annexureData
-                setAnnexureData(annexureData);
-                
+
+                    // Set the annexureData
+                    setAnnexureData(annexureData);
+
 
 
                     // Process file inputs if any
@@ -345,8 +246,228 @@ const BackgroundForm = () => {
                     confirmButtonText: 'OK',
                 });
             }
+            finally {
+                setLoadingData(false);
+            }
         }
     };
+  const duplicateRow = (serviceIndex, rowIndex, row) => {
+    // Ensure serviceDataMain exists and is structured correctly
+    if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
+        console.error("serviceDataMain is not available or is not an array");
+        return;
+    }
+
+    const service = serviceDataMain[serviceIndex];
+    if (!service || !service.rows) {
+        console.error("Invalid service data or rows not found");
+        return;
+    }
+
+    // Extract the target row classes from the data-action attribute
+    const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
+    if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
+        console.error("No valid target row classes found in the button data");
+        return;
+    }
+
+    const matchingRows = service.rows.filter((serviceRow) => {
+        return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
+    });
+
+    if (matchingRows.length === 0) {
+        return;
+    }
+
+    // Find the highest input index across all rows
+    let inputIndex = 1;
+    service.rows.forEach((row) => {
+        row.inputs.forEach((input) => {
+            const match = input.name.match(/_(\d+)$/);
+            if (match) {
+                const currentIndex = parseInt(match[1], 10);
+                inputIndex = Math.max(inputIndex, currentIndex + 1);
+            }
+        });
+    });
+
+    // Set the next available index for rows (row-wise)
+    let maxIndex = 0;
+    service.rows.forEach((row) => {
+        const match = row.class?.match(/row-(\d+)/);
+        if (match) {
+            const currentIndex = parseInt(match[1], 10);
+            maxIndex = Math.max(maxIndex, currentIndex);
+        }
+    });
+
+    let rowIndexToUse = maxIndex + 1;
+
+    // Duplicate matching rows and preserve original input values
+    const newRows = matchingRows.map((matchingRow) => {
+        const newRow = {
+            ...matchingRow,
+            class: `row-${rowIndexToUse}`,
+            inputs: matchingRow.inputs.map((input) => {
+                // Copy the original input value from the matching row to the new row
+                const newInput = {
+                    ...input,
+                    name: `${input.name.replace(/_\d+$/, '')}_${inputIndex}`,
+                    value: annexureData[service.db_table]?.[input.name] || input.value || '', // Preserve value from annexureData or default to original value
+                };
+
+                return newInput;
+            }),
+        };
+
+        rowIndexToUse++;
+        return newRow;
+    });
+
+    // Insert the new duplicated rows before the button's row
+    const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
+
+    if (buttonRowIndex === -1) {
+        console.error("Button row not found");
+        return;
+    }
+
+    const updatedRows = [
+        ...service.rows.slice(0, buttonRowIndex),
+        ...newRows,
+        ...service.rows.slice(buttonRowIndex),
+    ];
+
+    // Update serviceDataMain with the new rows
+    const updatedServiceData = [...serviceDataMain];
+    updatedServiceData[serviceIndex] = {
+        ...service,
+        rows: updatedRows,
+    };
+
+    setServiceDataMain(updatedServiceData);
+
+    // Now, update annexureData for the new duplicated rows
+    newRows.forEach((newRow) => {
+        newRow.inputs.forEach((input) => {
+            // Find the corresponding field value in annexureImageData
+            const fieldValue = annexureImageData.find(data => data && data.hasOwnProperty(input.name));
+
+            // Ensure the annexureData is updated with the latest field values
+            if (fieldValue) {
+                if (!annexureData[service.db_table]) {
+                    annexureData[service.db_table] = {};
+                }
+                annexureData[service.db_table][input.name] = fieldValue[input.name] || "No value available";
+            }
+
+            // Update annexureData for the new input
+            setAnnexureData((prevData) => ({
+                ...prevData,
+                [service.db_table]: {
+                    ...prevData[service.db_table],
+                    [input.name]: input.value || "No value available", // Ensure value is updated for the current input
+                },
+            }));
+        });
+    });
+};
+
+    
+
+    useEffect(() => {
+        const duplicateRowsIfNeeded = () => {
+            let isDuplicateInProgress = false;  // Flag to check if duplication is ongoing
+
+            serviceDataMain.forEach((service, serviceIndex) => {
+                // Ensure serviceDataMain exists and is structured correctly
+                if (!service || !service.rows) {
+                    return;
+                }
+
+                // Iterate over all the rows in the service
+                service.rows.forEach((row, rowIndex) => {
+                    // Check if the row has values in the inputs (this checks if the row is filled out)
+                    const isRowFilled = row.inputs.every(input => {
+                        const inputVal = annexureData[service.db_table]?.[input.name] || ''; // Default to '' if undefined
+                        return inputVal !== '';  // Check if it's filled (not empty)
+                    });
+
+                    // If the row is filled, check if it has a target class for duplication
+                    if (isRowFilled) {
+                        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
+
+                        // Ensure that targetRowClasses is not empty
+                        if (targetRowClasses.length > 0) {
+                            targetRowClasses.forEach((targetClass) => {
+                                if (targetClass) {
+                                    // Matching target class found for row, perform duplication
+                                    if (!row.isDuplicated && !isDuplicateInProgress) {
+                                        // Mark the row as duplicated
+                                        row.isDuplicated = true;
+
+                                        // Call the function to duplicate the row
+                                        console.log(`Duplicating row ${rowIndex} in service ${serviceIndex} with class ${targetClass}`);
+                                        duplicateRow(serviceIndex, rowIndex, row, targetClass);
+
+                                        // Set the flag to prevent further duplications until the new row is filled
+                                        isDuplicateInProgress = true;
+
+                                        // After duplicating, ensure a new row is created if necessary
+                                        addNewRowIfNeeded(serviceIndex, row, targetClass);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        };
+
+        // Automatically duplicate rows based on existing filled inputs
+        duplicateRowsIfNeeded();
+    }, [duplicateRow, annexureData, serviceDataMain]);
+
+    const addNewRowIfNeeded = (serviceIndex, row, targetClass) => {
+        const service = serviceDataMain[serviceIndex]; // Ensure you get the service from your data
+
+        if (!service) {
+            return;
+        }
+
+        if (targetClass && service.rows.length > 0) {
+            // Define the new row object
+            const newRow = {
+                ...row,
+                inputs: row.inputs.map(input => ({
+                    ...input,
+                    // Use original name to fetch value from annexureData
+                    value: annexureData[service.db_table]?.[input.name.replace(/_\d+$/, '')] || '',  // Ensure value is populated correctly
+                })),
+                targetClass: targetClass,  // Add the target class to the new row
+                isDuplicated: false,  // Mark the new row as not yet duplicated
+            };
+
+            // Add the new row to the service
+            service.rows.push(newRow);
+
+            // Ensure the `annexureData` is updated for the duplicated row as well
+            const rowKey = newRow.inputs.map(input => input.name).join('_');  // Construct a unique key for the row if needed
+            setAnnexureData(prevData => ({
+                ...prevData,
+                [service.db_table]: {
+                    ...prevData[service.db_table],
+                    [rowKey]: newRow.inputs.reduce((acc, input) => {
+                        acc[input.name] = input.value || '';  // Set the initial value for the inputs
+                        return acc;
+                    }, {}),
+                },
+            }));
+        }
+    };
+
+
+    console.log('annexureData', annexureData)
 
     const handleAddressCheckboxChange = (e) => {
         setIsSameAsPermanent(e.target.checked);
@@ -390,7 +511,6 @@ const BackgroundForm = () => {
     const location = useLocation();
     const currentURL = location.pathname + location.search;
 
-    const [loading, setLoading] = useState(false);
 
     const getValuesFromUrl = (currentURL) => {
         const result = {};
@@ -447,7 +567,7 @@ const BackgroundForm = () => {
             });
         }
     };
-    const validate = () => {
+    const validate3 = () => {
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
             "image/jpeg", "image/png", "application/pdf",
@@ -567,6 +687,129 @@ const BackgroundForm = () => {
 
         return newErrors; // Return the accumulated errors
     };
+    const validate = () => {
+        const maxSize = 2 * 1024 * 1024; // 2MB size limit
+        const allowedTypes = [
+            "image/jpeg", "image/png", "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ]; // Allowed file types
+
+        let newErrors = {}; // Object to store errors
+        const service = serviceDataMain[activeTab - 2];
+
+        // Convert annexureImageData into a map for faster lookup
+        const annexureImagesMap = annexureImageData.reduce((acc, item) => {
+            Object.keys(item).forEach((key) => {
+                if (key.startsWith('attach_documents') || key.startsWith('attach_certificate_')) {
+                    acc[key] = item[key]; // Store the file URL by the field name
+                }
+            });
+            return acc;
+        }, {});
+
+
+        // Loop through the rows to validate files and fields
+        service.rows.forEach((row, rowIndex) => {
+            // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
+            const shouldSkipServiceValidation = service.rows.some(row =>
+                row.inputs.some(input =>
+                    input.type === 'checkbox' &&
+                    (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done')) &&
+                    checkedCheckboxes[input.name]
+                )
+            );
+
+            if (shouldSkipServiceValidation) {
+                return {}; // Skip all validation for this service and return empty errors
+            }
+
+            row.inputs.forEach((input, inputIndex) => {
+                // Skip validation for this input if the row was skipped due to checkbox being checked
+                if (shouldSkipServiceValidation) {
+                    return;
+                }
+
+                if (input.type === 'file') {
+                    const fileName = input.name;
+
+                    const validateFile = (fileName) => {
+                        let fileErrors = [];
+                        const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
+                        const createdFileName = mapping ? mapping[fileName] : undefined;
+
+                        // Check if createdFileName is valid and the structure exists in 'files'
+                        const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
+
+                        // If the file exists in annexureImageData, skip validation for this file
+                        if (annexureImagesMap[fileName]) {
+                            delete newErrors[fileName]; // Clear any previous error for this file
+                            return fileErrors; // No errors for already uploaded files
+                        }
+
+                        // Handle the scenario where the checkbox is unchecked but files are still present in the structure
+                        if (!checkedCheckboxes[input.name] && filesToCheck && filesToCheck.length > 0) {
+                            delete newErrors[fileName]; // Clear error if files are found
+                        }
+
+                        // If the checkbox is unchecked and no files are present, add an error
+                        if (!checkedCheckboxes[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
+                            fileErrors.push(`${fileName} is required.`);
+                        }
+
+                        // If files exist for the input, perform file validation
+                        if (filesToCheck && filesToCheck.length > 0) {
+                            filesToCheck.forEach((fileItem) => {
+                                // Validate file size
+                                if (fileItem.size > maxSize) {
+                                    fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
+                                }
+
+                                // Validate file type
+                                if (!allowedTypes.includes(fileItem.type)) {
+                                    fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
+                                }
+                            });
+                        }
+
+                        return fileErrors;
+                    };
+
+                    const fileErrors = validateFile(fileName);
+
+                    // Ensure errors[fileField] is always an array
+                    if (!Array.isArray(newErrors[fileName])) {
+                        newErrors[fileName] = []; // Initialize it as an array if not already
+                    }
+
+                    // If there are file errors, push them to newErrors
+                    if (fileErrors.length > 0) {
+                        newErrors[fileName] = [...newErrors[fileName], ...fileErrors];
+                    } else {
+                        // If no errors and files were selected, clear any previous errors
+                        delete newErrors[fileName];
+                    }
+                } else {
+                    // For non-file inputs, validate required fields
+                    const inputValue = annexureData[service.db_table]?.[input.name];
+
+                    if (input.required && (!inputValue || inputValue.trim() === '')) {
+                        newErrors[input.name] = 'This field is required';
+                    }
+                }
+            });
+        });
+
+        // Log the errors at the end of validation
+        if (Object.keys(newErrors).length > 0) {
+            // Errors exist, handle accordingly
+        } else {
+            // No errors, handle accordingly
+        }
+
+        return newErrors; // Return the accumulated errors
+    };
+
 
 
 
@@ -676,16 +919,23 @@ const BackgroundForm = () => {
 
 
     const handleServiceChange = (tableName, fieldName, value) => {
-        // Update the state with the latest value
-        setAnnexureData((prevData) => ({
-            ...prevData,
-            [tableName]: {
-                ...prevData[tableName],
-                [fieldName]: value
-            }
-        }));
+        // Update state with new value
+        setAnnexureData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                [tableName]: {
+                    ...prevData[tableName],
+                    [fieldName]: value
+                }
+            };
 
-        // Trigger validation immediately after the state change
+            // Optionally persist the updated state to localStorage
+            localStorage.setItem('annexureData', JSON.stringify(updatedData));
+
+            return updatedData;
+        });
+
+        // Trigger validation (if necessary)
         validate();
     };
 
@@ -694,114 +944,227 @@ const BackgroundForm = () => {
 
     const handleNext = () => {
         let validationErrors = {};
-
-        // Run the validation based on the current active tab
         if (activeTab === 0) {
-            validationErrors = validate1(); // Ensure validate1() returns an error object
+            validationErrors = validate1();
         } else if (activeTab === 1) {
-            validationErrors = validateSec(); // Ensure validateSec() returns an error object
+            validationErrors = validateSec();
         } else if (activeTab > 0 && activeTab <= serviceDataMain.length) {
-            validationErrors = validate(); // Call the modified validate function for service validation
+            validationErrors = validate();
         } else if (activeTab === serviceDataMain.length + 2) {
-            validationErrors = validate2(); // Ensure validate2() handles declaration validation
+            validationErrors = validate2();
         }
 
-        // Check if there are no validation errors
         if (Object.keys(validationErrors).length === 0) {
-            // No errors, proceed to the next tab
-            setErrors({}); // Clear previous errors
+            setErrors({});
             if (activeTab < serviceDataMain.length + 2) {
-                setActiveTab(activeTab + 1); // Move to the next tab
+                setActiveTab(activeTab + 1);
             }
         } else {
-            // There are validation errors, show them and prevent tab change
-            setErrors(validationErrors); // Update state with validation errors
+            setErrors(validationErrors);
 
-            // Optional: Show errors in a user-friendly way
-            // Displaying alert with more context on which tab has issues
-            alert("Please fill all required fields before moving to the next tab.");
         }
     };
 
 
+    // const validate1 = () => {
+    //     const newErrors = {}; // Object to hold validation errors
+    //     const resumeFileErrors = []; // Separate array for resume file errors
+
+    //     const maxSize = 2 * 1024 * 1024; // 2MB size limit
+    //     const allowedTypes = [
+    //         "image/jpeg", "image/png", "application/pdf",
+    //         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    //     ]; // Allowed file types
+
+    //     // Define the required fields for the first tab
+    //     const requiredFields = [
+    //         "full_name", "former_name", "mb_no", "father_name", "dob",
+    //         "gender", "nationality", "marital_status",
+    //     ];
+
+    //     // Add additional fields if status === 1
+    //     if (status === 1) {
+    //         const additionalFields = [
+    //             "emergency_details_name", "emergency_details_relation", "emergency_details_contact_number",
+    //             "aadhar_card_name", "pan_card_name", "food_coupon"
+    //         ];
+    //         requiredFields.push(...additionalFields);
+    //     }
+
+    //     // Add resume_file to requiredFields if purpose is 'NORMAL BGV(EMPLOYMENT)'
+
+
+    //     // Validate file uploads
+    //     const validateFile = (fileName) => {
+    //         let file;
+    //         let createdFileName;
+    //         const fileErrors = [];
+
+    //         if (["govt_id", "passport_photo", "aadhar_card_image", "pan_card_image"].includes(fileName)) {
+    //             createdFileName = `applications_${fileName}`;
+    //             file = files[createdFileName]?.[fileName];
+    //         } else {
+    //             const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
+    //             createdFileName = mapping ? mapping[fileName] : undefined;
+    //             file = createdFileName ? files[createdFileName]?.[fileName] : undefined;
+    //         }
+
+    //         if (file) {
+    //             file.forEach((fileItem) => {
+    //                 if (fileItem.size > maxSize) {
+    //                     const errorMessage = `${fileItem.name}: File size must be less than 2MB.`;
+    //                     fileErrors.push(errorMessage);
+    //                 }
+
+    //                 if (!allowedTypes.includes(fileItem.type)) {
+    //                     const errorMessage = `${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`;
+    //                     fileErrors.push(errorMessage);
+    //                 }
+    //             });
+    //         } else {
+    //             const errorMessage = `${fileName} is required.`;
+    //             fileErrors.push(errorMessage);
+    //         }
+
+    //         return fileErrors;
+    //     };
+
+    //     // Define required file inputs for the first tab
+    //     const requiredFileInputsRaw = ["govt_id"];
+    //     const requiredFileInputs = [...requiredFileInputsRaw];
+
+    //     if (status === 1) {
+    //         const additionalImagesFields = ["passport_photo", "aadhar_card_image", "pan_card_image"];
+    //         requiredFileInputs.push(...additionalImagesFields);
+    //     }
+
+    //     // Validate files for the required fields
+    //     requiredFileInputs.forEach((field) => {
+    //         const agrUploadErrors = validateFile(field);
+    //         if (agrUploadErrors.length > 0) {
+    //             newErrors[field] = agrUploadErrors;
+    //         }
+    //     });
+
+    //     // Handle required fields validation for the first tab
+    //     requiredFields.forEach((field) => {
+    //         if (!formData.personal_information[field] || formData.personal_information[field].trim() === "") {
+    //             newErrors[field] = "This field is required*";
+    //         }
+    //     });
+
+    //     // If the purpose is 'NORMAL BGV(EMPLOYMENT)', check for resume_file specifically
+    //     if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
+    //         if (!files['applications_resume_file']) {
+    //             resumeFileErrors.push('Resume file is required.');
+    //         }
+
+    //         // Add the resume file errors separately to newErrors if any exist
+    //         if (resumeFileErrors.length > 0) {
+    //             newErrors["resume_file"] = resumeFileErrors;
+    //         }
+    //     }
+
+    //     return newErrors;
+    // };
+
     const validate1 = () => {
+
         const newErrors = {}; // Object to hold validation errors
         const resumeFileErrors = []; // Separate array for resume file errors
-
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
             "image/jpeg", "image/png", "application/pdf",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ]; // Allowed file types
+        ];
 
-        // Define the required fields for the first tab
+
         const requiredFields = [
             "full_name", "former_name", "mb_no", "father_name", "dob",
             "gender", "nationality", "marital_status",
         ];
 
-        // Add additional fields if status === 1
+
         if (status === 1) {
-            const additionalFields = [
-                "emergency_details_name", "emergency_details_relation", "emergency_details_contact_number",
-                "aadhar_card_name", "pan_card_name", "food_coupon"
-            ];
-            requiredFields.push(...additionalFields);
+            requiredFields.push(
+                "emergency_details_name", "emergency_details_relation", "emergency_details_contact_number", "food_coupon"
+            );
         }
 
-        // Add resume_file to requiredFields if purpose is 'NORMAL BGV(EMPLOYMENT)'
+        if (status === 1 && nationality === "Indian") {
+            requiredFields.push("aadhar_card_name", "pan_card_name");
+        }
 
+        if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
+            requiredFields.push('resume_file');
+        }
 
-        // Validate file uploads
         const validateFile = (fileName) => {
             let file;
-            let createdFileName;
             const fileErrors = [];
 
-            if (["govt_id", "passport_photo", "aadhar_card_image", "pan_card_image"].includes(fileName)) {
-                createdFileName = `applications_${fileName}`;
-                file = files[createdFileName]?.[fileName];
-            } else {
-                const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-                createdFileName = mapping ? mapping[fileName] : undefined;
-                file = createdFileName ? files[createdFileName]?.[fileName] : undefined;
+            // Check if the file exists in cefDataApp first
+            const existingFileInCefData = cefDataApp[fileName] || files[fileName];
+
+            if (existingFileInCefData) {
+                return fileErrors; // No validation required if it's already in cefDataApp or files
             }
 
-            if (file) {
+            // If file is not in cefDataApp, check in the files object with correct keys
+            // Adjust this part to match the structure of your files
+            const fileKey = Object.keys(files).find(key => key.includes(fileName)); // Find the correct file key
+            file = fileKey ? files[fileKey][fileName] : undefined;
+
+            // Check if the file exists in files object (either as a single file or array of files)
+            if (file && file[0]) {
+                // Multiple files uploaded
                 file.forEach((fileItem) => {
                     if (fileItem.size > maxSize) {
-                        const errorMessage = `${fileItem.name}: File size must be less than 2MB.`;
-                        fileErrors.push(errorMessage);
+                        fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
                     }
 
                     if (!allowedTypes.includes(fileItem.type)) {
-                        const errorMessage = `${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`;
-                        fileErrors.push(errorMessage);
+                        fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
                     }
                 });
+            } else if (file && file.size) {
+                // Single file uploaded
+                if (file.size > maxSize) {
+                    fileErrors.push(`${file.name}: File size must be less than 2MB.`);
+                }
+
+                if (!allowedTypes.includes(file.type)) {
+                    fileErrors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
+                }
             } else {
-                const errorMessage = `${fileName} is required.`;
-                fileErrors.push(errorMessage);
+                // File is required and was not found
+                fileErrors.push(`${fileName} is required.`);
             }
 
             return fileErrors;
         };
 
-        // Define required file inputs for the first tab
-        const requiredFileInputsRaw = ["govt_id"];
-        const requiredFileInputs = [...requiredFileInputsRaw];
 
+        const requiredFileInputsRaw = ["govt_id"];
+        let requiredFileInputs = [...requiredFileInputsRaw];
+
+        if (status === 1 && nationality === "Indian") {
+            requiredFileInputs.push("aadhar_card_image", "pan_card_image");
+        }
         if (status === 1) {
-            const additionalImagesFields = ["passport_photo", "aadhar_card_image", "pan_card_image"];
-            requiredFileInputs.push(...additionalImagesFields);
+            requiredFileInputs.push("passport_photo");
         }
 
         // Validate files for the required fields
         requiredFileInputs.forEach((field) => {
-            const agrUploadErrors = validateFile(field);
-            if (agrUploadErrors.length > 0) {
-                newErrors[field] = agrUploadErrors;
+            const fileErrors = validateFile(field);
+            if (fileErrors.length > 0) {
+                newErrors[field] = fileErrors;
+            } else {
+                // If no errors, remove any existing errors for this field
+                delete newErrors[field];
             }
         });
 
@@ -809,31 +1172,63 @@ const BackgroundForm = () => {
         requiredFields.forEach((field) => {
             if (!formData.personal_information[field] || formData.personal_information[field].trim() === "") {
                 newErrors[field] = "This field is required*";
+            } else {
+                // If the field is filled, remove the error if it exists
+                delete newErrors[field];
             }
         });
-
-        // If the purpose is 'NORMAL BGV(EMPLOYMENT)', check for resume_file specifically
         if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
-            if (!files['applications_resume_file']) {
+            const resumeFileInFiles = files['applications_resume_file'] && files['applications_resume_file'].resume_file;
+            const resumeFileInCefData = cefDataApp['resume_file'];
+            let file = null;
+
+            // Ensure the file exists in resume_file array
+            if (resumeFileInFiles && Array.isArray(resumeFileInFiles) && resumeFileInFiles.length > 0) {
+                file = resumeFileInFiles[0];  // Access the file in the array
+            }
+
+            // If the file exists, proceed with validation
+            if (file) {
+                // Check if the file has required properties like name and size
+                if (!file.name || !file.size) {
+                    resumeFileErrors.push('Resume file is required.');
+                } else {
+
+                    // Validate the file type
+                    if (!file.name.match(/\.(pdf|docx|doc|jpg|jpeg|png)$/i)) {
+                        resumeFileErrors.push('Invalid file type. Please upload a PDF, DOCX, or image file.');
+                    }
+
+                    // Validate file size (example: 5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        resumeFileErrors.push('File size exceeds the limit of 5MB.');
+                    }
+
+                    if (resumeFileErrors.length === 0) {
+                        const fileErrors = validateFile('resume_file');
+                        if (fileErrors.length > 0) {
+                            resumeFileErrors.push(...fileErrors);
+                        }
+                    }
+                }
+            } else if (resumeFileInCefData) {
+                delete newErrors['resume_file']; // No error if the file is already in CefData
+            } else {
                 resumeFileErrors.push('Resume file is required.');
             }
 
-            // Add the resume file errors separately to newErrors if any exist
             if (resumeFileErrors.length > 0) {
                 newErrors["resume_file"] = resumeFileErrors;
+            } else {
+                delete newErrors["resume_file"];
             }
         }
-
         return newErrors;
     };
 
-
     console.log('errors', errors);
-
     const validateSec = () => {
-        const newErrors = {}; // Object to hold validation errors
-
-
+        const newErrors = {};
         const requiredFields = [
             "current_address",
             "current_address_landline_number", "permanent_address_landline_number", "current_address_state", "permanent_address_state",
@@ -841,7 +1236,6 @@ const BackgroundForm = () => {
             "current_address_nearest_police_station", "permanent_address_nearest_police_station", "current_address_pin_code",
             "permanent_pin_code"
         ];
-
 
         requiredFields.forEach((field) => {
             if (!formData.personal_information[field] || formData.personal_information[field].trim() === "") {
@@ -868,13 +1262,17 @@ const BackgroundForm = () => {
             if (["signature"].includes(fileName)) {
                 createdFileName = `applications_${fileName}`;
                 file = files[createdFileName]?.[fileName];
-            } else {
-                const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-                createdFileName = mapping ? mapping[fileName] : undefined;
-                file = createdFileName ? files[createdFileName]?.[fileName] : undefined;
             }
 
             let fileErrors = [];
+
+            // Check if the file already exists in cefDataApp, skip validation if it does
+            if (cefDataApp && cefDataApp[fileName]) {
+                console.log(`File ${fileName} already exists in cefDataApp, skipping validation.`);
+                return fileErrors; // Skip validation if the file already exists
+            }
+
+            // If file doesn't exist in cefDataApp, continue validation
             if (file) {
                 file.forEach((fileItem) => {
                     if (fileItem.size > maxSize) {
@@ -899,7 +1297,6 @@ const BackgroundForm = () => {
         const requiredFileInputsRaw = ["signature"];
         const requiredFileInputs = [...requiredFileInputsRaw];
 
-
         requiredFileInputs.forEach((field) => {
             const agrUploadErrors = validateFile(field);
             if (agrUploadErrors.length > 0) {
@@ -921,21 +1318,13 @@ const BackgroundForm = () => {
         return newErrors;
     };
 
-
-
-
-
-
-
-
     const handleTabClick = (heading) => {
         setActiveTab(heading);
     };
 
-
     useEffect(() => {
         fetchApplicationStatus();
-    }, []); // The empty array ensures this runs only once, on mount
+    }, []);
 
 
     useEffect(() => {
@@ -944,17 +1333,14 @@ const BackgroundForm = () => {
             ...prevData,
             personal_information: {
                 ...prevData.personal_information,
-                declaration_date: currentDate,  // Update declaration_date
+                declaration_date: currentDate,
             },
         }));
     }, []);
 
-
-
     const handleFileChange = (dbTable, fileName, e) => {
-        const selectedFiles = Array.from(e.target.files); // Convert FileList to array
-
-        const maxSize = 2 * 1024 * 1024; // 2MB size limit
+        const selectedFiles = Array.from(e.target.files);
+        const maxSize = 2 * 1024 * 1024;
         const allowedTypes = [
             'image/jpeg', 'image/png', 'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -978,10 +1364,9 @@ const BackgroundForm = () => {
                 ...prevErrors,
                 [fileName]: errors, // Set errors for this file input
             }));
-            return; // Don't update state if there are errors
+            return;
         }
 
-        // Update files state with the selected files
         setFiles((prevFiles) => ({
             ...prevFiles,
             [dbTable]: {
@@ -999,14 +1384,12 @@ const BackgroundForm = () => {
     };
 
     const handleSubmit = async (custombgv, e) => {
-        e.preventDefault(); // Prevent default form submission behavior
+        e.preventDefault();
 
-        // Get file count and calculate progress if custombgv is 1
         const fileCount = Object.keys(files).length;
-        const TotalApiCalls = fileCount + 1; // Include the API call for the form data
+        const TotalApiCalls = fileCount + 1;
         const dataToSubmitting = 100 / TotalApiCalls;
 
-        // Validation only if custombgv is 1
         let newErrors = {};
         if (custombgv === 1) {
             const validationError = validate2();
@@ -1169,15 +1552,14 @@ const BackgroundForm = () => {
             setShowModal(false);
         }
     };
-  
-console.log('files',files)
-    
+
+    console.log('files', files);
 
     const uploadCustomerLogo = async (cef_id, fileCount, custombgv) => {
         if (custombgv == 1) {
-            setLoading(false); // Stop loading after completion
-            return; // Exit the function early for custombgv == 0
-        } // Set loading to true when starting the upload
+            setLoading(false);
+            return;
+        }
 
         let progressIncrement = 100 / fileCount; // Calculate progress increment per file
 
@@ -1232,1212 +1614,1289 @@ console.log('files',files)
         setLoading(false); // Set loading to false once the upload is complete
     };
 
-
     const isFormFilled = formData[`tab${activeTab + 1}`] !== "";
 
     return (
         <>
             {
-                loading ? (
-                    <div className='flex justify-center items-center py-6'>
-                        {showModal && (
-                            <div className="fixed inset-0 p-3 flex justify-center items-center bg-gray-300 bg-opacity-50 z-50">
-                                <div className="bg-white p-8 rounded-lg md:w-5/12 shadow-xl md:py-20 relative">
-                                    <div className="flex justify-center items-center mb-6">
-                                        <h2 className="md:text-xl font-bold text-gray-800 text-center uppercase">Generating Candidate Application</h2>
-                                        <button
-                                            onClick={() => setShowModal(false)}
-                                            className="text-gray-600  absolute md:top-5 top-1 right-5 hover:text-gray-900 font-bold text-lg"
-                                        >
-                                            &times;
-                                        </button>
-                                    </div>
+                loadingData ? (
+                    <div className='flex justify-center items-center py-6 ' >
+                        <PulseLoader color="#36D7B7" loading={loadingData} size={15} aria-label="Loading Spinner" />
+                    </div >
+                ) :
+                    (
 
-                                    <p className="mt-4 text-gray-700 text-lg">
-                                        Uploading... <span className="font-medium text-gray-900">{fileNames.join(', ')}</span>
-                                        {progress >= 90 && ' - Generating final report...'}
-                                    </p>
+                        <div>
 
-                                    <div className="mt-6">
-                                        <div className="w-full bg-gray-300 rounded-full h-3">
-                                            <div
-                                                className="bg-blue-500 h-3 rounded-full transition-all duration-300"
-                                                style={{ width: `${progress}%` }}
-                                            ></div>
-                                        </div>
-                                        <div className="mt-4 text-center text-lg font-semibold text-green-600">
-                                            {Math.round(progress)}%
-                                        </div>
-                                    </div>
+                            {
+                                loading ? (
+                                    <div className='flex justify-center items-center py-6'>
+                                        {showModal && (
+                                            <div className="fixed inset-0 p-3 flex justify-center items-center bg-gray-300 bg-opacity-50 z-50">
+                                                <div className="bg-white p-8 rounded-lg md:w-5/12 shadow-xl md:py-20 relative">
+                                                    <div className="flex justify-center items-center mb-6">
+                                                        <h2 className="md:text-xl font-bold text-gray-800 text-center uppercase">Generating Candidate Application</h2>
+                                                        <button
+                                                            onClick={() => setShowModal(false)}
+                                                            className="text-gray-600  absolute md:top-5 top-1 right-5 hover:text-gray-900 font-bold text-lg"
+                                                        >
+                                                            &times;
+                                                        </button>
+                                                    </div>
 
-
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                ) : (
-                    <div className='py-5'>
-
-                        <div className="md:w-10/12 mx-auto p-6" >
-                            {status === 1 && (
-                                <div className='flex justify-center my-3'>
-                                    <img src={LogoBgv} className='md:w-[12%] w-[50%] m-auto' alt="Logo" />
-                                </div>
-                            )}
-
-                            <h4 className="text-Black md:text-3xl text-center text-xl md:mb-6 mb-3 font-bold mt-3">Background Verification Form</h4>
-                            <div className='md:flex gap-5 justify-center'>
-                                <div className="mb-2 py-4 rounded-md">
-                                    <h5 className="text-lg font-bold text-center md:text-start">Company name: <span className="text-lg font-normal">{companyName}</span></h5>
-                                </div>
-                                <div className="md:mb-6 mb-2 py-4 rounded-md">
-                                    <h5 className="text-lg font-bold text-center md:text-start">Purpose of Application: <span className="text-lg font-normal">{purpose || 'NIL'}</span></h5>
-                                </div>
-                            </div>
-
-
-                            <div className="mb-6 flex p-2 filter-menu overflow-x-auto border rounded-md items-center flex-nowrap relative space-x-4">
-                                {/* Personal Information Tab */}
-                                <div className="text-center flex items-end">
-                                    <button
-                                        onClick={() => handleTabClick(0)} // Navigate to tab 0 (Personal Information)
-                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
-                                    >
-                                        <FaUser
-                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
-                                        />
-                                        Personal Information
-                                    </button>
-                                    <hr className="border-[1px] w-20" />
-                                </div>
-
-                                {/* Current/Permanent Address Tab */}
-                                <div className="text-center flex items-end">
-                                    <button
-                                        disabled={activeTab == 0} // Disable if the first tab is not filled
-                                        onClick={() => handleTabClick(1)} // Navigate to tab 1 (Current/Permanent Address)
-                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`}
-                                    >
-                                        <FaUser
-                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 1 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
-                                        />
-                                        Current/Permanent Address
-                                    </button>
-                                    <hr className="border-[1px] w-20" />
-                                </div>
-
-                                {/* Service Tabs */}
-                                {serviceDataMain.filter(service => service).map((service, index) => {
-                                    // Check if the current tab is filled (this is a flag to check if the tab is filled)
-                                    const isTabFilled = formData[`tab${index + 1}`]; // Check if the tab is filled based on formData
-
-                                    // Allow navigation to this tab if it's filled, or if it's the previous tab
-                                    const isTabEnabled = (activeTab > index) || (isTabFilled && activeTab === index);
-
-                                    return (
-                                        <div key={index} className="text-center flex items-end">
-                                            <button
-                                                disabled={!isTabEnabled} // Disable tab if not filled or if it's not the current tab
-                                                className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-                        ${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
-                                                onClick={() => handleTabClick(index + 2)} // Switch to this tab if clicked
-                                            >
-                                                <FaCog
-                                                    className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-                            ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-400")}`}
-                                                />
-                                                {service.heading}
-                                            </button>
-                                            <hr className="border-[1px] w-20" />
-                                        </div>
-                                    );
-                                })}
-
-                                {/* Declaration and Authorization Tab */}
-                                <div className="text-center">
-                                    <button
-                                        onClick={() => handleTabClick(serviceDataMain.length + 2)} // Set tab to the last one (declaration)
-                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceDataMain.length + 2 ? "text-green-500" : "text-gray-700"}`}
-                                        disabled={!formData[`tab${serviceDataMain.length}`]} // Disable the tab if the last form is not filled
-                                    >
-                                        <FaCheckCircle
-                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceDataMain.length + 2 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
-                                        />
-                                        Declaration and Authorization
-                                    </button>
-                                </div>
-                            </div>
-
-
-
-
-                            <div className="border p-4 rounded-md shadow-md">
-                                {activeTab === 0 && (
-                                    <div>
-                                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 border rounded-md  p-4" >
-                                            {purpose == 'NORMAL BGV(EMPLOYMENT)' && (
-                                                <div className="form-group col-span-2" >
-                                                    <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        type="file"
-                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-                                                        className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                        name="resume_file"
-                                                        id="resume_file"
-                                                        onChange={(e) => handleFileChange("applications_resume_file", "resume_file", e)}
-                                                        ref={(el) => (refs.current["resume_file"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
-                                                    <p className="text-gray-500 text-sm mt-2" >
-                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                    <p className="mt-4 text-gray-700 text-lg">
+                                                        Uploading... <span className="font-medium text-gray-900">{fileNames.join(', ')}</span>
+                                                        {progress >= 90 && ' - Generating final report...'}
                                                     </p>
+
+                                                    <div className="mt-6">
+                                                        <div className="w-full bg-gray-300 rounded-full h-3">
+                                                            <div
+                                                                className="bg-blue-500 h-3 rounded-full transition-all duration-300"
+                                                                style={{ width: `${progress}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        <div className="mt-4 text-center text-lg font-semibold text-green-600">
+                                                            {Math.round(progress)}%
+                                                        </div>
+                                                    </div>
+
+
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                ) : (
+                                    <div className='py-5'>
+
+                                        <div className="md:w-10/12 mx-auto p-6" >
+                                            {status === 1 && (
+                                                <div className='flex justify-center my-3'>
+                                                    <img src={LogoBgv} className='md:w-[12%] w-[50%] m-auto' alt="Logo" />
                                                 </div>
                                             )}
-                                            < div className="form-group col-span-2" >
-                                                <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span></label >
-                                                <input
-                                                    type="file"
-                                                    accept=".jpg,.jpeg,.png" // Restrict to image files
-                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                    name="govt_id"
-                                                    onChange={(e) => handleFileChange("applications_govt_id", "govt_id", e)}
-                                                    multiple // Allow multiple file selection
-                                                    ref={(el) => (refs.current["applications_govt_id"] = el)} // Attach ref here
-                                                />
-                                                {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
-                                                <p className="text-gray-500 text-sm mt-2" >
-                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                </p>
+
+                                            <h4 className="text-Black md:text-3xl text-center text-xl md:mb-6 mb-3 font-bold mt-3">Background Verification Form</h4>
+                                            <div className='md:flex gap-5 justify-center'>
+                                                <div className="mb-2 py-4 rounded-md">
+                                                    <h5 className="text-lg font-bold text-center md:text-start">Company name: <span className="text-lg font-normal">{companyName}</span></h5>
+                                                </div>
+                                                <div className="md:mb-6 mb-2 py-4 rounded-md">
+                                                    <h5 className="text-lg font-bold text-center md:text-start">Purpose of Application: <span className="text-lg font-normal">{purpose || 'NIL'}</span></h5>
+                                                </div>
+                                            </div>
+
+
+                                            <div className="mb-6 flex p-2 filter-menu overflow-x-auto border rounded-md items-center flex-nowrap relative space-x-4">
+                                                {/* Personal Information Tab */}
+                                                <div className="text-center flex items-end">
+                                                    <button
+                                                        onClick={() => handleTabClick(0)} // Navigate to tab 0 (Personal Information)
+                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
+                                                    >
+                                                        <FaUser
+                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                                        />
+                                                        Personal Information
+                                                    </button>
+                                                    <hr className="border-[1px] w-20" />
+                                                </div>
+
+                                                {/* Current/Permanent Address Tab */}
+                                                <div className="text-center flex items-end">
+                                                    <button
+                                                        disabled={activeTab == 0} // Disable if the first tab is not filled
+                                                        onClick={() => handleTabClick(1)} // Navigate to tab 1 (Current/Permanent Address)
+                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`}
+                                                    >
+                                                        <FaUser
+                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 1 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                                        />
+                                                        Current/Permanent Address
+                                                    </button>
+                                                    <hr className="border-[1px] w-20" />
+                                                </div>
+
+                                                {/* Service Tabs */}
+                                                {serviceDataMain.filter(service => service).map((service, index) => {
+                                                    // Check if the current tab is filled (this is a flag to check if the tab is filled)
+                                                    const isTabFilled = formData[`tab${index + 1}`]; // Check if the tab is filled based on formData
+
+                                                    // Allow navigation to this tab if it's filled, or if it's the previous tab
+                                                    const isTabEnabled = (activeTab > index) || (isTabFilled && activeTab === index);
+
+                                                    return (
+                                                        <div key={index} className="text-center flex items-end">
+                                                            <button
+                                                                disabled={!isTabEnabled} // Disable tab if not filled or if it's not the current tab
+                                                                className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
+                        ${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
+                                                                onClick={() => handleTabClick(index + 2)} // Switch to this tab if clicked
+                                                            >
+                                                                <FaCog
+                                                                    className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
+                            ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-400")}`}
+                                                                />
+                                                                {service.heading}
+                                                            </button>
+                                                            <hr className="border-[1px] w-20" />
+                                                        </div>
+                                                    );
+                                                })}
+
+                                                {/* Declaration and Authorization Tab */}
+                                                <div className="text-center">
+                                                    <button
+                                                        onClick={() => handleTabClick(serviceDataMain.length + 2)} // Set tab to the last one (declaration)
+                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceDataMain.length + 2 ? "text-green-500" : "text-gray-700"}`}
+                                                        disabled={!formData[`tab${serviceDataMain.length}`]} // Disable the tab if the last form is not filled
+                                                    >
+                                                        <FaCheckCircle
+                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceDataMain.length + 2 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                                        />
+                                                        Declaration and Authorization
+                                                    </button>
+                                                </div>
                                             </div>
 
 
 
-                                            {
-                                                status === 1 && (
-                                                    <>
-                                                        <div className="form-group col-span-2" >
-                                                            <label className='text-sm' > Passport size photograph - (mandatory with white Background)<span className="text-red-500 text-lg" >* </span></label >
-                                                            <input
-                                                                type="file"
-                                                                accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
 
-                                                                className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                name="passport_photo"
-                                                                onChange={(e) => handleFileChange("applications_passport_photo", "passport_photo", e)
+                                            <div className="border p-4 rounded-md shadow-md">
+                                                {activeTab === 0 && (
+                                                    <div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 border rounded-md  p-4" >
+                                                            {purpose == 'NORMAL BGV(EMPLOYMENT)' && (
+                                                                <div className="form-group col-span-2" >
+                                                                    <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        type="file"
+                                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                                        className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                        name="resume_file"
+                                                                        id="resume_file"
+                                                                        onChange={(e) => handleFileChange("applications_resume_file", "resume_file", e)}
+                                                                        ref={(el) => (refs.current["resume_file"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
+                                                                    <p className="text-gray-500 text-sm mt-2" >
+                                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                    </p>
+                                                                    <div><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} alt="" /></div>
+                                                                </div>
+                                                            )}
+                                                            < div className="form-group col-span-2" >
+                                                                <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span></label >
+                                                                <input
+                                                                    type="file"
+                                                                    accept=".jpg,.jpeg,.png" // Restrict to image files
+                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                    name="govt_id"
+                                                                    onChange={(e) => handleFileChange("applications_govt_id", "govt_id", e)}
+                                                                    multiple // Allow multiple file selection
+                                                                    ref={(el) => (refs.current["applications_govt_id"] = el)} // Attach ref here
+                                                                />
+                                                                {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
+                                                                <p className="text-gray-500 text-sm mt-2" >
+                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                </p>
+                                                                <div>
+                                                                    {cefDataApp.govt_id ? (
+                                                                        cefDataApp.govt_id.split(',').map((item, index) => {
+                                                                            // Check if the item is an image (based on its extension)
+                                                                            const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
+
+                                                                            return (
+                                                                                <div key={index}>
+                                                                                    {isImage ? (
+                                                                                        <img src={item} alt={`Image ${index}`} style={{ maxWidth: "100px", maxHeight: "100px" }} />
+                                                                                    ) : (
+                                                                                        <div>
+                                                                                            <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })
+                                                                    ) : (
+                                                                        <p>No image or link available</p>
+                                                                    )}
+                                                                </div>
+
+
+                                                            </div>
+
+
+
+                                                            {
+                                                                status === 1 && (
+                                                                    <>
+                                                                        <div className="form-group col-span-2" >
+                                                                            <label className='text-sm' > Passport size photograph - (mandatory with white Background)<span className="text-red-500 text-lg" >* </span></label >
+                                                                            <input
+                                                                                type="file"
+                                                                                accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+
+                                                                                className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                name="passport_photo"
+                                                                                onChange={(e) => handleFileChange("applications_passport_photo", "passport_photo", e)
+                                                                                }
+                                                                                multiple
+                                                                                ref={(el) => (refs.current["passport_photo"] = el)} // Attach ref here
+
+                                                                            />
+                                                                            {errors.passport_photo && <p className="text-red-500 text-sm" > {errors.passport_photo} </p>}
+                                                                            <p className="text-gray-500 text-sm mt-2" >
+                                                                                Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                            </p>
+                                                                            <div>
+                                                                                {cefDataApp.passport_photo ? (
+                                                                                    cefDataApp.passport_photo.split(',').map((item, index) => {
+                                                                                        // Check if the item is an image (based on its extension)
+                                                                                        const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
+
+                                                                                        return (
+                                                                                            <div key={index}>
+                                                                                                {isImage ? (
+                                                                                                    <img src={item} alt={`Image ${index}`} style={{ maxWidth: "100px", maxHeight: "100px" }} />
+                                                                                                ) : (
+                                                                                                    <div>
+                                                                                                        <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        );
+                                                                                    })
+                                                                                ) : (
+                                                                                    <p>No image or link available</p>
+                                                                                )}
+                                                                            </div>
+
+
+                                                                        </div>
+                                                                    </>
+                                                                )}
+
+                                                        </div>
+
+                                                        < div className='border p-4' >
+                                                            <h4 className="md:text-start text-start md:text-2xl text-sm my-6 font-bold " > Personal Information </h4>
+
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6 " >
+                                                                <div className="form-group" >
+                                                                    <label className='text-sm' > Full Name as per Govt ID Proof(first, middle, last): <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.full_name}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="full_name"
+                                                                        name="full_name"
+                                                                        ref={(el) => (refs.current["full_name"] = el)}
+
+                                                                    />
+                                                                    {errors.full_name && <p className="text-red-500 text-sm" > {errors.full_name} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="former_name" > Former Name / Maiden Name(if applicable)<span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.former_name}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="former_name"
+                                                                        ref={(el) => (refs.current["former_name"] = el)} // Attach ref here
+                                                                        name="former_name"
+                                                                    />
+                                                                    {errors.former_name && <p className="text-red-500 text-sm"> {errors.former_name} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="mob_no" > Mobile Number: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.mb_no}
+                                                                        type="number"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        name="mb_no"
+                                                                        id="mob_no"
+                                                                        minLength="10"
+                                                                        maxLength="10"
+                                                                        ref={(el) => (refs.current["mob_no"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.mb_no && <p className="text-red-500 text-sm" > {errors.mb_no} </p>}
+                                                                </div>
+                                                            </div>
+                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+
+                                                                <div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="father_name">Father's Name: <span className="text-red-500 text-lg">*</span></label>
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.father_name}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="father_name"
+                                                                        name="father_name"
+                                                                        ref={(el) => (refs.current["father_name"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.father_name && <p className="text-red-500 text-sm" > {errors.father_name} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="husband_name" > Spouse's Name</label>
+                                                                    < input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.husband_name}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="husband_name"
+                                                                        ref={(el) => (refs.current["husband_name"] = el)} // Attach ref here
+                                                                        name="husband_name"
+                                                                    />
+                                                                </div>
+
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="dob" > DOB: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.dob}
+                                                                        type="date"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        name="dob"
+                                                                        id="dob"
+                                                                        ref={(el) => (refs.current["dob"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.dob && <p className="text-red-500 text-sm" > {errors.dob} </p>}
+                                                                </div>
+                                                            </div>
+                                                            < div className="grid grid-cols-1 md:grid-cols-1 gap-4" >
+
+                                                                <div className="form-group my-4" >
+                                                                    <label className='text-sm' htmlFor="gender" >
+                                                                        Gender: <span className="text-red-500 text-lg" >* </span>
+                                                                    </label>
+                                                                    < select
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.gender}
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        name="gender"
+                                                                        id="gender"
+                                                                        ref={(el) => (refs.current["gender"] = el)} // Attach ref here
+                                                                    >
+                                                                        <option value=""  >
+                                                                            Select gender
+                                                                        </option>
+                                                                        < option value="male" > Male </option>
+                                                                        < option value="female" > Female </option>
+                                                                        < option value="other" > Other </option>
+                                                                    </select>
+                                                                    {errors.gender && <p className="text-red-500 text-sm" >{errors.gender} </p>}
+                                                                </div>
+                                                            </div>
+                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+                                                                {nationality === "Indian" && (
+                                                                    <div className='form-group'>
+                                                                        <label className='text-sm'>Aadhar card No</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name="aadhar_card_number"
+                                                                            value={formData.personal_information.aadhar_card_number}
+                                                                            onChange={handleChange}
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                        />
+                                                                    </div>
+                                                                )}
+
+
+                                                                {
+                                                                    status === 1 && nationality === "Indian" && (
+                                                                        <>
+                                                                            <div className='form-group'>
+                                                                                <label className='text-sm'>
+                                                                                    Name as per Aadhar card <span className='text-red-500 text-lg'>*</span>
+                                                                                </label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    name="aadhar_card_name"
+                                                                                    value={formData.personal_information.aadhar_card_name}
+                                                                                    onChange={handleChange}
+                                                                                    ref={(el) => (refs.current["aadhar_card_name"] = el)} // Attach ref here
+                                                                                    className="form-control border rounded w-full p-2 mt-2"
+                                                                                />
+                                                                                {errors.aadhar_card_name && (
+                                                                                    <p className="text-red-500 text-sm">{errors.aadhar_card_name}</p>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <div className='form-group'>
+                                                                                <label className='text-sm'>
+                                                                                    Aadhar Card Image <span className='text-red-500 text-lg'>*</span>
+                                                                                </label>
+                                                                                <input
+                                                                                    type="file"
+                                                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                                                    name="aadhar_card_image"
+                                                                                    onChange={(e) => handleFileChange("applications_aadhar_card_image", "aadhar_card_image", e)}
+                                                                                    className="form-control border rounded w-full p-1 mt-2"
+                                                                                    ref={(el) => (refs.current["aadhar_card_image"] = el)} // Attach ref here
+                                                                                />
+                                                                                {errors.aadhar_card_image && (
+                                                                                    <p className="text-red-500 text-sm">{errors.aadhar_card_image}</p>
+                                                                                )}
+                                                                                <p className="text-gray-500 text-sm mt-2">
+                                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
+                                                                                </p>
+                                                                                <div><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+
+                                                                            </div>
+                                                                        </>
+                                                                    )
                                                                 }
-                                                                multiple
-                                                                ref={(el) => (refs.current["passport_photo"] = el)} // Attach ref here
 
-                                                            />
-                                                            {errors.passport_photo && <p className="text-red-500 text-sm" > {errors.passport_photo} </p>}
-                                                            <p className="text-gray-500 text-sm mt-2" >
-                                                                Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                            </p>
+                                                                {nationality === "Indian" && (
+                                                                    <div className='form-group' >
+                                                                        <label className='text-sm' > Pan card No </label>
+                                                                        < input
+                                                                            type="text"
+                                                                            name="pan_card_number"
+                                                                            value={formData.personal_information.pan_card_number}
+                                                                            onChange={handleChange}
+
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                        />
+
+                                                                    </div>
+                                                                )
+                                                                }
+
+
+                                                                {
+                                                                    status === 1 && nationality === "Indian" && (
+                                                                        <>
+
+                                                                            <div className='form-group' >
+                                                                                <label className='text-sm' > Name as per Pan Card < span className='text-red-500 text-lg' >* </span></label >
+                                                                                <input
+                                                                                    type="text"
+                                                                                    name="pan_card_name"
+                                                                                    value={formData.personal_information.pan_card_name}
+                                                                                    onChange={handleChange}
+                                                                                    ref={(el) => (refs.current["pan_card_name"] = el)
+                                                                                    } // Attach ref here
+
+                                                                                    className="form-control border rounded w-full p-2 mt-2"
+                                                                                />
+                                                                                {errors.pan_card_name && <p className="text-red-500 text-sm"> {errors.pan_card_name} </p>}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+
+                                                                {status === 1 && nationality === "Indian" && (
+                                                                    <div className='form-group' >
+                                                                        <label className='text-sm' > Pan Card Image < span className='text-red-500 text-lg' >* </span></label >
+                                                                        <input
+                                                                            type="file"
+                                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+
+                                                                            name="pan_card_image"
+                                                                            onChange={(e) => handleFileChange("applications_pan_card_image", "pan_card_image", e)
+                                                                            }
+                                                                            className="form-control border rounded w-full p-1 mt-2"
+                                                                            ref={(el) => (refs.current["pan_card_image"] = el)} // Attach ref here
+
+
+                                                                        />
+                                                                        {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
+                                                                        <p className="text-gray-500 text-sm mt-2" >
+                                                                            Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                        </p>
+                                                                        <div><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+
+                                                                    </div>
+                                                                )}
+
+
+
+                                                            </div>
+                                                            {
+                                                                status == 0 && nationality === "Other" && (
+                                                                    <div className="form-group" >
+                                                                        <label className='text-sm' > Social Security Number(if applicable): </label>
+                                                                        < input
+                                                                            onChange={handleChange}
+                                                                            value={formData.ssn_number}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                                            name="ssn_number"
+
+                                                                        />
+                                                                    </div>
+                                                                )
+                                                            }
+                                                            {nationality === "Other" && (
+                                                                <>
+                                                                    < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+
+                                                                        <div className="form-group" >
+                                                                            <label className='text-sm' >Passport No</label>
+                                                                            < input
+                                                                                onChange={handleChange}
+                                                                                value={formData.passport_no}
+                                                                                type="text"
+                                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                                                name="passport_no"
+
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group" >
+                                                                            <label className='text-sm' > DME No</label>
+                                                                            < input
+                                                                                onChange={handleChange}
+                                                                                value={formData.dme_no}
+                                                                                type="text"
+                                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                                                name="dme_no"
+
+                                                                            />
+                                                                        </div>
+
+                                                                    </div>
+                                                                    <div className="form-group" >
+                                                                        <label className='text-sm' >TAX No</label>
+                                                                        < input
+                                                                            onChange={handleChange}
+                                                                            value={formData.tax_no}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                                            name="tax_no"
+                                                                        />
+                                                                    </div>
+
+                                                                </>
+                                                            )}
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+                                                                <div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="nationality" > Nationality: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.nationality}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        name="nationality"
+                                                                        id="nationality"
+                                                                        ref={(el) => (refs.current["nationality"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.nationality && <p className="text-red-500 text-sm" > {errors.nationality} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <select
+                                                                        ref={(el) => (refs.current["marital_status"] = el)}
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        name="marital_status"
+                                                                        id="marital_status"
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.marital_status}
+
+                                                                    >
+                                                                        <option value="" > SELECT Marital STATUS </option>
+                                                                        < option value="Dont wish to disclose" > Don't wish to disclose</option>
+                                                                        < option value="Single" > Single </option>
+                                                                        < option value="Married" > Married </option>
+                                                                        < option value="Widowed" > Widowed </option>
+                                                                        < option value="Divorced" > Divorced </option>
+                                                                        < option value="Separated" > Separated </option>
+                                                                    </select>
+                                                                    {errors.marital_status && <p className="text-red-500 text-sm" > {errors.marital_status} </p>}
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                        {
+                                                            status === 1 && (
+                                                                <>
+                                                                    <div className='border border-gray-300 p-6 rounded-md mt-5 hover:transition-shadow duration-300' >
+
+                                                                        <label className='text-sm' > Blood Group </label>
+                                                                        < div className='form-group' >
+                                                                            <input
+                                                                                type="text"
+                                                                                name="blood_group"
+                                                                                value={formData.personal_information.blood_group}
+                                                                                onChange={handleChange}
+                                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                            />
+                                                                        </div>
+
+                                                                        < div className='border rounded-md p-3 my-5 ' >
+                                                                            <h3 className='md:text-center text-start md:text-xl text-sm font-bold pb-4' > Add Emergency Contact Details </h3>
+                                                                            < div className='md:grid grid-cols-3 gap-3 ' >
+                                                                                <div className='form-group' >
+                                                                                    <label className='text-sm' > Name < span className='text-red-500 text-lg' >* </span></label >
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="emergency_details_name"
+                                                                                        value={formData.personal_information.emergency_details_name}
+                                                                                        onChange={handleChange}
+                                                                                        ref={(el) => (refs.current["emergency_details_name"] = el)
+                                                                                        } // Attach ref here
+
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                    {errors.emergency_details_name && <p className="text-red-500 text-sm"> {errors.emergency_details_name} </p>}
+                                                                                </div>
+                                                                                < div className='form-group' >
+                                                                                    <label className='text-sm' > Relation < span className='text-red-500 text-lg' >* </span></label >
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="emergency_details_relation"
+                                                                                        value={formData.personal_information.emergency_details_relation}
+                                                                                        onChange={handleChange}
+                                                                                        ref={(el) => (refs.current["emergency_details_relation"] = el)} // Attach ref here
+
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                    {errors.emergency_details_relation && <p className="text-red-500 text-sm"> {errors.emergency_details_relation} </p>}
+                                                                                </div>
+                                                                                < div className='form-group' >
+                                                                                    <label className='text-sm' > Contact Number < span className='text-red-500 text-lg' >* </span></label >
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="emergency_details_contact_number"
+                                                                                        value={formData.personal_information.emergency_details_contact_number}
+                                                                                        onChange={handleChange}
+                                                                                        ref={(el) => (refs.current["emergency_details_contact_number"] = el)} // Attach ref here
+
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                    {errors.emergency_details_contact_number && <p className="text-red-500 text-sm"> {errors.emergency_details_contact_number} </p>}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+
+                                                                        < div className='border rounded-md p-3 mt-3  ' >
+                                                                            <h3 className='md:text-center text-start md:text-xl text-sm font-bold pb-2' > Insurance Nomination Details: - (A set of parent either Parents or Parents in Law, 1 child, Spouse Nominee details)</h3>
+                                                                            < div className='md:grid grid-cols-2 gap-3' >
+                                                                                <div className='form-group' >
+                                                                                    <label className='text-sm' > Name(s)
+                                                                                    </label>
+                                                                                    < input
+                                                                                        type="text"
+                                                                                        name="insurance_details_name"
+                                                                                        value={formData.personal_information.insurance_details_name}
+                                                                                        onChange={handleChange}
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                </div>
+                                                                                < div className='form-group' >
+                                                                                    <label className='text-sm' > Nominee Relationship
+                                                                                    </label>
+                                                                                    < input
+                                                                                        type="text"
+                                                                                        name="insurance_details_nominee_relation"
+                                                                                        value={formData.personal_information.insurance_details_nominee_relation}
+                                                                                        onChange={handleChange}
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                </div>
+                                                                                < div className='form-group' >
+                                                                                    <lalbel>Nominee Date of Birth
+                                                                                    </lalbel>
+                                                                                    < input
+                                                                                        type="date"
+                                                                                        name="insurance_details_nominee_dob"
+                                                                                        value={formData.personal_information.insurance_details_nominee_dob}
+                                                                                        onChange={handleChange}
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                </div>
+                                                                                < div className='form-group' >
+                                                                                    <label className='text-sm' > Contact No.
+                                                                                    </label>
+                                                                                    < input
+                                                                                        type="text"
+                                                                                        name="insurance_details_contact_number"
+                                                                                        value={formData.personal_information.insurance_details_contact_number}
+                                                                                        onChange={handleChange}
+                                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        < label className='text-sm mt-5 block' > Do you want to opt for a Food Coupon ? <span className='text-red-500 text-lg' >* </span></label >
+
+                                                                        <div className='flex gap-6 mb-4  ' >
+                                                                            <div className='form-group pt-2 flex gap-2' >
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name="food_coupon"
+                                                                                    value="Yes"
+                                                                                    onChange={handleChange}
+                                                                                    className="form-control border rounded p-2"
+                                                                                />
+                                                                                <label className='text-sm' > Yes </label>
+                                                                            </div>
+                                                                            < div className='form-group pt-2 flex gap-2' >
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name="food_coupon"
+                                                                                    value="No"
+                                                                                    onChange={handleChange}
+                                                                                    className="form-control border rounded p-2"
+                                                                                />
+                                                                                <label className='text-sm' > No </label>
+                                                                            </div>
+                                                                        </div>
+                                                                        {errors.food_coupon && <p className="text-red-500 text-sm" > {errors.food_coupon} </p>}
+
+
+                                                                        <p className='text-left ' > Food coupons are vouchers or digital meal cards given to employees to purchase food and non - alcoholic beverages.Specific amount as per your requirement would get deducted from your Basic Pay.These are tax free, considered as a non - monetary benefit and are exempt from tax up to a specified limit.</p>
+                                                                    </div>
+                                                                </>
+                                                            )}
+
+
+
+
+
+                                                    </div>
+                                                )}
+
+                                                {activeTab === 1 && (
+                                                    <>
+                                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
+
+                                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Permanent Address </h3>
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+
+                                                                <div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address"
+                                                                        name="permanent_address"
+                                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
+
+                                                                        ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
+                                                                </div>
+
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_pin_code}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_pin_code"
+                                                                        name="permanent_pin_code"
+                                                                        ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_landline_number}
+                                                                        type="number"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_landline_number"
+                                                                        name="permanent_address_landline_number"
+                                                                        ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_state}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_state"
+                                                                        name="permanent_address_state"
+                                                                        ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_prominent_landmark}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_prominent_landmark"
+                                                                        name="permanent_prominent_landmark"
+                                                                        ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_stay_to}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_stay_to"
+                                                                        name="permanent_address_stay_to"
+                                                                        ref={(el) => (refs.current["permanent_address_stay_to"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
+                                                                    < input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_nearest_police_station}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_nearest_police_station"
+                                                                        name="permanent_address_nearest_police_station"
+
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
+                                                            <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange}
+                                                                id="" className='me-2' /><label>Same as Permanent Address</label>
+
+                                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Current Address </h3>
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+
+
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address"
+                                                                        name="current_address"
+                                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
+
+                                                                        ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_pin_code}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_pin_code"
+                                                                        name="current_address_pin_code"
+                                                                        ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_landline_number}
+                                                                        type="number"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_landline_number"
+                                                                        name="current_address_landline_number"
+                                                                        ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_state}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_state"
+                                                                        name="current_address_state"
+                                                                        ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_prominent_landmark}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_prominent_landmark"
+                                                                        name="current_prominent_landmark"
+                                                                        ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_stay_to}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_stay_to"
+                                                                        name="current_address_stay_to"
+                                                                        ref={(el) => (refs.current["current_address_stay_to"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
+                                                                    < input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_nearest_police_station}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_nearest_police_station"
+                                                                        name="current_address_nearest_police_station"
+                                                                        ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
+
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </>
                                                 )}
+                                                {serviceDataMain.map((service, serviceIndex) => {
+                                                    if (activeTab === serviceIndex + 2) {
+                                                        return (
+                                                            <div key={serviceIndex} className="p-6">
+                                                                <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
+                                                                <div className="space-y-6" id="servicesForm" key={serviceIndex}>
+                                                                    {service.rows.map((row, rowIndex) => {
+                                                                        if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
+                                                                            return null;
+                                                                        }
 
-                                        </div>
+                                                                        return (
+                                                                            <div key={rowIndex} className={`${row.class || 'grid'}`}>
+                                                                                {/* Render row heading if it exists */}
+                                                                                {row.heading && (
+                                                                                    <h3 className="text-lg font-bold mb-4">{row.heading}</h3>
+                                                                                )}
 
-                                        < div className='border p-4' >
-                                            <h4 className="md:text-start text-start md:text-2xl text-sm my-6 font-bold " > Personal Information </h4>
+                                                                                {/* Render row description if it exists */}
+                                                                                {row.description && (
+                                                                                    <p className="text-sm text-gray-600">{row.description}</p>
+                                                                                )}
 
-                                            < div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6 " >
-                                                <div className="form-group" >
-                                                    <label className='text-sm' > Full Name as per Govt ID Proof(first, middle, last): <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.full_name}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="full_name"
-                                                        name="full_name"
-                                                        ref={(el) => (refs.current["full_name"] = el)}
+                                                                                <div className="space-y-4">
+                                                                                    <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
 
-                                                    />
-                                                    {errors.full_name && <p className="text-red-500 text-sm" > {errors.full_name} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="former_name" > Former Name / Maiden Name(if applicable)<span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.former_name}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="former_name"
-                                                        ref={(el) => (refs.current["former_name"] = el)} // Attach ref here
-                                                        name="former_name"
-                                                    />
-                                                    {errors.former_name && <p className="text-red-500 text-sm"> {errors.former_name} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="mob_no" > Mobile Number: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.mb_no}
-                                                        type="number"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        name="mb_no"
-                                                        id="mob_no"
-                                                        minLength="10"
-                                                        maxLength="10"
-                                                        ref={(el) => (refs.current["mob_no"] = el)} // Attach ref here
+                                                                                        {row.inputs.map((input, inputIndex) => {
 
-                                                    />
-                                                    {errors.mb_no && <p className="text-red-500 text-sm" > {errors.mb_no} </p>}
-                                                </div>
-                                            </div>
-                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+                                                                                            const isCheckbox = input.type === 'checkbox';
+                                                                                            const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
+                                                                                            const isChecked = checkedCheckboxes[input.name];
 
-                                                <div className="form-group" >
-                                                    <label className='text-sm' htmlFor="father_name">Father's Name: <span className="text-red-500 text-lg">*</span></label>
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.father_name}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="father_name"
-                                                        name="father_name"
-                                                        ref={(el) => (refs.current["father_name"] = el)} // Attach ref here
+                                                                                            // Handle logic for checkbox checked state
+                                                                                            if (isDoneCheckbox && isChecked) {
+                                                                                                // Hide all rows except the one with the checked checkbox
+                                                                                                service.rows.forEach((otherRow, otherRowIndex) => {
+                                                                                                    if (otherRowIndex !== rowIndex) {
+                                                                                                        hiddenRows[`${serviceIndex}-${otherRowIndex}`] = true; // Hide other rows
+                                                                                                    }
+                                                                                                });
+                                                                                                hiddenRows[`${serviceIndex}-${rowIndex}`] = false; // Ensure current row stays visible
+                                                                                            }
 
-                                                    />
-                                                    {errors.father_name && <p className="text-red-500 text-sm" > {errors.father_name} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="husband_name" > Spouse's Name</label>
-                                                    < input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.husband_name}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="husband_name"
-                                                        ref={(el) => (refs.current["husband_name"] = el)} // Attach ref here
-                                                        name="husband_name"
-                                                    />
-                                                </div>
+                                                                                            return (
+                                                                                                <div key={inputIndex} className={row.inputs.length === 5 && (inputIndex === 3 || inputIndex === 4) ? 'col-span-3' : ''}>
+                                                                                                    <label className="text-sm block font-medium mb-0 text-gray-700 capitalize">
+                                                                                                        {input.label.replace(/[\/\\]/g, '')}
+                                                                                                        {input.required && <span className="text-red-500">*</span>}
+                                                                                                    </label>
 
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="dob" > DOB: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.dob}
-                                                        type="date"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        name="dob"
-                                                        id="dob"
-                                                        ref={(el) => (refs.current["dob"] = el)} // Attach ref here
+                                                                                                    {/* Render input types dynamically */}
+                                                                                                    {input.type === 'input' && (
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            name={input.name}
+                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                        />
+                                                                                                    )}
+                                                                                                    {input.type === 'textarea' && (
+                                                                                                        <textarea
+                                                                                                            name={input.name}
+                                                                                                            rows={1}
+                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                        />
+                                                                                                    )}
+                                                                                                    {input.type === 'datepicker' && (
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            name={input.name}
+                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                        />
+                                                                                                    )}
+                                                                                                    {input.type === 'number' && (
+                                                                                                        <input
+                                                                                                            type="number"
+                                                                                                            name={input.name}
+                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                        />
+                                                                                                    )}
+                                                                                                    {input.type === 'email' && (
+                                                                                                        <input
+                                                                                                            type="email"
+                                                                                                            name={input.name}
+                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                        />
+                                                                                                    )}
+                                                                                                    {input.type === 'select' && (
+                                                                                                        <select
+                                                                                                            name={input.name}
+                                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                        >
+                                                                                                            <option value="">Select</option>
+                                                                                                            {Object.entries(input.options).map(([key, option], optionIndex) => (
+                                                                                                                <option key={optionIndex} value={key}>
+                                                                                                                    {option}
+                                                                                                                </option>
+                                                                                                            ))}
+                                                                                                        </select>
+                                                                                                    )}
 
-                                                    />
-                                                    {errors.dob && <p className="text-red-500 text-sm" > {errors.dob} </p>}
-                                                </div>
-                                            </div>
-                                            < div className="grid grid-cols-1 md:grid-cols-1 gap-4" >
+                                                                                                    {input.type === 'file' && (
+                                                                                                        <>
+                                                                                                            <input
+                                                                                                                type="file"
+                                                                                                                name={input.name}
+                                                                                                                multiple
+                                                                                                                accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
+                                                                                                                className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
+                                                                                                                onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
+                                                                                                            />
+                                                                                                            <div>
+                                                                                                                {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
+                                                                                                                    annexureData[service.db_table][input.name].split(',').map((item, index) => {
+                                                                                                                        const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
-                                                <div className="form-group my-4" >
-                                                    <label className='text-sm' htmlFor="gender" >
-                                                        Gender: <span className="text-red-500 text-lg" >* </span>
-                                                    </label>
-                                                    < select
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.gender}
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        name="gender"
-                                                        id="gender"
-                                                        ref={(el) => (refs.current["gender"] = el)} // Attach ref here
-                                                    >
-                                                        <option value="" disabled >
-                                                            Select gender
-                                                        </option>
-                                                        < option value="male" > Male </option>
-                                                        < option value="female" > Female </option>
-                                                        < option value="other" > Other </option>
-                                                    </select>
-                                                    {errors.gender && <p className="text-red-500 text-sm" >{errors.gender} </p>}
-                                                </div>
-                                            </div>
-                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
-                                                {nationality === "Indian" && (
-                                                    <div className='form-group'>
-                                                        <label className='text-sm'>Aadhar card No</label>
-                                                        <input
-                                                            type="text"
-                                                            name="aadhar_card_number"
-                                                            value={formData.personal_information.aadhar_card_number}
-                                                            onChange={handleChange}
-                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                        />
-                                                    </div>
-                                                )}
+                                                                                                                        return (
+                                                                                                                            <div key={index}>
+                                                                                                                                {isImage ? (
+                                                                                                                                    <img src={item} alt={`Image ${index}`} style={{ maxWidth: "100px", maxHeight: "100px" }} />
+                                                                                                                                ) : (
+                                                                                                                                    <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                                                                )}
+                                                                                                                            </div>
+                                                                                                                        );
+                                                                                                                    })
+                                                                                                                ) : (
+                                                                                                                    <p>No image or link available</p>
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                        </>
+                                                                                                    )}
 
+                                                                                                    {input.type === 'checkbox' && (
+                                                                                                        <div className="flex items-center space-x-3">
+                                                                                                            <input
+                                                                                                                type="checkbox"
+                                                                                                                name={input.name}
+                                                                                                                value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                                className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                                                                                onChange={(e) => {
+                                                                                                                    handleCheckboxChange(input.name, e.target.checked);
+                                                                                                                    toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
+                                                                                                                }}
+                                                                                                            />
+                                                                                                            <span className="text-sm text-gray-700">{input.label}</span>
+                                                                                                        </div>
+                                                                                                    )}
 
-                                                {
-                                                    status === 1 && nationality === "Indian" && (
-                                                        <>
-                                                            <div className='form-group'>
-                                                                <label className='text-sm'>
-                                                                    Name as per Aadhar card <span className='text-red-500 text-lg'>*</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    name="aadhar_card_name"
-                                                                    value={formData.personal_information.aadhar_card_name}
-                                                                    onChange={handleChange}
-                                                                    ref={(el) => (refs.current["aadhar_card_name"] = el)} // Attach ref here
-                                                                    className="form-control border rounded w-full p-2 mt-2"
-                                                                />
-                                                                {errors.aadhar_card_name && (
-                                                                    <p className="text-red-500 text-sm">{errors.aadhar_card_name}</p>
-                                                                )}
+                                                                                                    {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
+
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
                                                             </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })}
 
-                                                            <div className='form-group'>
-                                                                <label className='text-sm'>
-                                                                    Aadhar Card Image <span className='text-red-500 text-lg'>*</span>
-                                                                </label>
-                                                                <input
-                                                                    type="file"
-                                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-                                                                    name="aadhar_card_image"
-                                                                    onChange={(e) => handleFileChange("applications_aadhar_card_image", "aadhar_card_image", e)}
-                                                                    className="form-control border rounded w-full p-1 mt-2"
-                                                                    ref={(el) => (refs.current["aadhar_card_image"] = el)} // Attach ref here
-                                                                />
-                                                                {errors.aadhar_card_image && (
-                                                                    <p className="text-red-500 text-sm">{errors.aadhar_card_image}</p>
-                                                                )}
-                                                                <p className="text-gray-500 text-sm mt-2">
-                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
+
+
+                                                {/* Step 3 logic */}
+                                                {activeTab === serviceDataMain.length + 2 && (
+                                                    <div>
+                                                        <div className='mb-6  p-4 rounded-md border shadow-md bg-white mt-8' >
+                                                            <h4 className="md:text-start text-start md:text-xl text-sm my-6 font-bold" > Declaration and Authorization </h4>
+                                                            < div className="mb-6" >
+                                                                <p className='text-sm' >
+                                                                    I hereby authorize GoldQuest Global HR Services Private Limited and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion.I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative.I release all persons from liability on account of such disclosure.
+                                                                    I confirm that the above information is correct to the best of my knowledge.I agree that in the event of my obtaining employment, my probationary appointment, confirmation as well as continued employment in the services of the company are subject to clearance of medical test and background verification check done by the company.
                                                                 </p>
                                                             </div>
-                                                        </>
-                                                    )
-                                                }
 
-                                                {nationality === "Indian" && (
-                                                    <div className='form-group' >
-                                                        <label className='text-sm' > Pan card No </label>
-                                                        < input
-                                                            type="text"
-                                                            name="pan_card_number"
-                                                            value={formData.personal_information.pan_card_number}
-                                                            onChange={handleChange}
+                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-6" >
+                                                                <div className="form-group" >
+                                                                    <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={(e) => handleFileChange("applications_signature", "signature", e)}
+                                                                        type="file"
+                                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
 
-                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                        />
+                                                                        className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
+                                                                        name="signature"
+                                                                        id="signature"
 
-                                                    </div>
-                                                )
-                                                }
+                                                                    />
+                                                                    {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
+                                                                    < p className="text-gray-500 text-sm mt-2" >
+                                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                    </p>
+                                                                    <div><img src={cefDataApp.signature} alt="No Signature Found" /></div>
+
+                                                                </div>
+
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' > Name </label>
+                                                                    < input
+                                                                        value={formData.personal_information.name_declaration}
+                                                                        onChange={handleChange}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                                        name="name_declaration"
+
+                                                                    />
+                                                                </div>
 
 
-                                                {
-                                                    status === 1 && nationality === "Indian" && (
-                                                        <>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' > Date < span className='text-red-500' >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.declaration_date}
+                                                                        type="date"
+                                                                        className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
+                                                                        name="declaration_date"
+                                                                    />
+                                                                    {errors.declaration_date && <p className="text-red-500 text-sm"> {errors.declaration_date} </p>}
 
-                                                            <div className='form-group' >
-                                                                <label className='text-sm' > Name as per Pan Card < span className='text-red-500 text-lg' >* </span></label >
-                                                                <input
-                                                                    type="text"
-                                                                    name="pan_card_name"
-                                                                    value={formData.personal_information.pan_card_name}
-                                                                    onChange={handleChange}
-                                                                    ref={(el) => (refs.current["pan_card_name"] = el)
-                                                                    } // Attach ref here
-
-                                                                    className="form-control border rounded w-full p-2 mt-2"
-                                                                />
-                                                                {errors.pan_card_name && <p className="text-red-500 text-sm"> {errors.pan_card_name} </p>}
+                                                                </div>
                                                             </div>
-                                                        </>
-                                                    )}
+                                                        </div>
 
-                                                {status === 1 && nationality === "Indian" && (
-                                                    <div className='form-group' >
-                                                        <label className='text-sm' > Pan Card Image < span className='text-red-500 text-lg' >* </span></label >
-                                                        <input
-                                                            type="file"
-                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                        < h5 className="md:text-start text-start text-lg my-6 font-bold" > Documents(Mandatory) </h5>
 
-                                                            name="pan_card_image"
-                                                            onChange={(e) => handleFileChange("applications_pan_card_image", "pan_card_image", e)
-                                                            }
-                                                            className="form-control border rounded w-full p-1 mt-2"
-                                                            ref={(el) => (refs.current["pan_card_image"] = el)} // Attach ref here
+                                                        < div className="grid grid-cols-1 bg-white shadow-md  md:grid-cols-3 gap-4 pt-4  md:p-4 p-1 rounded-md border" >
+                                                            <div className="p-4" >
+                                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                                    <FaGraduationCap className="mr-3" />
+                                                                    Education
+                                                                </h6>
+                                                                < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
+                                                            </div>
+
+                                                            < div className="p-4" >
+                                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                                    <FaBriefcase className="mr-3" />
+                                                                    Employment
+                                                                </h6>
+                                                                < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
+                                                            </div>
+
+                                                            < div className="p-4" >
+                                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                                    <FaIdCard className="mr-3" />
+                                                                    Government ID / Address Proof
+                                                                </h6>
+                                                                < p className='text-sm' > Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
+                                                            </div>
+                                                        </div>
 
 
-                                                        />
-                                                        {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
-                                                        <p className="text-gray-500 text-sm mt-2" >
-                                                            Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                        < p className='md:text-start text-start text-sm mt-4' >
+                                                            NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
                                                         </p>
                                                     </div>
                                                 )}
-
-
-
                                             </div>
-                                            {
-                                                status == 0 && nationality === "Other" && (
-                                                    <div className="form-group" >
-                                                        <label className='text-sm' > Social Security Number(if applicable): </label>
-                                                        < input
-                                                            onChange={handleChange}
-                                                            value={formData.ssn_number}
-                                                            type="text"
-                                                            className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                            name="ssn_number"
-
-                                                        />
-                                                    </div>
-                                                )
-                                            }
-                                            {nationality === "Other" && (
-                                                <>
-                                                    < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
-
-                                                        <div className="form-group" >
-                                                            <label className='text-sm' >Passport No</label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.passport_no}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                                name="passport_no"
-
-                                                            />
-                                                        </div>
-                                                        <div className="form-group" >
-                                                            <label className='text-sm' > DME No</label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.dme_no}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                                name="dme_no"
-
-                                                            />
-                                                        </div>
-
-                                                    </div>
-                                                    <div className="form-group" >
-                                                        <label className='text-sm' >TAX No</label>
-                                                        < input
-                                                            onChange={handleChange}
-                                                            value={formData.tax_no}
-                                                            type="text"
-                                                            className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                            name="tax_no"
-                                                        />
-                                                    </div>
-
-                                                </>
-                                            )}
-                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
-                                                <div className="form-group" >
-                                                    <label className='text-sm' htmlFor="nationality" > Nationality: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.nationality}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        name="nationality"
-                                                        id="nationality"
-                                                        ref={(el) => (refs.current["nationality"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.nationality && <p className="text-red-500 text-sm" > {errors.nationality} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <select
-                                                        ref={(el) => (refs.current["marital_status"] = el)}
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        name="marital_status"
-                                                        id="marital_status"
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.marital_status}
-
-                                                    >
-                                                        <option value="" > SELECT Marital STATUS </option>
-                                                        < option value="Dont wish to disclose" > Don't wish to disclose</option>
-                                                        < option value="Single" > Single </option>
-                                                        < option value="Married" > Married </option>
-                                                        < option value="Widowed" > Widowed </option>
-                                                        < option value="Divorced" > Divorced </option>
-                                                        < option value="Separated" > Separated </option>
-                                                    </select>
-                                                    {errors.marital_status && <p className="text-red-500 text-sm" > {errors.marital_status} </p>}
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                        {
-                                            status === 1 && (
-                                                <>
-                                                    <div className='border border-gray-300 p-6 rounded-md mt-5 hover:transition-shadow duration-300' >
-
-                                                        <label className='text-sm' > Blood Group </label>
-                                                        < div className='form-group' >
-                                                            <input
-                                                                type="text"
-                                                                name="blood_group"
-                                                                value={formData.personal_information.blood_group}
-                                                                onChange={handleChange}
-                                                                className="form-control border rounded w-full p-2 mt-2"
-                                                            />
-                                                        </div>
-
-                                                        < div className='border rounded-md p-3 my-5 ' >
-                                                            <h3 className='md:text-center text-start md:text-xl text-sm font-bold pb-4' > Add Emergency Contact Details </h3>
-                                                            < div className='md:grid grid-cols-3 gap-3 ' >
-                                                                <div className='form-group' >
-                                                                    <label className='text-sm' > Name < span className='text-red-500 text-lg' >* </span></label >
-                                                                    <input
-                                                                        type="text"
-                                                                        name="emergency_details_name"
-                                                                        value={formData.personal_information.emergency_details_name}
-                                                                        onChange={handleChange}
-                                                                        ref={(el) => (refs.current["emergency_details_name"] = el)
-                                                                        } // Attach ref here
-
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                    {errors.emergency_details_name && <p className="text-red-500 text-sm"> {errors.emergency_details_name} </p>}
-                                                                </div>
-                                                                < div className='form-group' >
-                                                                    <label className='text-sm' > Relation < span className='text-red-500 text-lg' >* </span></label >
-                                                                    <input
-                                                                        type="text"
-                                                                        name="emergency_details_relation"
-                                                                        value={formData.personal_information.emergency_details_relation}
-                                                                        onChange={handleChange}
-                                                                        ref={(el) => (refs.current["emergency_details_relation"] = el)} // Attach ref here
-
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                    {errors.emergency_details_relation && <p className="text-red-500 text-sm"> {errors.emergency_details_relation} </p>}
-                                                                </div>
-                                                                < div className='form-group' >
-                                                                    <label className='text-sm' > Contact Number < span className='text-red-500 text-lg' >* </span></label >
-                                                                    <input
-                                                                        type="text"
-                                                                        name="emergency_details_contact_number"
-                                                                        value={formData.personal_information.emergency_details_contact_number}
-                                                                        onChange={handleChange}
-                                                                        ref={(el) => (refs.current["emergency_details_contact_number"] = el)} // Attach ref here
-
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                    {errors.emergency_details_contact_number && <p className="text-red-500 text-sm"> {errors.emergency_details_contact_number} </p>}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-
-                                                        < div className='border rounded-md p-3 mt-3  ' >
-                                                            <h3 className='md:text-center text-start md:text-xl text-sm font-bold pb-2' > Insurance Nomination Details: - (A set of parent either Parents or Parents in Law, 1 child, Spouse Nominee details)</h3>
-                                                            < div className='md:grid grid-cols-2 gap-3' >
-                                                                <div className='form-group' >
-                                                                    <label className='text-sm' > Name(s)
-                                                                    </label>
-                                                                    < input
-                                                                        type="text"
-                                                                        name="insurance_details_name"
-                                                                        value={formData.personal_information.insurance_details_name}
-                                                                        onChange={handleChange}
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                </div>
-                                                                < div className='form-group' >
-                                                                    <label className='text-sm' > Nominee Relationship
-                                                                    </label>
-                                                                    < input
-                                                                        type="text"
-                                                                        name="insurance_details_nominee_relation"
-                                                                        value={formData.personal_information.insurance_details_nominee_relation}
-                                                                        onChange={handleChange}
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                </div>
-                                                                < div className='form-group' >
-                                                                    <lalbel>Nominee Date of Birth
-                                                                    </lalbel>
-                                                                    < input
-                                                                        type="date"
-                                                                        name="insurance_details_nominee_dob"
-                                                                        value={formData.personal_information.insurance_details_nominee_dob}
-                                                                        onChange={handleChange}
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                </div>
-                                                                < div className='form-group' >
-                                                                    <label className='text-sm' > Contact No.
-                                                                    </label>
-                                                                    < input
-                                                                        type="text"
-                                                                        name="insurance_details_contact_number"
-                                                                        value={formData.personal_information.insurance_details_contact_number}
-                                                                        onChange={handleChange}
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        < label className='text-sm mt-5 block' > Do you want to opt for a Food Coupon ? <span className='text-red-500 text-lg' >* </span></label >
-
-                                                        <div className='flex gap-6 mb-4  ' >
-                                                            <div className='form-group pt-2 flex gap-2' >
-                                                                <input
-                                                                    type="radio"
-                                                                    name="food_coupon"
-                                                                    value="Yes"
-                                                                    onChange={handleChange}
-                                                                    className="form-control border rounded p-2"
-                                                                />
-                                                                <label className='text-sm' > Yes </label>
-                                                            </div>
-                                                            < div className='form-group pt-2 flex gap-2' >
-                                                                <input
-                                                                    type="radio"
-                                                                    name="food_coupon"
-                                                                    value="No"
-                                                                    onChange={handleChange}
-                                                                    className="form-control border rounded p-2"
-                                                                />
-                                                                <label className='text-sm' > No </label>
-                                                            </div>
-                                                        </div>
-                                                        {errors.food_coupon && <p className="text-red-500 text-sm" > {errors.food_coupon} </p>}
-
-
-                                                        <p className='text-left ' > Food coupons are vouchers or digital meal cards given to employees to purchase food and non - alcoholic beverages.Specific amount as per your requirement would get deducted from your Basic Pay.These are tax free, considered as a non - monetary benefit and are exempt from tax up to a specified limit.</p>
-                                                    </div>
-                                                </>
-                                            )}
-
-
-
-
-
-                                    </div>
-                                )}
-
-                                {activeTab === 1 && (
-                                    <>
-                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
-
-                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Permanent Address </h3>
-                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
-
-                                                <div className="form-group" >
-                                                    <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_address}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_address"
-                                                        name="permanent_address"
-                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
-
-                                                        ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
-                                                </div>
-
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_pin_code}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_pin_code"
-                                                        name="permanent_pin_code"
-                                                        ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_address_landline_number}
-                                                        type="number"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_address_landline_number"
-                                                        name="permanent_address_landline_number"
-                                                        ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_address_state}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_address_state"
-                                                        name="permanent_address_state"
-                                                        ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_prominent_landmark}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_prominent_landmark"
-                                                        name="permanent_prominent_landmark"
-                                                        ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_address_stay_to}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_address_stay_to"
-                                                        name="permanent_address_stay_to"
-                                                        ref={(el) => (refs.current["permanent_address_stay_to"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                    < input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.permanent_address_nearest_police_station}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="permanent_address_nearest_police_station"
-                                                        name="permanent_address_nearest_police_station"
-
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
-                                            <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange}
-                                                id="" className='me-2' /><label>Same as Permanent Address</label>
-
-                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Current Address </h3>
-                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
-
-
-                                                < div className="form-group" >
-                                                    <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_address}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_address"
-                                                        name="current_address"
-                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
-
-                                                        ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_address_pin_code}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_address_pin_code"
-                                                        name="current_address_pin_code"
-                                                        ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_address_landline_number}
-                                                        type="number"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_address_landline_number"
-                                                        name="current_address_landline_number"
-                                                        ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_address_state}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_address_state"
-                                                        name="current_address_state"
-                                                        ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_prominent_landmark}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_prominent_landmark"
-                                                        name="current_prominent_landmark"
-                                                        ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_address_stay_to}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_address_stay_to"
-                                                        name="current_address_stay_to"
-                                                        ref={(el) => (refs.current["current_address_stay_to"] = el)} // Attach ref here
-
-                                                    />
-                                                    {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
-                                                </div>
-                                                < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                    < input
-                                                        onChange={handleChange}
-                                                        value={formData.personal_information.current_address_nearest_police_station}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                        id="current_address_nearest_police_station"
-                                                        name="current_address_nearest_police_station"
-                                                        ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
-
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                                {serviceDataMain.map((service, serviceIndex) => {
-                                    if (activeTab === serviceIndex + 2) {
-                                        return (
-                                            <div key={serviceIndex} className="p-6">
-                                                <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
-                                                <div className="space-y-6" id="servicesForm" key={serviceIndex}>
-                                                    {service.rows.map((row, rowIndex) => {
-                                                        if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
-                                                            return null;
+                                            <div className="flex space-x-4 mt-6">
+                                                <button
+                                                    onClick={(e) => handleSubmit(0, e)} // Pass 0 when Save is clicked
+                                                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        if (activeTab === serviceDataMain.length + 2) {
+                                                            handleSubmit(1, e); // Pass 1 when Submit is clicked (on the last tab)
+                                                        } else {
+                                                            handleNext(); // Otherwise, move to the next tab
                                                         }
-
-                                                        return (
-                                                            <div key={rowIndex} className={`${row.class || 'grid'}`}>
-                                                                {/* Render row heading if it exists */}
-                                                                {row.heading && (
-                                                                    <h3 className="text-lg font-bold mb-4">{row.heading}</h3>
-                                                                )}
-
-                                                                {/* Render row description if it exists */}
-                                                                {row.description && (
-                                                                    <p className="text-sm text-gray-600">{row.description}</p>
-                                                                )}
-
-                                                                <div className="space-y-4">
-                                                                <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
-
-                                                                {row.inputs.map((input, inputIndex) => {
-                                                                          
-                                                                            const isCheckbox = input.type === 'checkbox';
-                                                                            const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
-                                                                            const isChecked = checkedCheckboxes[input.name];
-
-                                                                            // Handle logic for checkbox checked state
-                                                                            if (isDoneCheckbox && isChecked) {
-                                                                                // Hide all rows except the one with the checked checkbox
-                                                                                service.rows.forEach((otherRow, otherRowIndex) => {
-                                                                                    if (otherRowIndex !== rowIndex) {
-                                                                                        hiddenRows[`${serviceIndex}-${otherRowIndex}`] = true; // Hide other rows
-                                                                                    }
-                                                                                });
-                                                                                hiddenRows[`${serviceIndex}-${rowIndex}`] = false; // Ensure current row stays visible
-                                                                            }
-
-                                                                            return (
-                                                                                <div key={inputIndex} className={row.inputs.length === 5 && (inputIndex === 3 || inputIndex === 4) ? 'col-span-3' : ''}>
-                                                                                    <label className="text-sm block font-medium mb-0 text-gray-700 capitalize">
-                                                                                        {input.label.replace(/[\/\\]/g, '')}
-                                                                                        {input.required && <span className="text-red-500">*</span>}
-                                                                                    </label>
-
-                                                                                    {/* Render input types dynamically */}
-                                                                                    {input.type === 'input' && (
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            name={input.name}
-                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                        />
-                                                                                    )}
-                                                                                    {input.type === 'textarea' && (
-                                                                                        <textarea
-                                                                                            name={input.name}
-                                                                                            rows={1}
-                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                        />
-                                                                                    )}
-                                                                                    {input.type === 'datepicker' && (
-                                                                                        <input
-                                                                                            type="date"
-                                                                                            name={input.name}
-                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                        />
-                                                                                    )}
-                                                                                    {input.type === 'number' && (
-                                                                                        <input
-                                                                                            type="number"
-                                                                                            name={input.name}
-                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                        />
-                                                                                    )}
-                                                                                    {input.type === 'email' && (
-                                                                                        <input
-                                                                                            type="email"
-                                                                                            name={input.name}
-                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                        />
-                                                                                    )}
-                                                                                    {input.type === 'select' && (
-                                                                                        <select
-                                                                                            name={input.name}
-                                                                                            value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                            onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
-                                                                                        >
-                                                                                            {Object.entries(input.options).map(([key, option], optionIndex) => (
-                                                                                                <option key={optionIndex} value={key}>
-                                                                                                    {option}
-                                                                                                </option>
-                                                                                            ))}
-                                                                                        </select>
-                                                                                    )}
-                                                                                    {input.type === 'file' && (
-                                                                                        <input
-                                                                                            type="file"
-                                                                                            name={input.name}
-                                                                                            multiple
-                                                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
-                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
-                                                                                            onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
-                                                                                        />
-                                                                                    )}
-                                                                                    {input.type === 'checkbox' && (
-                                                                                        <div className="flex items-center space-x-3">
-                                                                                            <input
-                                                                                                type="checkbox"
-                                                                                                name={input.name}
-                                                                                                value={annexureData[service.db_table]?.[input.name] || ''}
-                                                                                                className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                                                                                                onChange={(e) => {
-                                                                                                    handleCheckboxChange(input.name, e.target.checked);
-                                                                                                    toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
-                                                                                                }}
-                                                                                            />
-                                                                                            <span className="text-sm text-gray-700">{input.label}</span>
-                                                                                        </div>
-                                                                                    )}
-
-                                                                                    {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Check for duplicate button */}
-                                                                {row.inputs.some(input => input.type === 'button' && input['data-action'] === 'duplicate') && (
-                                                                    <div className="flex justify-start mt-4">
-                                                                        <button
-                                                                            type="button"
-                                                                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                                                                            onClick={() => duplicateRow(serviceIndex, rowIndex, row)}
-                                                                        >
-                                                                            {row.inputs.find(input => input.type === 'button').tooltip || 'Add More'}
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                })}
-
-
-
-                                {/* Step 3 logic */}
-                                {activeTab === serviceDataMain.length + 2 && (
-                                    <div>
-                                        <div className='mb-6  p-4 rounded-md border shadow-md bg-white mt-8' >
-                                            <h4 className="md:text-start text-start md:text-xl text-sm my-6 font-bold" > Declaration and Authorization </h4>
-                                            < div className="mb-6" >
-                                                <p className='text-sm' >
-                                                    I hereby authorize GoldQuest Global HR Services Private Limited and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion.I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative.I release all persons from liability on account of such disclosure.
-                                                    I confirm that the above information is correct to the best of my knowledge.I agree that in the event of my obtaining employment, my probationary appointment, confirmation as well as continued employment in the services of the company are subject to clearance of medical test and background verification check done by the company.
-                                                </p>
-                                            </div>
-
-                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-6" >
-                                                <div className="form-group" >
-                                                    <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        onChange={(e) => handleFileChange("applications_signature", "signature", e)}
-                                                        type="file"
-                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-
-                                                        className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
-                                                        name="signature"
-                                                        id="signature"
-
-                                                    />
-                                                    {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
-                                                    < p className="text-gray-500 text-sm mt-2" >
-                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                    </p>
-
-                                                </div>
-
-                                                < div className="form-group" >
-                                                    <label className='text-sm' > Name </label>
-                                                    < input
-                                                        value={formData.personal_information.name_declaration}
-                                                        onChange={handleChange}
-                                                        type="text"
-                                                        className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                        name="name_declaration"
-
-                                                    />
-                                                </div>
-
-
-                                                < div className="form-group" >
-                                                    <label className='text-sm' > Date < span className='text-red-500' >* </span></label >
-                                                    <input
-                                                        onChange={handleChange}
-                                                        value={formData.declaration_date}
-                                                        type="date"
-                                                        className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                        name="declaration_date"
-                                                    />
-                                                    {errors.declaration_date && <p className="text-red-500 text-sm"> {errors.declaration_date} </p>}
-
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        < h5 className="md:text-start text-start text-lg my-6 font-bold" > Documents(Mandatory) </h5>
-
-                                        < div className="grid grid-cols-1 bg-white shadow-md  md:grid-cols-3 gap-4 pt-4  md:p-4 p-1 rounded-md border" >
-                                            <div className="p-4" >
-                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                    <FaGraduationCap className="mr-3" />
-                                                    Education
-                                                </h6>
-                                                < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
-                                            </div>
-
-                                            < div className="p-4" >
-                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                    <FaBriefcase className="mr-3" />
-                                                    Employment
-                                                </h6>
-                                                < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
-                                            </div>
-
-                                            < div className="p-4" >
-                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                    <FaIdCard className="mr-3" />
-                                                    Government ID / Address Proof
-                                                </h6>
-                                                < p className='text-sm' > Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
+                                                    }}
+                                                    className={`px-6 py-2 rounded-md ${isFormFilled
+                                                        ? "text-white bg-blue-500 hover:bg-blue-600"
+                                                        : "text-gray-500 bg-blue-400 cursor-not-allowed"
+                                                        }`}
+                                                    disabled={!isFormFilled} // Disable button if form is not filled
+                                                >
+                                                    {activeTab === serviceDataMain.length + 2 ? 'Submit' : 'Next'} {/* Change button text based on the active tab */}
+                                                </button>
                                             </div>
                                         </div>
 
 
-                                        < p className='md:text-start text-start text-sm mt-4' >
-                                            NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex space-x-4 mt-6">
-                                <button
-                                    onClick={(e) => handleSubmit(0, e)} // Pass 0 when Save is clicked
-                                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                                >
-                                    Save
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        if (activeTab === serviceDataMain.length + 2) {
-                                            handleSubmit(1, e); // Pass 1 when Submit is clicked (on the last tab)
-                                        } else {
-                                            handleNext(); // Otherwise, move to the next tab
-                                        }
-                                    }}
-                                    className={`px-6 py-2 rounded-md ${isFormFilled
-                                        ? "text-white bg-blue-500 hover:bg-blue-600"
-                                        : "text-gray-500 bg-blue-400 cursor-not-allowed"
-                                        }`}
-                                    disabled={!isFormFilled} // Disable button if form is not filled
-                                >
-                                    {activeTab === serviceDataMain.length + 2 ? 'Submit' : 'Next'} {/* Change button text based on the active tab */}
-                                </button>
-                            </div>
+
+
+                                    </div >
+                                )
+
+                            }
                         </div>
-
-
-
-
-                    </div >
-                )
-
-            }
+                    )}
 
 
         </>
