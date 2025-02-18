@@ -172,7 +172,7 @@ const Tickets = () => {
                             return; // Stop further execution after redirecting
                         }
 
-                        
+
 
                         throw new Error(result.message || 'Error sending message');
                     });
@@ -317,49 +317,49 @@ const Tickets = () => {
         fetch(`https://api.goldquestglobal.in/ticket/list?admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
             .then((response) => {
                 if (!response.ok) {
-                    return response.json().then((result) => {
+                    return response.json().then(result => {
                         const newToken = result._token || result.token;
                         if (newToken) {
-                            localStorage.setItem("_token", newToken);  // Update token if available
+                            localStorage.setItem("_token", newToken);
                         }
-                        // Check for invalid token and redirect if necessary
+                        // Check for session expiry (invalid token)
                         if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
-                            const newToken = result._token || result.token;
-                            if (newToken) {
-                                localStorage.setItem("_token", newToken);  // Update the token if available
-                            }
-
-                            // Session expired logic
+                            // Handle session expiry (expired token)
                             Swal.fire({
-                                title: 'Session Expired',
-                                text: 'Your session has expired. Redirecting to the login page.',
-                                icon: 'warning',
-                                confirmButtonText: 'OK',
+                                title: "Session Expired",
+                                text: "Your session has expired. Please log in again.",
+                                icon: "warning",
+                                confirmButtonText: "Ok",
                             }).then(() => {
-                                window.location.href = "/admin-login";  // Redirect to login page
+                                // Redirect to login page after the alert
+                                window.location.href = "/admin-login"; // Replace with your login route
                             });
+                            return; // Stop further execution if session has expired
+                        }
 
-                            return; // Stop further execution if session expired
-                        } else {
-                            // Show error message for other errors
+                        // Handle new token if available
+
+
+                        // Handle other errors if response is not OK
+                        if (!response.ok) {
                             Swal.fire({
-                                title: 'Error',
-                                text: result.message || 'An unexpected error occurred. Please try again.',
                                 icon: 'error',
-                                confirmButtonText: 'OK',
+                                title: 'Error',
+                                text: result.message || 'Failed to load data',
                             });
                         }
 
-                        throw new Error(result.message || 'Error fetching tickets');
+                        return result;
                     });
                 }
+
                 return response.json();  // Parse the response as JSON if the status is OK
             })
             .then((result) => {
 
                 // Extract tickets from the branches array
                 const tickets = result.branches?.map(branch => branch.branches?.map(b => b.tickets)).flat(2);
-                setData(tickets); // Set the data if the request was successful
+                setData(tickets || [])
 
                 // Update token if a new one is available
                 const newToken = result._token || result.token;

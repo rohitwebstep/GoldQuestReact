@@ -25,6 +25,7 @@ const ServiceForm = () => {
 
   useEffect(() => {
     const adminData = JSON.parse(localStorage.getItem("admin"));
+    console.log('adminData',adminData)
     const token = localStorage.getItem("_token");
     if (adminData) setAdminId(adminData.id);
     if (token) setStoredToken(token);

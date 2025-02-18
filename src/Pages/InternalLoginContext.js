@@ -2,14 +2,15 @@ import React, { createContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useApiCall } from '../ApiCallContext';
-
+import { useApi } from '../ApiContext';
 const LoginContext = createContext();
 
 export const LoginProvider = ({ children }) => {
     const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
-
+    const [roles, setRoles] = useState([]);
+    const [group, setGroup] = useState([]);
     const [editAdmin, setEditAdmin] = useState(false);
-
+    const API_URL = useApi();
     const [formData, setFormData] = useState({
         employee_id: "",
         name: "",
@@ -17,7 +18,7 @@ export const LoginProvider = ({ children }) => {
         email: "",
         password: "",
         role: "",
-        service_groups: [], // This will store the selected groups in an array
+        service_ids: "", // This will store the selected groups in an array
 
     });
     const [data, setData] = useState([]); // State to store the response data
@@ -27,13 +28,18 @@ export const LoginProvider = ({ children }) => {
 
     const handleEditAdmin = (selectedAdmin) => {
         setEditAdmin(true);
+        console.log('selectedAdmin', selectedAdmin);
 
-        // Safely parse service_groups if it's a stringified array, default to an empty array if invalid
+        // Check if service_ids exists and is a string, then parse it into an array
         const parsedServiceGroups = (() => {
             try {
-                return selectedAdmin.service_groups ? JSON.parse(selectedAdmin.service_groups) : [];
+                // Check if service_ids is a comma-separated string
+                if (selectedAdmin.service_ids && typeof selectedAdmin.service_ids === 'string') {
+                    return selectedAdmin.service_ids.split(',').map(id => id.trim()).filter(Boolean); // Ensure it's an array of strings
+                }
+                return [];
             } catch (error) {
-                console.error("Failed to parse service_groups:", error);
+                console.error("Failed to parse service_ids:", error);
                 return [];
             }
         })();
@@ -43,123 +49,121 @@ export const LoginProvider = ({ children }) => {
             name: selectedAdmin.name || '',
             mobile: selectedAdmin.mobile || '',
             email: selectedAdmin.email || '',
-            password: selectedAdmin.password || '',
+            password: selectedAdmin.password || '', // This may be an empty string or undefined, depending on your form structure
             role: selectedAdmin.role || '',
             id: selectedAdmin.id || '',
             status: selectedAdmin.status || '',
-            service_groups: selectedAdmin.role !== "admin" ? parsedServiceGroups : [], // Clear service_groups for "admin" role
+            service_ids: selectedAdmin.role !== "admin" ? parsedServiceGroups.join(',') : '', // Store as a comma-separated string for the service_ids
         });
-
     };
 
-
-    const fetchData = async () => {
-        const adminData = localStorage.getItem("admin");
-        const storedToken = localStorage.getItem("_token");
-        setIsApiLoading(true)
-        // If admin data or token is missing, show session expired message and stop execution
-        if (!adminData || !storedToken) {
-            Swal.fire({
-                title: "Session Expired",
-                text: "Your session has expired. Please log in again.",
-                icon: "warning",
-                confirmButtonText: "Ok",
-            }).then(() => {
-                // Redirect to admin login page
-                window.location.href = "/admin-login"; // Replace with your login route
-            });
-            return; // Exit early if no session
-        }
-
-        const admin_id = JSON.parse(adminData)?.id;
-
-        // If admin ID is missing, log the error and exit
-        if (!admin_id) {
-            console.error("Admin ID is missing!");
-            return;
-        }
-
-        setLoading(true); // Start loading spinner
-
+    const fetchAdminOptions = async () => {
+        setIsApiLoading(true);
+        setLoading(true);
         try {
-            // Construct the request URL with query parameters
-            const url = new URL("https://api.goldquestglobal.in/admin/list");
+            const storedAdminData = localStorage.getItem("admin");
+            const storedToken = localStorage.getItem("_token");
+    
+            if (!storedAdminData || !storedToken) {
+                handleSessionExpiry();
+                return;
+            }
+    
+            const adminData = JSON.parse(storedAdminData);
+            const admin_id = adminData?.id;
+    
+            // Prepare request parameters
             const params = new URLSearchParams({
                 admin_id,
                 _token: storedToken,
             });
-            url.search = params.toString();
-
-            // Fetch data using the constructed URL
-            const response = await fetch(url, {
-                method: "GET",
+    
+            // Fetch admin roles and permissions using fetch API
+            const response = await fetch(`${API_URL}/admin/create-listing?${params.toString()}`, {
+                method: 'GET', // GET request
                 headers: {
-                    "Content-Type": "application/json",
+                    'Content-Type': 'application/json',
                 },
             });
-
-            // Check if the response is successful
+    
+            // Check if response is successful (status 200)
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-
-            // Check for invalid or expired token in the response
-            if (
-                data.message &&
-                data.message.toLowerCase().includes("invalid") &&
-                data.message.toLowerCase().includes("token")
-            ) {
+                const errorData = await response.json(); // Get the error message from the response
+    
+                // Show error message from the response
+                const errorMessage = errorData?.message || 'An unexpected error occurred';
+                const errorDetail = errorData?.err?.message || errorMessage;  // Check for specific error details
+    
                 Swal.fire({
-                    title: "Session Expired",
-                    text: "Your session has expired. Please log in again.",
-                    icon: "warning",
-                    confirmButtonText: "Ok",
-                }).then(() => {
-                    // Redirect to admin login page
-                    window.location.href = "/admin-login"; // Replace with your login route
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorDetail,
                 });
-                return; // Stop further processing if token is invalid or expired
+    
+                return; // Stop execution if there's an error
             }
-
-            // Update token if a new one is received in the response
-            const newToken = data?._token || data?.token || data.token;
-            if (newToken) {
-                localStorage.setItem("_token", newToken); // Replace the old token with the new one
+    
+            // If response is successful, parse the data
+            const data = await response.json();
+            
+            // If the response has a status of false, show the error message
+            if (data.status === false) {
+                const errorMessage = data?.message || 'An unexpected error occurred';
+                const errorDetail = data?.err?.message || errorMessage;
+    
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorDetail,
+                });
+    
+                return;
             }
-
-            // Parse service_groups for each admin
-            const parsedGroups =
-                data?.admins?.map((admin) => JSON.parse(admin.service_groups || "[]")) || [];
-
-            // Set state with the parsed data
-            setParsedServiceGroups(parsedGroups);
-            setData(data?.admins || []); // Set the admin data
+    
+            // Handle successful response
+            const adminRoles = data.data;
+            console.log('adminRoles', adminRoles);
+            setRoles(adminRoles.roles.roles || []);
+            setGroup(adminRoles.services?.filter(Boolean) || []);
+            setData(adminRoles?.admins || []); // Set the admin data
+            console.log('groups', group);
+    
+            // Update token if provided
+            const newToken = data?._token || data?.token;
+            if (newToken) localStorage.setItem("_token", newToken);
+    
         } catch (error) {
-            console.error("Error fetching data:", error.message);
+            console.error("Error fetching data:", error);
             Swal.fire({
-                title: "Error!",
-                text: error.message || "Something went wrong while fetching data.",
-                icon: "error",
-                confirmButtonText: "Ok",
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An unexpected error occurred while fetching the data.',
             });
         } finally {
+            setIsApiLoading(false);
             setLoading(false);
-
-            setIsApiLoading(false)
-
-            // Stop the loading spinner
         }
     };
+    
 
+    const handleSessionExpiry = () => {
+        Swal.fire({
+            title: "Session Expired",
+            text: "Your session has expired. Please log in again.",
+            icon: "warning",
+            confirmButtonText: "Ok",
+        }).then(() => {
+            localStorage.removeItem("admin");
+            localStorage.removeItem("_token");
+            window.location.href = "/admin-login"; // Replace with navigate if using React Router
+        });
+    };
 
-
+    console.log('data', data)
 
     return (
         <LoginContext.Provider value={{
-            data, loading, formData, fetchData, setFormData, setEditAdmin, handleEditAdmin, editAdmin, parsedServiceGroups
+            data, loading, formData, roles, group, setFormData, setEditAdmin, fetchAdminOptions, handleEditAdmin, editAdmin, setRoles, setGroup, parsedServiceGroups
         }}>
             {children}
         </LoginContext.Provider>

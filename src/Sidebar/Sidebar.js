@@ -49,6 +49,7 @@ const tabNames = {
   external: (<><VscLinkExternal className="h-6 w-6 mr-3 text-gray-600" />External Login Credentials</>),
   client_master: (<><MdOutlineTrackChanges className="h-6 w-6 mr-3 text-gray-600" />Client Master Tracker</>),
   candidate_master: (<><MdAccessTime className="h-6 w-6 mr-3 text-gray-600" />Candidate Master Tracker</>),
+  permission_manager: (<><MdAccessTime className="h-6 w-6 mr-3 text-gray-600" />Permission Manager</>),
   tickets: (<><FaTicketSimple className="h-6 w-6 mr-3 text-gray-600" />Tickets</>),
   tat_delay: (<><IoNotificationsCircle className="h-6 w-6 mr-3 text-gray-600" />TAT Delay Notification</>),
   acknowledgment: (<><MdEmail className="h-6 w-6 mr-3 text-gray-600" />Acknowledgment Email</>),

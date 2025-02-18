@@ -9,17 +9,17 @@ import { useApiCall } from '../ApiCallContext';
 const InternalLoginList = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
 
-    const { data, loading, fetchData, handleEditAdmin, parsedServiceGroups } = useContext(LoginContext)
+    const { data, loading, fetchAdminOptions, handleEditAdmin, parsedServiceGroups, group } = useContext(LoginContext)
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
-    const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-    const storedToken = localStorage.getItem("_token");
     useEffect(() => {
         if (!isApiLoading) {
-            fetchData();
+            fetchAdminOptions();
         }
     }, []);
+
+
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalServices, setModalServices] = useState([]);
@@ -150,7 +150,7 @@ const InternalLoginList = () => {
                             'Admin has been deleted successfully.',
                             'success'
                         );
-                        fetchData();
+                        fetchAdminOptions();
                         // Handle token expiration (if the message contains "invalid token")
                         if (result.message && result.message.toLowerCase().includes("invalid token")) {
                             Swal.fire({
@@ -184,7 +184,6 @@ const InternalLoginList = () => {
 
                     })
                     .catch((error) => {
-                        console.error('Fetch error:', error);
 
                     }).finally(() => {
                         setIsApiLoading(false);
@@ -234,112 +233,128 @@ const InternalLoginList = () => {
             <h2 className='text-center text-2xl font-bold my-5'>Admin List</h2>
 
             <div className="overflow-x-auto">
+    {loading ? (
+        <div className='flex justify-center items-center py-6'>
+            <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
+        </div>
+    ) : currentItems.length > 0 ? (
+        <table className="min-w-full">
+            <thead>
+                <tr className='bg-green-500'>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">SL</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee ID</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee Name</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee Mobile</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Email</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Role</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Status</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Services Name</th>
+                    <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {currentItems.map((item, index) => {
+                    const serviceIds = item.service_ids ? item.service_ids.split(',').map(id => parseInt(id.trim(), 10)) : [];
+                    const servicesToShow = group.filter(g => serviceIds.includes(g.id));
 
-                {loading ? (
-                    <div className='flex justify-center items-center py-6 '>
-                        <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
+                    // Set a flag for showing the first service only by default
+                    const showMoreButton = servicesToShow.length > 1;
+                    const showAllServices = false; // flag to control visibility of all services
 
-                    </div>
-                ) : currentItems.length > 0 ? (
-                    <table className="min-w-full">
-                        <thead>
-                            <tr className='bg-green-500'>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">SL</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee ID</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee Name</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee Mobile</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Email</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Role</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Status</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Service Group</th>
-                                <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentItems.map((item, index) => {
-                                const serviceGroups = parsedServiceGroups[index] || []; // Access service groups for each admin
-                                const servicesToShow = serviceGroups.length > 1 ? serviceGroups[0] : serviceGroups.join(', '); // Show only the first service or all if there's only one
-                                const showMoreButton = serviceGroups.length > 1; // Check if there are more than one service to show the "View More" button
-
-                                return (
-                                    <tr key={index}>
-                                        <td className="py-2 px-4 border-b border-r border-l text-center whitespace-nowrap">
-                                            {index + 1 + (currentPage - 1) * itemsPerPage}
-                                        </td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.emp_id || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.mobile || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.email}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.role || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.status || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">
-                                            {item.role !== "admin" ? (
-                                                <>
-                                                    {servicesToShow ? (
-                                                        <span className="px-4 py-2 bg-green-100 border border-green-500 rounded-lg text-sm">
-                                                            {servicesToShow}
+                    return (
+                        <tr key={index}>
+                            <td className="py-2 px-4 border-b border-r border-l text-center whitespace-nowrap">
+                                {index + 1 + (currentPage - 1) * itemsPerPage}
+                            </td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.emp_id || 'NIL'}</td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name || 'NIL'}</td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.mobile || 'NIL'}</td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.email}</td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.role || 'NIL'}</td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.status || 'NIL'}</td>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap ">
+                                <div className='flex gap-3'>
+                                {item.role !== "admin" ? (
+                                    <>
+                                        {servicesToShow.length > 0 ? (
+                                            <div>
+                                                {/* Show only the first service by default */}
+                                                {showAllServices ? (
+                                                    servicesToShow.map((service) => (
+                                                        <span key={service.id} className="px-4 py-2 bg-green-100 border border-green-500 rounded-lg text-sm">
+                                                            {service.title || 'NIL'}
                                                         </span>
-                                                    ) : (
-                                                        "Nil"
-                                                    )}
+                                                    ))
+                                                ) : (
+                                                    <span key={servicesToShow[0].id} className="px-4 py-2 bg-green-100 border border-green-500 rounded-lg text-sm">
+                                                        {servicesToShow[0].title || 'NIL'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            "Nil"
+                                        )}
 
-                                                    {showMoreButton && (
-                                                        <button
-                                                            className="ms-3"
-                                                            onClick={() => handleViewMore(item.id, serviceGroups)} // Open the modal on click
-                                                        >
-                                                            View More
-                                                        </button>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                'NIL'
-                                            )}
-                                        </td>
+                                        {showMoreButton && (
+                                            <button
+                                                className="ms-3"
+                                                onClick={() => handleViewMore(item.id, servicesToShow)}
+                                            >
+                                                View More
+                                            </button>
+                                        )}
+                                    </>
+                                ) : (
+                                    'NIL'
+                                )}
+                                </div>
+                            </td>
 
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">
-                                            <button className='bg-green-500 hover:bg-green-200 rounded-md me-3 p-2 text-white' onClick={() => editAdmin(item)}>Edit</button>
-                                            <button className={`rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
-                                                disabled={isApiLoading || loading} onClick={() => deleteAdmin(item.id)}>Delete</button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
+                            <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">
+                                <button className='bg-green-500 hover:bg-green-200 rounded-md me-3 p-2 text-white' onClick={() => editAdmin(item)}>Edit</button>
+                                <button className={`rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
+                                    disabled={isApiLoading || loading} onClick={() => deleteAdmin(item.id)}>Delete</button>
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
+    ) : (
+        <div className="text-center py-6">
+            <p>No Data Found</p>
+        </div>
+    )}
 
-                    </table>
-                ) : (
-                    <div className="text-center py-6">
-                        <p>No Data Found</p>
-                    </div>
-                )}
-
-                {isModalOpen && (
-
-
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg shadow-lg p-4 md:w-6/12">
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-bold">Services Groups</h2>
-                                <button
-                                    className="text-red-500 text-2xl"
-                                    onClick={handleCloseModal}
-                                >
-                                    &times;
-                                </button>
-                            </div>
-                            <div className="mt-4 flex flex-wrap gap-2 w-full m-auto h-auto ">
-                                <ul className='flex flex-wrap gap-3'>
-                                    {modalServices.map((service, idx) => (
-                                        <li key={idx} className="px-4 py-2 bg-green-100 border text-center border-green-500 rounded-lg text-sm">{service}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
+    {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-4 md:w-6/12">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-bold">Services Groups</h2>
+                    <button
+                        className="text-red-500 text-2xl"
+                        onClick={handleCloseModal}
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 w-full m-auto h-auto">
+                    <ul className="flex flex-wrap gap-3">
+                        {modalServices.length > 0 ? (
+                            modalServices.map((service, idx) => (
+                                <li key={idx} className="px-4 py-2 bg-green-100 border text-center border-green-500 rounded-lg text-sm">{service.title}</li>
+                            ))
+                        ) : (
+                            <li className="px-4 py-2 bg-gray-100 border text-center border-gray-500 rounded-lg text-sm">No services available</li>
+                        )}
+                    </ul>
+                </div>
             </div>
+        </div>
+    )}
+</div>
+
+
             <div className="flex items-center justify-end  p-3 py-2">
                 <button
                     onClick={showPrev}

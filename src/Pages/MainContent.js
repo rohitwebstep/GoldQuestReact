@@ -28,6 +28,7 @@ import CallbackAdmin from './CallbackAdmin';
 import ServiceForms from './ServiceForms';
 import ServiceReportForm from './ServicesReportForm';
 import AdminDeletionRequest from './AdminDeletionRequest';
+import PermissionManager from './PermissionManager';
 
 
 
@@ -65,6 +66,7 @@ const tabComponents = {
   developers: <ServiceForms />,
   report_forms: <ServiceReportForm />,
   deletion_requests: <AdminDeletionRequest />,
+  permission_manager: <PermissionManager />,
 };
 
 const MainContent = () => {

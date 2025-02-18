@@ -1,28 +1,43 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RiLoginCircleFill } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../ApiContext';
 import Swal from 'sweetalert2';
-const Logout = () => {
 
+const Logout = () => {
   const API_URL = useApi();
   const navigate = useNavigate();
+
   const handleLogout = async () => {
     const storedAdminData = localStorage.getItem("admin");
+    const storedCustomerData = localStorage.getItem("customer");
     const storedToken = localStorage.getItem("_token");
-  
-    if (!storedAdminData || !storedToken) {
+
+    // Determine if the user is logged in as admin or customer
+    let logoutApiUrl = '';
+    let storedData = null;
+    let redirectUrl = '/admin-login';  // Default redirect to admin login
+
+    if (storedAdminData && storedToken) {
+      // User is an admin
+      logoutApiUrl = `${API_URL}/admin/logout?admin_id=${JSON.parse(storedAdminData)?.id}&_token=${storedToken}`;
+      storedData = storedAdminData;
+      redirectUrl = '/admin-login';
+    } 
+
+    // If no active session found
+    if (!storedData || !storedToken) {
       Swal.fire({
         title: "Error",
         text: "No active session found. Redirecting to login.",
         icon: "warning",
         confirmButtonText: "Ok",
       }).then(() => {
-        navigate("/admin-login");
+        navigate(redirectUrl);  // Redirect to login based on user type
       });
       return;
     }
-  
+
     // Confirmation dialog before proceeding with logout
     const confirmation = await Swal.fire({
       title: "Are you sure?",
@@ -32,7 +47,7 @@ const Logout = () => {
       confirmButtonText: "Yes, log me out",
       cancelButtonText: "No, cancel",
     });
-  
+
     // If the user confirmed, proceed with the logout process
     if (confirmation.isConfirmed) {
       Swal.fire({
@@ -43,17 +58,12 @@ const Logout = () => {
         },
         allowOutsideClick: false,
       });
-  
+
       try {
-        const response = await fetch(
-          `${API_URL}/admin/logout?admin_id=${JSON.parse(storedAdminData)?.id}&_token=${storedToken}`,
-          {
-            method: "GET",
-          }
-        );
-  
+        const response = await fetch(logoutApiUrl, { method: "GET" });
+
         const responseData = await response.json(); // Parse response as JSON
-  
+
         // Check if session is expired (invalid token)
         if (responseData.message && responseData.message.toLowerCase().includes("invalid") && responseData.message.toLowerCase().includes("token")) {
           Swal.fire({
@@ -62,27 +72,27 @@ const Logout = () => {
             icon: "warning",
             confirmButtonText: "Ok",
           }).then(() => {
-            // Redirect to admin login page
-            window.location.href = "/admin-login"; // Replace with your login route
+            window.location.href = redirectUrl;  // Redirect to login page
           });
           return;
         }
-  
+
         if (!response.ok) {
           throw new Error(responseData.message || "Logout failed");
         }
-  
+
         // Clear local storage on successful logout
         localStorage.removeItem("admin");
+        localStorage.removeItem("customer");
         localStorage.removeItem("_token");
-  
+
         Swal.fire({
           title: "Success",
           text: "You have been logged out successfully.",
           icon: "success",
           confirmButtonText: "Ok",
         }).then(() => {
-          navigate("/admin-login");
+          navigate(redirectUrl);  // Redirect to login page based on user type
         });
       } catch (error) {
         Swal.fire({
@@ -97,9 +107,6 @@ const Logout = () => {
       // If the user cancels, do nothing
     }
   };
-  
-  
-
 
   return (
     <button onClick={handleLogout} className='flex gap-1 items-center text-white ms-2 mt-3 md:mt-0'>

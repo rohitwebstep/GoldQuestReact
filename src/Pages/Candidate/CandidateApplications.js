@@ -717,9 +717,9 @@ const GenerateReport = () => {
         e.preventDefault();
         setIsApiLoading(true); // Start global loading spinner
         setLoading(true); // Start specific loading spinner
-    
+
         const fileCount = Object.keys(files).length;
-    
+
         // Swal instance to show loading spinner while processing
         const swalInstance = Swal.fire({
             title: 'Processing...',
@@ -730,11 +730,11 @@ const GenerateReport = () => {
             allowOutsideClick: false, // Prevent closing Swal while processing
             showConfirmButton: false, // Hide the confirm button
         });
-    
+
         try {
             const adminData = JSON.parse(localStorage.getItem("admin"));
             const token = localStorage.getItem("_token");
-    
+
             // Prepare submission data
             const submissionData = servicesDataInfo
                 .map((serviceData, index) => {
@@ -742,25 +742,25 @@ const GenerateReport = () => {
                         const formJson = serviceData.reportFormJson?.json
                             ? JSON.parse(serviceData.reportFormJson.json)
                             : null;
-    
+
                         if (!formJson) {
                             console.warn(`Invalid formJson for service at index ${index}`);
                             return null;
                         }
-    
+
                         const annexure = {};
-    
+
                         // Map through rows and inputs to build annexure
                         formJson.rows.forEach((row) => {
                             row.inputs.forEach((input) => {
                                 let fieldName = input.name;
                                 const fieldValue =
                                     serviceData.annexureData?.[fieldName] || "";
-    
+
                                 if (fieldName.endsWith("[]")) {
                                     fieldName = fieldName.slice(0, -2); // Remove array indicator
                                 }
-    
+
                                 if (fieldName.startsWith("annexure.")) {
                                     const [, category, key] = fieldName.split(".");
                                     if (!annexure[category]) annexure[category] = {};
@@ -772,32 +772,32 @@ const GenerateReport = () => {
                                 }
                             });
                         });
-    
+
                         const category = formJson.db_table || "default_category";
                         const status = selectedStatuses?.[index] || "";
                         if (annexure[category]) {
                             annexure[category].status = status;
                         }
-    
+
                         return { annexure };
                     }
                     return null;
                 })
                 .filter(Boolean); // Remove null values
-    
+
             if (!submissionData.length) {
                 console.warn("No valid submission data found.");
                 Swal.fire("Error", "No data to submit. Please check your inputs.", "error");
                 setLoading(false);
                 return;
             }
-    
+
             // Flatten and clean up annexure data
             const filteredSubmissionData = submissionData.reduce(
                 (acc, item) => ({ ...acc, ...item.annexure }),
                 {}
             );
-    
+
             Object.keys(filteredSubmissionData).forEach((key) => {
                 const data = filteredSubmissionData[key];
                 Object.keys(data).forEach((subKey) => {
@@ -806,7 +806,7 @@ const GenerateReport = () => {
                     }
                 });
             });
-    
+
             // Prepare request payload
             const raw = JSON.stringify({
                 admin_id: adminData?.id || "",
@@ -818,30 +818,30 @@ const GenerateReport = () => {
                 annexure: filteredSubmissionData,
                 send_mail: fileCount === 0 ? 1 : 0,
             });
-    
+
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: raw,
             };
-    
+
             // API Request
             const response = await fetch(
                 `https://api.goldquestglobal.in/client-master-tracker/generate-report`,
                 requestOptions
             );
-    
+
             const result = await response.json();
             const newToken = result._token || result.token;
             if (newToken) {
                 localStorage.setItem("_token", newToken);
             }
-    
+
             if (!response.ok) {
                 const errorMessage = result.message || `HTTP error! Status: ${response.status}`;
                 throw new Error(errorMessage); // Show API error message
             }
-    
+
             // Success Handling
             const successMessage = result.success_message || "Application updated successfully.";
             if (fileCount == 0) {
@@ -861,10 +861,10 @@ const GenerateReport = () => {
                     confirmButtonText: "Ok",
                 });
             }
-    
+
         } catch (error) {
             console.error("Error during submission:", error);
-    
+
             // If an error occurs, show the error message from the API
             Swal.fire("Error", error.message || "Failed to submit the application. Please try again.", "error");
         } finally {
@@ -873,7 +873,7 @@ const GenerateReport = () => {
             setIsApiLoading(false); // Stop global loading spinner
         }
     }, [servicesDataInfo, branchid, branchInfo, applicationId, formData, selectedStatuses, files]);
-    
+
 
 
     return (
@@ -1211,7 +1211,7 @@ const GenerateReport = () => {
                         </div>
 
                         <div>
-                            <div className="SelectedServices border md:p-5 p-2 h-[300px] overflow-auto  rounded-md md:mx-12">
+                            <div className="SelectedServices border md:p-5 p-2 overflow-auto  rounded-md md:mx-12">
                                 <h1 className="text-center md:text-2xl text-lg">SELECTED SERVICES</h1>
                                 {servicesDataInfo && servicesDataInfo.map((serviceData, index) => {
                                     if (serviceData.serviceStatus) {
@@ -1471,10 +1471,19 @@ const GenerateReport = () => {
                                     onChange={handleChange}
                                     className="border rounded-md p-2 mt-2 uppercase w-full"
                                 >
-                                    <option value="insuff">insuff</option>
-                                    <option value="initiated">initiated</option>
-                                    <option value="wip">wip</option>
-                                    <option value="hold">hold</option>
+                                   
+                                    <option></option>
+                                    <option value="initiated">INITIATED</option>
+                                    <option value="hold">HOLD</option>
+                                    <option value="closure advice">CLOSURE ADVICE</option>
+                                    <option value="wip">WIP</option>
+                                    <option value="insuff">INSUFF</option>
+                                    <option value="completed" selected="" id="overall_st_completed">COMPLETED</option>
+                                    <option value="stopcheck">STOPCHECK</option>
+                                    <option value="active employment">ACTIVE EMPLOYMENT</option>
+                                    <option value="nil">NIL</option>
+                                    <option value="not doable">NOT DOABLE</option>
+                                    <option value="candidate denied">CANDIDATE DENIED</option>
                                     <option value="completed" disabled={!allCompleted}  // Disable if not all statuses are completed
                                     >
                                         completed

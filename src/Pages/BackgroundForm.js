@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
+import { MdOutlineArrowRightAlt } from "react-icons/md";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css'; // Correct path for newer Swiper versions
 
 import axios from 'axios';
 import LogoBgv from '../Images/LogoBgv.jpg'
@@ -11,6 +14,7 @@ const BackgroundForm = () => {
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(false)
+    const [conditionHtml, setConditionHtml] = useState("");
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
     const [errors, setErrors] = useState({});
@@ -72,9 +76,222 @@ const BackgroundForm = () => {
             dme_no: '',
             tax_no: '',
             pan_card_number: "",
+            insurance_details_name: '',
+            insurance_details_nominee_dob: "",
+            insurance_details_nominee_relation: ""
 
         },
     });
+    const [isDuplicateInProgress, setIsDuplicateInProgress] = useState(false);
+    const duplicateRow = (serviceIndex, rowIndex, row, isInitialDuplication = true, inputIndex = 1) => {
+        // Ensure serviceDataMain exists and is structured correctly
+        if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
+            console.error("serviceDataMain is not available or is not an array");
+            return;
+        }
+
+        // Retrieve the correct service data object
+        const service = serviceDataMain[serviceIndex];
+        if (!service || !service.rows) {
+            console.error("Invalid service data or rows not found");
+            return;
+        }
+
+        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
+        if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
+            console.error("No valid target row classes found in the button data");
+            return;
+        }
+
+        const matchingRows = service.rows.filter((serviceRow) => {
+            return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
+        });
+
+        if (matchingRows.length === 0) {
+            return;
+        }
+
+        // Track the maximum input index across all rows
+        let existingInputNames = new Set(); // Track already existing input names
+
+        service.rows.forEach((row) => {
+            row.inputs.forEach((input) => {
+                const match = input.name.match(/_(\d+)$/); // Check for the trailing number in input name
+                if (match) {
+                    const currentIndex = parseInt(match[1], 10);
+                    existingInputNames.add(input.name); // Track this name as already existing
+                    inputIndex = Math.max(inputIndex, currentIndex + 1);  // Update the max inputIndex
+                }
+            });
+        });
+
+        // Set the next available index for rows (this is row-wise)
+        let maxIndex = 0;
+        service.rows.forEach((row) => {
+            const match = row.class?.match(/row-(\d+)/); // Match row-<number>
+            if (match) {
+                const currentIndex = parseInt(match[1], 10);
+                maxIndex = Math.max(maxIndex, currentIndex); // Get the highest index
+            }
+        });
+
+        let rowIndexToUse = maxIndex + 1;
+
+        const newRows = matchingRows.map((matchingRow) => {
+            const newRow = {
+                ...matchingRow,  // Copy the properties from the matched row
+                class: `row-${rowIndexToUse}`, // Add the next available index to the outer row class
+                inputs: matchingRow.inputs.map((input) => {
+                    let newInputName = `${input.name.replace(/_\d+$/, '')}_${inputIndex}`;
+
+                    // If the input name already exists (from previous duplications), adjust the index
+                    while (existingInputNames.has(newInputName)) {
+                        inputIndex++; // Increment index until the name is unique
+                        newInputName = `${input.name.replace(/_\d+$/, '')}_${inputIndex}`;
+                    }
+
+                    existingInputNames.add(newInputName); // Add the new input name to the set
+
+                    return {
+                        ...input,
+                        name: newInputName, // Update the name with the current input index
+                        value: isInitialDuplication ? (annexureData[service.db_table]?.[input.name] || input.value || '') : '', // Reset value for subsequent duplications
+                    };
+                }),
+            };
+
+            rowIndexToUse++; // Increment rowIndexToUse to ensure the rows are in order
+            return newRow;
+        });
+
+        const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
+        if (buttonRowIndex === -1) {
+            console.error("Button row not found");
+            return;
+        }
+
+        const updatedRows = [
+            ...service.rows.slice(0, buttonRowIndex),
+            ...newRows,
+            ...service.rows.slice(buttonRowIndex),
+        ];
+
+        const updatedServiceData = [...serviceDataMain];
+        updatedServiceData[serviceIndex] = {
+            ...service,
+            rows: updatedRows,
+        };
+        setServiceDataMain(updatedServiceData);  // Update the state with the new rows
+
+        // Log the duplicated rows inputs for debugging
+        newRows.forEach(newRow => {
+            newRow.inputs.forEach(input => {
+                console.log('Duplicated row input:', input);
+            });
+        });
+
+        // Now, update annexureData for the new duplicated rows
+        newRows.forEach((newRow) => {
+            newRow.inputs.forEach((input) => {
+                const fieldValue = annexureImageData.find(data => data && data.hasOwnProperty(input.name));
+                const newValue = fieldValue ? fieldValue[input.name] : input.value || "No value available";
+
+                // Update annexureData for the new duplicated input
+                setAnnexureData((prevData) => {
+                    const updatedData = {
+                        ...prevData,
+                        [service.db_table]: {
+                            ...prevData[service.db_table],
+                            [input.name]: newValue,
+                        },
+                    };
+
+                    return updatedData;
+                });
+            });
+        });
+
+        // Check if the newly duplicated row is filled, and if it is, trigger duplication again (with empty values for the original row)
+        if (isInitialDuplication) {
+            const rowsToDuplicate = service.rows.filter((row) => {
+                return row.inputs.some(input => input['data-target']);
+            });
+
+            rowsToDuplicate.forEach((originalRow) => {
+                const isRowFilled = originalRow.inputs.every(input => input.value !== ''); // Check if all inputs have values
+
+                if (isRowFilled) {
+                    console.log('Original row is filled, duplicating again.');
+
+                    // Create an empty duplicate of the original row (reset input values)
+                    const emptyRow = {
+                        ...originalRow,
+                        inputs: originalRow.inputs.map(input => ({
+                            ...input,
+                            value: '',  // Reset the value to empty
+                        })),
+                    };
+
+                    // Increment the inputIndex for the next duplication
+                    duplicateRow(serviceIndex, rowIndex, emptyRow, false, inputIndex + 1);
+                }
+            });
+        }
+    };
+
+
+
+
+    useEffect(() => {
+        const duplicateRowsIfNeeded = () => {
+            setIsDuplicateInProgress(true);
+
+            serviceDataMain.forEach((service, serviceIndex) => {
+                if (!service || !service.rows) {
+                    return;
+                }
+
+                const serviceHasDuplicateRow = service.rows.some((row) => {
+                    return row.inputs.some(input => input['data-action'] === 'duplicate');
+                });
+
+                if (serviceHasDuplicateRow) {
+                    const rowsToDuplicate = service.rows.filter((row) => {
+                        return row.inputs.some(input => input['data-action'] === 'duplicate');
+                    });
+
+                    rowsToDuplicate.forEach((mainRow, rowIndex) => {
+                        const isRowFilled = mainRow.inputs.every(input => {
+                            const inputVal = annexureData[service.db_table]?.[input.name] || '';
+                            return inputVal !== ''; // Ensure the row is filled
+                        });
+
+                        // Case 1: First-time duplicate (row is filled and not duplicated yet)
+                        if (isRowFilled && !mainRow.isNewlyDuplicated) {
+                            mainRow.isNewlyDuplicated = true;
+                            duplicateRow(serviceIndex, rowIndex, mainRow); // Duplicate the row
+
+                            // Check if the newly created row is filled and duplicate again if so
+                            const newRow = service.rows.find(r => r.class === mainRow.class);
+                            if (newRow) {
+                                const isNewRowFilled = newRow.inputs.every(input => input.value !== '');
+                                if (isNewRowFilled) {
+                                    console.log(`New row ${rowIndex} is filled after duplication, duplicating again.`);
+                                    duplicateRow(serviceIndex, rowIndex, mainRow); // Duplicate again
+                                }
+                            }
+                        } else if (isRowFilled && mainRow.isNewlyDuplicated) {
+                            console.log(`Row ${rowIndex} is filled and already duplicated.`);
+                        } else if (!isRowFilled && mainRow.isNewlyDuplicated) {
+                            mainRow.isNewlyDuplicated = false;
+                        }
+                    });
+                }
+            });
+        };
+
+        duplicateRowsIfNeeded();
+    }, [serviceDataMain, annexureData, isDuplicateInProgress]);
 
 
     const fetchApplicationStatus = async () => {
@@ -127,8 +344,11 @@ const BackgroundForm = () => {
                             permanent_address_stay_to: cefData?.permanent_address_stay_to || formData.permanent_address_stay_to,
                             current_address_nearest_police_station: cefData?.current_address_nearest_police_station || formData.current_address_nearest_police_station,
                             permanent_address_nearest_police_station: cefData?.permanent_address_nearest_police_station || formData.permanent_address_nearest_police_station,
-                            insurance_details_contact_number: cefData?.insurance_details_contact_number || formData.insurance_details_contact_number,
                             nationality: cefData?.nationality || formData.nationality,
+                            insurance_details_name: cefData?.insurance_details_name || formData.insurance_details_name,
+                            insurance_details_contact_number: cefData.insurance_details_contact_number || formData.insurance_details_contact_number,
+                            insurance_details_nominee_dob: cefData.insurance_details_nominee_dob || formData.insurance_details_nominee_dob,
+                            insurance_details_nominee_relation: cefData.insurance_details_nominee_relation || formData.insurance_details_nominee_relation,
                             marital_status: cefData?.marital_status || formData.marital_status,
                             name_declaration: cefData?.name_declaration || formData.name_declaration,
                             blood_group: cefData?.blood_group || formData.blood_group,
@@ -251,223 +471,6 @@ const BackgroundForm = () => {
             }
         }
     };
-  const duplicateRow = (serviceIndex, rowIndex, row) => {
-    // Ensure serviceDataMain exists and is structured correctly
-    if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
-        console.error("serviceDataMain is not available or is not an array");
-        return;
-    }
-
-    const service = serviceDataMain[serviceIndex];
-    if (!service || !service.rows) {
-        console.error("Invalid service data or rows not found");
-        return;
-    }
-
-    // Extract the target row classes from the data-action attribute
-    const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
-    if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
-        console.error("No valid target row classes found in the button data");
-        return;
-    }
-
-    const matchingRows = service.rows.filter((serviceRow) => {
-        return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
-    });
-
-    if (matchingRows.length === 0) {
-        return;
-    }
-
-    // Find the highest input index across all rows
-    let inputIndex = 1;
-    service.rows.forEach((row) => {
-        row.inputs.forEach((input) => {
-            const match = input.name.match(/_(\d+)$/);
-            if (match) {
-                const currentIndex = parseInt(match[1], 10);
-                inputIndex = Math.max(inputIndex, currentIndex + 1);
-            }
-        });
-    });
-
-    // Set the next available index for rows (row-wise)
-    let maxIndex = 0;
-    service.rows.forEach((row) => {
-        const match = row.class?.match(/row-(\d+)/);
-        if (match) {
-            const currentIndex = parseInt(match[1], 10);
-            maxIndex = Math.max(maxIndex, currentIndex);
-        }
-    });
-
-    let rowIndexToUse = maxIndex + 1;
-
-    // Duplicate matching rows and preserve original input values
-    const newRows = matchingRows.map((matchingRow) => {
-        const newRow = {
-            ...matchingRow,
-            class: `row-${rowIndexToUse}`,
-            inputs: matchingRow.inputs.map((input) => {
-                // Copy the original input value from the matching row to the new row
-                const newInput = {
-                    ...input,
-                    name: `${input.name.replace(/_\d+$/, '')}_${inputIndex}`,
-                    value: annexureData[service.db_table]?.[input.name] || input.value || '', // Preserve value from annexureData or default to original value
-                };
-
-                return newInput;
-            }),
-        };
-
-        rowIndexToUse++;
-        return newRow;
-    });
-
-    // Insert the new duplicated rows before the button's row
-    const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
-
-    if (buttonRowIndex === -1) {
-        console.error("Button row not found");
-        return;
-    }
-
-    const updatedRows = [
-        ...service.rows.slice(0, buttonRowIndex),
-        ...newRows,
-        ...service.rows.slice(buttonRowIndex),
-    ];
-
-    // Update serviceDataMain with the new rows
-    const updatedServiceData = [...serviceDataMain];
-    updatedServiceData[serviceIndex] = {
-        ...service,
-        rows: updatedRows,
-    };
-
-    setServiceDataMain(updatedServiceData);
-
-    // Now, update annexureData for the new duplicated rows
-    newRows.forEach((newRow) => {
-        newRow.inputs.forEach((input) => {
-            // Find the corresponding field value in annexureImageData
-            const fieldValue = annexureImageData.find(data => data && data.hasOwnProperty(input.name));
-
-            // Ensure the annexureData is updated with the latest field values
-            if (fieldValue) {
-                if (!annexureData[service.db_table]) {
-                    annexureData[service.db_table] = {};
-                }
-                annexureData[service.db_table][input.name] = fieldValue[input.name] || "No value available";
-            }
-
-            // Update annexureData for the new input
-            setAnnexureData((prevData) => ({
-                ...prevData,
-                [service.db_table]: {
-                    ...prevData[service.db_table],
-                    [input.name]: input.value || "No value available", // Ensure value is updated for the current input
-                },
-            }));
-        });
-    });
-};
-
-    
-
-    useEffect(() => {
-        const duplicateRowsIfNeeded = () => {
-            let isDuplicateInProgress = false;  // Flag to check if duplication is ongoing
-
-            serviceDataMain.forEach((service, serviceIndex) => {
-                // Ensure serviceDataMain exists and is structured correctly
-                if (!service || !service.rows) {
-                    return;
-                }
-
-                // Iterate over all the rows in the service
-                service.rows.forEach((row, rowIndex) => {
-                    // Check if the row has values in the inputs (this checks if the row is filled out)
-                    const isRowFilled = row.inputs.every(input => {
-                        const inputVal = annexureData[service.db_table]?.[input.name] || ''; // Default to '' if undefined
-                        return inputVal !== '';  // Check if it's filled (not empty)
-                    });
-
-                    // If the row is filled, check if it has a target class for duplication
-                    if (isRowFilled) {
-                        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
-
-                        // Ensure that targetRowClasses is not empty
-                        if (targetRowClasses.length > 0) {
-                            targetRowClasses.forEach((targetClass) => {
-                                if (targetClass) {
-                                    // Matching target class found for row, perform duplication
-                                    if (!row.isDuplicated && !isDuplicateInProgress) {
-                                        // Mark the row as duplicated
-                                        row.isDuplicated = true;
-
-                                        // Call the function to duplicate the row
-                                        console.log(`Duplicating row ${rowIndex} in service ${serviceIndex} with class ${targetClass}`);
-                                        duplicateRow(serviceIndex, rowIndex, row, targetClass);
-
-                                        // Set the flag to prevent further duplications until the new row is filled
-                                        isDuplicateInProgress = true;
-
-                                        // After duplicating, ensure a new row is created if necessary
-                                        addNewRowIfNeeded(serviceIndex, row, targetClass);
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-            });
-        };
-
-        // Automatically duplicate rows based on existing filled inputs
-        duplicateRowsIfNeeded();
-    }, [duplicateRow, annexureData, serviceDataMain]);
-
-    const addNewRowIfNeeded = (serviceIndex, row, targetClass) => {
-        const service = serviceDataMain[serviceIndex]; // Ensure you get the service from your data
-
-        if (!service) {
-            return;
-        }
-
-        if (targetClass && service.rows.length > 0) {
-            // Define the new row object
-            const newRow = {
-                ...row,
-                inputs: row.inputs.map(input => ({
-                    ...input,
-                    // Use original name to fetch value from annexureData
-                    value: annexureData[service.db_table]?.[input.name.replace(/_\d+$/, '')] || '',  // Ensure value is populated correctly
-                })),
-                targetClass: targetClass,  // Add the target class to the new row
-                isDuplicated: false,  // Mark the new row as not yet duplicated
-            };
-
-            // Add the new row to the service
-            service.rows.push(newRow);
-
-            // Ensure the `annexureData` is updated for the duplicated row as well
-            const rowKey = newRow.inputs.map(input => input.name).join('_');  // Construct a unique key for the row if needed
-            setAnnexureData(prevData => ({
-                ...prevData,
-                [service.db_table]: {
-                    ...prevData[service.db_table],
-                    [rowKey]: newRow.inputs.reduce((acc, input) => {
-                        acc[input.name] = input.value || '';  // Set the initial value for the inputs
-                        return acc;
-                    }, {}),
-                },
-            }));
-        }
-    };
-
-
-    console.log('annexureData', annexureData)
 
     const handleAddressCheckboxChange = (e) => {
         setIsSameAsPermanent(e.target.checked);
@@ -567,126 +570,10 @@ const BackgroundForm = () => {
             });
         }
     };
-    const validate3 = () => {
-        const maxSize = 2 * 1024 * 1024; // 2MB size limit
-        const allowedTypes = [
-            "image/jpeg", "image/png", "application/pdf",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ]; // Allowed file types
-
-        let newErrors = {}; // Object to store errors
-        const service = serviceDataMain[activeTab - 2];
-
-        // Check if any checkbox is checked in any row of this service to skip the validation for the entire service
-        const shouldSkipServiceValidation = service.rows.some(row =>
-            row.inputs.some(input =>
-                input.type === 'checkbox' &&
-                (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done')) &&
-                checkedCheckboxes[input.name]
-            )
-        );
-
-        if (shouldSkipServiceValidation) {
-            return {}; // Skip all validation for this service and return empty errors
-        }
-
-        service.rows.forEach((row, rowIndex) => {
-            // Check if any of the checkboxes `done_or_not` is checked for this row
-            const skipRowValidation = row.inputs.some(input =>
-                input.type === 'checkbox' && input.name.startsWith('done_or_not') && checkedCheckboxes[input.name]
-            );
-
-            if (skipRowValidation) {
-                return; // Skip this row entirely (no validation will be performed for this row)
-            }
-
-            row.inputs.forEach((input, inputIndex) => {
-                // Skip validation for this input if the row was skipped
-                if (skipRowValidation) {
-                    return;
-                }
-
-                // If the input is a file, validate the file type and size
-                if (input.type === 'file') {
-                    const validateFile = (fileName) => {
-                        let fileErrors = [];
-                        const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-                        const createdFileName = mapping ? mapping[fileName] : undefined;
-
-                        // Check if createdFileName is valid and the structure exists in 'files'
-                        const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
 
 
-                        // Handle the scenario where the checkbox is unchecked but files are still present in the structure
-                        if (!checkedCheckboxes[input.name] && filesToCheck && filesToCheck.length > 0) {
-                            // Files are still present even though the checkbox is unchecked, ensure they are validated
-                            delete newErrors[fileName]; // Clear the error if files are found
-                        }
-
-                        // If the checkbox is unchecked and no files are present, add an error
-                        if (!checkedCheckboxes[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
-                            fileErrors.push(`${fileName} is required.`);
-                        }
-
-                        // If files exist for the input, perform file validation
-                        if (filesToCheck && filesToCheck.length > 0) {
-                            filesToCheck.forEach((fileItem) => {
-                                // Validate file size
-                                if (fileItem.size > maxSize) {
-                                    fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
-                                }
-
-                                // Validate file type
-                                if (!allowedTypes.includes(fileItem.type)) {
-                                    fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-                                }
-                            });
-                        }
-
-                        return fileErrors;
-                    };
-
-                    // Validate files for all required file inputs
-                    const fileInputKeys = row.inputs.filter(input => input.type === 'file').map(input => input.name);
 
 
-                    fileInputKeys.forEach((fileField) => {
-                        const fileErrors = validateFile(fileField);
-
-                        // Ensure errors[fileField] is always an array
-                        if (!Array.isArray(newErrors[fileField])) {
-                            newErrors[fileField] = []; // Initialize it as an array if not already
-                        }
-
-                        // If there are file errors, push them to newErrors
-                        if (fileErrors.length > 0) {
-                            newErrors[fileField] = [...newErrors[fileField], ...fileErrors];
-                        } else {
-                            // If no errors and files were selected, clear any previous errors
-                            delete newErrors[fileField];
-                        }
-                    });
-                } else {
-                    // For non-file inputs, validate required fields
-                    const inputValue = annexureData[service.db_table]?.[input.name];
-
-                    if (input.required && (!inputValue || inputValue.trim() === '')) {
-                        newErrors[input.name] = 'This field is required';
-                    }
-                }
-            });
-        });
-
-        // Log the errors at the end of validation
-        if (Object.keys(newErrors).length > 0) {
-            // Errors exist, handle accordingly
-        } else {
-            // No errors, handle accordingly
-        }
-
-        return newErrors; // Return the accumulated errors
-    };
     const validate = () => {
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
@@ -699,14 +586,7 @@ const BackgroundForm = () => {
         const service = serviceDataMain[activeTab - 2];
 
         // Convert annexureImageData into a map for faster lookup
-        const annexureImagesMap = annexureImageData.reduce((acc, item) => {
-            Object.keys(item).forEach((key) => {
-                if (key.startsWith('attach_documents') || key.startsWith('attach_certificate_')) {
-                    acc[key] = item[key]; // Store the file URL by the field name
-                }
-            });
-            return acc;
-        }, {});
+
 
 
         // Loop through the rows to validate files and fields
@@ -732,11 +612,19 @@ const BackgroundForm = () => {
 
                 if (input.type === 'file') {
                     const fileName = input.name;
+                    const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
+                    const createdFileName = mapping ? mapping[fileName] : undefined;
+                    const annexureImagesMap = annexureImageData.reduce((acc, item) => {
+                        Object.keys(item).forEach((key) => {
+                            if (createdFileName) {
+                                acc[key] = item[key]; // Store the file URL by the field name
+                            }
+                        });
+                        return acc;
+                    }, {});
 
                     const validateFile = (fileName) => {
                         let fileErrors = [];
-                        const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-                        const createdFileName = mapping ? mapping[fileName] : undefined;
 
                         // Check if createdFileName is valid and the structure exists in 'files'
                         const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
@@ -812,26 +700,19 @@ const BackgroundForm = () => {
 
 
 
-
-
-
-
     const handleCheckboxChange = (checkboxName, isChecked) => {
         setCheckedCheckboxes((prevState) => ({
             ...prevState,
             [checkboxName]: isChecked,
         }));
     };
-
     const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
         setHiddenRows((prevState) => {
             const newState = { ...prevState };
             const serviceRows = serviceDataMain[serviceIndex].rows;
             const row = serviceRows[rowIndex];
-
             const fileInputs = row.inputs.filter(input => input.type === 'file');
             let removedFileInputs = [];
-
 
             // Check if any checkbox in this row is either 'done_or_not' or 'has_not_done'
             const isSpecialCheckbox = row.inputs.some(input =>
@@ -839,7 +720,6 @@ const BackgroundForm = () => {
                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'))
             );
 
-            // If it's a checkbox of interest, proceed with the toggle
             if (isSpecialCheckbox) {
                 if (isChecked) {
                     // Remove from serviceDataImageInputNames when checked
@@ -862,7 +742,6 @@ const BackgroundForm = () => {
                             return true;
                         });
 
-
                         return updatedFileInputs;
                     });
 
@@ -883,11 +762,66 @@ const BackgroundForm = () => {
                         newState[`${serviceIndex}-${i}`] = true;
                     }
 
+                    const conditions = serviceDataMain[serviceIndex]?.conditions || [];
+
+                    if (Array.isArray(conditions)) {
+                        conditions.forEach(condition => {
+                            if (row.inputs.some(input => input.name === condition.name) && isChecked) {
+                                // Loop through all attributes (like 'html', 'pdf', etc.)
+                                const attributes = condition.show?.attribute || [];
+
+                                attributes.forEach(attr => {
+                                    // Replace attributes if present
+                                    const replaceAttributes = condition.replace_attributes || [];
+                                    let updatedContent = condition[attr] || ""; // Start with existing content, e.g. condition.html or condition.pdf
+
+                                    if (replaceAttributes.length > 0) {
+                                        // Add 'cefdata' before each attribute in replace_attributes
+                                        replaceAttributes.forEach(replaceAttr => {
+                                            let dynamicValue = cefDataApp[replaceAttr] || 'NIL'; // Default to 'NIL'
+
+                                            // If the replaceAttr is 'date', replace it with the current date
+                                            if (replaceAttr === 'date') {
+                                                const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
+                                                dynamicValue = currentDate; // Replace with the current date
+                                            }
+
+                                            const regex = new RegExp(`{{${replaceAttr}}}`, 'g'); // Match the placeholder {{replaceAttr}}
+                                            updatedContent = updatedContent.replace(regex, dynamicValue); // Replace placeholder with dynamic value
+                                        });
+
+                                        console.log(`Updated ${attr}:`, updatedContent); // Debugging line
+
+                                        // Set the updated content in state for each attribute
+                                        setConditionHtml(prevState => {
+                                            console.log('Setting state for', attr, 'with content:', updatedContent);
+                                            return {
+                                                ...prevState,
+                                                [attr]: updatedContent // Dynamically set for each attribute like html, pdf
+                                            };
+                                        });
+                                    } else {
+                                        // Print 'NIL' if no attributes are present
+                                        console.log('NIL');
+                                        setConditionHtml(prevState => {
+                                            return {
+                                                ...prevState,
+                                                [attr]: 'NIL' // Or reset the attribute content to 'NIL'
+                                            };
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+
+
+
                 } else {
                     // Restore removed file inputs when unchecked
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = [...prevFileInputs, ...removedFileInputs];
-
                         return updatedFileInputs;
                     });
 
@@ -907,15 +841,15 @@ const BackgroundForm = () => {
 
                         delete newState[`${serviceIndex}-${i}`];
                     }
+
+                    // Clear condition HTML if unchecked
+                    setConditionHtml({}); // Reset the condition HTML (empty object)
                 }
             }
-
 
             return newState;
         });
     };
-
-
 
 
     const handleServiceChange = (tableName, fieldName, value) => {
@@ -941,29 +875,33 @@ const BackgroundForm = () => {
 
 
 
-
     const handleNext = () => {
         let validationErrors = {};
+
+        // Validate based on the active tab
         if (activeTab === 0) {
-            validationErrors = validate1();
+            validationErrors = validate1(); // Validation for the first tab
         } else if (activeTab === 1) {
-            validationErrors = validateSec();
+            validationErrors = validateSec(); // Validation for the second tab
         } else if (activeTab > 0 && activeTab <= serviceDataMain.length) {
-            validationErrors = validate();
+            validationErrors = validate(); // Validation for service-related tabs
         } else if (activeTab === serviceDataMain.length + 2) {
-            validationErrors = validate2();
+            validationErrors = validate2(); // Validation for the last tab
         }
 
+        // Check if there are no validation errors
         if (Object.keys(validationErrors).length === 0) {
-            setErrors({});
+            setErrors({}); // Clear any previous errors
+
+            // If there are no errors and the active tab is not the last one, move to the next tab
             if (activeTab < serviceDataMain.length + 2) {
                 setActiveTab(activeTab + 1);
             }
         } else {
-            setErrors(validationErrors);
-
+            setErrors(validationErrors); // Set the validation errors to the state
         }
     };
+
 
 
     // const validate1 = () => {
@@ -1225,8 +1163,12 @@ const BackgroundForm = () => {
         }
         return newErrors;
     };
+    const handleBack = () => {
+        if (activeTab > 1) {
+            setActiveTab(activeTab - 1); // Adjust the active tab to go back
+        }
+    };
 
-    console.log('errors', errors);
     const validateSec = () => {
         const newErrors = {};
         const requiredFields = [
@@ -1268,7 +1210,6 @@ const BackgroundForm = () => {
 
             // Check if the file already exists in cefDataApp, skip validation if it does
             if (cefDataApp && cefDataApp[fileName]) {
-                console.log(`File ${fileName} already exists in cefDataApp, skipping validation.`);
                 return fileErrors; // Skip validation if the file already exists
             }
 
@@ -1553,7 +1494,6 @@ const BackgroundForm = () => {
         }
     };
 
-    console.log('files', files);
 
     const uploadCustomerLogo = async (cef_id, fileCount, custombgv) => {
         if (custombgv == 1) {
@@ -1687,60 +1627,60 @@ const BackgroundForm = () => {
                                                 </div>
                                             </div>
 
-
                                             <div className="mb-6 flex p-2 filter-menu overflow-x-auto border rounded-md items-center flex-nowrap relative space-x-4">
                                                 {/* Personal Information Tab */}
-                                                <div className="text-center flex items-end">
+                                                <div className="text-center flex items-end gap-2">
                                                     <button
                                                         onClick={() => handleTabClick(0)} // Navigate to tab 0 (Personal Information)
+                                                        disabled={false} // Always enable the first tab
                                                         className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
                                                     >
                                                         <FaUser
-                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                                            className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-green-500 text-white"
                                                         />
                                                         Personal Information
                                                     </button>
-                                                    <hr className="border-[1px] w-20" />
+                                                    <MdOutlineArrowRightAlt className='text-2xl' />
                                                 </div>
 
                                                 {/* Current/Permanent Address Tab */}
-                                                <div className="text-center flex items-end">
+                                                <div className="text-center flex items-end gap-2">
                                                     <button
-                                                        disabled={activeTab == 0} // Disable if the first tab is not filled
                                                         onClick={() => handleTabClick(1)} // Navigate to tab 1 (Current/Permanent Address)
-                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`}
+                                                        disabled={activeTab == 0} // Enable only when on step 1
+                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
+    ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} // Text color changes based on tab active status
                                                     >
                                                         <FaUser
-                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 1 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
+      ${activeTab === 1 ? "bg-green-500 text-white" : (activeTab > 0 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
                                                         />
                                                         Current/Permanent Address
                                                     </button>
-                                                    <hr className="border-[1px] w-20" />
+                                                    <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} />
+
+
                                                 </div>
 
                                                 {/* Service Tabs */}
-                                                {serviceDataMain.filter(service => service).map((service, index) => {
-                                                    // Check if the current tab is filled (this is a flag to check if the tab is filled)
-                                                    const isTabFilled = formData[`tab${index + 1}`]; // Check if the tab is filled based on formData
-
-                                                    // Allow navigation to this tab if it's filled, or if it's the previous tab
-                                                    const isTabEnabled = (activeTab > index) || (isTabFilled && activeTab === index);
-
+                                                {serviceDataMain.map((service, index) => {
+                                                    const isTabEnabled = activeTab > index + 1;
+                                                    console.log('isTabEnabled', isTabEnabled)
                                                     return (
-                                                        <div key={index} className="text-center flex items-end">
+                                                        <div key={index} className="text-center flex items-end gap-2">
                                                             <button
-                                                                disabled={!isTabEnabled} // Disable tab if not filled or if it's not the current tab
+                                                                disabled={!isTabEnabled} // Disable tab if it's not the current step
                                                                 className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-                        ${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
-                                                                onClick={() => handleTabClick(index + 2)} // Switch to this tab if clicked
+                                ${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
+                                                                onClick={() => handleTabClick(index + 2)} // Navigate to the tab when clicked
                                                             >
                                                                 <FaCog
                                                                     className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-                            ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-400")}`}
+                                    ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`}
                                                                 />
                                                                 {service.heading}
                                                             </button>
-                                                            <hr className="border-[1px] w-20" />
+                                                            <MdOutlineArrowRightAlt className='text-2xl' />
                                                         </div>
                                                     );
                                                 })}
@@ -1749,18 +1689,18 @@ const BackgroundForm = () => {
                                                 <div className="text-center">
                                                     <button
                                                         onClick={() => handleTabClick(serviceDataMain.length + 2)} // Set tab to the last one (declaration)
-                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceDataMain.length + 2 ? "text-green-500" : "text-gray-700"}`}
-                                                        disabled={!formData[`tab${serviceDataMain.length}`]} // Disable the tab if the last form is not filled
+                                                        disabled={activeTab !== serviceDataMain.length + 2} // Disable until all previous steps are completed
+                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
+    ${activeTab === serviceDataMain.length + 2 ? "text-green-500" : "text-gray-400"}`} // Text color changes based on tab active status
                                                     >
                                                         <FaCheckCircle
-                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceDataMain.length + 2 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
+      ${activeTab === serviceDataMain.length + 2 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
                                                         />
                                                         Declaration and Authorization
                                                     </button>
-                                                </div>
-                                            </div>
 
-
+                                                </div> </div>
 
 
                                             <div className="border p-4 rounded-md shadow-md">
@@ -1784,7 +1724,9 @@ const BackgroundForm = () => {
                                                                     <p className="text-gray-500 text-sm mt-2" >
                                                                         Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                     </p>
-                                                                    <div><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} alt="" /></div>
+                                                                    {cefDataApp.resume_file && (
+                                                                        <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                             < div className="form-group col-span-2" >
@@ -1802,16 +1744,17 @@ const BackgroundForm = () => {
                                                                 <p className="text-gray-500 text-sm mt-2" >
                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                 </p>
-                                                                <div>
+                                                                <div className='grid grid-cols-5 gap-3'>
+                                                                
                                                                     {cefDataApp.govt_id ? (
                                                                         cefDataApp.govt_id.split(',').map((item, index) => {
                                                                             // Check if the item is an image (based on its extension)
                                                                             const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
                                                                             return (
-                                                                                <div key={index}>
+                                                                                <div key={index} className='border rounded-md flex items-center justify-center'>
                                                                                     {isImage ? (
-                                                                                        <img src={item} alt={`Image ${index}`} style={{ maxWidth: "100px", maxHeight: "100px" }} />
+                                                                                        <img src={item} alt={`Image ${index}`}  />
                                                                                     ) : (
                                                                                         <div>
                                                                                             <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -1851,16 +1794,16 @@ const BackgroundForm = () => {
                                                                             <p className="text-gray-500 text-sm mt-2" >
                                                                                 Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                             </p>
-                                                                            <div>
+                                                                            <div className='grid grid-cols-5 gap-3'>
                                                                                 {cefDataApp.passport_photo ? (
                                                                                     cefDataApp.passport_photo.split(',').map((item, index) => {
                                                                                         // Check if the item is an image (based on its extension)
                                                                                         const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
                                                                                         return (
-                                                                                            <div key={index}>
+                                                                                            <div key={index} className='border rounded-md flex items-center justify-center'>
                                                                                                 {isImage ? (
-                                                                                                    <img src={item} alt={`Image ${index}`} style={{ maxWidth: "100px", maxHeight: "100px" }} />
+                                                                                                    <img src={item} alt={`Image ${index}`}  />
                                                                                                 ) : (
                                                                                                     <div>
                                                                                                         <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -2050,7 +1993,10 @@ const BackgroundForm = () => {
                                                                                 <p className="text-gray-500 text-sm mt-2">
                                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                                                                                 </p>
-                                                                                <div><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+                                                                                {cefDataApp.aadhar_card_image && (
+                                                                                    <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+
+                                                                                )}
 
                                                                             </div>
                                                                         </>
@@ -2114,8 +2060,10 @@ const BackgroundForm = () => {
                                                                         <p className="text-gray-500 text-sm mt-2" >
                                                                             Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                         </p>
-                                                                        <div><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+                                                                        {cefDataApp.pan_card_image && (
+                                                                            <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
 
+                                                                        )}
                                                                     </div>
                                                                 )}
 
@@ -2128,7 +2076,7 @@ const BackgroundForm = () => {
                                                                         <label className='text-sm' > Social Security Number(if applicable): </label>
                                                                         < input
                                                                             onChange={handleChange}
-                                                                            value={formData.ssn_number}
+                                                                            value={formData.personal_information.ssn_number}
                                                                             type="text"
                                                                             className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                             name="ssn_number"
@@ -2145,7 +2093,7 @@ const BackgroundForm = () => {
                                                                             <label className='text-sm' >Passport No</label>
                                                                             < input
                                                                                 onChange={handleChange}
-                                                                                value={formData.passport_no}
+                                                                                value={formData.personal_information.passport_no}
                                                                                 type="text"
                                                                                 className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                                 name="passport_no"
@@ -2153,10 +2101,10 @@ const BackgroundForm = () => {
                                                                             />
                                                                         </div>
                                                                         <div className="form-group" >
-                                                                            <label className='text-sm' > DME No</label>
+                                                                            <label className='text-sm' >Driving Licence / Resident Card / Id no</label>
                                                                             < input
                                                                                 onChange={handleChange}
-                                                                                value={formData.dme_no}
+                                                                                value={formData.personal_information.dme_no}
                                                                                 type="text"
                                                                                 className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                                 name="dme_no"
@@ -2169,7 +2117,7 @@ const BackgroundForm = () => {
                                                                         <label className='text-sm' >TAX No</label>
                                                                         < input
                                                                             onChange={handleChange}
-                                                                            value={formData.tax_no}
+                                                                            value={formData.personal_information.tax_no}
                                                                             type="text"
                                                                             className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                             name="tax_no"
@@ -2337,6 +2285,8 @@ const BackgroundForm = () => {
                                                                                     type="radio"
                                                                                     name="food_coupon"
                                                                                     value="Yes"
+                                                                                    checked={formData.personal_information.food_coupon === 'Yes'} // Check if "No" is selected
+
                                                                                     onChange={handleChange}
                                                                                     className="form-control border rounded p-2"
                                                                                 />
@@ -2347,6 +2297,8 @@ const BackgroundForm = () => {
                                                                                     type="radio"
                                                                                     name="food_coupon"
                                                                                     value="No"
+                                                                                    checked={formData.personal_information.food_coupon === 'No'} // Check if "No" is selected
+
                                                                                     onChange={handleChange}
                                                                                     className="form-control border rounded p-2"
                                                                                 />
@@ -2462,19 +2414,20 @@ const BackgroundForm = () => {
                                                                     />
                                                                     {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
                                                                 </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                                    < input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address_nearest_police_station}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address_nearest_police_station"
-                                                                        name="permanent_address_nearest_police_station"
 
-                                                                    />
-                                                                </div>
                                                             </div>
+                                                        </div>
+                                                        < div className="form-group" >
+                                                            <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
+                                                            < input
+                                                                onChange={handleChange}
+                                                                value={formData.personal_information.permanent_address_nearest_police_station}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                id="permanent_address_nearest_police_station"
+                                                                name="permanent_address_nearest_police_station"
+
+                                                            />
                                                         </div>
                                                         <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
                                                             <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange}
@@ -2570,20 +2523,21 @@ const BackgroundForm = () => {
                                                                     />
                                                                     {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
                                                                 </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                                    < input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_nearest_police_station}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_nearest_police_station"
-                                                                        name="current_address_nearest_police_station"
-                                                                        ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
 
-                                                                    />
-                                                                </div>
                                                             </div>
+                                                        </div>
+                                                        < div className="form-group" >
+                                                            <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
+                                                            < input
+                                                                onChange={handleChange}
+                                                                value={formData.personal_information.current_address_nearest_police_station}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                id="current_address_nearest_police_station"
+                                                                name="current_address_nearest_police_station"
+                                                                ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
+
+                                                            />
                                                         </div>
                                                     </>
                                                 )}
@@ -2709,21 +2663,44 @@ const BackgroundForm = () => {
                                                                                                                 className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
                                                                                                                 onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
                                                                                                             />
-                                                                                                            <div>
+                                                                                                            <div className="border p-3 rounded-md mt-4">
                                                                                                                 {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
-                                                                                                                    annexureData[service.db_table][input.name].split(',').map((item, index) => {
-                                                                                                                        const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
+                                                                                                                    <Swiper
+                                                                                                                        spaceBetween={10} // Space between slides
+                                                                                                                        slidesPerView={5} // Default is 1 image per view
+                                                                                                                        loop={true} // Loop through images
+                                                                                                                        autoplay={{
+                                                                                                                            delay: 1000,
+                                                                                                                            disableOnInteraction: false, // Keeps autoplay active on interaction
+                                                                                                                        }}
+                                                                                                                        pagination={{
+                                                                                                                            clickable: true,
+                                                                                                                        }}
+                                                                                                                        navigation={{ // Enable next/prev buttons
+                                                                                                                            nextEl: '.swiper-button-next',
+                                                                                                                            prevEl: '.swiper-button-prev',
+                                                                                                                        }}
+                                                                                                                    >
+                                                                                                                        {annexureData[service.db_table][input.name].split(',').map((item, index) => {
+                                                                                                                            const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
-                                                                                                                        return (
-                                                                                                                            <div key={index}>
-                                                                                                                                {isImage ? (
-                                                                                                                                    <img src={item} alt={`Image ${index}`} style={{ maxWidth: "100px", maxHeight: "100px" }} />
-                                                                                                                                ) : (
-                                                                                                                                    <button onClick={() => window.open(item, '_blank')}>Open Link</button>
-                                                                                                                                )}
-                                                                                                                            </div>
-                                                                                                                        );
-                                                                                                                    })
+                                                                                                                            return (
+                                                                                                                                <SwiperSlide key={index}>
+                                                                                                                                    <div className="swiper-slide-container">
+                                                                                                                                        {isImage ? (
+                                                                                                                                            <img
+                                                                                                                                                src={item}
+                                                                                                                                                alt={`Image ${index}`}
+                                                                                                                                                style={{ maxWidth: "100%", maxHeight: "300px", objectFit: "cover" }}
+                                                                                                                                            />
+                                                                                                                                        ) : (
+                                                                                                                                            <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                                                                        )}
+                                                                                                                                    </div>
+                                                                                                                                </SwiperSlide>
+                                                                                                                            );
+                                                                                                                        })}
+                                                                                                                    </Swiper>
                                                                                                                 ) : (
                                                                                                                     <p>No image or link available</p>
                                                                                                                 )}
@@ -2763,8 +2740,16 @@ const BackgroundForm = () => {
                                                     }
                                                     return null;
                                                 })}
-
-
+                                                {Object.keys(conditionHtml).map((attr, index) => {
+                                                    console.log('attr',attr)
+                                                    const content = conditionHtml[attr];
+                                                    return (
+                                                        <div key={index}>
+                                                            {/* <h3>{attr} Content</h3> */}
+                                                            <div dangerouslySetInnerHTML={{ __html: content }} />
+                                                        </div>
+                                                    );
+                                                })}
 
                                                 {/* Step 3 logic */}
                                                 {activeTab === serviceDataMain.length + 2 && (
@@ -2885,6 +2870,14 @@ const BackgroundForm = () => {
                                                 >
                                                     {activeTab === serviceDataMain.length + 2 ? 'Submit' : 'Next'} {/* Change button text based on the active tab */}
                                                 </button>
+                                                {activeTab > 0 && (
+                                                    <button
+                                                        onClick={handleBack} // Call the handleBack function when the button is clicked
+                                                        className="px-6 py-2 text-gray-500 bg-gray-200 rounded-md hover:bg-gray-300"
+                                                    >
+                                                        Go Back
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 

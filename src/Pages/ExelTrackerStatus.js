@@ -1127,7 +1127,7 @@ the information responsible for employment decisions based on the information pr
 
         // Continue with adding the footer and saving the document
 
-       const FomratedDate= reportInfo.report_date && !isNaN(new Date(reportInfo.report_date))
+        const FomratedDate = reportInfo.report_date && !isNaN(new Date(reportInfo.report_date))
             ? `${String(new Date(reportInfo.report_date).getDate()).padStart(2, '0')}-${String(new Date(reportInfo.report_date).getMonth() + 1).padStart(2, '0')}-${new Date(reportInfo.report_date).getFullYear()}`
             : 'NIL'
         addFooter(doc);
@@ -1216,7 +1216,10 @@ the information responsible for employment decisions based on the information pr
         return text.replace(/_[^\w\s]/gi, '');
 
     }
-
+    const adminData = JSON.parse(localStorage.getItem("admin"));
+    const userRole = adminData.role;
+    console.log('adminData',adminData)
+    console.log('userRole',userRole)
 
     return (
         <div className="bg-[#c1dff2]">
@@ -1227,10 +1230,12 @@ the information responsible for employment decisions based on the information pr
                         {options.map((item, index) => {
                             return item.status !== 'closed' ? (
                                 <option key={index} value={item.status}>
-                                    {item.status.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())} - {item.count}
+                                    {item.status.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())}
+                                    {userRole === "admin" ? ` - ${item.count}` : ""}
                                 </option>
                             ) : null;
                         })}
+
 
 
                     </select>

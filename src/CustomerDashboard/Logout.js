@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RiLoginCircleFill } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../ApiContext';
@@ -6,51 +6,54 @@ import Swal from 'sweetalert2';
 
 const Logout = () => {
     const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
-
     const API_URL = useApi();
     const navigate = useNavigate();
-
     const handleLogout = async () => {
         const storedBranchData = localStorage.getItem("branch");
         const storedToken = localStorage.getItem("branch_token");
 
-        // Show a confirmation dialog before proceeding with logout
-        const confirmation = await Swal.fire({
-            title: "Are you sure?",
-            text: "You are about to log out. Do you want to continue?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, log me out",
-            cancelButtonText: "No, cancel",
-        });
-
-        // If the user confirms, proceed with logout
-        if (confirmation.isConfirmed) {
-            try {
-                const response = await fetch(`${API_URL}/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
-                    method: 'GET',
+        try {
+            // If branch data and token exist, log the user out
+            if (storedBranchData && storedToken) {
+                // Show a confirmation dialog before proceeding with logout
+                const confirmation = await Swal.fire({
+                    title: "Are you sure?",
+                    text: "You are about to log out. Do you want to continue?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, log me out",
+                    cancelButtonText: "No, cancel",
                 });
 
-                if (!response.ok) {
-                    throw new Error('Logout failed');
+                if (confirmation.isConfirmed) {
+                    // Send a request to your API to log out the user
+                    const response = await fetch(`${API_URL}/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
+                        method: 'GET',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Logout failed');
+                    }
+
+                    // Clear localStorage after successful logout
+                    localStorage.removeItem("branch");
+                    localStorage.removeItem("branch_token");
+
+                    // Redirect the user to the login page
+                    navigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
                 }
-
-                // Remove items from localStorage
-                localStorage.removeItem("branch");
-                localStorage.removeItem("branch_token");
-
-                // Redirect the user to the login page
+            } else {
+                // If no data found, directly navigate to the login page
                 navigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
-            } catch (error) {
-                console.error('Error during logout:', error);
-                Swal.fire({
-                    title: "Error",
-                    text: error.message || "An error occurred during logout. Please try again.",
-                    icon: "error",
-                    confirmButtonText: "Ok",
-                });
             }
-        } else {
+        } catch (error) {
+            console.error('Error during logout:', error);
+            Swal.fire({
+                title: "Error",
+                text: error.message || "An error occurred during logout. Please try again.",
+                icon: "error",
+                confirmButtonText: "Ok",
+            });
         }
     };
 
