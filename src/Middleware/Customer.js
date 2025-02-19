@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import { LoaderContext } from '../LoaderContext';
 import Loader from '../Loader';
@@ -13,16 +13,15 @@ const Customer = ({ children }) => {
   
   const API_URL = useApi();
   const navigate = useNavigate();
-  const location = useLocation();
   const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      const storedAdminData = localStorage.getItem("branch");
+      const branchData = localStorage.getItem("branch");
       const storedToken = localStorage.getItem("branch_token");
   
       // If no branch or token data in localStorage, redirect to login
-      if (!storedAdminData || !storedToken) {
+      if (!branchData || !storedToken) {
         redirectToLogin();
         return;
       }
@@ -31,24 +30,27 @@ const Customer = ({ children }) => {
   
       let adminData;
       try {
-        adminData = JSON.parse(storedAdminData);
+        adminData = JSON.parse(branchData);
       } catch (error) {
         console.error('Error parsing JSON from localStorage:', error);
         redirectToLogin();
         return;
       }
+      const payLoad = {
+        branch_id: adminData.branch_id,
+        _token: storedToken,
+        ...(adminData?.type=="sub_user" && { sub_user_id: adminData.id }), // Voorkomt onnodige toewijzing
+      };
+      
   
       try {
-        // Send verification request to the server
-        const response = await axios.post(`${API_URL}/branch/verify-branch-login`, {
-          branch_id: adminData.id,
-          _token: storedToken,
-        });
+        const response = await axios.post(`${API_URL}/branch/verify-branch-login`, payLoad);
   
-        // Check if the session is valid
         if (response.data.status) {
+          console.log('response',response)
           // Check if there's a new token and update localStorage if it exists
           const newToken = response.data._token || response.data.token;
+          console.log('newToken',newToken)
           if (newToken) {
             localStorage.setItem("branch_token", newToken); // Update the token in localStorage
           }

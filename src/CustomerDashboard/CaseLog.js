@@ -37,15 +37,25 @@ const CaseLog = () => {
         setConversationMsg(msg);
 
         const branchData = JSON.parse(localStorage.getItem("branch"));
-        const branch_id = branchData?.id;
+        const branch_id = branchData?.branch_id;
         const branch_token = localStorage.getItem("branch_token");
 
         const requestOptions = {
             method: "GET",
             redirect: "follow",
         };
+        const payLoad = {
+            branch_id: branch_id,
+            _token: branch_token,
+            ticket_number:ticket_number,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+          };
+          
+          // Zet het object om naar een query string
+          const queryString = new URLSearchParams(payLoad).toString();
+          
 
-        fetch(`https://api.goldquestglobal.in/branch/ticket/view?ticket_number=${ticket_number}&branch_id=${branch_id}&_token=${branch_token}`, requestOptions)
+        fetch(`https://api.goldquestglobal.in/branch/ticket/view?${queryString}`, requestOptions)
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then((result) => {
@@ -135,7 +145,7 @@ const CaseLog = () => {
 
     const handleSend = () => {
         const branchData = JSON.parse(localStorage.getItem("branch"));
-        const branch_id = branchData?.id;
+        const branch_id = branchData?.branch_id;
         const branch_token = localStorage.getItem("branch_token");
 
         // Set loading state to true when starting the request
@@ -157,7 +167,10 @@ const CaseLog = () => {
             "message": userInput,
             "branch_id": branch_id,
             "_token": branch_token,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
         });
+      
 
         const requestOptions = {
             method: "POST",
@@ -353,7 +366,7 @@ const CaseLog = () => {
 
     const fetchTickets = () => {
         const branchData = JSON.parse(localStorage.getItem("branch"));
-        const branch_id = branchData?.id;
+        const branch_id = branchData?.branch_id;
         const branch_token = localStorage.getItem("branch_token");
 
         // Check if branch_id or branch_token are missing
@@ -366,12 +379,21 @@ const CaseLog = () => {
             method: "GET",
             redirect: "follow"
         };
+       
 
         setIsBranchApiLoading(true); // Set loading state to true
         setLoading(true); // Set loading state to true
-
+        const payLoad = {
+            branch_id: branch_id,
+            _token: branch_token,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+          };
+          
+          // Zet het object om naar een query string
+          const queryString = new URLSearchParams(payLoad).toString();
+          
         // Make the API request to fetch tickets
-        fetch(`https://api.goldquestglobal.in/branch/ticket/list?branch_id=${branch_id}&_token=${branch_token}`, requestOptions)
+        fetch(`https://api.goldquestglobal.in/branch/ticket/list?${queryString}`, requestOptions)
             .then((response) => response.json())  // Always parse response as JSON
             .then((result) => {
                 const errorMessage = result.message || "An unexpected error occurred.";
@@ -439,7 +461,7 @@ const CaseLog = () => {
         e.preventDefault(); // Prevent form submission from reloading the page
 
         const branchData = JSON.parse(localStorage.getItem("branch"));
-        const branch_id = branchData?.id;
+        const branch_id = branchData?.branch_id;
         const branch_token = localStorage.getItem("branch_token");
 
 
@@ -457,7 +479,10 @@ const CaseLog = () => {
             "description": formData.description,
             "branch_id": branch_id,
             "_token": branch_token,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
         };
+      
 
         // Show loading spinner using Swal
         const swalInstance = Swal.fire({
@@ -561,7 +586,7 @@ const CaseLog = () => {
 
     const deleteTicket = async (ticket_number) => {
         const branchData = JSON.parse(localStorage.getItem("branch"));
-        const branch_id = branchData?.id;
+        const branch_id = branchData?.branch_id;
         const branch_token = localStorage.getItem("branch_token");
         const formdata = new FormData();
         const requestOptions = {
@@ -594,10 +619,19 @@ const CaseLog = () => {
                         Swal.showLoading(); // Start loading spinner
                     }
                 });
-
+                const payLoad = {
+                    branch_id: branch_id,
+                    _token: branch_token,
+                    ticket_number:ticket_number,
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                  };
+                  
+                  // Zet het object om naar een query string
+                  const queryString = new URLSearchParams(payLoad).toString();
+                  
                 // Proceed with the deletion request
                 fetch(
-                    `https://api.goldquestglobal.in/branch/ticket/delete?ticket_number=${ticket_number}&branch_id=${branch_id}&_token=${branch_token}`,
+                    `https://api.goldquestglobal.in/branch/ticket/delete?${queryString}`,
                     requestOptions
                 )
                     .then((response) => {

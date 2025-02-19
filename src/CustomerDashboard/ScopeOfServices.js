@@ -23,6 +23,7 @@ const ScopeOfServices = () => {
         display: "block",
         margin: "0 auto",
     };
+    console.log('storedBranchData',storedBranchData)
 
     const fetchServicePackage = useCallback(async () => {
         if (!customer_id || !branch?.id || !branch_token) {
@@ -33,12 +34,22 @@ const ScopeOfServices = () => {
 
         setIsBranchApiLoading(true);
         setLoading(true);
-        try {
-            const response = await fetch(`${API_URL}/branch/customer-info?customer_id=${customer_id}&branch_id=${branch.id}&branch_token=${branch_token}`, {
-                method: "GET",
-                redirect: "follow"
-            });
 
+        const payLoad = {
+            branch_id: branch.branch_id,
+            customer_id: customer_id,
+            branch_token: branch_token,
+            ...(branch?.type === "sub_user" && { sub_user_id: branch.id }),
+          };
+          
+          // Zet het object om naar een query string
+          const queryString = new URLSearchParams(payLoad).toString();
+          
+          try {
+            const response = await fetch(`${API_URL}/branch/customer-info?${queryString}`, {
+              method: "GET",
+              redirect: "follow",
+            });
             // Check if response is not ok (non-2xx status code)
             if (!response.ok) {
                 const data = await response.json();

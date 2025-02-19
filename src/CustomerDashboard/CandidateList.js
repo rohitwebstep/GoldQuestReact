@@ -141,7 +141,7 @@ const CandidateList = () => {
     };
 
     const branchData = JSON.parse(localStorage.getItem("branch"));
-    const branchId = branchData?.id;
+    const branchId = branchData?.branch_id;
     const branchEmail = branchData?.email;
     const branch_token = localStorage.getItem("branch_token");
 
@@ -163,6 +163,7 @@ const CandidateList = () => {
                     console.error("Branch ID or token is missing.");
                     return;
                 }
+               
 
                 const requestOptions = {
                     method: "DELETE",
@@ -170,8 +171,20 @@ const CandidateList = () => {
                         'Content-Type': 'application/json'
                     }
                 };
-
-                fetch(`${API_URL}/branch/candidate-application/delete?id=${id}&branch_id=${branchId}&_token=${branch_token}`, requestOptions)
+                if (branchData?.branch_id) {
+                    requestOptions.sub_user_id = branchData.id;
+                }
+                const payLoad = {
+                    id:id,
+                    branch_id: branchId,
+                    _token: branch_token,
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                  };
+                  
+                  // Zet het object om naar een query string
+                  const queryString = new URLSearchParams(payLoad).toString();
+                  
+                fetch(`${API_URL}/branch/candidate-application/delete?${queryString}`, requestOptions)
                     .then(response => response.json()) // Parse the JSON response
                     .then(result => {
                         // Check if the result contains a message about invalid token (session expired)

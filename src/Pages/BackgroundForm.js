@@ -706,20 +706,20 @@ const BackgroundForm = () => {
             [checkboxName]: isChecked,
         }));
     };
-    const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
+   const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
         setHiddenRows((prevState) => {
             const newState = { ...prevState };
             const serviceRows = serviceDataMain[serviceIndex].rows;
             const row = serviceRows[rowIndex];
             const fileInputs = row.inputs.filter(input => input.type === 'file');
             let removedFileInputs = [];
-
+    
             // Check if any checkbox in this row is either 'done_or_not' or 'has_not_done'
             const isSpecialCheckbox = row.inputs.some(input =>
                 input.type === 'checkbox' &&
                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'))
             );
-
+    
             if (isSpecialCheckbox) {
                 if (isChecked) {
                     // Remove from serviceDataImageInputNames when checked
@@ -727,126 +727,106 @@ const BackgroundForm = () => {
                         const updatedFileInputs = prevFileInputs.filter(fileInput => {
                             const fileInputName = Object.values(fileInput)[0];
                             const isCurrentServiceFile = fileInputName.startsWith(`${serviceDataMain[serviceIndex].db_table}_`);
-
+    
                             const isCheckboxRelated = row.inputs.some(input =>
                                 input.type === 'checkbox' &&
                                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'))
                             );
-
+    
                             if (isCurrentServiceFile && !isCheckboxRelated) {
                                 // Track removed file inputs to restore them later
                                 removedFileInputs.push(fileInput);
                                 return false;
                             }
-
+    
                             return true;
                         });
-
+    
                         return updatedFileInputs;
                     });
-
+    
                     // Add rows visibility when checked
                     for (let i = rowIndex + 1; i < serviceRows.length; i++) {
                         const row = serviceRows[i];
                         const hasCheckbox = row.inputs && row.inputs.some(input => input.type === 'checkbox');
-
+    
                         const isSpecialCheckbox = hasCheckbox && row.inputs.some(input => {
                             if (typeof input.name === 'string') {
                                 return input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done');
                             }
                             return false;
                         });
-
+    
                         if (isSpecialCheckbox) continue;
-
-                        newState[`${serviceIndex}-${i}`] = true;
+    
+                        newState[`${serviceIndex}-${i}`] = true; // Show next row
                     }
-
+    
+                    // Handle dynamic content (HTML, PDFs, etc.)
                     const conditions = serviceDataMain[serviceIndex]?.conditions || [];
-
                     if (Array.isArray(conditions)) {
                         conditions.forEach(condition => {
                             if (row.inputs.some(input => input.name === condition.name) && isChecked) {
-                                // Loop through all attributes (like 'html', 'pdf', etc.)
                                 const attributes = condition.show?.attribute || [];
-
                                 attributes.forEach(attr => {
-                                    // Replace attributes if present
                                     const replaceAttributes = condition.replace_attributes || [];
-                                    let updatedContent = condition[attr] || ""; // Start with existing content, e.g. condition.html or condition.pdf
-
+                                    let updatedContent = condition[attr] || "";
+    
                                     if (replaceAttributes.length > 0) {
-                                        // Add 'cefdata' before each attribute in replace_attributes
                                         replaceAttributes.forEach(replaceAttr => {
-                                            let dynamicValue = cefDataApp[replaceAttr] || 'NIL'; // Default to 'NIL'
-
-                                            // If the replaceAttr is 'date', replace it with the current date
+                                            let dynamicValue = cefDataApp[replaceAttr] || 'NIL';
                                             if (replaceAttr === 'date') {
-                                                const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
-                                                dynamicValue = currentDate; // Replace with the current date
+                                                dynamicValue = new Date().toISOString().split('T')[0]; // Current date in 'YYYY-MM-DD'
                                             }
-
-                                            const regex = new RegExp(`{{${replaceAttr}}}`, 'g'); // Match the placeholder {{replaceAttr}}
-                                            updatedContent = updatedContent.replace(regex, dynamicValue); // Replace placeholder with dynamic value
+                                            const regex = new RegExp(`{{${replaceAttr}}}`, 'g');
+                                            updatedContent = updatedContent.replace(regex, dynamicValue);
                                         });
-
-                                        console.log(`Updated ${attr}:`, updatedContent); // Debugging line
-
-                                        // Set the updated content in state for each attribute
-                                        setConditionHtml(prevState => {
-                                            console.log('Setting state for', attr, 'with content:', updatedContent);
-                                            return {
-                                                ...prevState,
-                                                [attr]: updatedContent // Dynamically set for each attribute like html, pdf
-                                            };
-                                        });
+    
+                                        // Update the condition HTML state
+                                        setConditionHtml(prevState => ({
+                                            ...prevState,
+                                            [attr]: updatedContent
+                                        }));
                                     } else {
-                                        // Print 'NIL' if no attributes are present
-                                        console.log('NIL');
-                                        setConditionHtml(prevState => {
-                                            return {
-                                                ...prevState,
-                                                [attr]: 'NIL' // Or reset the attribute content to 'NIL'
-                                            };
-                                        });
+                                        setConditionHtml(prevState => ({
+                                            ...prevState,
+                                            [attr]: 'NIL' // Default to 'NIL' if no attributes present
+                                        }));
                                     }
                                 });
                             }
                         });
                     }
-
-
-
-
+    
                 } else {
                     // Restore removed file inputs when unchecked
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = [...prevFileInputs, ...removedFileInputs];
                         return updatedFileInputs;
                     });
-
+    
                     // Remove rows visibility when unchecked
                     for (let i = rowIndex + 1; i < serviceRows.length; i++) {
                         const row = serviceRows[i];
                         const hasCheckbox = row.inputs && row.inputs.some(input => input.type === 'checkbox');
-
+    
                         const isSpecialCheckbox = hasCheckbox && row.inputs.some(input => {
                             if (typeof input.name === 'string') {
                                 return input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done');
                             }
                             return false;
                         });
-
+    
                         if (isSpecialCheckbox) continue;
-
-                        delete newState[`${serviceIndex}-${i}`];
+    
+                        delete newState[`${serviceIndex}-${i}`]; // Hide next row
                     }
-
-                    // Clear condition HTML if unchecked
-                    setConditionHtml({}); // Reset the condition HTML (empty object)
+    
+                    // Clear dynamic content (reset condition HTML)
+                    setConditionHtml({});
                 }
             }
-
+    
             return newState;
         });
     };
@@ -903,109 +883,6 @@ const BackgroundForm = () => {
     };
 
 
-
-    // const validate1 = () => {
-    //     const newErrors = {}; // Object to hold validation errors
-    //     const resumeFileErrors = []; // Separate array for resume file errors
-
-    //     const maxSize = 2 * 1024 * 1024; // 2MB size limit
-    //     const allowedTypes = [
-    //         "image/jpeg", "image/png", "application/pdf",
-    //         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    //     ]; // Allowed file types
-
-    //     // Define the required fields for the first tab
-    //     const requiredFields = [
-    //         "full_name", "former_name", "mb_no", "father_name", "dob",
-    //         "gender", "nationality", "marital_status",
-    //     ];
-
-    //     // Add additional fields if status === 1
-    //     if (status === 1) {
-    //         const additionalFields = [
-    //             "emergency_details_name", "emergency_details_relation", "emergency_details_contact_number",
-    //             "aadhar_card_name", "pan_card_name", "food_coupon"
-    //         ];
-    //         requiredFields.push(...additionalFields);
-    //     }
-
-    //     // Add resume_file to requiredFields if purpose is 'NORMAL BGV(EMPLOYMENT)'
-
-
-    //     // Validate file uploads
-    //     const validateFile = (fileName) => {
-    //         let file;
-    //         let createdFileName;
-    //         const fileErrors = [];
-
-    //         if (["govt_id", "passport_photo", "aadhar_card_image", "pan_card_image"].includes(fileName)) {
-    //             createdFileName = `applications_${fileName}`;
-    //             file = files[createdFileName]?.[fileName];
-    //         } else {
-    //             const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-    //             createdFileName = mapping ? mapping[fileName] : undefined;
-    //             file = createdFileName ? files[createdFileName]?.[fileName] : undefined;
-    //         }
-
-    //         if (file) {
-    //             file.forEach((fileItem) => {
-    //                 if (fileItem.size > maxSize) {
-    //                     const errorMessage = `${fileItem.name}: File size must be less than 2MB.`;
-    //                     fileErrors.push(errorMessage);
-    //                 }
-
-    //                 if (!allowedTypes.includes(fileItem.type)) {
-    //                     const errorMessage = `${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`;
-    //                     fileErrors.push(errorMessage);
-    //                 }
-    //             });
-    //         } else {
-    //             const errorMessage = `${fileName} is required.`;
-    //             fileErrors.push(errorMessage);
-    //         }
-
-    //         return fileErrors;
-    //     };
-
-    //     // Define required file inputs for the first tab
-    //     const requiredFileInputsRaw = ["govt_id"];
-    //     const requiredFileInputs = [...requiredFileInputsRaw];
-
-    //     if (status === 1) {
-    //         const additionalImagesFields = ["passport_photo", "aadhar_card_image", "pan_card_image"];
-    //         requiredFileInputs.push(...additionalImagesFields);
-    //     }
-
-    //     // Validate files for the required fields
-    //     requiredFileInputs.forEach((field) => {
-    //         const agrUploadErrors = validateFile(field);
-    //         if (agrUploadErrors.length > 0) {
-    //             newErrors[field] = agrUploadErrors;
-    //         }
-    //     });
-
-    //     // Handle required fields validation for the first tab
-    //     requiredFields.forEach((field) => {
-    //         if (!formData.personal_information[field] || formData.personal_information[field].trim() === "") {
-    //             newErrors[field] = "This field is required*";
-    //         }
-    //     });
-
-    //     // If the purpose is 'NORMAL BGV(EMPLOYMENT)', check for resume_file specifically
-    //     if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
-    //         if (!files['applications_resume_file']) {
-    //             resumeFileErrors.push('Resume file is required.');
-    //         }
-
-    //         // Add the resume file errors separately to newErrors if any exist
-    //         if (resumeFileErrors.length > 0) {
-    //             newErrors["resume_file"] = resumeFileErrors;
-    //         }
-    //     }
-
-    //     return newErrors;
-    // };
 
     const validate1 = () => {
 
@@ -2890,8 +2767,6 @@ const BackgroundForm = () => {
                             }
                         </div>
                     )}
-
-
         </>
 
     );

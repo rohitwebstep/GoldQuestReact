@@ -59,8 +59,15 @@ const ClientBulkUpload = () => {
     const fetchCustomerInfo = useCallback(async () => {
         setLoading(true);
         if (!branchData) return;
-
-        const url = `https://api.goldquestglobal.in/branch/candidate-application/listings?customer_id=${customer_id}&branch_id=${branch_id}&_token=${_token}`;
+        const requestData = {
+            customer_id: customer_id,
+            branch_id: branch_id,
+            _token:_token
+          };
+          if (branchData?.branch_id) {
+            requestData.sub_user_id = branchData.id;
+          }
+        const url = `https://api.goldquestglobal.in/branch/candidate-application/listings,${requestData}`;
 
         try {
             const response = await fetch(url);

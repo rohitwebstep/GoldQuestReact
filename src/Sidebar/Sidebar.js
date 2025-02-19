@@ -17,7 +17,7 @@ import Logout from '../Dashboard/Logout';
 import { IoCall } from "react-icons/io5";
 import { useApiCall } from '../ApiCallContext';
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
-
+import { GrUserAdmin } from "react-icons/gr";
 const tabNames = {
   dashboard: (<><HomeIcon className="h-6 w-6 mr-3 text-gray-600" />DashBoard</>),
   profile: {
@@ -49,7 +49,7 @@ const tabNames = {
   external: (<><VscLinkExternal className="h-6 w-6 mr-3 text-gray-600" />External Login Credentials</>),
   client_master: (<><MdOutlineTrackChanges className="h-6 w-6 mr-3 text-gray-600" />Client Master Tracker</>),
   candidate_master: (<><MdAccessTime className="h-6 w-6 mr-3 text-gray-600" />Candidate Master Tracker</>),
-  permission_manager: (<><MdAccessTime className="h-6 w-6 mr-3 text-gray-600" />Permission Manager</>),
+  permission_manager: (<><GrUserAdmin  className="h-6 w-6 mr-3 text-gray-600" />Permission Manager</>),
   tickets: (<><FaTicketSimple className="h-6 w-6 mr-3 text-gray-600" />Tickets</>),
   tat_delay: (<><IoNotificationsCircle className="h-6 w-6 mr-3 text-gray-600" />TAT Delay Notification</>),
   acknowledgment: (<><MdEmail className="h-6 w-6 mr-3 text-gray-600" />Acknowledgment Email</>),

@@ -57,7 +57,7 @@ const ReportCaseTable = () => {
   // Fetch data from the main API
   const fetchData = useCallback(() => {
     const branchData = JSON.parse(localStorage.getItem("branch"));
-    const branch_id = branchData?.id;
+    const branch_id = branchData?.branch_id;
     const branchEmail = branchData?.email;
     const _token = localStorage.getItem("branch_token");
 
@@ -74,9 +74,17 @@ const ReportCaseTable = () => {
       method: "GET",
       redirect: "follow",
     };
-
+    const payLoad = {
+      branch_id: branch_id,
+      _token: _token,
+      ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+    };
+    
+    // Zet het object om naar een query string
+    const queryString = new URLSearchParams(payLoad).toString();
+    
     fetch(
-      `${API_URL}/branch/report-case-status/list?branch_id=${branch_id}&_token=${_token}`,
+      `${API_URL}/branch/report-case-status/list?${queryString}`,
       requestOptions
     )
       .then((response) => response.json())
@@ -209,7 +217,8 @@ const ReportCaseTable = () => {
     setIsBranchApiLoading(true);  // Start loading
 
     const branchEmail = branchData ? JSON.parse(branchData)?.email : null;
-    const branch_id = JSON.parse(branchData)?.id;
+    const branchData1 = branchData ? JSON.parse(branchData): null;
+    const branch_id = JSON.parse(branchData)?.branch_id;
     const _token = localStorage.getItem("branch_token");
 
     // Return an empty array if servicesList is empty or undefined
@@ -217,15 +226,20 @@ const ReportCaseTable = () => {
       setIsBranchApiLoading(false);  // Stop loading if servicesList is empty
       return [];
     }
-
+    const payLoad = {
+      branch_id: branch_id,
+      _token: _token,
+      ...(branchData1?.type === "sub_user" && { sub_user_id: branchData1.id }),
+      service_ids: servicesList,
+      application_id: applicationId,
+    };
+    
+    // Zet het hele object correct om naar een geëncodeerde querystring
+    const queryString = new URLSearchParams(payLoad).toString();
+    
     try {
-      const url = `${API_URL}/branch/report-case-status/services-annexure-data?service_ids=${encodeURIComponent(
-        servicesList
-      )}&application_id=${encodeURIComponent(
-        applicationId
-      )}&branch_id=${encodeURIComponent(branch_id)}&_token=${encodeURIComponent(
-        _token
-      )}`;
+      const url = `${API_URL}/branch/report-case-status/services-annexure-data?${queryString}`;
+    
 
       const response = await fetch(url, { method: "GET", redirect: "follow" });
 

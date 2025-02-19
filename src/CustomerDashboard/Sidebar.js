@@ -8,7 +8,6 @@ import DashBoard from './Dashboard';
 import EmployeeManagement from './EmployeeManagement';
 import AddUser from './AddUser';
 import BulkUpload from './BulkUpload';
-import UpdatePassword from '../Pages/UpdatePassword';
 import EscalationMatrix from './EscalationMatrix';
 import CustomerHeader from './CustomerHeader';
 import Logout from './Logout';
@@ -20,6 +19,9 @@ import Callback from './Callback'
 import { IoCall } from "react-icons/io5";
 import { useApiCall } from '../ApiCallContext';
 import DeletionRequest from "./DeletionRequest";
+import SubUserCredentials from "./SubuserCredentials";
+import { CiUser } from "react-icons/ci";
+import CustomerUpdatePassword from "./CustomerUpdatePassword";
 
 const tabComponents = {
   dashboard: <DashBoard />,
@@ -29,16 +31,18 @@ const tabComponents = {
   dropbox: <DropBoxList />,
   Candidate: <CandidateList />,
   bulkupload: <BulkUpload />,
-  update_password: <UpdatePassword />,
+  update_password: <CustomerUpdatePassword />,
   escalation: <EscalationMatrix />,
   case_logs: <CaseLog />,
-  callback:<DeletionRequest/>,
+  callback: <DeletionRequest />,
+  subuser: <SubUserCredentials />
 
 };
 
 const tabNames = {
   dashboard: (<><HomeIcon className="h-6 w-6 mr-3 text-gray-600" />DashBoard</>),
   employee_management: (<><UserIcon className="h-6 w-6 mr-3 text-gray-600" />Client Master Data</>),
+  subuser: (<><CiUser className="h-6 w-6 mr-3 text-gray-600" />Add Subuser Credentials</>),
   report_case: (<><GrServices className="h-6 w-6 mr-3 text-gray-600" />Report & Case Status</>),
   dropbox: (<><FaDropbox className="h-6 w-6 mr-3 text-gray-600" />Client DropBox</>),
   case_logs: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Case Logs</>),

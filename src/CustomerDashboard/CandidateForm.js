@@ -44,7 +44,7 @@ const CandidateForm = () => {
         }
     };
 
-
+console.log('input',input)
 
 
     const handlePackageChange = (e) => {
@@ -170,7 +170,7 @@ const CandidateForm = () => {
             setFormLoading(true);
             const branchData = JSON.parse(localStorage.getItem("branch"));
             const customer_id = branchData?.customer_id;
-            const branch_id = branchData?.id;
+            const branch_id = branchData?.branch_id;
             const branch_token = localStorage.getItem("branch_token");
 
             const servicesString = Array.isArray(input.services) ? input.services.join(",") : "";
@@ -187,9 +187,11 @@ const CandidateForm = () => {
                 services: servicesString,
                 candidate_application_id: input.candidate_application_id,
                 nationality: input.nationality,
-                purpose_of_application: input.purpose_of_application
-            });
+                purpose_of_application: input.purpose_of_application,
+                ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
 
+            });
+           
             const requestOptions = {
                 method: isEditCandidate ? "PUT" : "POST",
                 headers: {
@@ -313,7 +315,7 @@ const CandidateForm = () => {
                         <div className="col bg-white shadow-md rounded-md p-3 md:p-6">
                             <div className="mb-4">
                                 <label htmlFor="applicant_name" className='text-sm'>Name of the organisation<span className='text-red-500'>*</span></label>
-                                <input type="text" name="applicant_name" className="border w-full rounded-md p-2 mt-2" disabled value={branch_name?.name} />
+                                <input type="text" name="applicant_name" className="border w-full rounded-md p-2 mt-2" disabled value={branch_name?.name ||branch_name?.branch_name} />
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="name" className='text-sm'>Full name of the applicant <span className='text-red-500'>*</span></label>

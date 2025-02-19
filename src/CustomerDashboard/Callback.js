@@ -30,7 +30,7 @@ const Callback = () => {
             return;
         }
     
-        const branch_id = parsedBranchData?.id;
+        const branch_id = parsedBranchData?.branch_id;
         const branch_token = localStorage.getItem("branch_token");
     
     
@@ -52,7 +52,10 @@ const Callback = () => {
         const raw = JSON.stringify({
             "branch_id": branch_id,
             "_token": branch_token,
+            ...(parsedBranchData?.type === "sub_user" && { sub_user_id: parsedBranchData.id }),
+
         });
+      
     
         const requestOptions = {
             method: "POST",

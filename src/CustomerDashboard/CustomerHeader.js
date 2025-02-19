@@ -11,7 +11,7 @@ const CustomerHeader = () => {
       <div className="w-8/12 flex items-center justify-between">
       <Callback/>
       <p className="text-end text-white font-bold text-xl">BACKGROUND VERIFICATION TRACKING SYSTEM (BVTS)</p></div>
-      <div className="flex gap-3 w-4/12 justify-end">   <p className=" whitespace-nowrap font-bold capitalize text-white ">Hi, {storedBranchData?.name} </p>
+      <div className="flex gap-3 w-4/12 justify-end">   <p className=" whitespace-nowrap font-bold capitalize text-white ">Hi, {storedBranchData?.name ||storedBranchData?.branch_name} </p>
 
         <Logout /></div>
 

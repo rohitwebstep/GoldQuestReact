@@ -12,10 +12,10 @@ const ClientForm = () => {
 
     const [formLoading, setFormLoading] = useState(false);
     const branch_name = JSON.parse(localStorage.getItem("branch"));
-    const storedBranchData = JSON.parse(localStorage.getItem("branch"));
+    const branchData = JSON.parse(localStorage.getItem("branch"));
     const branch_token = localStorage.getItem("branch_token");
     const API_URL = useApi();
-    const customer_id = storedBranchData?.customer_id;
+    const customer_id = branchData?.customer_id;
     const customer_code = localStorage.getItem("customer_code");
     const [files, setFiles] = useState({});
 
@@ -169,59 +169,69 @@ const ClientForm = () => {
         const fileCount = Object.keys(files).length;
         const serviceData = JSON.stringify(services);
         setIsBranchApiLoading(true);  // Start loading
-
+    
         try {
             // Loop through the files to upload
             for (const [index, [key, value]] of Object.entries(files).entries()) {
                 const customerLogoFormData = new FormData();
-                customerLogoFormData.append('branch_id', storedBranchData?.id);
+                customerLogoFormData.append('branch_id', branchData?.branch_id);
                 customerLogoFormData.append('_token', branch_token);
                 customerLogoFormData.append('customer_code', customer_code);
                 customerLogoFormData.append('client_application_id', insertedId);
-
+    
+                if (branchData?.type === "sub_user") {
+                    customerLogoFormData.append("sub_user_id", branchData.id);
+                }
+    
                 // Append each file in the category to FormData
                 for (const file of value) {
                     customerLogoFormData.append('images', file);
                 }
                 customerLogoFormData.append('upload_category', key);
-
+    
                 // Append additional data on the last iteration
                 if (fileCount === (index + 1)) {
-                    if (isEditClient) {
-                        customerLogoFormData.append('send_mail', 0);  // Don't send mail if editing
-                    } else {
-                        customerLogoFormData.append('send_mail', 1);  // Send mail for new client
-                    }
+                    customerLogoFormData.append('send_mail', isEditClient ? 0 : 1); // 0 for edit, 1 for new
                     customerLogoFormData.append('services', serviceData);
                     customerLogoFormData.append('client_application_name', clientInput.name);
                     customerLogoFormData.append('client_application_generated_id', new_application_id);
                 }
-
+    
                 // Perform the upload
-                await axios.post(`${API_URL}/branch/client-application/upload`, customerLogoFormData, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                });
+                const response = await axios.post(
+                    `${API_URL}/branch/client-application/upload`,
+                    customerLogoFormData,
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                        },
+                    }
+                );
+    
+                // Store new token if returned
+                const newToken = response?.data?._token || response?.data?.token;
+                if (newToken) {
+                    localStorage.setItem("branch_token", newToken);
+                }
             }
         } catch (err) {
-            console.error('Error uploading logo:', err); // Log more details about the error
+            console.error('Error uploading logo:', err); 
             Swal.fire('Error!', `An error occurred while uploading logo: ${err.message}`, 'error');
         } finally {
             setIsBranchApiLoading(false);  // Stop loading once all files are processed
         }
     };
+    
 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        let requestBody;
         const errors = validate();
 
         if (Object.keys(errors).length === 0) {
             setFormLoading(true);
 
-            const branch_id = storedBranchData?.id;
+            const branch_id = branchData?.branch_id;
             const fileCount = Object.keys(files).length;
 
             // Prepare the request body
@@ -237,6 +247,8 @@ const ClientForm = () => {
                     send_mail: 1, // No file uploaded, so we send mail
                     _token: branch_token,
                     ...finalData, // Spread the remaining data
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
                 };
             } else {
                 requestBody = {
@@ -245,6 +257,8 @@ const ClientForm = () => {
                     send_mail: 0, // File uploaded, so we don't send mail initially
                     _token: branch_token,
                     ...finalData, // Spread the remaining data
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
                 };
             }
 
@@ -312,32 +326,40 @@ const ClientForm = () => {
                 let new_application_id;
 
                 if (isEditClient) {
-                    // Only assign if available, otherwise continue
-                    if (clientInput?.client_application_id && clientInput?.application_id) {
-                        insertedId = clientInput?.client_application_id;
-                        new_application_id = clientInput?.application_id;
+                    // Alleen toewijzen als de waarden beschikbaar zijn
+                    if (clientInput?.client_application_id) {
+                        insertedId = clientInput.client_application_id;
+                        new_application_id = clientInput?.application_id; // Optioneel bij edit
                     } else {
-                        // Skip this part and continue to the next step
-                        console.warn("Client application ID or application ID is missing for edit.");
+                        console.warn("Client application ID is missing for edit.");
                     }
                 } else {
-                    // Assign for new client
+                    // Toewijzen voor nieuwe client
                     insertedId = result?.result?.results?.insertId;
                     new_application_id = result?.result?.new_application_id;
                 }
-
-                // Handle success message
-                let successMessage = `${isEditClient ? "Application Updated Successfully" : "Application Created Successfully"}`;
-
+                
+                // Bepaal succesbericht vooraf, niet overschrijven later
+                let successMessage = isEditClient ? "Application Updated Successfully" : "Application Created Successfully";
+                
                 if (fileCount > 0) {
-                    // Handle file upload and call the upload function
-                    if (insertedId && new_application_id) {
-                        await uploadCustomerLogo(insertedId, new_application_id);
-                        successMessage = "Client Application Created Successfully.";
+                    // Bestand uploaden als een ID beschikbaar is
+                    if (isEditClient) {
+                        if (insertedId) {
+                            await uploadCustomerLogo(insertedId, new_application_id); // `new_application_id` optioneel
+                        } else {
+                            console.warn("Inserted ID not available, skipping upload.");
+                        }
                     } else {
-                        console.warn("Inserted ID or Application ID not available, skipping upload.");
+                        if (insertedId && new_application_id) {
+                            await uploadCustomerLogo(insertedId, new_application_id);
+                        } else {
+                            console.warn("Inserted ID or Application ID not available, skipping upload.");
+                        }
                     }
                 }
+                
+
 
                 // Show the success message
                 Swal.fire({
@@ -468,7 +490,7 @@ const ClientForm = () => {
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
                                     <label htmlFor="organisation_name" className='text-sm'>Name of the organisation<span className="text-red-500">*</span></label>
-                                    <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full capitalize rounded-md p-2 mt-2" disabled value={branch_name?.name} />
+                                    <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full capitalize rounded-md p-2 mt-2" disabled value={branch_name?.name ||branch_name?.branch_name} />
                                     {inputError.organisation_name && <p className='text-red-500'>{inputError.organisation_name}</p>}
                                 </div>
                                 <div className="mb-4 md:w-6/12">

@@ -7,6 +7,7 @@ import { useApiCall } from '../ApiCallContext';
 
 const DeletionRequest = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall(); // Access isBranchApiLoading from ApiCallContext
+    const branchData = JSON.parse(localStorage.getItem("branch"));
 
     const [listData, setListData] = useState([])
     const [loading, setLoading] = useState(false)
@@ -22,7 +23,7 @@ const DeletionRequest = () => {
         const branchEmail = branchData?.email;
         setIsBranchApiLoading(true);
         setLoading(true);
-        const branchId = JSON.parse(localStorage.getItem("branch"))?.id;
+        const branchId = JSON.parse(localStorage.getItem("branch"))?.branch_id;
         const customerId = JSON.parse(localStorage.getItem("branch"))?.customer_id;
         const token = localStorage.getItem("branch_token");
 
@@ -33,9 +34,18 @@ const DeletionRequest = () => {
 
             return;
         }
+        const payLoad = {
+            branch_id: branchId,
+            _token: token,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+          };
+          
+          // Zet het object om naar een query string
+          const queryString = new URLSearchParams(payLoad).toString();
+          
 
         try {
-            const response = await fetch(`${API_URL}/branch/delete-request/list?branch_id=${branchId}&_token=${token}`, {
+            const response = await fetch(`${API_URL}/branch/delete-request/list?${queryString}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -173,7 +183,7 @@ const DeletionRequest = () => {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
-        const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
+        const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
         const _token = localStorage.getItem("branch_token");
 
         Swal.fire({
@@ -191,6 +201,8 @@ const DeletionRequest = () => {
                     "branch_id": branch_id,
                     "sub_user_id": '',
                     "_token": _token,
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
                 });
 
                 const requestOptions = {
@@ -276,6 +288,8 @@ const DeletionRequest = () => {
                     "branch_id": branch_id,
                     "sub_user_id": '',
                     "_token": _token,
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
                 });
 
                 const requestOptions = {

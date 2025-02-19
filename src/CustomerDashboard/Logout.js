@@ -6,10 +6,12 @@ import Swal from 'sweetalert2';
 
 const Logout = () => {
     const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
+    const storedBranchData = JSON.parse(localStorage.getItem("branch"));
+    const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
+    const sub_user_id = JSON.parse(localStorage.getItem("branch"))?.id;
     const API_URL = useApi();
     const navigate = useNavigate();
     const handleLogout = async () => {
-        const storedBranchData = localStorage.getItem("branch");
         const storedToken = localStorage.getItem("branch_token");
 
         try {
@@ -25,9 +27,18 @@ const Logout = () => {
                     cancelButtonText: "No, cancel",
                 });
 
+                const payLoad = {
+                    branch_id:branch_id,
+                    _token: storedToken,
+                    ...(storedBranchData?.type === "sub_user" && { sub_user_id: sub_user_id }),
+                  };
+                  
+                  // Zet het object om naar een query string
+                  const queryString = new URLSearchParams(payLoad).toString();
+                  
                 if (confirmation.isConfirmed) {
                     // Send a request to your API to log out the user
-                    const response = await fetch(`${API_URL}/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
+                    const response = await fetch(`${API_URL}/branch/logout?${queryString}`, {
                         method: 'GET',
                     });
 

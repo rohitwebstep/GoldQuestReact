@@ -81,7 +81,9 @@ export const DropBoxProvider = ({ children }) => {
                 email: selectedCandidate.email,
                 services: parsedServices,
                 package: selectedCandidate.packages || [],
-                candidate_application_id: selectedCandidate.id || ''
+                candidate_application_id: selectedCandidate.id || '',
+                nationality: selectedCandidate.nationality || "",
+                purpose_of_application: selectedCandidate.purpose_of_application || "",
             });
             setIsEditCandidate(true);
         } else {
@@ -92,7 +94,9 @@ export const DropBoxProvider = ({ children }) => {
                 email: "",
                 services: [],
                 package: [],
-                candidate_application_id: ""
+                candidate_application_id: "",
+                nationality: "",
+                purpose_of_application: "",
             });
             setIsEditClient(false);
         }
@@ -197,7 +201,7 @@ export const DropBoxProvider = ({ children }) => {
         const branchEmail = branchData?.email;
         setIsBranchApiLoading(true);
         setCandidateLoading(true);
-        const branchId = JSON.parse(localStorage.getItem("branch"))?.id;
+        const branchId = JSON.parse(localStorage.getItem("branch"))?.branch_id;
         const customerId = JSON.parse(localStorage.getItem("branch"))?.customer_id;
         const token = localStorage.getItem("branch_token");
 
@@ -208,9 +212,18 @@ export const DropBoxProvider = ({ children }) => {
 
             return;
         }
+        const payLoad = {
+            branch_id: branchId,
+            _token: token,
+            customer_id: customerId,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
 
         try {
-            const response = await fetch(`${API_URL}/branch/candidate-application/list?customer_id=${customerId}&branch_id=${branchId}&_token=${token}`, {
+            const response = await fetch(`${API_URL}/branch/candidate-application/list?${queryString}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -289,7 +302,7 @@ export const DropBoxProvider = ({ children }) => {
         setLoading(true);
         const branchData = JSON.parse(localStorage.getItem("branch")) || {};
         const branchEmail = branchData?.email;
-        const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
+        const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
         const customer_id = JSON.parse(localStorage.getItem("branch"))?.customer_id;
         const _token = localStorage.getItem("branch_token");
 
@@ -301,8 +314,19 @@ export const DropBoxProvider = ({ children }) => {
             return;
         }
 
+        const payLoad = {
+            branch_id: branch_id,
+            _token: _token,
+            customer_id: customer_id,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
+
+
         try {
-            const response = await fetch(`${API_URL}/branch/client-application/list?customer_id=${customer_id}&branch_id=${branch_id}&_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/client-application/list?${queryString}`, {
                 method: "GET",
                 redirect: "follow"
             });

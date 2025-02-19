@@ -23,7 +23,6 @@ const InternalLoginForm = () => {
         }));
     };
 
-    console.log('formData', formData)
     const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
     const storedToken = localStorage.getItem("_token");
 
@@ -367,7 +366,7 @@ const InternalLoginForm = () => {
                             options={options}
                             value={formData.service_ids ? formData.service_ids.split(',') : []}  // Convert string to array for value
                             name="service_ids"
-                            placeholder="Select Group"
+                            placeholder="Select Services"
                             onChange={(value) => handleServiceGroupChange(value)}
                             search
                             disabled={loading}

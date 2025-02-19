@@ -34,7 +34,8 @@ const CustomerUpdatePassword = () => {
         const errors = validate();
 
         if (Object.keys(errors).length === 0) {
-            const storedBranchData = JSON.parse(localStorage.getItem("branch") || '{}')?.id;
+            const branchData = JSON.parse(localStorage.getItem("branch") || '{}')
+            const storedBranchData = JSON.parse(localStorage.getItem("branch") || '{}')?.branch_id;
             const branch_token = localStorage.getItem("branch_token");
 
             if (!storedBranchData || !branch_token) {
@@ -54,7 +55,9 @@ const CustomerUpdatePassword = () => {
             const raw = JSON.stringify({
                 new_password: newPass.newpass,
                 branch_id: storedBranchData,
-                branch_token: branch_token,
+                _token: branch_token,
+                ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+
             });
 
             const requestOptions = {
