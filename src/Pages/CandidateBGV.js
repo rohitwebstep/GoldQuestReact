@@ -542,6 +542,9 @@ const CandidateBGV = () => {
 
         if (isNaN(d1) || isNaN(d2)) return "Invalid Date";
 
+        // Check if date1 is greater than or equal to date2
+        if (d1 >= d2) return "No gap";
+
         let years = d2.getFullYear() - d1.getFullYear();
         let months = d2.getMonth() - d1.getMonth();
         let days = d2.getDate() - d1.getDate();
@@ -1864,12 +1867,17 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                 </div>
                                                             </div>
                                                             {employGaps.map((item, idx) => {
-                                                                // Check if the employment end date matches the endValue of any item in datediffrecnces
-                                                                if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
-                                                                    return <p key={idx} className='text-red-500 py-2'>GAP--{item.difference || 'No gap Found'} </p>;
-                                                                }
-                                                                return null;
-                                                            })}
+                                                                                const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
+
+                                                                                if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
+                                                                                    return (
+                                                                                        <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
+                                                                                            {isNoGap ? item.difference : `GAP--${item.difference || 'No gap Found'}`}
+                                                                                        </p>
+                                                                                    );
+                                                                                }
+                                                                                return null;
+                                                                            })}
 
                                                         </div>
                                                     ))}
