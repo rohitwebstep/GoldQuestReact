@@ -493,7 +493,7 @@ const CandidateBGV = () => {
 
 
     const handleBack = () => {
-        if (activeTab > 1) {
+        if (activeTab > 0) {
             setActiveTab(activeTab - 1); // Adjust the active tab to go back
         }
     };
@@ -1102,7 +1102,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                             }
                                             {nationality === "Other" && (
                                                 <>
-                                                    < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+                                                    < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                         <div className="form-group" >
                                                             <label className='text-sm' >Passport No</label>
@@ -1155,7 +1155,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                     />
                                                 </div>
                                                 < div className="form-group" >
-                                                    <label className='text-sm' htmlFor="marital_status" > Marital customBgv: <span className="text-red-500 text-lg" >* </span></label >
+                                                    <label className='text-sm' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
                                                     <select
                                                         className="form-control border rounded w-full p-2 mt-2"
                                                         name="marital_status"
@@ -1164,7 +1164,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                         value={cefData.marital_status}
 
                                                     >
-                                                        <option value="" > SELECT Marital customBgv </option>
+                                                        <option value="" > SELECT Marital Status </option>
                                                         < option value="Dont wish to disclose" > Don't wish to disclose</option>
                                                         < option value="Single" > Single </option>
                                                         < option value="Married" > Married </option>
@@ -1600,7 +1600,8 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                     {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
                                                         <>
                                                             <h3 className="text-lg font-bold py-3">POST GRADUATION</h3>
-                                                            <div className="md:grid grid-cols-2 gap-3 my-4 border border-black p-4 rounded-md">
+                                                            <div className='border border-black p-4 rounded-md'>
+                                                            <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                 <div>
                                                                     <label>University / Institute Name</label>
                                                                     <input
@@ -1642,6 +1643,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                     />
                                                                 </div>
+                                                                </div>
                                                                 <div>
                                                                     <label>End Date</label>
                                                                     <input
@@ -1660,7 +1662,8 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                     {(annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
                                                         <>
                                                             <h3 className="text-lg font-bold py-3">GRADUATION</h3>
-                                                            <div className="md:grid grid-cols-2 gap-3 my-4 border border-black p-4 rounded-md">
+                                                            <div className='border border-black p-4 rounded-md'>
+                                                            <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                 <div>
                                                                     <label>University / Institute Name</label>
                                                                     <input
@@ -1702,6 +1705,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                     />
 
+                                                                </div>
                                                                 </div>
                                                                 <div>
                                                                     <label>End Date</label>
@@ -2163,9 +2167,9 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                             </div>
                                         </div>
 
-                                        < h5 className="md:text-start text-start text-lg my-6 font-bold" > Documents(Mandatory) </h5>
-
-                                        < div className="grid grid-cols-1 bg-white shadow-md  md:grid-cols-3 gap-4 pt-4  md:p-4 p-1 rounded-md border" >
+                                       <div className='p-1 bg-white shadow-md  rounded-md border md:p-4'>
+                                        < h5 className="md:text-start text-start text-lg my-6 font-bold "> Documents(Mandatory) </h5>
+                                        < div className="grid grid-cols-1  md:grid-cols-3 gap-4 pt-4">
                                             <div className="p-4" >
                                                 <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
                                                     <FaGraduationCap className="mr-3" />
@@ -2195,6 +2199,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                         < p className='md:text-start text-start text-sm mt-4' >
                                             NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
                                         </p>
+                                    </div>
                                     </div>
                                 )}
                             </div>
