@@ -1077,7 +1077,7 @@ const GenerateReport = () => {
                             </div>
 
                             <div className='permanentaddress '>
-                                <div className='my-4 text-center md:text-2xl text-lg font-semibold'>Permanent Address</div>
+                                <div className='my-4 text-center md:text-2xl text-lg font-semibold mb-4'>Permanent Address</div>
                                 <div className="form-group border p-3 rounded-md">
                                     <div className="mb-4">
                                         <label htmlFor="full_address">Full Address:</label>
@@ -1160,7 +1160,7 @@ const GenerateReport = () => {
                                 </div>
                             </div>
                             <div className='currentaddress '>
-                                <div className='my-4 text-center md:text-2xl text-lg font-semibold'>Current Address </div>
+                                <div className='my-4 text-center md:text-2xl text-lg font-semibold mb-4'>Current Address </div>
                                 <div className="form-group border rounded-md p-3">
                                     <div className="mb-4">
                                         <label htmlFor="full_address">Full Address:</label>
@@ -1234,7 +1234,7 @@ const GenerateReport = () => {
                                                             <option value="nil">NIL</option>
                                                             <option value="initiated">INITIATED</option>
                                                             <option value="hold">HOLD</option>
-                                                            <option value="closure advice">CLOSURE ADVICE</option>
+                                                            <option value="closure_advice">CLOSURE ADVICE</option>
                                                             <option value="wip">WIP</option>
                                                             <option value="insuff">INSUFF</option>
                                                             <option value="completed">COMPLETED</option>
@@ -1244,9 +1244,9 @@ const GenerateReport = () => {
                                                             <option value="completed_yellow">COMPLETED YELLOW</option>
                                                             <option value="completed_pink">COMPLETED PINK</option>
                                                             <option value="stopcheck">STOPCHECK</option>
-                                                            <option value="active employment">ACTIVE EMPLOYMENT</option>
-                                                            <option value="not doable">NOT DOABLE</option>
-                                                            <option value="candidate denied">CANDIDATE DENIED</option>
+                                                            <option value="active_employment">ACTIVE EMPLOYMENT</option>
+                                                            <option value="not_doable">NOT DOABLE</option>
+                                                            <option value="candidate_denied">CANDIDATE DENIED</option>
                                                         </select>
                                                     </>
                                                 )}
@@ -1286,7 +1286,7 @@ const GenerateReport = () => {
                                                         {dbTableHeading && (
                                                             <h3 className="text-center text-lg md:text-2xl font-semibold mb-4">{dbTableHeading}</h3>
                                                         )}
-                                                        <table className="w-full table-auto border-collapse border border-gray-300">
+                                                        <table className="md:w-full table-auto border-collapse border border-gray-300">
                                                             <thead>
                                                                 <tr className="bg-green-500 text-white">
                                                                     {formJson.headers.map((header, idx) => (

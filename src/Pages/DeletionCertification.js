@@ -359,7 +359,7 @@ const DeletionCertification = () => {
                     </tr>
                     {showModal && (
                       <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-                        <div className="bg-white p-5 rounded-md w-4/12">
+                        <div className="bg-white p-5 rounded-md md:w-4/12">
                           <div className='flex justify-between items-center'>
 
                             <h2 className="text-lg font-semibold mb-4">Delete Confirmation</h2>

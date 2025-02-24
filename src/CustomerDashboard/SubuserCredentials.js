@@ -368,8 +368,8 @@ const SubUserCredentials = () => {
 
   return (
     <>
-      <div className='grid grid-cols-2 gap-4'>
-        <div className="p-5 bg-white rounded-md shadow-md">
+      <div className='md:grid  grid-cols-2 gap-4 p-3'>
+        <div className="p-5 bg-white rounded-md shadow-md mb-5">
           <h2 className='text-center font-bold text-3xl p-3'>{isEditEmail ? "EDIT" : "CREATE"} SUBUSER</h2>
           <div className="bg-white md:p-12 p-6 w-full mx-auto ">
             <form className="space-y-4 w-full text-center" onSubmit={handleSubmit}>

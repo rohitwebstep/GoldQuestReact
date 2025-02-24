@@ -417,7 +417,7 @@ const PermissionManager = () => {
                 </div>
                 {modalOpen && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex z-999 justify-center m-auto items-center z-50">
-                        <div className="bg-white p-6 rounded shadow-lg w-2/4 h-3/4  overflow-x-auto" ref={modalRef}>
+                        <div className="bg-white p-6 rounded shadow-lg md:w-2/4 h-3/4  overflow-x-auto" ref={modalRef}>
                             {/* Modal Content */}
                             <h2 className="text-2xl mb-4 text-center font-bold">
                                 {modalRole?.role ? formatRole(modalRole.role) : 'N/A'}

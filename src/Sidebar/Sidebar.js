@@ -83,9 +83,9 @@ const Sidebar = () => {
   const handleExpand = (tab) => setExpandedTab(expandedTab === tab ? null : tab);
 
   return (
-    <div className="flex flex-col md:flex-row  h-full md:w-[20%] ">
+    <div className="flex flex-col md:flex-row relative z-10  h-full md:w-[20%] ">
       <button
-        className="md:hidden p-3 fixed top-0 left-0 bg-green-400 text-white w-full  focus:outline-none"
+        className="md:hidden p-3 fixed  top-0 left-0 bg-green-400 text-white w-full  focus:outline-none"
         onClick={handleToggle}
         aria-label="Toggle Sidebar"
       >

@@ -96,7 +96,7 @@ const Sidebar = () => {
                     <li
                       key={tab}
                       className={`${activeTab === tab ? 'active bg-green-200' : 'togglelist hover:bg-green-200'
-                        } w-full flex items-center p-3 cursor-pointer rounded-md mb-3 ${isBranchApiLoading ? 'pointer-events-none opacity-50' : ''}`}
+                        } w-full flex items-center p-3 cursor-pointer rounded-md mb-2 ${isBranchApiLoading ? 'pointer-events-none opacity-50' : ''}`}
                       onClick={() => !isBranchApiLoading && onTabChange(tab)} // Prevent tab change while loading
                     >
                       {tabNames[tab]}

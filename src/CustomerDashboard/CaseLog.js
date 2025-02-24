@@ -702,10 +702,9 @@ const CaseLog = () => {
 
 
     return (
-        <div className='grid md:grid-cols-2 gap-4 justify-between m-6 items-stretch'>
+        <div className='md:grid md:grid-cols-2 gap-4 justify-between m-6 items-stretch'>
             <div>
                 <h2 className='text-center md:text-3xl md:mt-10 md:mb-10 mt-3 font-bold mb-4'> Case Logs </h2>
-
                 <div className='m-0 bg-white shadow-md p-3 md:h-100 rounded-md'>
 
                     <form className='mt-4' onSubmit={handleSubmit}>

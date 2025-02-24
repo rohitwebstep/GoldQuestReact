@@ -10,16 +10,36 @@ import axios from 'axios';
 import LogoBgv from '../Images/LogoBgv.jpg'
 import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
-
 const BackgroundForm = () => {
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
-    const [gaps, setGaps] = useState({});
-    const [employGaps, setEmployGaps] = useState({});
-
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(false)
     const [conditionHtml, setConditionHtml] = useState("");
-    const [initialAnnexureData, setInitialAnnexureData] = useState({
+    const [employmentType, setEmploymentType] = useState('');
+    const [education, setEducation] = useState({
+        highest_education: "",
+        phd_institute_name_gap: "",
+        phd_school_name_gap: "",
+        phd_start_date_gap: "",
+        phd_end_date_gap: "",
+        phd_specialization_gap: "",
+        post_graduation_university_institute_name_gap: "",
+        post_graduation_course_gap: "",
+        post_graduation_specialization_major_gap: "",
+        post_graduation_passing_year_gap: "",
+        graduation_university_institute_name_gap: "",
+        graduation_course_gap: "",
+        graduation_specialization_major_gap: "",
+        graduation_passing_year_gap: "",
+        senior_secondary_school_name_gap: "",
+        senior_secondary_start_date_gap: "",
+        senior_secondary_end_date_gap: "",
+        secondary_school_name_gap: "",
+        secondary_start_date_gap: "",
+        secondary_end_date_gap: "",
+    });
+
+    const initialAnnexureData = {
         gap_validation: {
             phd_institute_name_gap: '',
             phd_school_name_gap: '',
@@ -29,230 +49,56 @@ const BackgroundForm = () => {
             post_graduation_university_institute_name_gap: '',
             post_graduation_course_gap: '',
             post_graduation_specialization_major_gap: '',
+            post_graduation_passing_year_gap: '',
             graduation_university_institute_name_gap: '',
             graduation_course_gap: '',
-            highest_education_gap: '',
             graduation_specialization_major_gap: '',
+            graduation_passing_year_gap: '',
             senior_secondary_school_name_gap: '',
             senior_secondary_start_date_gap: '',
             senior_secondary_end_date_gap: '',
             secondary_school_name_gap: '',
             secondary_start_date_gap: '',
             secondary_end_date_gap: '',
-            years_of_experience_gap: '',
-            graduation_end_date_gap: "",
-            graduation_start_date_gap: "",
-            post_graduation_end_date_gap: "",
-            post_graduation_start_date_gap: "",
-            no_of_employment: 0,
+            self_employment_business_type_gap: '',
+            self_employment_company_name_gap: '',
+            self_employment_start_date_gap: '',
+            self_employment_end_date_gap: '',
+            family_business_business_type_gap: '',
+            family_business_company_name_gap: '',
+            family_business_start_date_gap: '',
+            family_business_end_date_gap: '',
+            training_type_gap: '',
+            training_institute_comapny_name_gap: '',
+            training_company_name_gap: '',
+            training_start_date_gap: '',
+            training_end_date_gap: '',
+            certification_title_gap: '',
+            certification_institute_company_name_gap: '',
+            certification_start_date_gap: '',
+            certification_end_date_gap: '',
+            freelancer_type_gap: '',
+            freelancer_start_date_gap: '',
+            freelancer_end_date_gap: '',
+            highest_education_gap: '',
+            employmentType_gap: "",
         }
-    });
-
-
-    const createEmploymentFields = (noOfEmployments) => {
-        const employmentFields = {};
-        for (let i = 1; i <= noOfEmployments; i++) {
-            // Ensure we keep existing values if they are already set
-            employmentFields[`employment_type_gap_${i}`] = annexureData.gap_validation[`employment_type_gap_${i}`] || '';
-            employmentFields[`employment_start_date_gap_${i}`] = annexureData.gap_validation[`employment_start_date_gap_${i}`] || '';
-            employmentFields[`employment_end_date_gap_${i}`] = annexureData.gap_validation[`employment_end_date_gap_${i}`] || '';
-        }
-        return employmentFields;
     };
-
-    // Update the state with the new employment fields
-    const updateEmploymentFields = (noOfEmployment, fieldValue) => {
-        // Generate all possible employment fields
-        const allEmploymentFields = createEmploymentFields(noOfEmployment);
-
-        // Manually compute the updated data before updating state
-        const updatedData = {
-            ...initialAnnexureData, // Copy existing state
-            gap_validation: {
-                ...initialAnnexureData.gap_validation, // Preserve existing values
-                ...allEmploymentFields, // Ensure all new employment fields are included
-            },
-        };
-
-        // Override only the values present in `fieldValue`
-        Object.keys(fieldValue).forEach((key) => {
-            if (updatedData.gap_validation.hasOwnProperty(key)) {
-                updatedData.gap_validation[key] = fieldValue[key]; // Update relevant fields only
-            }
-        });
-
-        // Set state asynchronously
-        setInitialAnnexureData(updatedData);
-
-        return updatedData; // Now `newData` will contain the updated values
-    };
-
     const [annexureData, setAnnexureData] = useState(initialAnnexureData);
-
-
-    const handleServiceChange = (tableName, fieldName, value) => {
-        setAnnexureData((prevData) => {
-            const updatedData = {
-                ...prevData,
-                [tableName]: {
-                    ...prevData[tableName],
-                    [fieldName]: value
-                }
-            };
-            return updatedData;
-        });
-        calculateGaps();
-        validateDate();
-    };
-    const calculateDateGap = (startDate, endDate) => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
-        if (start > end) {
-            return null; // Return null for negative gaps (startDate is later than endDate)
-        }
-
-        let years = end.getFullYear() - start.getFullYear();
-        let months = end.getMonth() - start.getMonth();
-
-        if (months < 0) {
-            years--;
-            months += 12;
-        }
-
-        return { years: Math.abs(years), months: Math.abs(months) };
-    };
-
-
-
-
-    function calculateDateDifference(date1, date2) {
-        const d1 = new Date(date1);
-        const d2 = new Date(date2);
-
-        if (isNaN(d1) || isNaN(d2)) return "Invalid Date";
-
-        let years = d2.getFullYear() - d1.getFullYear();
-        let months = d2.getMonth() - d1.getMonth();
-        let days = d2.getDate() - d1.getDate();
-
-        if (days < 0) {
-            months--;
-            days += new Date(d2.getFullYear(), d2.getMonth(), 0).getDate();
-        }
-        if (months < 0) {
-            years--;
-            months += 12;
-        }
-
-        return `${years > 0 ? years + " year(s) " : ""}${months > 0 ? months + " month(s) " : ""}${days > 0 ? days + " day(s)" : ""}`.trim();
-    }
-
-    const calculateGaps = () => {
-        // Data from your JSON
-        const secondaryEndDate = annexureData.gap_validation.secondary_end_date_gap;
-        const seniorSecondaryStartDate = annexureData.gap_validation.senior_secondary_start_date_gap;
-        const seniorSecondaryEndDate = annexureData.gap_validation.senior_secondary_end_date_gap;
-        const graduationStartDate = annexureData.gap_validation.graduation_start_date_gap;
-        const graduationEndDate = annexureData.gap_validation.graduation_end_date_gap;
-        const postGraduationStartDate = annexureData.gap_validation.post_graduation_start_date_gap;
-        const postGraduationEndDate = annexureData.gap_validation.post_graduation_end_date_gap;
-        const phdStartDate = annexureData.gap_validation.phd_start_date_gap;
-
-        // Calculate gaps
-        const gapSecToSrSec = calculateDateGap(secondaryEndDate, seniorSecondaryStartDate);
-        const gapSrSecToGrad = calculateDateGap(seniorSecondaryEndDate, graduationStartDate);
-        const gapGradToPostGrad = calculateDateGap(graduationEndDate, postGraduationStartDate);
-        const gapPostGradToPhd = calculateDateGap(postGraduationEndDate, phdStartDate);
-
-        // Only proceed if the gap is not null
-        const validGaps = {
-            gapSecToSrSec,
-            gapSrSecToGrad,
-            gapGradToPostGrad,
-            gapPostGradToPhd
-        };
-
-        // Filter out null gaps (negative values)
-        const nonNegativeGaps = Object.fromEntries(
-            Object.entries(validGaps).filter(([key, value]) => value !== null)
-        );
-
-        // Update state with non-negative gaps
-        setGaps(nonNegativeGaps);
-
-        function getEmploymentDates(annexureData) {
-            const employmentStartDates = [];
-            const employmentEndDates = [];
-
-            let i = 1; // Start index
-            while (true) {
-                const startKey = `employment_start_date_gap_${i}`;
-                const endKey = `employment_end_date_gap_${i}`;
-
-                // Break the loop if neither start nor end date exists
-                if (!(startKey in annexureData.gap_validation) && !(endKey in annexureData.gap_validation)) {
-                    break;
-                }
-
-                // Push to arrays if exists
-                if (startKey in annexureData.gap_validation) {
-                    employmentStartDates.push({ name: startKey, value: annexureData.gap_validation[startKey] });
-                }
-                if (endKey in annexureData.gap_validation) {
-                    employmentEndDates.push({ name: endKey, value: annexureData.gap_validation[endKey] });
-                }
-
-                i++; // Increment index
-            }
-
-            return { employmentStartDates, employmentEndDates };
-        }
-
-        const { employmentStartDates, employmentEndDates } = getEmploymentDates(annexureData);
-
-        function getEmploymentDateDifferences(startDates, endDates) {
-            let differences = [];
-
-            for (let i = 0; i < endDates.length; i++) {
-                const currentEnd = endDates[i].value;
-                const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
-
-                if (currentEnd && nextStart && currentEnd !== nextStart) {
-                    const diff = calculateDateDifference(currentEnd, nextStart);
-
-                    // Only add valid differences (not empty strings or null)
-                    if (diff) {
-                        differences.push({
-                            endName: endDates[i].name,
-                            endValue: currentEnd,
-                            startName: startDates[i + 1].name,
-                            startValue: nextStart,
-                            difference: diff
-                        });
-                    }
-                }
-            }
-
-            return differences;
-        }
-
-        // Get differences
-        const dateDifferences = getEmploymentDateDifferences(employmentStartDates, employmentEndDates);
-
-        setEmployGaps(dateDifferences);
-    };
-
-
-
     useEffect(() => {
         if (!annexureData) {
             setAnnexureData(initialAnnexureData);
         }
-        calculateGaps();
-        validateDate();
     }, [annexureData]);
 
+    const handleEducationChange = (e) => {
+        const { name, value } = e.target;
+
+        setEducation((prev) => ({
+            ...prev, // Spread the previous state
+            [name]: value // Update the specific field
+        }));
+    };
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
     const [errors, setErrors] = useState({});
@@ -323,12 +169,14 @@ const BackgroundForm = () => {
     const duplicateRow = (serviceIndex, rowIndex, row, isInitialDuplication = true, inputIndex = 1) => {
         // Ensure serviceDataMain exists and is structured correctly
         if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
+            console.error("serviceDataMain is not available or is not an array");
             return;
         }
 
         // Retrieve the correct service data object
         const service = serviceDataMain[serviceIndex];
         if (!service || !service.rows) {
+            console.error("Invalid service data or rows not found");
             return;
         }
 
@@ -471,8 +319,9 @@ const BackgroundForm = () => {
             });
         }
     };
+    console.log('setAnnexureData', annexureData)
 
-    console.log('formData',formData)
+
 
     useEffect(() => {
         const duplicateRowsIfNeeded = () => {
@@ -522,6 +371,7 @@ const BackgroundForm = () => {
 
         duplicateRowsIfNeeded();
     }, [serviceDataMain, annexureData, isDuplicateInProgress]);
+
 
     const fetchApplicationStatus = async () => {
         setLoadingData(true);
@@ -659,26 +509,27 @@ const BackgroundForm = () => {
                                 });
                             });
                         } else {
-                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('phd_institute_name_gap')); // Check for null or undefined before accessing `hasOwnProperty`
-                            let initialAnnexureDataNew = initialAnnexureData;
-                            if (fieldValue && fieldValue.hasOwnProperty('no_of_employment')) {
-                                initialAnnexureDataNew = updateEmploymentFields(fieldValue.no_of_employment, fieldValue); // Call function to handle employment fields
-                            }
+                            Object.keys(initialAnnexureData.gap_validation).forEach((item, index) => {
+                                console.log('item', item)
+                                // Fetch the dynamic field value from allJsonDataValue
+                                let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty(item)); // Check for null or undefined before accessing `hasOwnProperty`
+                                console.log('fieldValue', fieldValue)
+                                // If fieldValue exists, we set it, otherwise, static value should remain
+                                if (fieldValue && fieldValue.hasOwnProperty(item)) {
+                                    console.log(`Found dynamic value for ${item}:`, fieldValue[item]);
 
-                            Object.keys(initialAnnexureDataNew.gap_validation).forEach((item, index) => {
-
-                                let fieldValueLoop = allJsonDataValue.find(data => data && data.hasOwnProperty(item));
-
-                                if (fieldValueLoop && fieldValueLoop.hasOwnProperty(item)) {
-
-                                    // Ensure the service table exists in annexureData
+                                    // Set dynamic value in the correct field in annexureData
                                     if (!annexureData[service.db_table]) {
                                         annexureData[service.db_table] = {}; // Initialize the service table if it doesn't exist
                                     }
 
                                     // Set the dynamic value in the service table under the input's name
-                                    annexureData[service.db_table][item] = fieldValueLoop[item] || "";
+                                    annexureData[service.db_table][item] = fieldValue[item] || "";
+
+
                                 } else {
+                                    // No dynamic value found, so keep the static value as is or update it with a default if necessary
+
                                 }
                             });
 
@@ -835,40 +686,6 @@ const BackgroundForm = () => {
     };
 
 
-    const renderGapMessage = (gap) => {
-        if (gap?.years > 0 || gap?.months > 0) {
-            return (
-                <p style={{ color: 'red' }}>
-                    Gap between Post Graduation and PhD: {gap?.years} years, {gap?.months} months
-                </p>
-            );
-        }
-        return (
-            <p style={{ color: 'green' }}>
-                No Gap between Post Graduation and PhD
-            </p>
-        );
-    };
-    const renderGapMessage1 = (employmentGaps) => {
-        // Check if there are no employment gaps
-        if (!employmentGaps || employmentGaps.length === 0) {
-            return <p>No employment gaps available.</p>;
-        }
-
-        // Map through employment gaps and render them
-        return employmentGaps.map((gap, index) => {
-            return (
-                <div key={index}>
-                    <p>
-                        Gap {index + 1}:
-                        {gap.years > 0 ? `${gap.years} years` : ""}
-                        {gap.months > 0 ? `${gap.months} months` : ""}
-                        {gap.years === 0 && gap.months === 0 ? "No gap" : ""}
-                    </p>
-                </div>
-            );
-        });
-    };
 
 
     const validate = () => {
@@ -878,13 +695,16 @@ const BackgroundForm = () => {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ]; // Allowed file types
-    
+
         let newErrors = {}; // Object to store errors
         const service = serviceDataMain[activeTab - 2];
-        if (service.db_table == 'gap_validation') {
-            return {}; // Skip validation for gap_validation service
+        if (service.db_table == '"gap_validation"') {
+            return;
         }
-    
+        // Convert annexureImageData into a map for faster lookup
+
+
+
         // Loop through the rows to validate files and fields
         service.rows.forEach((row, rowIndex) => {
             // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
@@ -892,29 +712,22 @@ const BackgroundForm = () => {
                 row.inputs.some(input =>
                     input.type === 'checkbox' &&
                     (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done')) &&
-                    annexureData[service.db_table]?.[input.name] // Log for each checkbox
+                    checkedCheckboxes[input.name]
                 )
             );
-    
-            // Log the checkbox validation
-            console.log('shouldSkipServiceValidation:', shouldSkipServiceValidation);
-    
+
             if (shouldSkipServiceValidation) {
                 return {}; // Skip all validation for this service and return empty errors
             }
-    
+
             row.inputs.forEach((input, inputIndex) => {
-                // Log to check if we should skip validation for this input
-                console.log('Validating input:', input);
-    
                 // Skip validation for this input if the row was skipped due to checkbox being checked
                 if (shouldSkipServiceValidation) {
                     return;
                 }
-    
+
                 if (input.type === 'file') {
                     const fileName = input.name;
-    
                     const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
                     const createdFileName = mapping ? mapping[fileName] : undefined;
                     const annexureImagesMap = annexureImageData.reduce((acc, item) => {
@@ -925,69 +738,54 @@ const BackgroundForm = () => {
                         });
                         return acc;
                     }, {});
-    
-                    // Log the mapping and annexure data map
-                    console.log('Created File Name:', createdFileName);
-                    console.log('Annexure Images Map:', annexureImagesMap);
-    
+
                     const validateFile = (fileName) => {
                         let fileErrors = [];
-    
+
                         // Check if createdFileName is valid and the structure exists in 'files'
                         const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
-    
-                        // Log the file check process
-                        console.log('Files to Check for', fileName, ':', filesToCheck);
-    
+
                         // If the file exists in annexureImageData, skip validation for this file
                         if (annexureImagesMap[fileName]) {
-                            console.log(`${fileName} is in annexureImageData, skipping validation.`);
                             delete newErrors[fileName]; // Clear any previous error for this file
                             return fileErrors; // No errors for already uploaded files
                         }
-    
+
                         // Handle the scenario where the checkbox is unchecked but files are still present in the structure
-                        if (!annexureData[service.db_table]?.[input.name] && filesToCheck && filesToCheck.length > 0) {
-                            console.log('Files present but checkbox unchecked, clearing error for:', fileName);
+                        if (!checkedCheckboxes[input.name] && filesToCheck && filesToCheck.length > 0) {
                             delete newErrors[fileName]; // Clear error if files are found
                         }
-    
+
                         // If the checkbox is unchecked and no files are present, add an error
-                        if (!annexureData[service.db_table]?.[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
-                            console.log(`Error: ${fileName} is required.`);
+                        if (!checkedCheckboxes[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
                             fileErrors.push(`${fileName} is required.`);
                         }
-    
+
                         // If files exist for the input, perform file validation
                         if (filesToCheck && filesToCheck.length > 0) {
                             filesToCheck.forEach((fileItem) => {
-                                // Log each file being checked
-                                console.log('Validating file:', fileItem.name);
-    
                                 // Validate file size
                                 if (fileItem.size > maxSize) {
-                                    console.log(`Error: ${fileItem.name} exceeds size limit.`);
                                     fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
                                 }
-    
+
                                 // Validate file type
                                 if (!allowedTypes.includes(fileItem.type)) {
-                                    console.log(`Error: ${fileItem.name} has invalid type.`);
                                     fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
                                 }
                             });
                         }
-    
+
                         return fileErrors;
                     };
-    
+
                     const fileErrors = validateFile(fileName);
-    
+
                     // Ensure errors[fileField] is always an array
                     if (!Array.isArray(newErrors[fileName])) {
                         newErrors[fileName] = []; // Initialize it as an array if not already
                     }
-    
+
                     // If there are file errors, push them to newErrors
                     if (fileErrors.length > 0) {
                         newErrors[fileName] = [...newErrors[fileName], ...fileErrors];
@@ -998,168 +796,36 @@ const BackgroundForm = () => {
                 } else {
                     // For non-file inputs, validate required fields
                     const inputValue = annexureData[service.db_table]?.[input.name];
-    
+
                     if (input.required && (!inputValue || inputValue.trim() === '')) {
-                        console.log(`Field ${input.name} is empty, setting error.`);
                         newErrors[input.name] = 'This field is required';
-                    } else {
-                        // Clear the error if the field has value
-                        delete newErrors[input.name];
                     }
                 }
             });
         });
-    
+
+        // Log the errors at the end of validation
+        if (Object.keys(newErrors).length > 0) {
+            // Errors exist, handle accordingly
+        } else {
+            // No errors, handle accordingly
+        }
+
         return newErrors; // Return the accumulated errors
     };
-    
-    // const validate = () => {
-    //     const maxSize = 2 * 1024 * 1024; // 2MB size limit
-    //     const allowedTypes = [
-    //         "image/jpeg", "image/png", "application/pdf",
-    //         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    //     ]; // Allowed file types
-    
-    //     let newErrors = {}; // Object to store errors
-    //     const service = serviceDataMain[activeTab - 2];
-    //     if (service.db_table == 'gap_validation') {
-    //         return {}; // Skip validation for gap_validation service
-    //     }
-    
-    //     // Loop through the rows to validate files and fields
-    //     service.rows.forEach((row, rowIndex) => {
-    //         // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
-    //         const shouldSkipServiceValidation = service.rows.some(row =>
-    
-    //             row.inputs.some(input =>
-    //                 input.type === 'checkbox' &&
-    //                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done')) &&
-    //                 annexureData[service.db_table]?.[input.name] // Log for each checkbox
-    //             )
-    //         );
-    
-    //         // Log the checkbox validation
-    //         console.log('shouldSkipServiceValidation:', shouldSkipServiceValidation);
-    
-    //         if (shouldSkipServiceValidation) {
-    //             return {}; // Skip all validation for this service and return empty errors
-    //         }
-    
-    //         row.inputs.forEach((input, inputIndex) => {
-    //             // Log to check if we should skip validation for this input
-    //             console.log('Validating input:', input);
-    
-    //             // Skip validation for this input if the row was skipped due to checkbox being checked
-    //             if (shouldSkipServiceValidation) {
-    //                 return;
-    //             }
-    
-    //             if (input.type === 'file') {
-    //                 const fileName = input.name;
-    
-    //                 const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-    //                 const createdFileName = mapping ? mapping[fileName] : undefined;
-    //                 const annexureImagesMap = annexureImageData.reduce((acc, item) => {
-    //                     Object.keys(item).forEach((key) => {
-    //                         if (createdFileName) {
-    //                             acc[key] = item[key]; // Store the file URL by the field name
-    //                         }
-    //                     });
-    //                     return acc;
-    //                 }, {});
-    
-    //                 // Log the mapping and annexure data map
-    //                 console.log('Created File Name:', createdFileName);
-    //                 console.log('Annexure Images Map:', annexureImagesMap);
-    
-    //                 const validateFile = (fileName) => {
-    //                     let fileErrors = [];
-    
-    //                     // Check if createdFileName is valid and the structure exists in 'files'
-    //                     const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
-    
-    //                     // Log the file check process
-    //                     console.log('Files to Check for', fileName, ':', filesToCheck);
-    
-    //                     // If the file exists in annexureImageData, skip validation for this file
-    //                     if (annexureImagesMap[fileName]) {
-    //                         console.log(`${fileName} is in annexureImageData, skipping validation.`);
-    //                         delete newErrors[fileName]; // Clear any previous error for this file
-    //                         return fileErrors; // No errors for already uploaded files
-    //                     }
-    
-    //                     // Handle the case where the checkbox is unchecked, but files are still present in the structure
-    //                     if (!annexureData[service.db_table]?.[input.name] && filesToCheck && filesToCheck.length > 0) {
-    //                         console.log('Files found but checkbox is unchecked, clearing error for:', fileName);
-    //                         delete newErrors[fileName]; // Clear error if files are found
-    //                     }
-    
-    //                     // If the checkbox is unchecked and no files are present, add an error
-    //                     if (!annexureData[service.db_table]?.[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
-    //                         console.log(`Error: ${fileName} is required.`);
-    //                         fileErrors.push(`${fileName} is required.`);
-    //                     }
-    
-    //                     // If files exist for the input, perform file validation
-    //                     if (filesToCheck && filesToCheck.length > 0) {
-    //                         filesToCheck.forEach((fileItem) => {
-    //                             // Log each file being checked
-    //                             console.log('Validating file:', fileItem.name);
-    
-    //                             // Validate file size
-    //                             if (fileItem.size > maxSize) {
-    //                                 console.log(`Error: ${fileItem.name} exceeds size limit.`);
-    //                                 fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
-    //                             }
-    
-    //                             // Validate file type
-    //                             if (!allowedTypes.includes(fileItem.type)) {
-    //                                 console.log(`Error: ${fileItem.name} has invalid type.`);
-    //                                 fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-    //                             }
-    //                         });
-    //                     }
-    
-    //                     return fileErrors;
-    //                 };
-    
-    //                 const fileErrors = validateFile(fileName);
-    
-    //                 // Ensure errors[fileField] is always an array
-    //                 if (!Array.isArray(newErrors[fileName])) {
-    //                     newErrors[fileName] = []; // Initialize it as an array if not already
-    //                 }
-    
-    //                 // If there are file errors, push them to newErrors
-    //                 if (fileErrors.length > 0) {
-    //                     newErrors[fileName] = [...newErrors[fileName], ...fileErrors];
-    //                 } else {
-    //                     // If no errors and files were selected, clear any previous errors
-    //                     delete newErrors[fileName];
-    //                 }
-    //             }
-    //         });
-    //     });
-    
-    //     // Log the errors at the end of validation
-    //     if (Object.keys(newErrors).length > 0) {
-    //         console.log('Validation Errors:', newErrors);
-    //     } else {
-    //         console.log('No validation errors.');
-    //     }
-    
-    //     return newErrors; // Return the accumulated errors
-    // };
 
-console.log('annexuredata',annexureData);
 
+
+    const handleCheckboxChange = (checkboxName, isChecked) => {
+        setCheckedCheckboxes((prevState) => ({
+            ...prevState,
+            [checkboxName]: isChecked,
+        }));
+    };
     const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
-
-
         setHiddenRows((prevState) => {
             const newState = { ...prevState };
-            const serviceRows = serviceDataMain[serviceIndex].rows || serviceDataMain.rows;
+            const serviceRows = serviceDataMain[serviceIndex].rows;
             const row = serviceRows[rowIndex];
             const fileInputs = row.inputs.filter(input => input.type === 'file');
             let removedFileInputs = [];
@@ -1170,10 +836,8 @@ console.log('annexuredata',annexureData);
                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'))
             );
 
-
             if (isSpecialCheckbox) {
                 if (isChecked) {
-
                     // Remove from serviceDataImageInputNames when checked
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = prevFileInputs.filter(fileInput => {
@@ -1253,7 +917,6 @@ console.log('annexuredata',annexureData);
                     }
 
                 } else {
-
                     // Restore removed file inputs when unchecked
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = [...prevFileInputs, ...removedFileInputs];
@@ -1285,6 +948,28 @@ console.log('annexuredata',annexureData);
             return newState;
         });
     };
+    console.log('conditionhtml', conditionHtml)
+
+
+    const handleServiceChange = (tableName, fieldName, value) => {
+        // Update state with new value
+        setAnnexureData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                [tableName]: {
+                    ...prevData[tableName],
+                    [fieldName]: value
+                }
+            };
+
+
+            return updatedData;
+        });
+
+        // Trigger validation (if necessary)
+        validate();
+    };
+
 
     const handleNext = () => {
         let validationErrors = {};
@@ -1295,14 +980,6 @@ console.log('annexuredata',annexureData);
         } else if (activeTab === 1) {
             validationErrors = validateSec(); // Validation for the second tab
         } else if (activeTab > 0 && activeTab <= serviceDataMain.length) {
-            // Iterate over serviceDataMain for the rows to toggle visibility
-            serviceDataMain[activeTab - 1].rows.forEach((row, rowIndex) => {
-                const isChecked = ["1", 1, true, "true"].includes(
-                    annexureData[serviceDataMain[activeTab - 1].db_table]?.[row.inputs.find(input => input.type === 'checkbox')?.name] ?? false
-                );
-
-                toggleRowsVisibility(activeTab - 1, rowIndex, isChecked);
-            });
             validationErrors = validate(); // Validation for service-related tabs
         } else if (activeTab === serviceDataMain.length + 2) {
             validationErrors = validate2(); // Validation for the last tab
@@ -1321,25 +998,6 @@ console.log('annexuredata',annexureData);
         }
     };
 
-    const handleCheckboxChange = (checkboxName, isChecked, tablename) => {
-        setCheckedCheckboxes((prevState) => ({
-            ...prevState,
-            [checkboxName]: isChecked,
-        }));
-        setAnnexureData((prevData) => {
-            const updatedData = {
-                ...prevData,
-                [tablename]: {
-                    ...prevData[tablename],
-                    [checkboxName]: isChecked
-                }
-            };
-            return updatedData;
-        });
-    };
-
-
-
 
 
     const validate1 = () => {
@@ -1355,12 +1013,10 @@ console.log('annexuredata',annexureData);
 
 
         const requiredFields = [
-            "marital_status","full_name", "former_name", "mb_no", "father_name", "dob",
-            "gender", "nationality", 
+            "full_name", "former_name", "mb_no", "father_name", "dob",
+            "gender", "nationality", "marital_status",
         ];
 
-
-        console.log('requiredFields', requiredFields)
 
         if (status === 1) {
             requiredFields.push(
@@ -1509,7 +1165,7 @@ console.log('annexuredata',annexureData);
     const validateSec = () => {
         const newErrors = {};
         const requiredFields = [
-            "current_address","permanent_address",
+            "current_address",
             "current_address_landline_number", "permanent_address_landline_number", "current_address_state", "permanent_address_state",
             "current_prominent_landmark", "permanent_prominent_landmark", "current_address_stay_to", "permanent_address_stay_to",
             "current_address_nearest_police_station", "permanent_address_nearest_police_station", "current_address_pin_code",
@@ -1702,7 +1358,7 @@ console.log('annexuredata',annexureData);
             customer_id: decodedValues.customer_id,
             application_id: decodedValues.app_id,
             ...formData,
-            is_submitted: custombgv,
+            is_submitted: 0,
             annexure: annexureData,
             send_mail: fileCount === 0 ? 1 : 0, // Send mail if no files are uploaded
             is_custom_bgv: custombgv, // Use the passed value for is_custom_bgv
@@ -1774,6 +1430,7 @@ console.log('annexuredata',annexureData);
                         fetchApplicationStatus(); // Call fetch status after submission
                     });
                 } else {
+                    // Handle file upload if files exist for custombgv 1
                     await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv); // Upload files
                     setProgress(100); // Set progress to 100% after file upload
                     Swal.fire({
@@ -1822,6 +1479,7 @@ console.log('annexuredata',annexureData);
             }
 
         } catch (error) {
+            console.error("Error:", error);
             Swal.fire("Error!", error.message, "error");
         } finally {
             // Stop loading indicator and close modal after processing
@@ -1829,70 +1487,7 @@ console.log('annexuredata',annexureData);
             setShowModal(false);
         }
     };
-    const validateDate = () => {
-        const newErrors = {};
 
-        // Fetch dates from annexureData
-        const {
-            secondary_end_date_gap,
-            senior_secondary_start_date_gap,
-            senior_secondary_end_date_gap,
-            graduation_start_date_gap,
-            graduation_end_date_gap,
-            post_graduation_start_date_gap,
-            post_graduation_end_date_gap,
-            phd_start_date_gap,
-        } = annexureData.gap_validation;
-
-        // Helper function to convert string dates to Date objects
-        const parseDate = (dateString) => new Date(dateString);
-
-        // Convert the date strings into Date objects for comparison
-        const secondaryEndDate = parseDate(secondary_end_date_gap);
-        const seniorSecondaryStartDate = parseDate(senior_secondary_start_date_gap);
-        const seniorSecondaryEndDate = parseDate(senior_secondary_end_date_gap);
-        const graduationStartDate = parseDate(graduation_start_date_gap);
-        const graduationEndDate = parseDate(graduation_end_date_gap);
-        const postGraduationStartDate = parseDate(post_graduation_start_date_gap);
-        const postGraduationEndDate = parseDate(post_graduation_end_date_gap);
-        const phdStartDate = parseDate(phd_start_date_gap);
-
-        // Validation logic
-
-        // Senior Secondary Start should be after Secondary End
-        if (seniorSecondaryStartDate < secondaryEndDate) {
-            newErrors.senior_secondary_start_date_gap = "Senior Secondary start date must be after Secondary end date.";
-        }
-
-        // Graduation Start should be after Senior Secondary End
-        if (graduationStartDate < seniorSecondaryEndDate) {
-            newErrors.graduation_start_date_gap = "Graduation start date must be after Senior Secondary end date.";
-        }
-
-        // Graduation End should be after Graduation Start
-        if (graduationEndDate < graduationStartDate) {
-            newErrors.graduation_end_date_gap = "Graduation end date must be after Graduation start date.";
-        }
-
-        // Post Graduation Start should be after Graduation End
-        if (postGraduationStartDate < graduationEndDate) {
-            newErrors.post_graduation_start_date_gap = "Post Graduation start date must be after Graduation end date.";
-        }
-
-        // Post Graduation End should be after Post Graduation Start
-        if (postGraduationEndDate < postGraduationStartDate) {
-            newErrors.post_graduation_end_date_gap = "Post Graduation end date must be after Post Graduation start date.";
-        }
-
-        // PhD Start should be after Post Graduation End
-        if (phdStartDate < postGraduationEndDate) {
-            newErrors.phd_start_date_gap = "PhD start date must be after Post Graduation end date.";
-        }
-
-        setErrors(newErrors);
-    };
-
-    console.log('errors', errors)
 
     const uploadCustomerLogo = async (cef_id, fileCount, custombgv) => {
         if (custombgv == 1) {
@@ -1928,8 +1523,6 @@ console.log('annexuredata',annexureData);
             for (const file of allValues) {
                 customerLogoFormData.append('images', file); // Append each file to the FormData
             }
-
-
             if (fileCount === index + 1) {
                 customerLogoFormData.append('send_mail', 1);
             }
@@ -2125,7 +1718,7 @@ console.log('annexuredata',annexureData);
                                                                         Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                     </p>
                                                                     {cefDataApp.resume_file && (
-                                                                        <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
+                                                                        <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -2144,7 +1737,7 @@ console.log('annexuredata',annexureData);
                                                                 <p className="text-gray-500 text-sm mt-2" >
                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                 </p>
-                                                                <div className='md:grid grid-cols-5 gap-3'>
+                                                                <div className='grid grid-cols-5 gap-3'>
 
                                                                     {cefDataApp.govt_id ? (
                                                                         cefDataApp.govt_id.split(',').map((item, index) => {
@@ -2154,7 +1747,7 @@ console.log('annexuredata',annexureData);
                                                                             return (
                                                                                 <div key={index} className='border rounded-md flex items-center justify-center'>
                                                                                     {isImage ? (
-                                                                                        <img src={item} alt={`Image ${index}`} className='p-3 ' />
+                                                                                        <img src={item} alt={`Image ${index}`} />
                                                                                     ) : (
                                                                                         <div>
                                                                                             <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -2194,7 +1787,7 @@ console.log('annexuredata',annexureData);
                                                                             <p className="text-gray-500 text-sm mt-2" >
                                                                                 Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                             </p>
-                                                                            <div className='md:grid grid-cols-5 gap-3'>
+                                                                            <div className='grid grid-cols-5 gap-3'>
                                                                                 {cefDataApp.passport_photo ? (
                                                                                     cefDataApp.passport_photo.split(',').map((item, index) => {
                                                                                         // Check if the item is an image (based on its extension)
@@ -2203,7 +1796,7 @@ console.log('annexuredata',annexureData);
                                                                                         return (
                                                                                             <div key={index} className='border rounded-md flex items-center justify-center'>
                                                                                                 {isImage ? (
-                                                                                                    <img src={item} alt={`Image ${index}`} className='p-3' />
+                                                                                                    <img src={item} alt={`Image ${index}`} />
                                                                                                 ) : (
                                                                                                     <div>
                                                                                                         <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -2394,7 +1987,7 @@ console.log('annexuredata',annexureData);
                                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                                                                                 </p>
                                                                                 {cefDataApp.aadhar_card_image && (
-                                                                                    <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
+                                                                                    <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
 
                                                                                 )}
 
@@ -2461,7 +2054,7 @@ console.log('annexuredata',annexureData);
                                                                             Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                         </p>
                                                                         {cefDataApp.pan_card_image && (
-                                                                            <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
+                                                                            <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
 
                                                                         )}
                                                                     </div>
@@ -2542,8 +2135,9 @@ console.log('annexuredata',annexureData);
                                                                     {errors.nationality && <p className="text-red-500 text-sm" > {errors.nationality} </p>}
                                                                 </div>
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="marital_status"> Marital Status: <span className="text-red-500 text-lg" >*</span></label >
+                                                                    <label className='text-sm' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
                                                                     <select
+                                                                        ref={(el) => (refs.current["marital_status"] = el)}
                                                                         className="form-control border rounded w-full p-2 mt-2"
                                                                         name="marital_status"
                                                                         id="marital_status"
@@ -2551,13 +2145,13 @@ console.log('annexuredata',annexureData);
                                                                         value={formData.personal_information.marital_status}
 
                                                                     >
-                                                                        <option value="" selected> SELECT Marital STATUS </option>
-                                                                        < option value="Don't wish to disclose"> Don't wish to disclose</option>
-                                                                        < option value="Single"> Single </option>
-                                                                        < option value="Married"> Married </option>
-                                                                        < option value="Widowed"> Widowed </option>
-                                                                        < option value="Divorced"> Divorced </option>
-                                                                        < option value="Separated"> Separated </option>
+                                                                        <option value="" > SELECT Marital STATUS </option>
+                                                                        < option value="Dont wish to disclose" > Don't wish to disclose</option>
+                                                                        < option value="Single" > Single </option>
+                                                                        < option value="Married" > Married </option>
+                                                                        < option value="Widowed" > Widowed </option>
+                                                                        < option value="Divorced" > Divorced </option>
+                                                                        < option value="Separated" > Separated </option>
                                                                     </select>
                                                                     {errors.marital_status && <p className="text-red-500 text-sm" > {errors.marital_status} </p>}
                                                                 </div>
@@ -2724,232 +2318,226 @@ console.log('annexuredata',annexureData);
                                                         <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
 
                                                             <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Permanent Address </h3>
-                                                            <div className='border border-black p-4 rounded-md'>
-                                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4 " >
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md" >
 
-                                                                    <div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address"
-                                                                            name="permanent_address"
-                                                                            disabled={isSameAsPermanent} // Disable if checkbox is checked
+                                                                <div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address"
+                                                                        name="permanent_address"
+                                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
 
-                                                                            ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
+                                                                        ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
 
-                                                                        />
-                                                                        {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
-                                                                    </div>
-
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_pin_code}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_pin_code"
-                                                                            name="permanent_pin_code"
-                                                                            ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address_landline_number}
-                                                                            type="number"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address_landline_number"
-                                                                            name="permanent_address_landline_number"
-                                                                            ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address_state}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address_state"
-                                                                            name="permanent_address_state"
-                                                                            ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_prominent_landmark}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_prominent_landmark"
-                                                                            name="permanent_prominent_landmark"
-                                                                            ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address_stay_to}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address_stay_to"
-                                                                            name="permanent_address_stay_to"
-                                                                            ref={(el) => (refs.current["permanent_address_stay_to"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
-                                                                    </div>
-
+                                                                    />
+                                                                    {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
                                                                 </div>
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                                    < input
+                                                                    <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
                                                                         onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address_nearest_police_station}
+                                                                        value={formData.personal_information.permanent_pin_code}
                                                                         type="text"
                                                                         className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address_nearest_police_station"
-                                                                        name="permanent_address_nearest_police_station"
+                                                                        id="permanent_pin_code"
+                                                                        name="permanent_pin_code"
+                                                                        ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
 
                                                                     />
+                                                                    {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
                                                                 </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_landline_number}
+                                                                        type="number"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_landline_number"
+                                                                        name="permanent_address_landline_number"
+                                                                        ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_state}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_state"
+                                                                        name="permanent_address_state"
+                                                                        ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_prominent_landmark}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_prominent_landmark"
+                                                                        name="permanent_prominent_landmark"
+                                                                        ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.permanent_address_stay_to}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="permanent_address_stay_to"
+                                                                        name="permanent_address_stay_to"
+                                                                        ref={(el) => (refs.current["permanent_address_stay_to"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
+                                                                </div>
+
                                                             </div>
+                                                        </div>
+                                                        < div className="form-group" >
+                                                            <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
+                                                            < input
+                                                                onChange={handleChange}
+                                                                value={formData.personal_information.permanent_address_nearest_police_station}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                id="permanent_address_nearest_police_station"
+                                                                name="permanent_address_nearest_police_station"
+
+                                                            />
                                                         </div>
                                                         <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
                                                             <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange}
                                                                 id="" className='me-2' /><label>Same as Permanent Address</label>
 
                                                             <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Current Address </h3>
-                                                            <div className='border border-black p-4 rounded-md'>
-                                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md" >
 
-
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address"
-                                                                            name="current_address"
-                                                                            disabled={isSameAsPermanent} // Disable if checkbox is checked
-
-                                                                            ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_pin_code}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_pin_code"
-                                                                            name="current_address_pin_code"
-                                                                            ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_landline_number}
-                                                                            type="number"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_landline_number"
-                                                                            name="current_address_landline_number"
-                                                                            ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_state}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_state"
-                                                                            name="current_address_state"
-                                                                            ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_prominent_landmark}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_prominent_landmark"
-                                                                            name="current_prominent_landmark"
-                                                                            ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_stay_to}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_stay_to"
-                                                                            name="current_address_stay_to"
-                                                                            ref={(el) => (refs.current["current_address_stay_to"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
-                                                                    </div>
-
-                                                                </div>
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                                    < input
+                                                                    <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
+                                                                    <input
                                                                         onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_nearest_police_station}
+                                                                        value={formData.personal_information.current_address}
                                                                         type="text"
                                                                         className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_nearest_police_station"
-                                                                        name="current_address_nearest_police_station"
-                                                                        ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
+                                                                        id="current_address"
+                                                                        name="current_address"
+                                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
+
+                                                                        ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
 
                                                                     />
+                                                                    {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
                                                                 </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_pin_code}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_pin_code"
+                                                                        name="current_address_pin_code"
+                                                                        ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_landline_number}
+                                                                        type="number"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_landline_number"
+                                                                        name="current_address_landline_number"
+                                                                        ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_state}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_state"
+                                                                        name="current_address_state"
+                                                                        ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_prominent_landmark}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_prominent_landmark"
+                                                                        name="current_prominent_landmark"
+                                                                        ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
+                                                                </div>
+                                                                < div className="form-group" >
+                                                                    <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
+                                                                    <input
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.current_address_stay_to}
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        id="current_address_stay_to"
+                                                                        name="current_address_stay_to"
+                                                                        ref={(el) => (refs.current["current_address_stay_to"] = el)} // Attach ref here
+
+                                                                    />
+                                                                    {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
+                                                                </div>
+
                                                             </div>
+                                                        </div>
+                                                        < div className="form-group" >
+                                                            <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
+                                                            < input
+                                                                onChange={handleChange}
+                                                                value={formData.personal_information.current_address_nearest_police_station}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                id="current_address_nearest_police_station"
+                                                                name="current_address_nearest_police_station"
+                                                                ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
+
+                                                            />
                                                         </div>
                                                     </>
                                                 )}
                                                 {serviceDataMain.map((service, serviceIndex) => {
                                                     if (activeTab === serviceIndex + 2) {
                                                         return (
-                                                            <div key={serviceIndex} className="md:p-6">
+                                                            <div key={serviceIndex} className="p-6">
                                                                 <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
                                                                 {service.db_table == "gap_validation" && <><label for="highest_education" className='font-bold'>Your Highest Education:</label>
                                                                     <select id="highest_education_gap" name="highest_education_gap"
@@ -2998,7 +2586,6 @@ console.log('annexuredata',annexureData);
                                                                                             name="phd_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
-                                                                                        {errors["phd_start_date_gap"] && <p className="text-red-500 text-sm">{errors["phd_start_date_gap"]}</p>}
                                                                                     </div>
                                                                                     <div>
                                                                                         <label>End Date</label>
@@ -3022,10 +2609,8 @@ console.log('annexuredata',annexureData);
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapPostGradToPhd)}
                                                                         </>
                                                                     )}
-
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
                                                                         <>
@@ -3061,30 +2646,17 @@ console.log('annexuredata',annexureData);
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
-
                                                                                 <div>
-                                                                                    <label>Start Date</label>
+                                                                                    <label>Year of Passing</label>
                                                                                     <input
-                                                                                        type="date"
-                                                                                        value={annexureData["gap_validation"].post_graduation_start_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_start_date_gap", e.target.value)}
-                                                                                        name="post_graduation_start_date_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                    {errors["post_graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["post_graduation_start_date_gap"]}</p>}
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>End Date</label>
-                                                                                    <input
-                                                                                        type="date"
-                                                                                        value={annexureData["gap_validation"].post_graduation_end_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_end_date_gap", e.target.value)}
-                                                                                        name="post_graduation_end_date_gap"
+                                                                                        type="text"
+                                                                                        value={annexureData["gap_validation"].post_graduation_passing_year_gap || ''}
+                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_passing_year_gap", e.target.value)}
+                                                                                        name="post_graduation_passing_year_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapGradToPostGrad)}
                                                                         </>
                                                                     )}
 
@@ -3122,31 +2694,17 @@ console.log('annexuredata',annexureData);
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
-
                                                                                 <div>
-                                                                                    <label>Start Date</label>
+                                                                                    <label>Year of Passing</label>
                                                                                     <input
-                                                                                        type="date"
-                                                                                        value={annexureData["gap_validation"].graduation_start_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_start_date_gap", e.target.value)}
-                                                                                        name="graduation_start_date_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                    {errors["graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["graduation_start_date_gap"]}</p>}
-
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>End Date</label>
-                                                                                    <input
-                                                                                        type="date"
-                                                                                        value={annexureData["gap_validation"].graduation_end_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_end_date_gap", e.target.value)}
-                                                                                        name="graduation_end_date_gap"
+                                                                                        type="text"
+                                                                                        value={annexureData["gap_validation"].graduation_passing_year_gap || ''}
+                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_passing_year_gap", e.target.value)}
+                                                                                        name="graduation_passing_year_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapSrSecToGrad)}
                                                                         </>
                                                                     )}
 
@@ -3187,7 +2745,6 @@ console.log('annexuredata',annexureData);
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapSecToSrSec)}
                                                                         </>
                                                                     )}
 
@@ -3231,93 +2788,281 @@ console.log('annexuredata',annexureData);
                                                                         </>
                                                                     )}
                                                                     <div className='mt-5'>
-                                                                        <label htmlFor="employmentType_gap" className='font-bold'>EMPLOYMENT</label>
-                                                                        <div className='mb-3'>
-                                                                            <label htmlFor="years_of_experience_gap">Year's of Experience</label>
-                                                                            <input
-                                                                                type="number"
-                                                                                id="years_of_experience_gap"
-                                                                                name="years_of_experience_gap"
-                                                                                value={annexureData["gap_validation"].years_of_experience_gap || ''}
-                                                                                onChange={(e) => handleServiceChange("gap_validation", "years_of_experience_gap", e.target.value)}
-                                                                                className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label htmlFor="no_of_employment">No of Employment</label>
-                                                                            <input
-                                                                                type="number"
-                                                                                id="no_of_employment"
-                                                                                name="no_of_employment"
-                                                                                value={annexureData["gap_validation"].no_of_employment || ''}
-                                                                                onChange={(e) => handleServiceChange("gap_validation", "no_of_employment", e.target.value)}
-                                                                                className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
+                                                                        <label htmlFor="employmentType_gap" className='font-bold'>Select Employment Type</label>
+                                                                        <select
+                                                                            id="employmentType_gap"
+                                                                            value={annexureData["gap_validation"].employmentType_gap || ''}
+                                                                            onChange={(e) => handleServiceChange("gap_validation", "employmentType_gap", e.target.value)}
 
-                                                                    {/* Dynamically render Employment Forms based on no_of_employment */}
-                                                                    {Array.from({ length: annexureData["gap_validation"].no_of_employment || 0 }, (_, index) => (
-                                                                        <div key={index} className='border border-black p-4 rounded-md my-3'>
-                                                                            <h3 className="text-lg font-bold pb-3">Employment({index + 1})</h3>
+                                                                            className="mt-1 mb-3 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+                                                                        >
+                                                                            <option value="">--Select Employment Type--</option>
+                                                                            <option value="selfEmployment">Self Employment</option>
+                                                                            <option value="familyBusiness">Family Business</option>
+                                                                            <option value="training">Training</option>
+                                                                            <option value="certification">Certification</option>
+                                                                            <option value="freelancer">Freelancer</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </>}
+                                                                {annexureData["gap_validation"].employmentType_gap === 'selfEmployment' && (
+                                                                    <>
+                                                                        <h3 className="text-lg font-bold pb-3">SELF EMPLOYMENT</h3>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
                                                                             <div>
-                                                                                <label htmlFor={`employment_type_gap_${index + 1}`}>Employment Type</label>
+                                                                                <label htmlFor="self_employment_business_type_gap">Business Type</label>
                                                                                 <input
                                                                                     type="text"
-                                                                                    id={`employment_type_gap_${index + 1}`}
-                                                                                    name={`employment_type_gap_${index + 1}`}
-                                                                                    value={annexureData["gap_validation"]?.[`employment_type_gap_${index + 1}`] || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", `employment_type_gap_${index + 1}`, e.target.value)}
+                                                                                    id="self_employment_business_type_gap"
+                                                                                    name="self_employment_business_type_gap"
+                                                                                    value={annexureData["gap_validation"].self_employment_business_type_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_business_type_gap", e.target.value)}
+
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="self_employment_company_name_gap">Company Name</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="self_employment_company_name_gap"
+                                                                                    name="self_employment_company_name_gap"
+                                                                                    value={annexureData["gap_validation"].self_employment_company_name_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_company_name_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="self_employment_start_date_gap">Start Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="self_employment_start_date_gap"
+                                                                                    name="self_employment_start_date_gap"
+                                                                                    value={annexureData["gap_validation"].self_employment_start_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_start_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="self_employment_end_date_gap">End Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="self_employment_end_date_gap"
+                                                                                    name="self_employment_end_date_gap"
+                                                                                    value={annexureData["gap_validation"].self_employment_end_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_end_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+
+                                                                {annexureData["gap_validation"].employmentType_gap === 'familyBusiness' && (
+                                                                    <>
+                                                                        <h3 className="text-lg font-bold pb-3">FAMILY BUSINESS</h3>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
+                                                                            <div>
+                                                                                <label htmlFor="family_business_business_type_gap">Business Type</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="family_business_business_type_gap"
+                                                                                    name="family_business_business_type_gap"
+                                                                                    value={annexureData["gap_validation"].family_business_business_type_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_business_type_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="family_business_company_name_gap">Company Name</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="family_business_company_name_gap"
+                                                                                    name="family_business_company_name_gap"
+                                                                                    value={annexureData["gap_validation"].family_business_company_name_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_company_name_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="family_business_start_date_gap">Start Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="family_business_start_date_gap"
+                                                                                    name="family_business_start_date_gap"
+                                                                                    value={annexureData["gap_validation"].family_business_start_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_start_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="family_business_end_date_gap">End Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="family_business_end_date_gap"
+                                                                                    name="family_business_end_date_gap"
+                                                                                    value={annexureData["gap_validation"].family_business_start_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_start_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+
+                                                                {annexureData["gap_validation"].employmentType_gap === 'training' && (
+                                                                    <>
+                                                                        <h3 className="text-lg font-bold pb-3">TRAINING</h3>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
+                                                                            <div>
+                                                                                <label htmlFor="training_type_gap">Training Type</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="training_type_gap"
+                                                                                    name="training_type_gap"
+                                                                                    value={annexureData["gap_validation"].training_type_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_type_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="training_institute_comapny_name_gap">Institute/Company Name</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="training_institute_comapny_name_gap"
+                                                                                    name="training_institute_comapny_name_gap"
+                                                                                    value={annexureData["gap_validation"].training_institute_comapny_name_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_institute_comapny_name_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+
+                                                                            <div>
+                                                                                <label htmlFor="training_start_date_gap">Start Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="training_start_date_gap"
+                                                                                    name="training_start_date_gap"
+                                                                                    value={annexureData["gap_validation"].training_start_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_start_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="training_end_date_gap">End Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="training_end_date_gap"
+                                                                                    name="training_end_date_gap"
+                                                                                    value={annexureData["gap_validation"].training_end_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_end_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+
+                                                                {annexureData["gap_validation"].employmentType_gap === 'certification' && (
+                                                                    <>
+                                                                        <h3 className="text-lg font-bold pb-3">CERTIFICATION</h3>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
+                                                                            <div>
+                                                                                <label htmlFor="certification_title_gap">Certification Title</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="certification_title_gap"
+                                                                                    name="certification_title_gap"
+                                                                                    value={annexureData["gap_validation"].certification_title_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_title_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="certification_institute_company_name_gap">Institute/Company Name</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="certification_institute_company_name_gap"
+                                                                                    name="certification_institute_company_name_gap"
+                                                                                    value={annexureData["gap_validation"].certification_institute_company_name_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_institute_company_name_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="certification_start_date_gap">Start Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="certification_start_date_gap"
+                                                                                    name="certification_start_date_gap"
+                                                                                    value={annexureData["gap_validation"].certification_start_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_start_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label htmlFor="certification_end_date_gap">End Date</label>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    id="certification_end_date_gap"
+                                                                                    name="certification_end_date_gap"
+                                                                                    value={annexureData["gap_validation"].certification_end_date_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_end_date_gap", e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+
+                                                                {annexureData["gap_validation"].employmentType_gap === 'freelancer' && (
+                                                                    <>
+
+                                                                        <h3 className="text-lg font-bold pb-3">FREELANCER</h3>
+                                                                        <div className="border border-black p-4 rounded-md">
+                                                                            <div>
+                                                                                <label htmlFor="freelancer_type_gap">Freelancer Type</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    id="freelancer_type_gap"
+                                                                                    name="freelancer_type_gap"
+                                                                                    value={annexureData["gap_validation"].freelancer_type_gap || ''}
+                                                                                    onChange={(e) => handleServiceChange("gap_validation", "freelancer_type_gap", e.target.value)}
                                                                                     className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                 />
                                                                             </div>
                                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                                {/* Start Date Field */}
                                                                                 <div>
-                                                                                    <label htmlFor={`employment_start_date_gap_${index + 1}`}>Start Date</label>
+                                                                                    <label htmlFor="freelancer_start_date_gap">Start Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        id={`employment_start_date_gap_${index + 1}`}
-                                                                                        name={`employment_start_date_gap_${index + 1}`}
-                                                                                        value={annexureData["gap_validation"]?.[`employment_start_date_gap_${index + 1}`] || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", `employment_start_date_gap_${index + 1}`, e.target.value)}
+                                                                                        id="freelancer_start_date_gap"
+                                                                                        name="freelancer_start_date_gap"
+                                                                                        value={annexureData["gap_validation"].freelancer_start_date_gap || ''}
+                                                                                        onChange={(e) => handleServiceChange("gap_validation", "freelancer_start_date_gap", e.target.value)}
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
-
-                                                                                {/* End Date Field */}
                                                                                 <div>
-                                                                                    <label htmlFor={`employment_end_date_gap_${index + 1}`}>End Date</label>
+                                                                                    <label htmlFor="freelancer_end_date_gap">End Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        id={`employment_end_date_gap_${index + 1}`}
-                                                                                        name={`employment_end_date_gap_${index + 1}`}
-                                                                                        value={annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`] || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", `employment_end_date_gap_${index + 1}`, e.target.value)}
+                                                                                        id="freelancer_end_date_gap"
+                                                                                        name="freelancer_end_date_gap"
+                                                                                        value={annexureData["gap_validation"].freelancer_end_date_gap || ''}
+                                                                                        onChange={(e) => handleServiceChange("gap_validation", "freelancer_end_date_gap", e.target.value)}
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {employGaps.map((item, idx) => {
-                                                                                // Check if the employment end date matches the endValue of any item in datediffrecnces
-                                                                                if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
-                                                                                    return <p key={idx} className='text-red-500 py-2'>GAP--{item.difference || 'No gap Found'} </p>;
-                                                                                }
-                                                                                return null;
-                                                                            })}
                                                                         </div>
-                                                                    ))}
-
-
-
-
-                                                                </>}
-
-
+                                                                    </>
+                                                                )}
 
                                                                 {service.db_table !== "gap_validation" && (
                                                                     <>
-                                                                        <div className="md:space-y-6" id="servicesForm" key={serviceIndex}>
+                                                                        <div className="space-y-6" id="servicesForm" key={serviceIndex}>
                                                                             {service.rows.map((row, rowIndex) => {
                                                                                 if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
                                                                                     return null;
@@ -3336,13 +3081,13 @@ console.log('annexuredata',annexureData);
                                                                                         )}
 
                                                                                         <div className="space-y-4">
-                                                                                            <div className={`md:grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
+                                                                                            <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
 
                                                                                                 {row.inputs.map((input, inputIndex) => {
 
                                                                                                     const isCheckbox = input.type === 'checkbox';
                                                                                                     const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
-                                                                                                    const isChecked = ["1", 1, true, "true"].includes(annexureData[service.db_table]?.[input.name] ?? false);
+                                                                                                    const isChecked = checkedCheckboxes[input.name];
 
                                                                                                     // Handle logic for checkbox checked state
                                                                                                     if (isDoneCheckbox && isChecked) {
@@ -3438,7 +3183,7 @@ console.log('annexuredata',annexureData);
                                                                                                                         {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
                                                                                                                             <Swiper
                                                                                                                                 spaceBetween={10} // Space between slides
-                                                                                                                                slidesPerView={5} // Default is 5 images per view for larger screens
+                                                                                                                                slidesPerView={5} // Default is 1 image per view
                                                                                                                                 loop={true} // Loop through images
                                                                                                                                 autoplay={{
                                                                                                                                     delay: 1000,
@@ -3451,19 +3196,6 @@ console.log('annexuredata',annexureData);
                                                                                                                                     nextEl: '.swiper-button-next',
                                                                                                                                     prevEl: '.swiper-button-prev',
                                                                                                                                 }}
-                                                                                                                                breakpoints={{
-                                                                                                                                    // When the screen width is 640px or smaller (mobile devices)
-                                                                                                                                    640: {
-                                                                                                                                        slidesPerView: 1, // Show 1 image per slide on mobile
-                                                                                                                                    },
-                                                                                                                                    // When the screen width is 768px or larger (tablet and desktop)
-                                                                                                                                    768: {
-                                                                                                                                        slidesPerView: 3, // Show 3 images per slide on tablets (optional)
-                                                                                                                                    },
-                                                                                                                                    1024: {
-                                                                                                                                        slidesPerView: 6, // Show 3 images per slide on tablets (optional)
-                                                                                                                                    },
-                                                                                                                                }}
                                                                                                                             >
                                                                                                                                 {annexureData[service.db_table][input.name].split(',').map((item, index) => {
                                                                                                                                     const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
@@ -3475,7 +3207,7 @@ console.log('annexuredata',annexureData);
                                                                                                                                                     <img
                                                                                                                                                         src={item}
                                                                                                                                                         alt={`Image ${index}`}
-                                                                                                                                                        className='md:h-[100px] md:w-[100px]'
+                                                                                                                                                        style={{ maxWidth: "100%", maxHeight: "300px", objectFit: "cover" }}
                                                                                                                                                     />
                                                                                                                                                 ) : (
                                                                                                                                                     <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -3489,7 +3221,6 @@ console.log('annexuredata',annexureData);
                                                                                                                             <p>No image or link available</p>
                                                                                                                         )}
                                                                                                                     </div>
-
                                                                                                                 </>
                                                                                                             )}
 
@@ -3498,20 +3229,16 @@ console.log('annexuredata',annexureData);
                                                                                                                     <input
                                                                                                                         type="checkbox"
                                                                                                                         name={input.name}
-                                                                                                                        checked={
-                                                                                                                            ["1", 1, true, "true"].includes(annexureData[service.db_table]?.[input.name] ?? false)
-                                                                                                                        } // Check if the value is 1, indicating it is checked
-                                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}  // Set the value to an empty string if no value is found
+                                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}
                                                                                                                         className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                                                                                                         onChange={(e) => {
-                                                                                                                            handleCheckboxChange(input.name, e.target.checked, service.db_table);
+                                                                                                                            handleCheckboxChange(input.name, e.target.checked);
                                                                                                                             toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
                                                                                                                         }}
                                                                                                                     />
                                                                                                                     <span className="text-sm text-gray-700">{input.label}</span>
                                                                                                                 </div>
                                                                                                             )}
-
 
                                                                                                             {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
                                                                                                         </div>
@@ -3572,8 +3299,7 @@ console.log('annexuredata',annexureData);
                                                                     < p className="text-gray-500 text-sm mt-2" >
                                                                         Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                     </p>
-                                                                    <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefDataApp.signature} alt="No Signature Found" className='h-full w-full' /></div>
-
+                                                                    <div><img src={cefDataApp.signature} alt="No Signature Found" /></div>
 
                                                                 </div>
 

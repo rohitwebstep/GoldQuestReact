@@ -468,13 +468,22 @@ const AdminChekin = () => {
         const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services, reportDownloadFlag);
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
-        let yPosition = 10;
+        let yPosition = 5;
         const backgroundColor = '#f5f5f5';
+        console.log('applicationInfo', applicationInfo)
 
-        doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 20);
+        doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
-        const rightImageX = pageWidth - 10 - 50; // Page width minus margin (10) and image width (50)
+        const rightImageX = pageWidth - 10 - 70; // Page width minus margin (10) and image width (50)
         doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX, yPosition, 50, 30);
+        if (applicationInfo?.photo) {
+            const imageBases = await fetchImageToBase([applicationInfo?.photo.trim()]);
+            doc.addImage(imageBases?.[0]?.base64 || "https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 40, yPosition, 30, 30);
+
+        } else{
+            doc.addImage("https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 45, yPosition, 30, 30);
+
+        }
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
@@ -1218,8 +1227,8 @@ the information responsible for employment decisions based on the information pr
     }
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const userRole = adminData.role;
-    console.log('adminData',adminData)
-    console.log('userRole',userRole)
+    console.log('adminData', adminData)
+    console.log('userRole', userRole)
 
     return (
         <div className="bg-[#c1dff2]">
