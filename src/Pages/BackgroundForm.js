@@ -47,6 +47,9 @@ const BackgroundForm = () => {
             no_of_employment: 0,
         }
     });
+    console.log('employGaps', employGaps);
+
+
 
 
     const createEmploymentFields = (noOfEmployments) => {
@@ -91,6 +94,7 @@ const BackgroundForm = () => {
 
 
     const handleServiceChange = (tableName, fieldName, value) => {
+            calculateGaps();
         setAnnexureData((prevData) => {
             const updatedData = {
                 ...prevData,
@@ -101,7 +105,7 @@ const BackgroundForm = () => {
             };
             return updatedData;
         });
-        calculateGaps();
+    
         validateDate();
     };
     const calculateDateGap = (startDate, endDate) => {
@@ -252,7 +256,6 @@ const BackgroundForm = () => {
         if (!annexureData) {
             setAnnexureData(initialAnnexureData);
         }
-        calculateGaps();
         validateDate();
     }, [annexureData]);
 
@@ -707,14 +710,7 @@ const BackgroundForm = () => {
                     calculateGaps();
 
                 } else {
-                    // Application does not exist or other error: Hide the form and show an alert
-                    const form = document.getElementById('bg-form');
-                    if (form) {
-                        // console.log(`Form Removed`);
-                        form.remove();
-                    } else {
-                        // console.log(`Form not found`);
-                    }
+
                     setApiStatus(false);
 
                     Swal.fire({
@@ -727,8 +723,14 @@ const BackgroundForm = () => {
                         preConfirm: () => {
                             // Prevent the modal from closing when the OK button is clicked
                             return false;  // This will stop the modal from closing
+                        },
+                        customClass: {
+                            container: 'custom-container',  // Add class to the container
+                            popup: 'custom-popup',          // Optional: Add class to the entire popup
+                            header: 'custom-header'         // Optional: Add class to the header
                         }
                     });
+
 
 
 
@@ -1748,6 +1750,27 @@ const BackgroundForm = () => {
 
     };
 
+    let isGapPresent = "no";
+
+    // Check if any gap exists
+    for (let key in gaps) {
+        if (gaps[key].years > 0 || gaps[key].months > 0) {
+            isGapPresent = "yes";
+            break;  // No need to check further once a gap is found
+        }
+    }
+
+
+    let isEmploymentGapPresent = "no";
+
+    // Check if any gap exists in the employment gaps
+    for (let i = 0; i < employGaps.length; i++) {
+        if (employGaps[i].difference !== "No gap") {
+            isEmploymentGapPresent = "yes";
+            break;  // No need to check further once a gap is found
+        }
+    }
+
     const handleSubmit = async (custombgv, e) => {
         e.preventDefault();
 
@@ -1785,6 +1808,8 @@ const BackgroundForm = () => {
 
 
         const requestData = {
+            is_education_gap: isGapPresent,
+            is_employment_gap: isEmploymentGapPresent,
             branch_id: decodedValues.branch_id,
             customer_id: decodedValues.customer_id,
             application_id: decodedValues.app_id,
@@ -1986,7 +2011,7 @@ const BackgroundForm = () => {
         console.log(`fileCount - `, fileCount);
         console.log(`TotalApiCalls - `, TotalApiCalls);
         console.log(`custombgv - `, custombgv);
-        
+
         if (custombgv == 0) {
             setLoading(false);
         }
@@ -2059,7 +2084,7 @@ const BackgroundForm = () => {
                 ) :
                     (
 
-                        <div id="bg-form">
+                        <div>
 
                             {
                                 loading ? (
@@ -2101,7 +2126,7 @@ const BackgroundForm = () => {
                                     </div>
 
                                 ) : (
-                                    <div className='py-5'>
+                                    <div className='py-5' id="hiddenForm">
 
                                         <div className="md:w-10/12 mx-auto p-6" >
                                             {status === 1 && (
@@ -2496,6 +2521,7 @@ const BackgroundForm = () => {
                                                                     )
                                                                 }
                                                             </div>
+
                                                             {nationality === "Indian" && (
                                                                 <div className='form-group' >
                                                                     <label className='text-sm' > Pan card No </label>
@@ -2511,7 +2537,6 @@ const BackgroundForm = () => {
                                                                 </div>
                                                             )
                                                             }
-
                                                             < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                                 {
@@ -3367,14 +3392,20 @@ const BackgroundForm = () => {
                                                                             <h3 className="text-lg font-bold pb-3">Employment({index + 1})</h3>
                                                                             <div>
                                                                                 <label htmlFor={`employment_type_gap_${index + 1}`}>Employment Type</label>
-                                                                                <input
+                                                                                <select
                                                                                     type="text"
                                                                                     id={`employment_type_gap_${index + 1}`}
                                                                                     name={`employment_type_gap_${index + 1}`}
                                                                                     value={annexureData["gap_validation"]?.[`employment_type_gap_${index + 1}`] || ''}
                                                                                     onChange={(e) => handleServiceChange("gap_validation", `employment_type_gap_${index + 1}`, e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2 mb-2">
+                                                                                    <option value="">Select Your Employment Type</option>
+                                                                                    <option value="employed">Employed</option>
+                                                                                    <option value="self-employed">Self Employed</option>
+                                                                                    <option value="freelancer">Freelancer</option>
+                                                                                    <option value="family-buisness">Family Buisness</option>
+                                                                                </select>
+
                                                                             </div>
                                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                                 {/* Start Date Field */}
@@ -3402,19 +3433,20 @@ const BackgroundForm = () => {
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
-                                                                            </div>
-                                                                            {employGaps.map((item, idx) => {
+                                                                                {employGaps.map((item, idx) => {
                                                                                 const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
 
                                                                                 if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
                                                                                     return (
                                                                                         <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
-                                                                                            {isNoGap ? item.difference : `GAP--${item.difference || 'No gap Found'}`}
+                                                                                            {isNoGap ? item.difference : `GAP-${item.difference }`}
                                                                                         </p>
                                                                                     );
                                                                                 }
                                                                                 return null;
                                                                             })}
+                                                                            </div>
+                                                                         
 
                                                                         </div>
                                                                     ))}
@@ -3659,7 +3691,7 @@ const BackgroundForm = () => {
                                                 {/* Step 3 logic */}
                                                 {activeTab === serviceDataMain.length + 2 && (
                                                     <div>
-                                                        <div className='mb-6  p-4 rounded-md border shadow-md bg-white mt-8' >
+                                                        <div className='mb-6  p-4 rounded-md border bg-white mt-8' >
                                                             <h4 className="md:text-start text-start md:text-xl text-sm my-6 font-bold" > Declaration and Authorization </h4>
                                                             < div className="mb-6" >
                                                                 <p className='text-sm' >
@@ -3668,30 +3700,8 @@ const BackgroundForm = () => {
                                                                 </p>
                                                             </div>
 
-                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-6" >
-                                                                <div className="form-group" >
-                                                                    <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={(e) => handleFileChange("applications_signature", "signature", e)}
-                                                                        type="file"
-                                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mt-6" >
 
-                                                                        className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
-                                                                        name="signature"
-                                                                        id="signature"
-
-                                                                    />
-                                                                    {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
-                                                                    < p className="text-gray-500 text-sm mt-2" >
-                                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                    </p>
-                                                                    {cefDataApp.signature && (
-                                                                        <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefDataApp.signature} alt="No Signature Found" className='h-full w-full' /></div>
-
-                                                                    )}
-
-
-                                                                </div>
 
                                                                 < div className="form-group" >
                                                                     <label className='text-sm' > Name </label>
@@ -3719,14 +3729,38 @@ const BackgroundForm = () => {
 
                                                                 </div>
                                                             </div>
+                                                            <div className="form-group" >
+                                                                <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
+                                                                <input
+                                                                    onChange={(e) => handleFileChange("applications_signature", "signature", e)}
+                                                                    type="file"
+                                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+
+                                                                    className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
+                                                                    name="signature"
+                                                                    id="signature"
+
+                                                                />
+                                                                {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
+                                                                < p className="text-gray-500 text-sm mt-2" >
+                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                </p>
+                                                                {cefDataApp.signature && (
+                                                                    <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefDataApp.signature} alt="No Signature Found" className='h-full w-full' /></div>
+
+                                                                )}
+
+
+                                                            </div>
                                                         </div>
 
-                                                        < h5 className="md:text-start text-start text-lg my-6 font-bold" > Documents(Mandatory) </h5>
 
 
-                                                        <div className="bg-white shadow-md  rounded-md border">
-                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 md:p-4 p-1">
-                                                                <div className="p-4" >
+
+                                                        <div className="bg-white rounded-md border md:p-4">
+                                                            < h5 className="md:text-start text-start text-lg mt-6 mb-2 font-bold" > Documents(Mandatory) </h5>
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4  p-1">
+                                                                <div className="p-4 border rounded-md" >
                                                                     <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
                                                                         <FaGraduationCap className="mr-3" />
                                                                         Education
@@ -3734,7 +3768,7 @@ const BackgroundForm = () => {
                                                                     < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
                                                                 </div>
 
-                                                                < div className="p-4" >
+                                                                < div className="p-4 border rounded-md" >
                                                                     <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
                                                                         <FaBriefcase className="mr-3" />
                                                                         Employment
@@ -3742,7 +3776,7 @@ const BackgroundForm = () => {
                                                                     < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
                                                                 </div>
 
-                                                                < div className="p-4" >
+                                                                < div className="p-4 border rounded-md" >
                                                                     <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
                                                                         <FaIdCard className="mr-3" />
                                                                         Government ID / Address Proof
@@ -3751,7 +3785,7 @@ const BackgroundForm = () => {
                                                                 </div>
                                                             </div>
 
-                                                            <p className='md:text-start text-start text-sm mt-4 p-4' >
+                                                            <p className='md:text-start text-start text-sm mt-4 ' >
                                                                 NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
                                                             </p>
                                                         </div>

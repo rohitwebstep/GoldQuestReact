@@ -392,6 +392,9 @@ const CandidateExcelTrackerStatus = () => {
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Email</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Initiation Date</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">View Documents</th>
+                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is Employment Gap</th>
+                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is Education Gap</th>
+
                                     {currentItems.some(item => item.cef_id) ? (
                                         <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                                             BGV
@@ -463,8 +466,26 @@ const CandidateExcelTrackerStatus = () => {
                                                     <span>No Attachments</span>
                                                 )}
                                             </td>
-
-
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
+                                                        ? "text-green-500"
+                                                        : data.is_employment_gap === "yes"
+                                                            ? "text-red-500"
+                                                            : "text-black"
+                                                    }`}
+                                            >
+                                                {data.is_employment_gap || "NIL"}
+                                            </td>
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_education_gap === "no"
+                                                        ? "text-green-500"
+                                                        : data.is_education_gap === "yes"
+                                                            ? "text-red-500"
+                                                            : "text-black"
+                                                    }`}
+                                            >
+                                                {data.is_education_gap || "NIL"}
+                                            </td>
 
                                             {data.cef_id ? (
                                                 <td className="border px-4 py-2">

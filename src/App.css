@@ -472,3 +472,6 @@ div#menuitem ul li svg {
     margin-right: 9px;
 }
 }
+.swal2-container.swal2-center.custom-container.swal2-backdrop-show {
+  background: #000000ed !important;
+}

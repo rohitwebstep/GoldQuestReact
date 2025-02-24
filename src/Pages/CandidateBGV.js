@@ -673,7 +673,7 @@ const CandidateBGV = () => {
                     </div >
                 ) :
                     <form className='py-6 bg-[#e5e7eb24]' id='bg-form'>
-                        <div className="md:w-10/12 mx-auto p-6" >
+                        <div className="md:w-10/12 mx-auto md:p-6" >
                             {customBgv === 1 && (
                                 <div className='flex justify-center my-3'>
                                     <img src={LogoBgv} className='md:w-[12%] w-[50%] m-auto' alt="Logo" />
@@ -976,21 +976,19 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                     </select>
                                                 </div>
                                             </div>
-                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
-                                                {nationality === "Indian" && (
-                                                    <div className='form-group'>
-                                                        <label className='text-sm'>Aadhar card No</label>
-                                                        <input
-                                                            type="text"
-                                                            name="aadhar_card_number"
-                                                            value={cefData.aadhar_card_number}
-                                                            disabled
-                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                        />
-                                                    </div>
-                                                )}
-
-
+                                            {nationality === "Indian" && (
+                                                <div className='form-group'>
+                                                    <label className='text-sm'>Aadhar card No</label>
+                                                    <input
+                                                        type="text"
+                                                        name="aadhar_card_number"
+                                                        value={cefData.aadhar_card_number}
+                                                        disabled
+                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                    />
+                                                </div>
+                                            )}
+                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
                                                 {
                                                     customBgv === 1 && nationality === "Indian" && (
                                                         <>
@@ -1030,19 +1028,22 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                     )
                                                 }
 
-                                                {nationality === "Indian" && (
-                                                    <div className='form-group' >
-                                                        <label className='text-sm' > Pan card No </label>
-                                                        <input
-                                                            type="text"
-                                                            disabled
-                                                            name="pan_card_number"
-                                                            value={cefData.pan_card_number}
-                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                        />
-                                                    </div>
-                                                )
-                                                }
+                                            </div>
+
+                                            {nationality === "Indian" && (
+                                                <div className='form-group' >
+                                                    <label className='text-sm' > Pan card No </label>
+                                                    <input
+                                                        type="text"
+                                                        disabled
+                                                        name="pan_card_number"
+                                                        value={cefData.pan_card_number}
+                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                    />
+                                                </div>
+                                            )
+                                            }
+                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                 {
                                                     customBgv === 1 && nationality === "Indian" && (
@@ -1601,48 +1602,48 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                         <>
                                                             <h3 className="text-lg font-bold py-3">POST GRADUATION</h3>
                                                             <div className='border border-black p-4 rounded-md'>
-                                                            <div className="md:grid grid-cols-2 gap-3 my-4 ">
-                                                                <div>
-                                                                    <label>University / Institute Name</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].post_graduation_university_institute_name_gap || ''}
-                                                                        name="post_graduation_university_institute_name_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label>Course</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].post_graduation_course_gap || ''}
-                                                                        name="post_graduation_course_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label>Specialization Major</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].post_graduation_specialization_major_gap || ''}
-                                                                        name="post_graduation_specialization_major_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
+                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                    <div>
+                                                                        <label>University / Institute Name</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].post_graduation_university_institute_name_gap || ''}
+                                                                            name="post_graduation_university_institute_name_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label>Course</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].post_graduation_course_gap || ''}
+                                                                            name="post_graduation_course_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label>Specialization Major</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].post_graduation_specialization_major_gap || ''}
+                                                                            name="post_graduation_specialization_major_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
 
-                                                                <div>
-                                                                    <label>Start Date</label>
-                                                                    <input
-                                                                        type="date"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].post_graduation_start_date_gap || ''}
-                                                                        name="post_graduation_start_date_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
+                                                                    <div>
+                                                                        <label>Start Date</label>
+                                                                        <input
+                                                                            type="date"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].post_graduation_start_date_gap || ''}
+                                                                            name="post_graduation_start_date_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                                 <div>
                                                                     <label>End Date</label>
@@ -1663,49 +1664,49 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                         <>
                                                             <h3 className="text-lg font-bold py-3">GRADUATION</h3>
                                                             <div className='border border-black p-4 rounded-md'>
-                                                            <div className="md:grid grid-cols-2 gap-3 my-4 ">
-                                                                <div>
-                                                                    <label>University / Institute Name</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].graduation_university_institute_name_gap || ''}
-                                                                        name="graduation_university_institute_name_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label>Course</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].graduation_course_gap || ''}
-                                                                        name="graduation_course_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label>Specialization Major</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].graduation_specialization_major_gap || ''}
-                                                                        name="graduation_specialization_major_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
-                                                                </div>
+                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                    <div>
+                                                                        <label>University / Institute Name</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].graduation_university_institute_name_gap || ''}
+                                                                            name="graduation_university_institute_name_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label>Course</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].graduation_course_gap || ''}
+                                                                            name="graduation_course_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label>Specialization Major</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].graduation_specialization_major_gap || ''}
+                                                                            name="graduation_specialization_major_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
+                                                                    </div>
 
-                                                                <div>
-                                                                    <label>Start Date</label>
-                                                                    <input
-                                                                        type="date"
-                                                                        disabled
-                                                                        value={annexureData["gap_validation"].graduation_start_date_gap || ''}
-                                                                        name="graduation_start_date_gap"
-                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                    />
+                                                                    <div>
+                                                                        <label>Start Date</label>
+                                                                        <input
+                                                                            type="date"
+                                                                            disabled
+                                                                            value={annexureData["gap_validation"].graduation_start_date_gap || ''}
+                                                                            name="graduation_start_date_gap"
+                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                        />
 
-                                                                </div>
+                                                                    </div>
                                                                 </div>
                                                                 <div>
                                                                     <label>End Date</label>
@@ -1871,17 +1872,17 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                 </div>
                                                             </div>
                                                             {employGaps.map((item, idx) => {
-                                                                                const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
+                                                                const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
 
-                                                                                if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
-                                                                                    return (
-                                                                                        <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
-                                                                                            {isNoGap ? item.difference : `GAP--${item.difference || 'No gap Found'}`}
-                                                                                        </p>
-                                                                                    );
-                                                                                }
-                                                                                return null;
-                                                                            })}
+                                                                if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
+                                                                    return (
+                                                                        <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
+                                                                            {isNoGap ? item.difference : `GAP--${item.difference || 'No gap Found'}`}
+                                                                        </p>
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            })}
 
                                                         </div>
                                                     ))}
@@ -2114,7 +2115,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                 {/* Step 3 logic */}
                                 {activeTab === serviceData.length + 2 && (
                                     <div>
-                                        <div className='mb-6  p-4 rounded-md border shadow-md bg-white mt-8' >
+                                        <div className='mb-6  p-4 rounded-md border  bg-white mt-8' >
                                             <h4 className="md:text-start text-start md:text-xl text-sm my-6 font-bold" > Declaration and Authorization </h4>
                                             < div className="mb-6" >
                                                 <p className='text-sm' >
@@ -2123,23 +2124,8 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                 </p>
                                             </div>
 
-                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-6" >
-                                                <div className="form-group" >
-                                                    <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
-                                                    <input
-                                                        type="file"
-                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-                                                        className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
-                                                        name="signature"
-                                                        id="signature"
-                                                        disabled
-                                                    />
-                                                    < p className="text-gray-500 text-sm mt-2" >
-                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                    </p>
-                                                    <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefData.signature} alt="No Signature Found" className='h-full w-full' /></div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mt-6" >
 
-                                                </div>
 
                                                 < div className="form-group" >
                                                     <label className='text-sm'>Name</label>
@@ -2165,41 +2151,62 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
 
                                                 </div>
                                             </div>
-                                        </div>
+                                            <div className="form-group" >
+                                                <label className='text-sm'> Attach signature: <span className="text-red-500 text-lg" >* </span></label >
+                                                <input
+                                                    type="file"
+                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                    className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
+                                                    name="signature"
+                                                    id="signature"
+                                                    disabled
+                                                />
+                                                < p className="text-gray-500 text-sm mt-2" >
+                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                </p>
+                                                {
+                                                    cefData.signature && (
+                                                        <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefData.signature} alt="No Signature Found" className='h-full w-full' /></div>
+                                                    )
+                                                }
 
-                                       <div className='p-1 bg-white shadow-md  rounded-md border md:p-4'>
-                                        < h5 className="md:text-start text-start text-lg my-6 font-bold "> Documents(Mandatory) </h5>
-                                        < div className="grid grid-cols-1  md:grid-cols-3 gap-4 pt-4">
-                                            <div className="p-4" >
-                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                    <FaGraduationCap className="mr-3" />
-                                                    Education
-                                                </h6>
-                                                < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
-                                            </div>
 
-                                            < div className="p-4" >
-                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                    <FaBriefcase className="mr-3" />
-                                                    Employment
-                                                </h6>
-                                                < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
-                                            </div>
-
-                                            < div className="p-4" >
-                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                    <FaIdCard className="mr-3" />
-                                                    Government ID / Address Proof
-                                                </h6>
-                                                < p className='text-sm' > Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
                                             </div>
                                         </div>
 
+                                        <div className='p-1 bg-white  rounded-md border md:p-4'>
+                                            < h5 className="md:text-start text-start text-lg my-6 font-bold "> Documents(Mandatory) </h5>
+                                            < div className="grid grid-cols-1  md:grid-cols-3 gap-4 pt-4">
+                                                <div className="p-4 border rounded-md" >
+                                                    <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                        <FaGraduationCap className="mr-3" />
+                                                        Education
+                                                    </h6>
+                                                    < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
+                                                </div>
 
-                                        < p className='md:text-start text-start text-sm mt-4' >
-                                            NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
-                                        </p>
-                                    </div>
+                                                < div className="p-4 border rounded-md" >
+                                                    <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                        <FaBriefcase className="mr-3" />
+                                                        Employment
+                                                    </h6>
+                                                    < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
+                                                </div>
+
+                                                < div className="p-4 border rounded-md" >
+                                                    <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                        <FaIdCard className="mr-3" />
+                                                        Government ID / Address Proof
+                                                    </h6>
+                                                    < p className='text-sm' > Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
+                                                </div>
+                                            </div>
+
+
+                                            < p className='md:text-start text-start text-sm mt-4' >
+                                                NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
                             </div>
