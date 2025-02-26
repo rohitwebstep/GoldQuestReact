@@ -227,6 +227,11 @@ const CandidateExcelTrackerStatus = () => {
         // Navigate to the Candidate BGV page with the cef_id
         navigate(`/candidate-dav?def_id=${def_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
     };
+    const handleCheckGap = (cef_id, branch_id, applicationId) => {
+        // Navigate to the Candidate BGV page with the cef_id
+        navigate(`/gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+    };
+
 
 
 
@@ -394,6 +399,7 @@ const CandidateExcelTrackerStatus = () => {
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">View Documents</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is Employment Gap</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is Education Gap</th>
+                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Gap Check</th>
 
                                     {currentItems.some(item => item.cef_id) ? (
                                         <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
@@ -468,24 +474,48 @@ const CandidateExcelTrackerStatus = () => {
                                             </td>
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
+                                                    ? "text-green-500"
+                                                    : data.is_employment_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {data.is_employment_gap || "NIL"}
+                                            </td>
+
+
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_education_gap === "no"
+                                                    ? "text-green-500"
+                                                    : data.is_education_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {data.is_education_gap || "NIL"}
+                                            </td>
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
                                                         ? "text-green-500"
                                                         : data.is_employment_gap === "yes"
                                                             ? "text-red-500"
                                                             : "text-black"
                                                     }`}
                                             >
-                                                {data.is_employment_gap || "NIL"}
+                                                {data.is_employment_gap === "yes" || data.is_employment_gap === "no" ? (
+                                                    <button
+                                                        className=""
+                                                        onClick={() =>
+                                                            handleCheckGap(data.cef_id, data.branch_id, data.main_id)
+                                                        }
+                                                    >
+                                                        Click Here to check GAP STATUS
+                                                    </button>
+                                                ) : (
+                                                    "NIL"
+                                                )}
                                             </td>
-                                            <td
-                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_education_gap === "no"
-                                                        ? "text-green-500"
-                                                        : data.is_education_gap === "yes"
-                                                            ? "text-red-500"
-                                                            : "text-black"
-                                                    }`}
-                                            >
-                                                {data.is_education_gap || "NIL"}
-                                            </td>
+
 
                                             {data.cef_id ? (
                                                 <td className="border px-4 py-2">

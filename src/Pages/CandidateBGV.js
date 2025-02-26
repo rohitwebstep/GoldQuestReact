@@ -343,13 +343,13 @@ const CandidateBGV = () => {
         if (gap?.years > 0 || gap?.months > 0) {
             return (
                 <p style={{ color: 'red' }}>
-                    Gap between Post Graduation and PhD: {gap?.years} years, {gap?.months} months
+                    Gap : {gap?.years} years, {gap?.months} months
                 </p>
             );
         }
         return (
             <p style={{ color: 'green' }}>
-                No Gap between Post Graduation and PhD
+                No Gap
             </p>
         );
     };

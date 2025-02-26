@@ -456,11 +456,15 @@ input,select{
 .filter-menu::-webkit-scrollbar-thumb:hover {
   background: #22c55e;
 }
+.custom-gap-check td{
+  width: 50% !important; 
+}
 @media(min-width:992px) and (max-width:1600px){
   div#menuitem ul li {
     font-size: 12px;
     padding: 9px;
 }
+
 div#menuitem ul li {
     font-size: 15px;
     padding: 9px;

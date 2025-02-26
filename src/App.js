@@ -40,6 +40,7 @@ import { LoginProvider } from './Pages/InternalLoginContext';
 import { AiOutlineArrowUp } from "react-icons/ai";
 import { ApiCallProvider } from './ApiCallContext';
 import { ServicesProvider } from './Pages/ServicesContext';
+import GapStatus from './Pages/GapStatus';
 
 const App = () => {
   const [showGoToTop, setShowGoToTop] = useState(false);
@@ -109,6 +110,7 @@ const App = () => {
                                       {/* Other Routes */}
                                       <Route path="/background-form" element={<BackgroundForm />} />
                                       <Route path="/background-form-c" element={<DemoBgForm />} />
+                                      <Route path="/gap-check" element={<GapStatus />} />
                                       <Route path="/digital-form" element={<DigitalAddressVerification />} />
 
                                       {/* Client Bulk Upload */}

@@ -34,7 +34,6 @@ export const ClientEditForm = () => {
     };
 
 
-
     const handleFileChange = (fileName, e) => {
         const selectedFiles = Array.from(e.target.files); // Convert FileList to an array
 

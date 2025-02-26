@@ -47,15 +47,11 @@ const BackgroundForm = () => {
             no_of_employment: 0,
         }
     });
-    console.log('employGaps', employGaps);
-
-
-
 
     const createEmploymentFields = (noOfEmployments) => {
         const employmentFields = {};
         for (let i = 1; i <= noOfEmployments; i++) {
-            // Ensure we keep existing values if they are already set
+            // Keep existing values if they are already set, or set empty strings for new fields
             employmentFields[`employment_type_gap_${i}`] = annexureData.gap_validation[`employment_type_gap_${i}`] || '';
             employmentFields[`employment_start_date_gap_${i}`] = annexureData.gap_validation[`employment_start_date_gap_${i}`] || '';
             employmentFields[`employment_end_date_gap_${i}`] = annexureData.gap_validation[`employment_end_date_gap_${i}`] || '';
@@ -63,38 +59,57 @@ const BackgroundForm = () => {
         return employmentFields;
     };
 
-    // Update the state with the new employment fields
-    const updateEmploymentFields = (noOfEmployment, fieldValue) => {
-        // Generate all possible employment fields
-        const allEmploymentFields = createEmploymentFields(noOfEmployment);
+    // Function to update the state with new employment fields based on user changes
+    const updateEmploymentFields = (noOfEmployments, fieldValue) => {
+        // Generate new employment fields based on the provided number of employments
+        const allEmploymentFields = createEmploymentFields(noOfEmployments);
 
-        // Manually compute the updated data before updating state
-        const updatedData = {
-            ...initialAnnexureData, // Copy existing state
-            gap_validation: {
-                ...initialAnnexureData.gap_validation, // Preserve existing values
-                ...allEmploymentFields, // Ensure all new employment fields are included
-            },
+        // console.log(`allEmploymentFields - `, allEmploymentFields);
+        // Merge the new employment fields with any updated field values
+        const updatedGapValidation = {
+            ...annexureData.gap_validation, // Preserve existing gap_validation values
+            ...allEmploymentFields,        // Add all new employment fields based on the new count
         };
+        // console.log(`updatedGapValidation - `, updatedGapValidation);
 
-        // Override only the values present in `fieldValue`
-        Object.keys(fieldValue).forEach((key) => {
-            if (updatedData.gap_validation.hasOwnProperty(key)) {
-                updatedData.gap_validation[key] = fieldValue[key]; // Update relevant fields only
+        // Remove any extra fields if the number of employments is decreased
+        Object.keys(updatedGapValidation).forEach((key) => {
+            // Check if the key corresponds to a higher employment number than `noOfEmployments`
+            const match = key.match(/^employment_(type|start_date|end_date)_gap_(\d+)$/);
+            if (match) {
+                const employmentIndex = parseInt(match[2], 10);
+                if (employmentIndex > noOfEmployments) {
+                    // If the employment index is greater than the new number, remove the field
+                    delete updatedGapValidation[key];
+                }
             }
         });
 
-        // Set state asynchronously
-        setInitialAnnexureData(updatedData);
+        // Merge any additional updated field values provided (i.e., from the form)
+        Object.keys(fieldValue).forEach((key) => {
+            updatedGapValidation[key] = fieldValue[key]; // Update the specific field values
+        });
 
-        return updatedData; // Now `newData` will contain the updated values
+        // Update the full annexureData state with the updated gap_validation
+        const updatedAnnexureData = {
+            ...annexureData,  // Preserve other sections of the data
+            gap_validation: updatedGapValidation, // Update only the gap_validation part
+        };
+
+        // Set state with updated data
+        setAnnexureData(updatedAnnexureData);
+
+
+
+        return updatedAnnexureData; // This can be used for further handling if needed
     };
 
+
     const [annexureData, setAnnexureData] = useState(initialAnnexureData);
+    // console.log('annexureData', annexureData)
 
 
     const handleServiceChange = (tableName, fieldName, value) => {
-            calculateGaps();
         setAnnexureData((prevData) => {
             const updatedData = {
                 ...prevData,
@@ -105,9 +120,10 @@ const BackgroundForm = () => {
             };
             return updatedData;
         });
-    
         validateDate();
+        calculateGaps();
     };
+
     const calculateDateGap = (startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -154,6 +170,8 @@ const BackgroundForm = () => {
 
         return `${years > 0 ? years + " year(s) " : ""}${months > 0 ? months + " month(s) " : ""}${days > 0 ? days + " day(s)" : ""}`.trim();
     }
+
+
 
     const calculateGaps = () => {
         // Data from your JSON
@@ -221,11 +239,14 @@ const BackgroundForm = () => {
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
+            // Loop through the end dates and match with the next start date
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
 
+                // If there's both an end date and a next start date, and they don't match
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
+                    // Calculate the difference between the two dates
                     const diff = calculateDateDifference(currentEnd, nextStart);
 
                     // Only add valid differences (not empty strings or null)
@@ -243,6 +264,10 @@ const BackgroundForm = () => {
 
             return differences;
         }
+
+        // Helper function to calculate date difference (assuming you have it)
+
+
 
         // Get differences
         const dateDifferences = getEmploymentDateDifferences(employmentStartDates, employmentEndDates);
@@ -325,208 +350,8 @@ const BackgroundForm = () => {
 
         },
     });
-    const [isDuplicateInProgress, setIsDuplicateInProgress] = useState(false);
-    const duplicateRow = (serviceIndex, rowIndex, row, isInitialDuplication = true, inputIndex = 1) => {
-        // Ensure serviceDataMain exists and is structured correctly
-        if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
-            return;
-        }
-
-        // Retrieve the correct service data object
-        const service = serviceDataMain[serviceIndex];
-        if (!service || !service.rows) {
-            return;
-        }
-
-        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
-        if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
-            // console.error("No valid target row classes found in the button data");
-            return;
-        }
-
-        const matchingRows = service.rows.filter((serviceRow) => {
-            return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
-        });
-
-        if (matchingRows.length === 0) {
-            return;
-        }
-
-        // Track the maximum input index across all rows
-        let existingInputNames = new Set(); // Track already existing input names
-
-        service.rows.forEach((row) => {
-            row.inputs.forEach((input) => {
-                const match = input.name.match(/_(\d+)$/); // Check for the trailing number in input name
-                if (match) {
-                    const currentIndex = parseInt(match[1], 10);
-                    existingInputNames.add(input.name); // Track this name as already existing
-                    inputIndex = Math.max(inputIndex, currentIndex + 1);  // Update the max inputIndex
-                }
-            });
-        });
-
-        // Set the next available index for rows (this is row-wise)
-        let maxIndex = 0;
-        service.rows.forEach((row) => {
-            const match = row.class?.match(/row-(\d+)/); // Match row-<number>
-            if (match) {
-                const currentIndex = parseInt(match[1], 10);
-                maxIndex = Math.max(maxIndex, currentIndex); // Get the highest index
-            }
-        });
-
-        let rowIndexToUse = maxIndex + 1;
-
-        const newRows = matchingRows.map((matchingRow) => {
-            const newRow = {
-                ...matchingRow,  // Copy the properties from the matched row
-                class: `row-${rowIndexToUse}`, // Add the next available index to the outer row class
-                inputs: matchingRow.inputs.map((input) => {
-                    let newInputName = `${input.name.replace(/_\d+$/, '')}_${inputIndex}`;
-
-                    // If the input name already exists (from previous duplications), adjust the index
-                    while (existingInputNames.has(newInputName)) {
-                        inputIndex++; // Increment index until the name is unique
-                        newInputName = `${input.name.replace(/_\d+$/, '')}_${inputIndex}`;
-                    }
-
-                    existingInputNames.add(newInputName); // Add the new input name to the set
-
-                    return {
-                        ...input,
-                        name: newInputName, // Update the name with the current input index
-                        value: isInitialDuplication ? (annexureData[service.db_table]?.[input.name] || input.value || '') : '', // Reset value for subsequent duplications
-                    };
-                }),
-            };
-
-            rowIndexToUse++; // Increment rowIndexToUse to ensure the rows are in order
-            return newRow;
-        });
-
-        const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
-        if (buttonRowIndex === -1) {
-            // console.error("Button row not found");
-            return;
-        }
-
-        const updatedRows = [
-            ...service.rows.slice(0, buttonRowIndex),
-            ...newRows,
-            ...service.rows.slice(buttonRowIndex),
-        ];
-
-        const updatedServiceData = [...serviceDataMain];
-        updatedServiceData[serviceIndex] = {
-            ...service,
-            rows: updatedRows,
-        };
-        setServiceDataMain(updatedServiceData);  // Update the state with the new rows
-
-        // Log the duplicated rows inputs for debugging
-        newRows.forEach(newRow => {
-            newRow.inputs.forEach(input => {
-            });
-        });
-
-        // Now, update annexureData for the new duplicated rows
-        newRows.forEach((newRow) => {
-            newRow.inputs.forEach((input) => {
-                const fieldValue = annexureImageData.find(data => data && data.hasOwnProperty(input.name));
-                const newValue = fieldValue ? fieldValue[input.name] : input.value || "  ";
-
-                // Update annexureData for the new duplicated input
-                setAnnexureData((prevData) => {
-                    const updatedData = {
-                        ...prevData,
-                        [service.db_table]: {
-                            ...prevData[service.db_table],
-                            [input.name]: newValue,
-                        },
-                    };
-
-                    return updatedData;
-                });
-            });
-        });
-
-        // Check if the newly duplicated row is filled, and if it is, trigger duplication again (with empty values for the original row)
-        if (isInitialDuplication) {
-            const rowsToDuplicate = service.rows.filter((row) => {
-                return row.inputs.some(input => input['data-target']);
-            });
-
-            rowsToDuplicate.forEach((originalRow) => {
-                const isRowFilled = originalRow.inputs.every(input => input.value !== ''); // Check if all inputs have values
-
-                if (isRowFilled) {
-
-                    // Create an empty duplicate of the original row (reset input values)
-                    const emptyRow = {
-                        ...originalRow,
-                        inputs: originalRow.inputs.map(input => ({
-                            ...input,
-                            value: '',  // Reset the value to empty
-                        })),
-                    };
-
-                    // Increment the inputIndex for the next duplication
-                    duplicateRow(serviceIndex, rowIndex, emptyRow, false, inputIndex + 1);
-                }
-            });
-        }
-    };
 
 
-    useEffect(() => {
-        const duplicateRowsIfNeeded = () => {
-            setIsDuplicateInProgress(true);
-
-            serviceDataMain.forEach((service, serviceIndex) => {
-                if (!service || !service.rows) {
-                    return;
-                }
-
-                const serviceHasDuplicateRow = service.rows.some((row) => {
-                    return row.inputs.some(input => input['data-action'] === 'duplicate');
-                });
-
-                if (serviceHasDuplicateRow) {
-                    const rowsToDuplicate = service.rows.filter((row) => {
-                        return row.inputs.some(input => input['data-action'] === 'duplicate');
-                    });
-
-                    rowsToDuplicate.forEach((mainRow, rowIndex) => {
-                        const isRowFilled = mainRow.inputs.every(input => {
-                            const inputVal = annexureData[service.db_table]?.[input.name] || '';
-                            return inputVal !== ''; // Ensure the row is filled
-                        });
-
-                        // Case 1: First-time duplicate (row is filled and not duplicated yet)
-                        if (isRowFilled && !mainRow.isNewlyDuplicated) {
-                            mainRow.isNewlyDuplicated = true;
-                            duplicateRow(serviceIndex, rowIndex, mainRow); // Duplicate the row
-
-                            // Check if the newly created row is filled and duplicate again if so
-                            const newRow = service.rows.find(r => r.class === mainRow.class);
-                            if (newRow) {
-                                const isNewRowFilled = newRow.inputs.every(input => input.value !== '');
-                                if (isNewRowFilled) {
-                                    duplicateRow(serviceIndex, rowIndex, mainRow); // Duplicate again
-                                }
-                            }
-                        } else if (isRowFilled && mainRow.isNewlyDuplicated) {
-                        } else if (!isRowFilled && mainRow.isNewlyDuplicated) {
-                            mainRow.isNewlyDuplicated = false;
-                        }
-                    });
-                }
-            });
-        };
-
-        duplicateRowsIfNeeded();
-    }, [serviceDataMain, annexureData, isDuplicateInProgress]);
 
     const fetchApplicationStatus = async () => {
         setLoadingData(true);
@@ -692,7 +517,7 @@ const BackgroundForm = () => {
 
                     });
 
-
+                 calculateGaps();
                     setAnnexureData(annexureData);
                     const fileInputs = allJsonData
                         .flatMap(item =>
@@ -707,7 +532,7 @@ const BackgroundForm = () => {
 
                     setServiceDataImageInputNames(fileInputs);
                     setServiceDataMain(allJsonData);
-                    calculateGaps();
+
 
                 } else {
 
@@ -849,41 +674,20 @@ const BackgroundForm = () => {
     };
 
 
-    const renderGapMessage = (gap) => {
-        if (gap?.years > 0 || gap?.months > 0) {
-            return (
-                <p style={{ color: 'red' }}>
-                    Gap between Post Graduation and PhD: {gap?.years} years, {gap?.months} months
-                </p>
-            );
-        }
-        return (
-            <p style={{ color: 'green' }}>
-                No Gap between Post Graduation and PhD
-            </p>
-        );
-    };
-    const renderGapMessage1 = (employmentGaps) => {
-        // Check if there are no employment gaps
-        if (!employmentGaps || employmentGaps.length === 0) {
-            return <p>No employment gaps available.</p>;
-        }
-
-        // Map through employment gaps and render them
-        return employmentGaps.map((gap, index) => {
-            return (
-                <div key={index}>
-                    <p>
-                        Gap {index + 1}:
-                        {gap.years > 0 ? `${gap.years} years` : ""}
-                        {gap.months > 0 ? `${gap.months} months` : ""}
-                        {gap.years === 0 && gap.months === 0 ? "No gap" : ""}
-                    </p>
-                </div>
-            );
-        });
-    };
-
+    // const renderGapMessage = (gap) => {
+    //     if (gap?.years > 0 || gap?.months > 0) {
+    //         return (
+    //             <p style={{ color: 'red' }}>
+    //                 Gap between Post Graduation and PhD: {gap?.years} years, {gap?.months} months
+    //             </p>
+    //         );
+    //     }
+    //     return (
+    //         <p style={{ color: 'green' }}>
+    //             No Gap between Post Graduation and PhD
+    //         </p>
+    //     );
+    // };
 
     const validate = () => {
 
@@ -916,6 +720,7 @@ const BackgroundForm = () => {
                     // console.log("startsWithCondition:", startsWithCondition); // Log the startsWithCondition check
 
                     const annexureDataCondition = annexureData[service.db_table]?.[input.name];
+
                     // console.log("annexureDataCondition:", annexureDataCondition); // Log the annexureData condition value
 
                     if (
@@ -1022,11 +827,23 @@ const BackgroundForm = () => {
                             delete newErrors[fileName]; // Clear error if files are found
                         }
 
-                        // If the checkbox is unchecked and no files are present, add an error
-                        if (!filesToCheck || (!annexureData[service.db_table]?.[input.name] && (!filesToCheck || filesToCheck.length === 0))) {
-                            // console.log(`Error: ${fileName} is required.`);
-                            fileErrors.push(`${fileName} is required.`);
+
+                        if (
+                            !annexureData[service.db_table]?.[input.name] || // Not found or undefined
+                            (typeof annexureData[service.db_table]?.[input.name] === "string" && annexureData[service.db_table]?.[input.name].trim() === "") || // Empty/whitespace string
+                            (typeof annexureData[service.db_table]?.[input.name] === "object" && !Array.isArray(annexureData[service.db_table]?.[input.name]) && Object.keys(annexureData[service.db_table]?.[input.name]).length === 0) || // Empty object
+                            (Array.isArray(annexureData[service.db_table]?.[input.name]) && annexureData[service.db_table]?.[input.name].length === 0) // Empty array
+                        ) {
+
+
+                            if (!filesToCheck || filesToCheck.length === 0) {
+                                console.log(`Error: ${fileName} is also required.`);
+                                fileErrors.push(`${fileName} is required.`);
+                            }
+                        } else {
+                            console.log(`✅ Valid annexureData for ${input.name}:`, JSON.stringify(annexureData[service.db_table]?.[input.name], null, 2));
                         }
+
 
                         // If files exist for the input, perform file validation
                         if (filesToCheck && filesToCheck.length > 0) {
@@ -1082,145 +899,6 @@ const BackgroundForm = () => {
 
         return newErrors; // Return the accumulated errors
     };
-
-    // const validate = () => {
-    //     const maxSize = 2 * 1024 * 1024; // 2MB size limit
-    //     const allowedTypes = [
-    //         "image/jpeg", "image/png", "application/pdf",
-    //         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    //     ]; // Allowed file types
-
-    //     let newErrors = {}; // Object to store errors
-    //     const service = serviceDataMain[activeTab - 2];
-    //     if (service.db_table == 'gap_validation') {
-    //         return {}; // Skip validation for gap_validation service
-    //     }
-
-    //     // Loop through the rows to validate files and fields
-    //     service.rows.forEach((row, rowIndex) => {
-    //         // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
-    //         const shouldSkipServiceValidation = service.rows.some(row =>
-
-    //             row.inputs.some(input =>
-    //                 input.type === 'checkbox' &&
-    //                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done')) &&
-    //                 annexureData[service.db_table]?.[input.name] // Log for each checkbox
-    //             )
-    //         );
-
-    //         // Log the checkbox validation
-    //         // console.log('shouldSkipServiceValidation:', shouldSkipServiceValidation);
-
-    //         if (shouldSkipServiceValidation) {
-    //             return {}; // Skip all validation for this service and return empty errors
-    //         }
-
-    //         row.inputs.forEach((input, inputIndex) => {
-    //             // Log to check if we should skip validation for this input
-    //             // console.log('Validating input:', input);
-
-    //             // Skip validation for this input if the row was skipped due to checkbox being checked
-    //             if (shouldSkipServiceValidation) {
-    //                 return;
-    //             }
-
-    //             if (input.type === 'file') {
-    //                 const fileName = input.name;
-
-    //                 const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
-    //                 const createdFileName = mapping ? mapping[fileName] : undefined;
-    //                 const annexureImagesMap = annexureImageData.reduce((acc, item) => {
-    //                     Object.keys(item).forEach((key) => {
-    //                         if (createdFileName) {
-    //                             acc[key] = item[key]; // Store the file URL by the field name
-    //                         }
-    //                     });
-    //                     return acc;
-    //                 }, {});
-
-    //                 // Log the mapping and annexure data map
-    //                 // console.log('Created File Name:', createdFileName);
-    //                 // console.log('Annexure Images Map:', annexureImagesMap);
-
-    //                 const validateFile = (fileName) => {
-    //                     let fileErrors = [];
-
-    //                     // Check if createdFileName is valid and the structure exists in 'files'
-    //                     const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
-
-    //                     // Log the file check process
-    //                     // console.log('Files to Check for', fileName, ':', filesToCheck);
-
-    //                     // If the file exists in annexureImageData, skip validation for this file
-    //                     if (annexureImagesMap[fileName]) {
-    //                         // console.log(`${fileName} is in annexureImageData, skipping validation.`);
-    //                         delete newErrors[fileName]; // Clear any previous error for this file
-    //                         return fileErrors; // No errors for already uploaded files
-    //                     }
-
-    //                     // Handle the case where the checkbox is unchecked, but files are still present in the structure
-    //                     if (!annexureData[service.db_table]?.[input.name] && filesToCheck && filesToCheck.length > 0) {
-    //                         // console.log('Files found but checkbox is unchecked, clearing error for:', fileName);
-    //                         delete newErrors[fileName]; // Clear error if files are found
-    //                     }
-
-    //                     // If the checkbox is unchecked and no files are present, add an error
-    //                     if (!annexureData[service.db_table]?.[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
-    //                         // console.log(`Error: ${fileName} is required.`);
-    //                         fileErrors.push(`${fileName} is required.`);
-    //                     }
-
-    //                     // If files exist for the input, perform file validation
-    //                     if (filesToCheck && filesToCheck.length > 0) {
-    //                         filesToCheck.forEach((fileItem) => {
-    //                             // Log each file being checked
-    //                             // console.log('Validating file:', fileItem.name);
-
-    //                             // Validate file size
-    //                             if (fileItem.size > maxSize) {
-    //                                 // console.log(`Error: ${fileItem.name} exceeds size limit.`);
-    //                                 fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
-    //                             }
-
-    //                             // Validate file type
-    //                             if (!allowedTypes.includes(fileItem.type)) {
-    //                                 // console.log(`Error: ${fileItem.name} has invalid type.`);
-    //                                 fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-    //                             }
-    //                         });
-    //                     }
-
-    //                     return fileErrors;
-    //                 };
-
-    //                 const fileErrors = validateFile(fileName);
-
-    //                 // Ensure errors[fileField] is always an array
-    //                 if (!Array.isArray(newErrors[fileName])) {
-    //                     newErrors[fileName] = []; // Initialize it as an array if not already
-    //                 }
-
-    //                 // If there are file errors, push them to newErrors
-    //                 if (fileErrors.length > 0) {
-    //                     newErrors[fileName] = [...newErrors[fileName], ...fileErrors];
-    //                 } else {
-    //                     // If no errors and files were selected, clear any previous errors
-    //                     delete newErrors[fileName];
-    //                 }
-    //             }
-    //         });
-    //     });
-
-    //     // Log the errors at the end of validation
-    //     if (Object.keys(newErrors).length > 0) {
-    //         // console.log('Validation Errors:', newErrors);
-    //     } else {
-    //         // console.log('No validation errors.');
-    //     }
-
-    //     return newErrors; // Return the accumulated errors
-    // };
 
 
     const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
@@ -1428,9 +1106,6 @@ const BackgroundForm = () => {
             return updatedData;
         });
     };
-
-
-
 
 
     const validate1 = () => {
@@ -1805,11 +1480,9 @@ const BackgroundForm = () => {
             setProgress(0); // Reset progress before starting
         }
 
-
-
+        // console.log('serviceDataMain', serviceDataMain)
+        // Initialize requestData
         const requestData = {
-            is_education_gap: isGapPresent,
-            is_employment_gap: isEmploymentGapPresent,
             branch_id: decodedValues.branch_id,
             customer_id: decodedValues.customer_id,
             application_id: decodedValues.app_id,
@@ -1819,6 +1492,25 @@ const BackgroundForm = () => {
             send_mail: fileCount === 0 ? 1 : 0, // Send mail if no files are uploaded
             is_custom_bgv: custombgv, // Use the passed value for is_custom_bgv
         };
+
+        // Check if 'GAP VALIDATION' section is present
+        const gapValidationSection = serviceDataMain.find(section => section.heading === "GAP VALIDATION");
+
+        if (gapValidationSection) {
+            // If the "GAP VALIDATION" section is present, remove is_submitted from annexureData.gap_validation
+            if (annexureData && annexureData.gap_validation) {
+                delete annexureData.gap_validation.is_submitted;
+            }
+
+            // Add the gap fields to requestData based on your conditions
+            requestData.is_education_gap = isGapPresent;
+            requestData.is_employment_gap = isEmploymentGapPresent;
+        }
+
+        // Logging for debugging purposes
+        console.log('requestData', requestData);
+
+
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -2004,13 +1696,9 @@ const BackgroundForm = () => {
         setErrors(newErrors);
     };
 
-    // console.log('errors', errors)
+    // console.log('employgaps-', employGaps)
 
     const uploadCustomerLogo = async (cef_id, fileCount, TotalApiCalls, custombgv) => {
-        console.log(`cef_id - `, cef_id);
-        console.log(`fileCount - `, fileCount);
-        console.log(`TotalApiCalls - `, TotalApiCalls);
-        console.log(`custombgv - `, custombgv);
 
         if (custombgv == 0) {
             setLoading(false);
@@ -2281,7 +1969,7 @@ const BackgroundForm = () => {
                                                                             );
                                                                         })
                                                                     ) : (
-                                                                        <p>No image or link available</p>
+                                                                        <p></p>
                                                                     )}
                                                                 </div>
 
@@ -2330,7 +2018,7 @@ const BackgroundForm = () => {
                                                                                         );
                                                                                     })
                                                                                 ) : (
-                                                                                    <p>No image or link available</p>
+                                                                                    <p></p>
                                                                                 )}
                                                                             </div>
 
@@ -3073,7 +2761,7 @@ const BackgroundForm = () => {
                                                         return (
                                                             <div key={serviceIndex} className="md:p-6">
                                                                 <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
-                                                                {service.db_table == "gap_validation" && <><label for="highest_education" className='font-bold'>Your Highest Education:</label>
+                                                                {service.db_table == "gap_validation" && <><label for="highest_education" className='font-bold uppercase'>Your Highest Education:</label>
                                                                     <select id="highest_education_gap" name="highest_education_gap"
                                                                         value={annexureData["gap_validation"].highest_education_gap || ''}
                                                                         onChange={(e) => handleServiceChange("gap_validation", "highest_education_gap", e.target.value)}
@@ -3144,7 +2832,6 @@ const BackgroundForm = () => {
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapPostGradToPhd)}
                                                                         </>
                                                                     )}
 
@@ -3210,7 +2897,6 @@ const BackgroundForm = () => {
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapGradToPostGrad)}
 
 
                                                                         </>
@@ -3276,7 +2962,6 @@ const BackgroundForm = () => {
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapSrSecToGrad)}
                                                                         </>
                                                                     )}
 
@@ -3317,7 +3002,6 @@ const BackgroundForm = () => {
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            {renderGapMessage(gaps.gapSecToSrSec)}
                                                                         </>
                                                                     )}
 
@@ -3403,9 +3087,8 @@ const BackgroundForm = () => {
                                                                                     <option value="employed">Employed</option>
                                                                                     <option value="self-employed">Self Employed</option>
                                                                                     <option value="freelancer">Freelancer</option>
-                                                                                    <option value="family-buisness">Family Buisness</option>
+                                                                                    <option value="family-business">Family Business</option>
                                                                                 </select>
-
                                                                             </div>
                                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                                 {/* Start Date Field */}
@@ -3433,25 +3116,9 @@ const BackgroundForm = () => {
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
-                                                                                {employGaps.map((item, idx) => {
-                                                                                const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
-
-                                                                                if (item.endValue === annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`]) {
-                                                                                    return (
-                                                                                        <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
-                                                                                            {isNoGap ? item.difference : `GAP-${item.difference }`}
-                                                                                        </p>
-                                                                                    );
-                                                                                }
-                                                                                return null;
-                                                                            })}
                                                                             </div>
-                                                                         
-
                                                                         </div>
                                                                     ))}
-
-
 
 
                                                                 </>}
@@ -3632,7 +3299,7 @@ const BackgroundForm = () => {
                                                                                                                             })}
                                                                                                                         </Swiper>
                                                                                                                     ) : (
-                                                                                                                        <p>No image or link available</p>
+                                                                                                                        <p></p>
                                                                                                                     )}
 
                                                                                                                 </>

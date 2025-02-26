@@ -341,8 +341,15 @@ const AdminChekin = () => {
 
                 // If no invalid token message, proceed with result filtering
                 const filteredResults = result.results.filter((item) => item != null);
+                const sortedFilteredResults = filteredResults.sort((a, b) => {
+                    const orderA = parseInt(a.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
+                    const orderB = parseInt(b.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
+                
+                    return orderA - orderB;
+                });
 
-                return filteredResults;
+                console.log(`sortedFilteredResults - `, sortedFilteredResults);
+                return sortedFilteredResults;
             } else {
                 const result = await response.json(); // Get the result to show the error message from API
                 const errorMessage = result.message || response.statusText || 'Failed to fetch service data';
@@ -470,7 +477,7 @@ const AdminChekin = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         let yPosition = 5;
         const backgroundColor = '#f5f5f5';
-        console.log('applicationInfo', applicationInfo)
+        // console.log('applicationInfo', applicationInfo)
 
         doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
@@ -913,7 +920,7 @@ const AdminChekin = () => {
                 if (annexureImagesKey) {
                     const annexureImagesStr = annexureData[annexureImagesKey];
                     const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
-
+                
                     if (annexureImagesSplitArr.length === 0) {
                         doc.setFont("helvetica", "italic");
                         doc.setFontSize(10);
@@ -924,40 +931,39 @@ const AdminChekin = () => {
                         const imageBases = await fetchImageToBase(annexureImagesStr.trim());
                         if (imageBases) {
                             imageBases.forEach((image, index) => {
-
                                 if (!image.base64 || !image.base64.startsWith('data:image/')) {
                                     console.error(`Invalid base64 data for image ${index + 1}`);
                                     return;
                                 }
-
+                
+                                // Use the scaleImageForPDF function to get the full width
                                 const { width, height } = scaleImageForPDF(image.width, image.height, doc.internal.pageSize.width - 20, 80);
+                
                                 if (yPosition + height > doc.internal.pageSize.height - 20) {
                                     doc.addPage();
                                     yPosition = 10;
                                 }
-
+                
                                 const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
                                 const textWidth = doc.getTextWidth(annexureText);
                                 const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-
+                
                                 doc.setFont("helvetica", "bold");
                                 doc.setFontSize(10);
                                 doc.setTextColor(0, 0, 0);
                                 doc.text(annexureText, centerX, yPosition + 10);
                                 yPosition += 15;
-
+                
                                 const centerXImage = (doc.internal.pageSize.width - width) / 2;
                                 try {
-                                    // Ensure that the base64 data and type are correctly passed
-                                    doc.addImage(image.base64, image.type, centerXImage, yPosition, width, height);
+                                    // Add the image with the calculated width (full width) and proportional height
+                                    doc.addImage(image.base64, image.type, 10, yPosition, width, height);
                                     yPosition += height + 15;
                                 } catch (error) {
                                     console.error(`Error adding image ${index + 1}:`, error);
                                 }
                             });
                         }
-
-
                     }
                 } else {
                     doc.setFont("helvetica", "italic");
@@ -966,31 +972,20 @@ const AdminChekin = () => {
                     doc.text("No annexure images available.", 10, yPosition);
                     yPosition += 15;
                 }
-
-
-
+                
             }
 
 
-            function scaleImageForPDF(imageWidth, imageHeight, maxWidth, maxHeight) {
-                let width = imageWidth;
-                let height = imageHeight;
-
-                // Scale the width if it exceeds maxWidth
-                if (imageWidth > maxWidth) {
-                    width = maxWidth;
-                    height = (imageHeight * maxWidth) / imageWidth;
-                }
-
-                // Scale the height if it exceeds maxHeight
-                if (height > maxHeight) {
-                    height = maxHeight;
-                    width = (imageWidth * maxHeight) / imageHeight;
-                }
-
-                return { width, height };
+            function scaleImageForPDF(pageWidth, imageHeight, availableWidth, availableHeight) {
+                // Scale to full width (stretch the image)
+                const width = availableWidth;  // Stretch the image to full available width
+                const height = (imageHeight * availableWidth) / pageWidth;  // Calculate the height proportionally to the new width
+            
+                return { width, height };  // Return the stretched width and height
             }
-
+            
+            
+            
 
             addFooter(doc);
             annexureIndex++;
@@ -1227,8 +1222,8 @@ the information responsible for employment decisions based on the information pr
     }
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const userRole = adminData.role;
-    console.log('adminData', adminData)
-    console.log('userRole', userRole)
+    // console.log('adminData', adminData)
+    // console.log('userRole', userRole)
 
     return (
         <div className="bg-[#c1dff2]">

@@ -268,7 +268,13 @@ const ReportCaseTable = () => {
 
         // If no invalid token message, proceed with result filtering
         const filteredResults = result.results.filter((item) => item != null);
-        return filteredResults;
+        const sortedFilteredResults = filteredResults.sort((a, b) => {
+            const orderA = parseInt(a.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
+            const orderB = parseInt(b.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
+        
+            return orderA - orderB;
+        });
+        return sortedFilteredResults;
       } else {
         const result = await response.json(); // Get the result to show the error message from API
         const errorMessage = result.message || response.statusText || 'Failed to fetch service data';

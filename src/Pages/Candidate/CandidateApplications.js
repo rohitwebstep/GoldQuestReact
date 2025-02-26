@@ -15,6 +15,7 @@ const GenerateReport = () => {
     const [branchInfo, setBranchInfo] = useState([]);
     const [customerInfo, setCustomerInfo] = useState([]);
     const [referenceId, setReferenceId] = useState("");
+    const [sortingOrder, setSortingOrder] = useState([]);
     const [adminNames, setAdminNames] = useState([]);
 
     const [formData, setFormData] = useState({
@@ -95,6 +96,25 @@ const GenerateReport = () => {
         updatedStatuses[index] = e.target.value;
         setSelectedStatuses(updatedStatuses);
     };
+
+    const handleSortingOrderChange = (e, index) => {
+        const newSortingOrder = e.target.value;
+        console.log("New Sorting Order Input:", newSortingOrder);
+
+        setSortingOrder((prevState) => {
+            console.log("Previous Sorting Order State:", prevState);
+
+            const updatedState = { ...prevState }; // Ensure we are working with an object
+            updatedState[index] = newSortingOrder; // Update if exists, or add if not
+
+            console.log("Updated Sorting Order State:", updatedState);
+            return updatedState;
+        });
+    };
+
+
+    console.log('sortingorder', sortingOrder);
+
 
     // Check if all statuses (ignoring empty ones) are 'completed'
     const allCompleted = selectedStatuses
@@ -193,8 +213,14 @@ const GenerateReport = () => {
 
             // Filter out null or invalid items
             const filteredResults = result.results?.filter((item) => item != null) || [];
-            setServicesDataInfo(filteredResults); // Set service data
-            return filteredResults;
+            const sortedFilteredResults = filteredResults.sort((a, b) => {
+                const orderA = parseInt(a.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
+                const orderB = parseInt(b.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
+
+                return orderA - orderB;
+            });
+            setServicesDataInfo(sortedFilteredResults); // Set service data
+            return sortedFilteredResults;
 
         } catch (error) {
             console.error("Error fetching service data:", error);
@@ -713,10 +739,11 @@ const GenerateReport = () => {
     };
 
 
-    const handleSubmit = useCallback(async (e) => {
+    const handleSubmit = useCallback(async (e, allSortingOrder) => {
         e.preventDefault();
+        console.log(`allSortingOrder - `, allSortingOrder);
         setIsApiLoading(true); // Start global loading spinner
-        setLoading(true); // Start specific loading spinner
+        // setLoading(true); // Start specific loading spinner
 
         const fileCount = Object.keys(files).length;
 
@@ -742,12 +769,14 @@ const GenerateReport = () => {
                         const formJson = serviceData.reportFormJson?.json
                             ? JSON.parse(serviceData.reportFormJson.json)
                             : null;
+                            let sortingOrderfinal = serviceData?.annexureData?.sorting_order || '';
 
                         if (!formJson) {
                             console.warn(`Invalid formJson for service at index ${index}`);
                             return null;
                         }
 
+                        const dbTable = formJson.db_table;
                         const annexure = {};
 
                         // Map through rows and inputs to build annexure
@@ -773,10 +802,25 @@ const GenerateReport = () => {
                             });
                         });
 
-                        const category = formJson.db_table || "default_category";
+                        console.log("dbTable:", dbTable);
+
+                        const category = formJson.db_table || "";
+                        console.log("Category:", category);
+
                         const status = selectedStatuses?.[index] || "";
+                        console.log("Status:", status);
+
+                        console.log(`allSortingOrder - `, allSortingOrder);
+                        const sorting_order = allSortingOrder?.[dbTable] || sortingOrderfinal || '';
+                        console.log("Sorting Order:", sorting_order);
+
                         if (annexure[category]) {
+                            console.log("Before Updating Annexure:", JSON.stringify(annexure[category]));
+
                             annexure[category].status = status;
+                            annexure[category].sorting_order = sorting_order;
+
+                            console.log("After Updating Annexure:", JSON.stringify(annexure[category]));
                         }
 
                         return { annexure };
@@ -818,6 +862,17 @@ const GenerateReport = () => {
                 annexure: filteredSubmissionData,
                 send_mail: fileCount === 0 ? 1 : 0,
             });
+            console.log('raw', {
+                admin_id: adminData?.id || "",
+                _token: token || "",
+                branch_id: branchid,
+                customer_id: branchInfo?.customer_id || "",
+                application_id: applicationId,
+                ...formData,
+                annexure: filteredSubmissionData,
+                send_mail: fileCount === 0 ? 1 : 0,
+            })
+
 
             const requestOptions = {
                 method: "PUT",
@@ -886,7 +941,7 @@ const GenerateReport = () => {
 
                     </div>
                 ) : (
-                    <form className="space-y-4 p-2" autoComplete="off" onSubmit={handleSubmit}>
+                    <form className="space-y-4 p-2" autoComplete="off" onSubmit={(e) => handleSubmit(e, sortingOrder)}>
 
                         <div className=" form start space-y-4 py-[30px] md:px-[51px] bg-white rounded-md" id="client-spoc">
                             <div>
@@ -1216,18 +1271,25 @@ const GenerateReport = () => {
                                 {servicesDataInfo && servicesDataInfo.map((serviceData, index) => {
                                     if (serviceData.serviceStatus) {
                                         const formJson = JSON.parse(serviceData.reportFormJson.json);
+                                        const dbTable = formJson.db_table;
                                         let status = serviceData?.annexureData?.status || '';
-                                        let preselectedStatus = selectedStatuses[index] || status;
+                                        let sortingOrderfinal = serviceData?.annexureData?.sorting_order || '';
+                                        let preselectedStatus = selectedStatuses[index] !== undefined ? selectedStatuses[index] : status;
+
+                                        // Ensure sorting_order for the index exists (either default value or from state)
+                                        let preselectedSortingOrder = sortingOrder[dbTable] !== undefined ? sortingOrder[dbTable] : sortingOrderfinal;
 
                                         return (
-                                            <div key={index} className="mb-6 md:flex justify-between mt-5">
+                                            <div key={index} className="mb-6 md:grid grid-cols-3 gap-3 justify-between mt-5">
                                                 {formJson.heading && (
                                                     <>
-                                                        <span className='text-sm block '>{formJson.heading}</span>
+                                                        <span className='text-sm block'>{formJson.heading}</span>
+
+                                                        {/* Status Selector */}
                                                         <select
-                                                            className="border p-2 md:w-7/12 mt-4 md:mt-0 w-full rounded-md"
+                                                            className="border p-2 mt-4 md:mt-0 w-full rounded-md"
                                                             value={preselectedStatus}
-                                                            onChange={(e) => handleStatusChange(e, index)}  // Call the handler here
+                                                            onChange={(e) => handleStatusChange(e, index)}  // Handle status change here
                                                             required
                                                         >
                                                             <option value="">--Select status--</option>
@@ -1248,6 +1310,16 @@ const GenerateReport = () => {
                                                             <option value="not_doable">NOT DOABLE</option>
                                                             <option value="candidate_denied">CANDIDATE DENIED</option>
                                                         </select>
+
+                                                        {/* Sorting Order Input */}
+                                                        <input
+                                                            type='number'
+                                                            placeholder='Sorting By Order'
+                                                            className="border p-2 mt-4 md:mt-0 rounded-md"
+                                                            id={`sorting_order_${index}`}
+                                                            value={preselectedSortingOrder}
+                                                            onChange={(e) => handleSortingOrderChange(e, dbTable)}  // Assuming you have a handler for sorting order
+                                                        />
                                                     </>
                                                 )}
                                             </div>
@@ -1255,6 +1327,7 @@ const GenerateReport = () => {
                                     }
                                     return null;
                                 })}
+
                             </div>
 
                             <div className="container mx-auto mt-5 md:px-8">
@@ -1471,14 +1544,13 @@ const GenerateReport = () => {
                                     onChange={handleChange}
                                     className="border rounded-md p-2 mt-2 uppercase w-full"
                                 >
-                                   
+
                                     <option></option>
                                     <option value="initiated">INITIATED</option>
                                     <option value="hold">HOLD</option>
                                     <option value="closure advice">CLOSURE ADVICE</option>
                                     <option value="wip">WIP</option>
                                     <option value="insuff">INSUFF</option>
-                                    <option value="completed" selected="" id="overall_st_completed">COMPLETED</option>
                                     <option value="stopcheck">STOPCHECK</option>
                                     <option value="active employment">ACTIVE EMPLOYMENT</option>
                                     <option value="nil">NIL</option>
