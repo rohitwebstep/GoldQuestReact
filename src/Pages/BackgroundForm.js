@@ -21,92 +21,334 @@ const BackgroundForm = () => {
     const [conditionHtml, setConditionHtml] = useState("");
     const [initialAnnexureData, setInitialAnnexureData] = useState({
         gap_validation: {
-            phd_institute_name_gap: '',
-            phd_school_name_gap: '',
-            phd_start_date_gap: '',
-            phd_end_date_gap: '',
-            phd_specialization_gap: '',
-            post_graduation_university_institute_name_gap: '',
-            post_graduation_course_gap: '',
-            post_graduation_specialization_major_gap: '',
-            graduation_university_institute_name_gap: '',
-            graduation_course_gap: '',
             highest_education_gap: '',
-            graduation_specialization_major_gap: '',
-            senior_secondary_school_name_gap: '',
-            senior_secondary_start_date_gap: '',
-            senior_secondary_end_date_gap: '',
-            secondary_school_name_gap: '',
-            secondary_start_date_gap: '',
-            secondary_end_date_gap: '',
             years_of_experience_gap: '',
-            graduation_end_date_gap: "",
-            graduation_start_date_gap: "",
-            post_graduation_end_date_gap: "",
-            post_graduation_start_date_gap: "",
             no_of_employment: 0,
+
         }
     });
 
-    const createEmploymentFields = (noOfEmployments) => {
-        const employmentFields = {};
-        for (let i = 1; i <= noOfEmployments; i++) {
-            // Keep existing values if they are already set, or set empty strings for new fields
-            employmentFields[`employment_type_gap_${i}`] = annexureData.gap_validation[`employment_type_gap_${i}`] || '';
-            employmentFields[`employment_start_date_gap_${i}`] = annexureData.gap_validation[`employment_start_date_gap_${i}`] || '';
-            employmentFields[`employment_end_date_gap_${i}`] = annexureData.gap_validation[`employment_end_date_gap_${i}`] || '';
+    const createEmploymentFields = (noOfEmployments, fieldValue) => {
+        //  console.log(`fieldValue - `, fieldValue);
+        // Ensure employment_fields is parsed if it's a JSON string
+        let employmentFieldsData = fieldValue.employment_fields;
+        //  console.log('Initial employment_fields data:', employmentFieldsData);
+
+        // Check if it's a string (i.e., it's been stringified previously) and parse it
+        if (typeof employmentFieldsData === 'string') {
+            //  console.log('employment_fields is a string, parsing it...');
+            employmentFieldsData = JSON.parse(employmentFieldsData);
+            //  console.log('Parsed employment_fields data:', employmentFieldsData);
+        } else {
+            //  console.log('employment_fields is already an object, no need to parse.');
         }
+
+        const employmentFields = {}; // Initialize the employmentFields object to store all employment data
+        //  console.log('Initialized empty employmentFields object:', employmentFields);
+
+        // Dynamically structure the data like: employment_1, employment_2, etc.
+        for (let i = 1; i <= noOfEmployments; i++) {
+            //  console.log(`Processing employment_${i}...`);
+
+            const employmentData = employmentFieldsData[`employment_${i}`] || {};
+            //  console.log(`employment_${i} data:`, employmentData);
+
+            employmentFields[`employment_${i}`] = {
+                [`employment_type_gap`]: employmentData[`employment_type_gap`] || '',
+                [`employment_start_date_gap`]: employmentData[`employment_start_date_gap`] || '',
+                [`employment_end_date_gap`]: employmentData[`employment_end_date_gap`] || '',
+            };
+
+            //  console.log(`employment_${i} structured data:`, employmentFields[`employment_${i}`]);
+        }
+
+        //  console.log('Final structured employmentFields:', employmentFields);
         return employmentFields;
     };
 
-    // Function to update the state with new employment fields based on user changes
+
+
+
+    const addCoressPondencePhd = () => {
+         //  console.log(`Initial annexureData (PhD):`, annexureData);
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset it to an empty object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+         //  console.log(`Current educationFields (PhD):`, educationFields);
+
+        // Get existing phd_corespondence keys
+        const phdKeys = Object.keys(educationFields);
+        const phdCorrespondenceKeys = phdKeys.filter(key => key.startsWith('phd_corespondence_'));
+
+        let newKey;
+        if (phdCorrespondenceKeys.length === 0) {
+            newKey = 'phd_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...phdCorrespondenceKeys.map(key => parseInt(key.split('_')[2], 10)));
+            newKey = `phd_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+         //  console.log(`New key to be added: ${newKey}`);
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+         //  console.log(`New PhD key added: ${newKey}`, updatedData);
+    };
+
+
+    const addCoressPondencePostGraduation = () => {
+         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+         //  console.log(`Current educationFields (Post Graduation):`, educationFields);
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('post_graduation_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'post_graduation_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[3], 10)));
+            newKey = `post_graduation_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+         //  console.log(`New key to be added: ${newKey}`);
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+         //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+    };
+    const addCoressPondenceGraduation = () => {
+        //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+        //  console.log('Cloned annexureData:', updatedData);
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+            //  console.log('gap_validation was missing, now initialized as an empty object.');
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+            //  console.log('education_fields was missing, now initialized as an empty object.');
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+        //  console.log('Current educationFields (Post Graduation):', educationFields);
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        //  console.log('Post Graduation Keys:', postGraduationKeys);
+
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('graduation_corespondence_'));
+        //  console.log('Filtered Post Graduation Correspondence Keys:', postGraduationCorrespondenceKeys);
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'graduation_corespondence_1';
+            //  console.log('No existing post graduation correspondence found, starting with graduation_corespondence_1');
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[2], 10)));
+            newKey = `graduation_corespondence_${lastNumber + 1}`;
+            //  console.log('Existing correspondence keys found, new key will be:', newKey);
+        }
+
+        // Log the new key
+        //  console.log(`New key to be added: ${newKey}`);
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+        //  console.log(`New entry added for ${newKey}`, updatedData);
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+        //  console.log('State updated with new data:', updatedData);
+
+        //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+    };
+
+    const addCoressPondenceSeniorSecondary = () => {
+         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+         //  console.log(`Current educationFields (Post Graduation):`, educationFields);
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('senior_secondary_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'senior_secondary_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[3], 10)));
+            newKey = `senior_secondary_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+         //  console.log(`New key to be added: ${newKey}`);
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+         //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+    };
+    const addCoressPondenceSecondary = () => {
+         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('secondary_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'secondary_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[2], 10)));
+            newKey = `secondary_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+         //  console.log(`New key to be added: ${newKey}`);
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+         //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+    };
+
     const updateEmploymentFields = (noOfEmployments, fieldValue) => {
+        //  console.log('updateEmploymentFields CALLED');
+
         // Generate new employment fields based on the provided number of employments
-        const allEmploymentFields = createEmploymentFields(noOfEmployments);
+        const allEmploymentFields = createEmploymentFields(noOfEmployments, fieldValue);
+        //  console.log('allEmploymentFields', allEmploymentFields);
 
-        // console.log(`allEmploymentFields - `, allEmploymentFields);
-        // Merge the new employment fields with any updated field values
-        const updatedGapValidation = {
-            ...annexureData.gap_validation, // Preserve existing gap_validation values
-            ...allEmploymentFields,        // Add all new employment fields based on the new count
-        };
-        // console.log(`updatedGapValidation - `, updatedGapValidation);
+        // Create a copy of the current annexureData
+        const updatedAnnexureData = { ...annexureData };
 
-        // Remove any extra fields if the number of employments is decreased
-        Object.keys(updatedGapValidation).forEach((key) => {
-            // Check if the key corresponds to a higher employment number than `noOfEmployments`
-            const match = key.match(/^employment_(type|start_date|end_date)_gap_(\d+)$/);
-            if (match) {
-                const employmentIndex = parseInt(match[2], 10);
-                if (employmentIndex > noOfEmployments) {
-                    // If the employment index is greater than the new number, remove the field
-                    delete updatedGapValidation[key];
-                }
-            }
-        });
+        // Check if gap_validation exists before modifying
+        if (updatedAnnexureData.gap_validation) {
+            // Delete the existing employment_fields key
+            delete updatedAnnexureData.gap_validation.employment_fields;
+        } else {
+            // If gap_validation doesn't exist, initialize it
+            updatedAnnexureData.gap_validation = {};
+        }
 
-        // Merge any additional updated field values provided (i.e., from the form)
-        Object.keys(fieldValue).forEach((key) => {
-            updatedGapValidation[key] = fieldValue[key]; // Update the specific field values
-        });
-
-        // Update the full annexureData state with the updated gap_validation
-        const updatedAnnexureData = {
-            ...annexureData,  // Preserve other sections of the data
-            gap_validation: updatedGapValidation, // Update only the gap_validation part
-        };
+        // Add the new employment_fields data
+        updatedAnnexureData.gap_validation.highest_education_gap = fieldValue.highest_education_gap;
+        updatedAnnexureData.gap_validation.no_of_employment = fieldValue.no_of_employment;
+        updatedAnnexureData.gap_validation.years_of_experience_gap = fieldValue.years_of_experience_gap;
+        updatedAnnexureData.gap_validation.education_fields = JSON.parse(fieldValue.education_fields);
+        updatedAnnexureData.gap_validation.employment_fields = allEmploymentFields;
 
         // Set state with updated data
         setAnnexureData(updatedAnnexureData);
-
-
 
         return updatedAnnexureData; // This can be used for further handling if needed
     };
 
 
+
+
+
     const [annexureData, setAnnexureData] = useState(initialAnnexureData);
-    // console.log('annexureData', annexureData)
+     //  console.log('annexureData', annexureData)
 
 
     const handleServiceChange = (tableName, fieldName, value) => {
@@ -123,6 +365,34 @@ const BackgroundForm = () => {
         validateDate();
         calculateGaps();
     };
+    const handleEmploymentGapChange = (tableName, group, type, fieldName, value) => {
+         //  console.log('Updating:', { tableName, group, type, fieldName, value });
+         //  console.log('Before update:', annexureData);
+
+        setAnnexureData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                [tableName]: {
+                    ...prevData[tableName], // Keep other properties
+                    [group]: {
+                        ...prevData[tableName]?.[group], // Preserve group data
+                        [type]: {
+                            ...prevData[tableName]?.[group]?.[type], // Preserve type data
+                            [fieldName]: value // Correctly replace the value
+                        }
+                    }
+                }
+            };
+
+             //  console.log('After update:', updatedData);
+            return updatedData;
+        });
+
+        validateDate();
+        calculateGaps();
+    };
+
+    //  console.log('annexuredata', annexureData)
 
     const calculateDateGap = (startDate, endDate) => {
         const start = new Date(startDate);
@@ -143,7 +413,7 @@ const BackgroundForm = () => {
         return { years: Math.abs(years), months: Math.abs(months) };
     };
 
-
+     //  console.log(`AnnexureData - `, annexureData);
 
 
     function calculateDateDifference(date1, date2) {
@@ -174,23 +444,23 @@ const BackgroundForm = () => {
 
 
     const calculateGaps = () => {
-        // Data from your JSON
-        const secondaryEndDate = annexureData.gap_validation.secondary_end_date_gap;
-        const seniorSecondaryStartDate = annexureData.gap_validation.senior_secondary_start_date_gap;
-        const seniorSecondaryEndDate = annexureData.gap_validation.senior_secondary_end_date_gap;
-        const graduationStartDate = annexureData.gap_validation.graduation_start_date_gap;
-        const graduationEndDate = annexureData.gap_validation.graduation_end_date_gap;
-        const postGraduationStartDate = annexureData.gap_validation.post_graduation_start_date_gap;
-        const postGraduationEndDate = annexureData.gap_validation.post_graduation_end_date_gap;
-        const phdStartDate = annexureData.gap_validation.phd_start_date_gap;
 
-        // Calculate gaps
+        console.log('annexureData.gap_validation', annexureData.gap_validation)
+        // Data from your JSON
+        const secondaryEndDate = annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap || null;
+        const seniorSecondaryStartDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap || null;
+        const seniorSecondaryEndDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_end_date_gap || null;
+        const graduationStartDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_start_date_gap || null;
+        const graduationEndDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_end_date_gap || null;
+        const postGraduationStartDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_start_date_gap || null;
+        const postGraduationEndDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_end_date_gap || null;
+        const phdStartDate = annexureData?.gap_validation?.education_fields?.phd_1?.phd_start_date_gap || null;
+
         const gapSecToSrSec = calculateDateGap(secondaryEndDate, seniorSecondaryStartDate);
         const gapSrSecToGrad = calculateDateGap(seniorSecondaryEndDate, graduationStartDate);
         const gapGradToPostGrad = calculateDateGap(graduationEndDate, postGraduationStartDate);
         const gapPostGradToPhd = calculateDateGap(postGraduationEndDate, phdStartDate);
 
-        // Only proceed if the gap is not null
         const validGaps = {
             gapSecToSrSec,
             gapSrSecToGrad,
@@ -203,50 +473,93 @@ const BackgroundForm = () => {
             Object.entries(validGaps).filter(([key, value]) => value !== null)
         );
 
+
         // Update state with non-negative gaps
         setGaps(nonNegativeGaps);
 
         function getEmploymentDates(annexureData) {
             const employmentStartDates = [];
             const employmentEndDates = [];
-
             let i = 1; // Start index
-            while (true) {
-                const startKey = `employment_start_date_gap_${i}`;
-                const endKey = `employment_end_date_gap_${i}`;
 
-                // Break the loop if neither start nor end date exists
-                if (!(startKey in annexureData.gap_validation) && !(endKey in annexureData.gap_validation)) {
+            console.log('%cFetching employment dates...', 'color: blue; font-weight: bold;');
+
+            const employmentValues = annexureData?.gap_validation?.employment_fields;
+            console.log('%cEmployment values:', 'color: green; font-weight: bold;', employmentValues);
+
+            if (!employmentValues) {
+                console.warn('%cNo employment fields found in the data.', 'color: red; font-weight: bold;');
+                return { employmentStartDates, employmentEndDates };
+            }
+
+            while (true) {
+                const employmentKey = `employment_${i}`;
+                const employmentData = employmentValues[employmentKey];
+
+                if (!employmentData) {
+                    console.warn(`%cNo data found for ${employmentKey}, stopping loop.`, 'color: orange;');
                     break;
                 }
 
-                // Push to arrays if exists
-                if (startKey in annexureData.gap_validation) {
-                    employmentStartDates.push({ name: startKey, value: annexureData.gap_validation[startKey] });
-                }
-                if (endKey in annexureData.gap_validation) {
-                    employmentEndDates.push({ name: endKey, value: annexureData.gap_validation[endKey] });
+                // Define keys
+                const startKey = `employment_start_date_gap`;
+                const endKey = `employment_end_date_gap`;
+
+                console.log(`%cChecking ${employmentKey}:`, 'color: blue; font-weight: bold;', employmentData);
+
+                // Check if start or end date exists
+                const hasStartDate = startKey in employmentData;
+                const hasEndDate = endKey in employmentData;
+
+                console.log(`%cChecking keys: ${startKey}: ${hasStartDate}, ${endKey}: ${hasEndDate}`, 'color: purple;');
+
+                if (!hasStartDate && !hasEndDate) {
+                    console.warn(`%cNo start or end date found for ${employmentKey}, stopping loop.`, 'color: orange;');
+                    break;
                 }
 
-                i++; // Increment index
+                // Push values if they exist
+                if (hasStartDate) {
+                    employmentStartDates.push({
+                        name: startKey,
+                        value: employmentData[startKey]
+                    });
+                    console.log(`✅ %cAdded Start Date: ${employmentData[startKey]}`, 'color: green;');
+                }
+                if (hasEndDate) {
+                    employmentEndDates.push({
+                        name: endKey,
+                        value: employmentData[endKey]
+                    });
+                    console.log(`✅ %cAdded End Date: ${employmentData[endKey]}`, 'color: green;');
+                }
+
+                i++; // Move to next employment record
             }
+
+            // Final logs
+            console.log('%cEmployment Start Dates:', 'color: blue; font-weight: bold;', employmentStartDates);
+            console.log('%cEmployment End Dates:', 'color: blue; font-weight: bold;', employmentEndDates);
 
             return { employmentStartDates, employmentEndDates };
         }
+
+
 
         const { employmentStartDates, employmentEndDates } = getEmploymentDates(annexureData);
 
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
-            // Loop through the end dates and match with the next start date
+            console.log('Calculating employment date differences...');
+
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
 
-                // If there's both an end date and a next start date, and they don't match
+                console.log('Comparing dates:', currentEnd, nextStart);
+
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
-                    // Calculate the difference between the two dates
                     const diff = calculateDateDifference(currentEnd, nextStart);
 
                     // Only add valid differences (not empty strings or null)
@@ -258,19 +571,21 @@ const BackgroundForm = () => {
                             startValue: nextStart,
                             difference: diff
                         });
+                        console.log('Valid difference found:', differences[differences.length - 1]);
                     }
                 }
             }
 
+            // Log differences
+            console.log('Employment date differences:', differences);
+
             return differences;
         }
 
-        // Helper function to calculate date difference (assuming you have it)
-
-
-
         // Get differences
         const dateDifferences = getEmploymentDateDifferences(employmentStartDates, employmentEndDates);
+
+        // Log final employment gaps
 
         setEmployGaps(dateDifferences);
     };
@@ -284,6 +599,7 @@ const BackgroundForm = () => {
         validateDate();
     }, [annexureData]);
 
+     //  console.log('annexuredata', annexureData)
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
     const [errors, setErrors] = useState({});
@@ -459,7 +775,7 @@ const BackgroundForm = () => {
                             }
                         }
                     }
-                    setAnnexureImageData(allJsonDataValue)
+                    setAnnexureImageData(allJsonDataValue);
 
 
                     // Constructing the annexureData object
@@ -489,35 +805,22 @@ const BackgroundForm = () => {
                                 });
                             });
                         } else {
-                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('phd_institute_name_gap')); // Check for null or undefined before accessing `hasOwnProperty`
+                            //  console.log('allJsonDataValue', allJsonDataValue)
+                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('no_of_employment')); // Check for null or undefined before accessing `hasOwnProperty`
                             let initialAnnexureDataNew = initialAnnexureData;
                             if (fieldValue && fieldValue.hasOwnProperty('no_of_employment')) {
+                                //  console.log(`Step 1`);
                                 initialAnnexureDataNew = updateEmploymentFields(fieldValue.no_of_employment, fieldValue); // Call function to handle employment fields
+                                //  console.log(`initialAnnexureDataNew - `, initialAnnexureDataNew);
+                            } else {
+                                //  console.log(`Step 2`);
                             }
-
-                            Object.keys(initialAnnexureDataNew.gap_validation).forEach((item, index) => {
-
-                                let fieldValueLoop = allJsonDataValue.find(data => data && data.hasOwnProperty(item));
-
-                                if (fieldValueLoop && fieldValueLoop.hasOwnProperty(item)) {
-
-                                    // Ensure the service table exists in annexureData
-                                    if (!annexureData[service.db_table]) {
-                                        annexureData[service.db_table] = {}; // Initialize the service table if it doesn't exist
-                                    }
-
-                                    // Set the dynamic value in the service table under the input's name
-                                    annexureData[service.db_table][item] = fieldValueLoop[item] || "";
-                                } else {
-                                }
-                            });
-
-
+                            annexureData[service.db_table].employment_fields = initialAnnexureDataNew.gap_validation.employment_fields;
                         }
 
                     });
 
-                 calculateGaps();
+                    calculateGaps();
                     setAnnexureData(annexureData);
                     const fileInputs = allJsonData
                         .flatMap(item =>
@@ -691,7 +994,7 @@ const BackgroundForm = () => {
 
     const validate = () => {
 
-        // console.log(`Validate Function Started`);
+         //  console.log(`Validate Function Started`);
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
             "image/jpeg", "image/png", "application/pdf",
@@ -705,23 +1008,23 @@ const BackgroundForm = () => {
             return {}; // Skip validation for gap_validation service
         }
 
-        // console.log(`service - `, service);
+         //  console.log(`service - `, service);
 
         // Loop through the rows to validate files and fields
         service.rows.forEach((row, rowIndex) => {
             // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
             const shouldSkipServiceValidation = service.rows.some(row => {
-                // console.log("Processing row:", row); // Log each row
+                 //  console.log("Processing row:", row); // Log each row
 
                 return row.inputs.some(input => {
-                    // console.log("Processing input:", input); // Log each input
+                     //  console.log("Processing input:", input); // Log each input
 
                     const startsWithCondition = input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done');
-                    // console.log("startsWithCondition:", startsWithCondition); // Log the startsWithCondition check
+                     //  console.log("startsWithCondition:", startsWithCondition); // Log the startsWithCondition check
 
                     const annexureDataCondition = annexureData[service.db_table]?.[input.name];
 
-                    // console.log("annexureDataCondition:", annexureDataCondition); // Log the annexureData condition value
+                     //  console.log("annexureDataCondition:", annexureDataCondition); // Log the annexureData condition value
 
                     if (
                         annexureDataCondition === null ||
@@ -729,7 +1032,7 @@ const BackgroundForm = () => {
                         (typeof annexureDataCondition === 'string' && annexureDataCondition.trim() === '')
                         || annexureDataCondition == 0 || !annexureDataCondition
                     ) {
-                        // console.log("annexureDataCondition is null, undefined, or empty string. Skipping...");
+                         //  console.log("annexureDataCondition is null, undefined, or empty string. Skipping...");
                         return false;
                     }
 
@@ -737,18 +1040,18 @@ const BackgroundForm = () => {
                         startsWithCondition &&
                         annexureDataCondition;
 
-                    // console.log("Final Condition for input:", input.name, "=>", finalCondition); // Log the final condition evaluation
+                     //  console.log("Final Condition for input:", input.name, "=>", finalCondition); // Log the final condition evaluation
 
                     return finalCondition;
                 });
             });
 
-            // console.log("shouldSkipServiceValidation:", shouldSkipServiceValidation); // Log final result
+             //  console.log("shouldSkipServiceValidation:", shouldSkipServiceValidation); // Log final result
 
 
 
             // Log the checkbox validation
-            // console.log(`shouldSkipServiceValidation - `, shouldSkipServiceValidation);
+             //  console.log(`shouldSkipServiceValidation - `, shouldSkipServiceValidation);
 
             if (shouldSkipServiceValidation) {
                 return {}; // Skip all validation for this service and return empty errors
@@ -776,54 +1079,54 @@ const BackgroundForm = () => {
                     }, {});
 
                     // Log the mapping and annexure data map
-                    // console.log('Created File Name:', createdFileName);
-                    // console.log('Annexure Images Map:', annexureImagesMap);
-                    // console.log('Annexure Images files:', files);
+                     //  console.log('Created File Name:', createdFileName);
+                     //  console.log('Annexure Images Map:', annexureImagesMap);
+                     //  console.log('Annexure Images files:', files);
 
                     const validateFile = (fileName) => {
                         let fileErrors = [];
 
-                        // console.log('Validating file:', fileName);
+                         //  console.log('Validating file:', fileName);
 
                         // Check if createdFileName is valid and the structure exists in 'files'
                         let filesToCheck = createdFileName && files[createdFileName]
                             ? files[createdFileName][fileName]
                             : undefined;
 
-                        // console.log('Step 1 - filesToCheck from files object:', filesToCheck);
+                         //  console.log('Step 1 - filesToCheck from files object:', filesToCheck);
 
                         if (!filesToCheck) {
-                            // console.log('Step 2 - filesToCheck is empty, checking annexureImagesMap');
+                             //  console.log('Step 2 - filesToCheck is empty, checking annexureImagesMap');
 
                             filesToCheck = annexureImagesMap && annexureImagesMap[fileName]
                                 ? (annexureImagesMap[fileName] || undefined)  // Ensures empty values are treated as undefined
                                 : undefined;
 
-                            // console.log('Step 3 - filesToCheck from annexureImagesMap:', filesToCheck);
+                             //  console.log('Step 3 - filesToCheck from annexureImagesMap:', filesToCheck);
                         }
 
 
                         if (typeof filesToCheck === "string" && filesToCheck.trim() !== "" ||
                             (Array.isArray(filesToCheck) && filesToCheck.length > 0)) {
-                            // console.log("filesToCheck has a valid value:", filesToCheck);
+                             //  console.log("filesToCheck has a valid value:", filesToCheck);
                         } else {
                             filesToCheck = undefined;
                         }
 
 
                         // Log the file check process
-                        // console.log('Files to Check for', fileName, ':', filesToCheck);
+                         //  console.log('Files to Check for', fileName, ':', filesToCheck);
 
                         // If the file exists in annexureImageData, skip validation for this file
                         if (filesToCheck && annexureImagesMap[fileName]) {
-                            // console.log(`${fileName} is in annexureImageData, skipping validation. 1`);
+                             //  console.log(`${fileName} is in annexureImageData, skipping validation. 1`);
                             delete newErrors[fileName]; // Clear any previous error for this file
                             return fileErrors; // No errors for already uploaded files
                         }
 
                         // Handle the scenario where the checkbox is unchecked but files are still present in the structure
                         if (!annexureData[service.db_table]?.[input.name] && filesToCheck && filesToCheck.length > 0) {
-                            // console.log('Files present but checkbox unchecked, clearing error for:', fileName);
+                             //  console.log('Files present but checkbox unchecked, clearing error for:', fileName);
                             delete newErrors[fileName]; // Clear error if files are found
                         }
 
@@ -837,11 +1140,11 @@ const BackgroundForm = () => {
 
 
                             if (!filesToCheck || filesToCheck.length === 0) {
-                                console.log(`Error: ${fileName} is also required.`);
+                                 //  console.log(`Error: ${fileName} is also required.`);
                                 fileErrors.push(`${fileName} is required.`);
                             }
                         } else {
-                            console.log(`✅ Valid annexureData for ${input.name}:`, JSON.stringify(annexureData[service.db_table]?.[input.name], null, 2));
+                             //  console.log(`✅ Valid annexureData for ${input.name}:`, JSON.stringify(annexureData[service.db_table]?.[input.name], null, 2));
                         }
 
 
@@ -849,17 +1152,17 @@ const BackgroundForm = () => {
                         if (filesToCheck && filesToCheck.length > 0) {
                             filesToCheck.forEach((fileItem) => {
                                 // Log each file being checked
-                                // console.log('Validating file:', fileItem.name);
+                                 //  console.log('Validating file:', fileItem.name);
 
                                 // Validate file size
                                 if (fileItem.size > maxSize) {
-                                    // console.log(`Error: ${fileItem.name} exceeds size limit.`);
+                                     //  console.log(`Error: ${fileItem.name} exceeds size limit.`);
                                     fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
                                 }
 
                                 // Validate file type
                                 if (!allowedTypes.includes(fileItem.type)) {
-                                    // console.log(`Error: ${fileItem.name} has invalid type.`);
+                                     //  console.log(`Error: ${fileItem.name} has invalid type.`);
                                     fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
                                 }
                             });
@@ -887,7 +1190,7 @@ const BackgroundForm = () => {
                     const inputValue = annexureData[service.db_table]?.[input.name];
 
                     if (input.required && (!inputValue || inputValue.trim() === '')) {
-                        // console.log(`Field ${input.name} is empty, setting error.`);
+                         //  console.log(`Field ${input.name} is empty, setting error.`);
                         newErrors[input.name] = 'This field is required';
                     } else {
                         // Clear the error if the field has value
@@ -1037,45 +1340,45 @@ const BackgroundForm = () => {
         let validationErrors = {};
 
         // Validate based on the active tab
-        // console.log("Active Tab:", activeTab);
-        // console.log(`serviceDataMain.length - `, serviceDataMain.length);
+         //  console.log("Active Tab:", activeTab);
+         //  console.log(`serviceDataMain.length - `, serviceDataMain.length);
 
         if (activeTab === 0) {
-            // console.log("Validating first tab...");
+             //  console.log("Validating first tab...");
             validationErrors = validate1(); // Validation for the first tab
         } else if (activeTab === 1) {
-            // console.log("Validating second tab...");
+             //  console.log("Validating second tab...");
             validationErrors = validateSec(); // Validation for the second tab
         } else if (activeTab > 0 && activeTab <= (serviceDataMain.length + 2)) {
-            // console.log("Validating service-related tab:", activeTab);
-            // console.log(`serviceDataMain - `, serviceDataMain);
+             //  console.log("Validating service-related tab:", activeTab);
+             //  console.log(`serviceDataMain - `, serviceDataMain);
             // Iterate over serviceDataMain for the rows to toggle visibility
             serviceDataMain[activeTab - 2].rows.forEach((row, rowIndex) => {
-                // console.log(`Processing row ${rowIndex} in activeTab ${activeTab - 2}:`, row);
+                 //  console.log(`Processing row ${rowIndex} in activeTab ${activeTab - 2}:`, row);
 
                 const checkboxInput = row.inputs.find(input => input.type === 'checkbox');
-                // console.log("Found checkbox input:", checkboxInput);
+                 //  console.log("Found checkbox input:", checkboxInput);
 
                 const checkboxName = checkboxInput?.name;
-                // console.log("Checkbox input name:", checkboxName);
+                 //  console.log("Checkbox input name:", checkboxName);
 
                 const annexureValue = annexureData[serviceDataMain[activeTab - 2].db_table]?.[checkboxName] ?? false;
-                // console.log("Annexure value:", annexureValue);
+                 //  console.log("Annexure value:", annexureValue);
 
                 const isChecked = ["1", 1, true, "true"].includes(annexureValue);
-                // console.log("Is checked:", isChecked);
+                 //  console.log("Is checked:", isChecked);
 
                 toggleRowsVisibility(activeTab - 2, rowIndex, isChecked);
             });
 
-            // console.log("Validating service-related tabs...");
+             //  console.log("Validating service-related tabs...");
             validationErrors = validate(); // Validation for service-related tabs
         } else if (activeTab === serviceDataMain.length + 2) {
-            // console.log("Validating last tab...");
+             //  console.log("Validating last tab...");
             validationErrors = validate2(); // Validation for the last tab
         }
 
-        // console.log("Final Validation Errors:", validationErrors);
+         //  console.log("Final Validation Errors:", validationErrors);
 
         // Check if there are no validation errors
         if (Object.keys(validationErrors).length === 0) {
@@ -1480,7 +1783,7 @@ const BackgroundForm = () => {
             setProgress(0); // Reset progress before starting
         }
 
-        // console.log('serviceDataMain', serviceDataMain)
+         //  console.log('serviceDataMain', serviceDataMain)
         // Initialize requestData
         const requestData = {
             branch_id: decodedValues.branch_id,
@@ -1502,13 +1805,29 @@ const BackgroundForm = () => {
                 delete annexureData.gap_validation.is_submitted;
             }
 
+            // Stringify the education and employment fields
+            const educationFieldsString = JSON.stringify(annexureData.gap_validation.education_fields);
+            const employmentFieldsString = JSON.stringify(annexureData.gap_validation.employment_fields);
+
+            // Ensure gap_validation exists in requestData
+
+
+            // Assign stringified fields to the gap_validation object
+            requestData.annexure.gap_validation.education_fields = educationFieldsString;
+            requestData.annexure.gap_validation.employment_fields = employmentFieldsString;
+
             // Add the gap fields to requestData based on your conditions
             requestData.is_education_gap = isGapPresent;
             requestData.is_employment_gap = isEmploymentGapPresent;
         }
 
+        //  console.log("Final requestData:", requestData);
+
+
+
+
         // Logging for debugging purposes
-        console.log('requestData', requestData);
+         //  console.log('requestData', requestData);
 
 
 
@@ -1696,7 +2015,7 @@ const BackgroundForm = () => {
         setErrors(newErrors);
     };
 
-    // console.log('employgaps-', employGaps)
+     //  console.log('employgaps-', employGaps)
 
     const uploadCustomerLogo = async (cef_id, fileCount, TotalApiCalls, custombgv) => {
 
@@ -2774,66 +3093,174 @@ const BackgroundForm = () => {
                                                                         <option value="senior_secondary">Senior Secondary Education</option>
                                                                         <option value="secondary">Secondary Education</option>
                                                                     </select>
-                                                                    {annexureData["gap_validation"].highest_education_gap === 'phd' && (
-                                                                        <>
-                                                                            <h3 className="text-lg font-bold py-3">PHD</h3>
-                                                                            <div className=' border border-black p-4 rounded-md'>
-                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
-                                                                                    <div>
-                                                                                        <label>Institute Name</label>
+                                                                    {
+                                                                        annexureData["gap_validation"].highest_education_gap === 'phd' && (
+                                                                            <>
+                                                                                <h3 className="text-lg font-bold py-3">PHD</h3>
+                                                                                <div className='border border-black p-4 rounded-md'>
+                                                                                    <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                        <div>
+                                                                                            <label>Institute Name</label>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_institute_name_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_institute_name_gap`, e.target.value)}
+                                                                                                name="phd_institute_name_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <label>School Name</label>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_school_name_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_school_name_gap`, e.target.value)}
+                                                                                                name="phd_school_name_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <label>Start Date</label>
+                                                                                            <input
+                                                                                                type="date"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_start_date_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_start_date_gap`, e.target.value)}
+                                                                                                name="phd_start_date_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                            {errors["phd_start_date_gap"] && <p className="text-red-500 text-sm">{errors["phd_start_date_gap"]}</p>}
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <label>End Date</label>
+                                                                                            <input
+                                                                                                type="date"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_end_date_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_end_date_gap`, e.target.value)}
+                                                                                                name="phd_end_date_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="mt-2 mb-3">
+                                                                                        <label htmlFor="phd_specialization_gap" className="block text-sm font-medium text-gray-700">Specialization</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].phd_institute_name_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_institute_name_gap", e.target.value)}
-                                                                                            name="phd_institute_name_gap"
-                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <label>School Name</label>
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            value={annexureData["gap_validation"].phd_school_name_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_school_name_gap", e.target.value)}
-                                                                                            name="phd_school_name_gap"
-                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <label>Start Date</label>
-                                                                                        <input
-                                                                                            type="date"
-                                                                                            value={annexureData["gap_validation"].phd_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_start_date_gap", e.target.value)}
-                                                                                            name="phd_start_date_gap"
-                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                        />
-                                                                                        {errors["phd_start_date_gap"] && <p className="text-red-500 text-sm">{errors["phd_start_date_gap"]}</p>}
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <label>End Date</label>
-                                                                                        <input
-                                                                                            type="date"
-                                                                                            value={annexureData["gap_validation"].phd_end_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_end_date_gap", e.target.value)}
-                                                                                            name="phd_end_date_gap"
+                                                                                            id="phd_specialization_gap"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_specialization_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", "phd_specialization_gap", e.target.value)}
+                                                                                            name="phd_specialization_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
                                                                                 </div>
-                                                                                <div className="mt-2 mb-3">
-                                                                                    <label>Specialization</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].phd_specialization_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "phd_specialization_gap", e.target.value)}
-                                                                                        name="phd_specialization_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        </>
-                                                                    )}
+                                                                                {
+                                                                                    (() => {
+                                                                                        let index = 1;
+                                                                                        let elements = [];
+
+                                                                                        while (true) {
+                                                                                            const key = `phd_corespondence_${index}`;
+                                                                                             //  console.log(`Checking key: ${key}`);
+
+                                                                                            // Check if the key exists in education_fields
+                                                                                            if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                                                                 //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                                break; // Exit loop if the key is missing
+                                                                                            }
+
+                                                                                            const phdSection = annexureData.gap_validation.education_fields[key];
+                                                                                             //  console.log(`Processing data for: ${key}`, phdSection);
+
+                                                                                            elements.push(
+                                                                                                <div key={index} className='border border-black p-4 mt-4 rounded-md'>
+                                                                                                    <h3 className="text-lg font-bold py-3">Correspondence PHD {index}</h3>
+                                                                                                    <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                                        <div>
+                                                                                                            <label>Institute Name</label>
+                                                                                                            <input
+                                                                                                                type="text"
+                                                                                                                value={phdSection?.phd_institute_name_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                     //  console.log(`Updating Institute Name for ${key}:`, e.target.value);
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_institute_name_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_institute_name_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>School Name</label>
+                                                                                                            <input
+                                                                                                                type="text"
+                                                                                                                value={phdSection?.phd_school_name_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                     //  console.log(`Updating School Name for ${key}:`, e.target.value);
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_school_name_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_school_name_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>Start Date</label>
+                                                                                                            <input
+                                                                                                                type="date"
+                                                                                                                value={phdSection?.phd_start_date_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                     //  console.log(`Updating Start Date for ${key}:`, e.target.value);
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_start_date_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_start_date_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                            {errors["phd_start_date_gap"] && <p className="text-red-500 text-sm">{errors["phd_start_date_gap"]}</p>}
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>End Date</label>
+                                                                                                            <input
+                                                                                                                type="date"
+                                                                                                                value={phdSection?.phd_end_date_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                     //  console.log(`Updating End Date for ${key}:`, e.target.value);
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_end_date_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_end_date_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className="mt-2 mb-3">
+                                                                                                        <label htmlFor="phd_specialization_gap" className="block text-sm font-medium text-gray-700">Specialization</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            id="phd_specialization_gap"
+                                                                                                            value={phdSection?.phd_specialization_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                 //  console.log(`Updating Specialization for ${key}:`, e.target.value);
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_specialization_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="phd_specialization_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            );
+
+                                                                                             //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                            index++; // Move to the next phd_corespondence_*
+                                                                                        }
+
+                                                                                         //  console.log(`Final elements array:`, elements);
+                                                                                        return elements;
+                                                                                    })()
+                                                                                }
+                                                                                <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondencePhd}>
+                                                                                    Add Correspondence PHD Education
+                                                                                </button>
+
+                                                                            </>
+                                                                        )
+                                                                    }
 
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
@@ -2846,8 +3273,8 @@ const BackgroundForm = () => {
                                                                                         <label>University / Institute Name</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].post_graduation_university_institute_name_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "post_graduation_university_institute_name_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_university_institute_name_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_university_institute_name_gap`, e.target.value)}
                                                                                             name="post_graduation_university_institute_name_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2856,8 +3283,8 @@ const BackgroundForm = () => {
                                                                                         <label>Course</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].post_graduation_course_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "post_graduation_course_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_course_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_course_gap`, e.target.value)}
                                                                                             name="post_graduation_course_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2866,8 +3293,9 @@ const BackgroundForm = () => {
                                                                                         <label>Specialization Major</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].post_graduation_specialization_major_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "post_graduation_specialization_major_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_specialization_major_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_specialization_major_gap`, e.target.value)}
+
                                                                                             name="post_graduation_specialization_major_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2877,8 +3305,9 @@ const BackgroundForm = () => {
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].post_graduation_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "post_graduation_start_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_start_date_gap`, e.target.value)}
+
                                                                                             name="post_graduation_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2890,29 +3319,132 @@ const BackgroundForm = () => {
                                                                                     <label>End Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        value={annexureData["gap_validation"].post_graduation_end_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_end_date_gap", e.target.value)}
+                                                                                        value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_end_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_end_date_gap`, e.target.value)}
                                                                                         name="post_graduation_end_date_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
                                                                             </div>
 
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `post_graduation_corespondence_${index}`;
+                                                                                         //  console.log(`Checking key: ${key}`);
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black  mt-4 p-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3 ">Correspondence POST GRADUATION {index}</h3>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                                                    <div>
+                                                                                                        <label>University / Institute Name</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.post_graduation_university_institute_name_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_university_institute_name_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="post_graduation_university_institute_name_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Course</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.post_graduation_course_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_course_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="post_graduation_course_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Specialization Major</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.post_graduation_specialization_major_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_specialization_major_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="post_graduation_specialization_major_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.post_graduation_start_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_start_date_gap", e.target.value);
+                                                                                                            }}
+
+                                                                                                            name="post_graduation_start_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                        {errors["post_graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["post_graduation_start_date_gap"]}</p>}
+                                                                                                    </div>
+
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>End Date</label>
+                                                                                                    <input
+                                                                                                        type="date"
+                                                                                                        value={phdSection?.post_graduation_end_date_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_end_date_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="post_graduation_end_date_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondencePostGraduation}>
+                                                                                Add Correspondence POST GRADUATION Education
+                                                                            </button>
 
                                                                         </>
                                                                     )}
+
+
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
                                                                         <>
                                                                             <h3 className="text-lg font-bold py-3">GRADUATION</h3>
                                                                             <div className="border border-black p-4 rounded-md">
-                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                                     <div>
                                                                                         <label>University / Institute Name</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].graduation_university_institute_name_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "graduation_university_institute_name_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_university_institute_name_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_university_institute_name_gap`, e.target.value)}
                                                                                             name="graduation_university_institute_name_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2921,8 +3453,8 @@ const BackgroundForm = () => {
                                                                                         <label>Course</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].graduation_course_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "graduation_course_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_course_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_course_gap`, e.target.value)}
                                                                                             name="graduation_course_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2931,8 +3463,9 @@ const BackgroundForm = () => {
                                                                                         <label>Specialization Major</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].graduation_specialization_major_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "graduation_specialization_major_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_specialization_major_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_specialization_major_gap`, e.target.value)}
+
                                                                                             name="graduation_specialization_major_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2942,39 +3475,145 @@ const BackgroundForm = () => {
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].graduation_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "graduation_start_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_start_date_gap`, e.target.value)}
+
                                                                                             name="graduation_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                         {errors["graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["graduation_start_date_gap"]}</p>}
-
                                                                                     </div>
+
                                                                                 </div>
                                                                                 <div>
                                                                                     <label>End Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        value={annexureData["gap_validation"].graduation_end_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_end_date_gap", e.target.value)}
+                                                                                        value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_end_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_end_date_gap`, e.target.value)}
                                                                                         name="graduation_end_date_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
                                                                             </div>
+
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `graduation_corespondence_${index}`;
+                                                                                         //  console.log(`Checking key: ${key}`);
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black p-4 mt-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                                                    <div>
+                                                                                                        <label>University / Institute Name</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.graduation_university_institute_name_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_university_institute_name_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="graduation_university_institute_name_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Course</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.graduation_course_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_course_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="graduation_course_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Specialization Major</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.graduation_specialization_major_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_specialization_major_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="graduation_specialization_major_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.graduation_start_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_start_date_gap", e.target.value);
+                                                                                                            }}
+
+                                                                                                            name="graduation_start_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                        {errors["graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["graduation_start_date_gap"]}</p>}
+                                                                                                    </div>
+
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>End Date</label>
+                                                                                                    <input
+                                                                                                        type="date"
+                                                                                                        value={phdSection?.graduation_end_date_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_end_date_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="graduation_end_date_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceGraduation}>
+                                                                                Add Correspondence GRADUATION Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
+
+
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
                                                                         <>
                                                                             <h3 className="text-lg font-bold py-3">SENIOR SECONDARY</h3>
-                                                                            <div className="border border-black p-4 rounded-md">
+                                                                            <div className="border border-black  p-4 rounded-md">
                                                                                 <div className="my-3">
                                                                                     <label>School Name</label>
                                                                                     <input
                                                                                         type="text"
-                                                                                        value={annexureData["gap_validation"].senior_secondary_school_name_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "senior_secondary_school_name_gap", e.target.value)}
+                                                                                        value={annexureData?.gap_validation?.education_fields?.senior_secondary?.[`senior_secondary_school_name_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "senior_secondary", `senior_secondary_school_name_gap`, e.target.value)}
                                                                                         name="senior_secondary_school_name_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
@@ -2984,8 +3623,8 @@ const BackgroundForm = () => {
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].senior_secondary_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "senior_secondary_start_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.senior_secondary?.[`senior_secondary_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "senior_secondary", `senior_secondary_start_date_gap`, e.target.value)}
                                                                                             name="senior_secondary_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2994,16 +3633,93 @@ const BackgroundForm = () => {
                                                                                         <label>End Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].senior_secondary_end_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "senior_secondary_end_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.senior_secondary?.[`senior_secondary_end_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "senior_secondary", `senior_secondary_end_date_gap`, e.target.value)}
                                                                                             name="senior_secondary_end_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `senior_secondary_corespondence_${index}`;
+                                                                                         //  console.log(`Checking key: ${key}`);
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black mt-4 p-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
+
+                                                                                                <div className="my-3">
+                                                                                                    <label>School Name</label>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={phdSection?.senior_secondary_school_name_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_school_name_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="senior_secondary_school_name_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.senior_secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="senior_secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>End Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.senior_secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="senior_secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSeniorSecondary}>
+                                                                                Add Correspondence Senior Secondary Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
+
+
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'secondary' || annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
                                                                         <>
@@ -3013,8 +3729,8 @@ const BackgroundForm = () => {
                                                                                     <label>School Name</label>
                                                                                     <input
                                                                                         type="text"
-                                                                                        value={annexureData["gap_validation"].secondary_school_name_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "secondary_school_name_gap", e.target.value)}
+                                                                                        value={annexureData?.gap_validation?.education_fields?.secondary?.[`secondary_school_name_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "secondary", `secondary_school_name_gap`, e.target.value)}
                                                                                         name="secondary_school_name_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
@@ -3024,8 +3740,8 @@ const BackgroundForm = () => {
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].secondary_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "secondary_start_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.secondary?.[`secondary_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "secondary", `secondary_start_date_gap`, e.target.value)}
                                                                                             name="secondary_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -3034,16 +3750,93 @@ const BackgroundForm = () => {
                                                                                         <label>End Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].secondary_end_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "secondary_end_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.secondary?.[`secondary_end_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "secondary", `secondary_end_date_gap`, e.target.value)}
                                                                                             name="secondary_end_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `secondary_corespondence_${index}`;
+                                                                                         //  console.log(`Checking key: ${key}`);
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black p-4 mt-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
+
+                                                                                                <div className="my-3">
+                                                                                                    <label>School Name</label>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={phdSection?.secondary_school_name_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_school_name_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="secondary_school_name_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>End Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSecondary}>
+                                                                                Add Correspondence Secondary Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
+
                                                                     <div className='mt-5'>
                                                                         <label htmlFor="employmentType_gap" className='font-bold'>EMPLOYMENT</label>
                                                                         <div className='mb-3'>
@@ -3075,14 +3868,15 @@ const BackgroundForm = () => {
                                                                         <div key={index} className='border border-black p-4 rounded-md my-3'>
                                                                             <h3 className="text-lg font-bold pb-3">Employment({index + 1})</h3>
                                                                             <div>
-                                                                                <label htmlFor={`employment_type_gap_${index + 1}`}>Employment Type</label>
+                                                                                <label htmlFor={`employment_type_gap`}>Employment Type</label>
                                                                                 <select
                                                                                     type="text"
-                                                                                    id={`employment_type_gap_${index + 1}`}
-                                                                                    name={`employment_type_gap_${index + 1}`}
-                                                                                    value={annexureData["gap_validation"]?.[`employment_type_gap_${index + 1}`] || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", `employment_type_gap_${index + 1}`, e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2 mb-2">
+                                                                                    id={`employment_type_gap`}
+                                                                                    name={`employment_type_gap`}
+                                                                                    value={annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_type_gap`] || ''}
+                                                                                    onChange={(e) => handleEmploymentGapChange("gap_validation", "employment_fields", `employment_${index + 1}`, `employment_type_gap`, e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2 mb-2"
+                                                                                >
                                                                                     <option value="">Select Your Employment Type</option>
                                                                                     <option value="employed">Employed</option>
                                                                                     <option value="self-employed">Self Employed</option>
@@ -3093,26 +3887,27 @@ const BackgroundForm = () => {
                                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                                 {/* Start Date Field */}
                                                                                 <div>
-                                                                                    <label htmlFor={`employment_start_date_gap_${index + 1}`}>Start Date</label>
+                                                                                    <label htmlFor={`employment_start_date_gap`}>Start Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        id={`employment_start_date_gap_${index + 1}`}
-                                                                                        name={`employment_start_date_gap_${index + 1}`}
-                                                                                        value={annexureData["gap_validation"]?.[`employment_start_date_gap_${index + 1}`] || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", `employment_start_date_gap_${index + 1}`, e.target.value)}
+                                                                                        id={`employment_start_date_gap`}
+                                                                                        name={`employment_start_date_gap`}
+                                                                                        value={annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "employment_fields", `employment_${index + 1}`, `employment_start_date_gap`, e.target.value)}
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
 
+
                                                                                 {/* End Date Field */}
                                                                                 <div>
-                                                                                    <label htmlFor={`employment_end_date_gap_${index + 1}`}>End Date</label>
+                                                                                    <label htmlFor={`employment_end_date_gap`}>End Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        id={`employment_end_date_gap_${index + 1}`}
-                                                                                        name={`employment_end_date_gap_${index + 1}`}
-                                                                                        value={annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`] || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", `employment_end_date_gap_${index + 1}`, e.target.value)}
+                                                                                        id={`employment_end_date_gap`}
+                                                                                        name={`employment_end_date_gap`}
+                                                                                        value={annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_end_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "employment_fields", `employment_${index + 1}`, `employment_end_date_gap`, e.target.value)}
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
@@ -3120,8 +3915,8 @@ const BackgroundForm = () => {
                                                                         </div>
                                                                     ))}
 
-
-                                                                </>}
+                                                                </>
+                                                                }
 
 
 

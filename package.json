@@ -17,6 +17,7 @@
     "font-awesome": "^4.7.0",
     "froala-editor": "^4.2.1",
     "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.3",
     "jquery": "^3.7.1",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",

@@ -48,7 +48,6 @@ const GapStatus = () => {
 
     const branchId = queryParams.get('branch_id');
     const applicationId = queryParams.get('applicationId');
-    console.log('annexureData', annexureData)
     const fetchData = useCallback(() => {
         setIsApiLoading(true);
         setLoading(true); // Start loading
@@ -69,7 +68,7 @@ const GapStatus = () => {
 
         fetch(
             // `https://api.goldquestglobal.in/candidate-master-tracker/bgv-application-by-id?application_id=${applicationId}&branch_id=${branchId}&admin_id=${admin_id}&_token=${MyToken}`,
-           `https://api.goldquestglobal.in/candidate-master-tracker/gap-check?application_id=${applicationId}&branch_id=${branchId}&admin_id=${admin_id}&_token=${MyToken}`,
+            `https://api.goldquestglobal.in/candidate-master-tracker/gap-check?application_id=${applicationId}&branch_id=${branchId}&admin_id=${admin_id}&_token=${MyToken}`,
             requestOptions
         )
             .then(res => {
@@ -168,31 +167,16 @@ const GapStatus = () => {
                                 });
                             });
                         } else {
-                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('phd_institute_name_gap')); // Check for null or undefined before accessing `hasOwnProperty`
+                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('no_of_employment')); // Check for null or undefined before accessing `hasOwnProperty`
                             let initialAnnexureDataNew = initialAnnexureData;
                             if (fieldValue && fieldValue.hasOwnProperty('no_of_employment')) {
+
                                 initialAnnexureDataNew = updateEmploymentFields(fieldValue.no_of_employment, fieldValue); // Call function to handle employment fields
+
+                            } else {
+
                             }
-
-                            Object.keys(initialAnnexureDataNew.gap_validation).forEach((item, index) => {
-
-                                let fieldValueLoop = allJsonDataValue.find(data => data && data.hasOwnProperty(item));
-
-                                if (fieldValueLoop && fieldValueLoop.hasOwnProperty(item)) {
-
-                                    // Ensure the service table exists in annexureData
-                                    if (!annexureData[service.db_table]) {
-                                        annexureData[service.db_table] = {}; // Initialize the service table if it doesn't exist
-                                    }
-
-                                    // Set the dynamic value in the service table under the input's name
-                                    annexureData[service.db_table][item] = fieldValueLoop[item] || "";
-                                } else {
-                                }
-                            });
-
-
-
+                            annexureData[service.db_table].employment_fields = initialAnnexureDataNew.gap_validation.employment_fields;
                         }
 
                     });
@@ -240,40 +224,62 @@ const GapStatus = () => {
             </p>
         );
     };
-    const createEmploymentFields = (noOfEmployments) => {
-        const employmentFields = {};
-        for (let i = 1; i <= noOfEmployments; i++) {
-            // Ensure we keep existing values if they are already set
-            employmentFields[`employment_type_gap_${i}`] = annexureData.gap_validation[`employment_type_gap_${i}`] || '';
-            employmentFields[`employment_start_date_gap_${i}`] = annexureData.gap_validation[`employment_start_date_gap_${i}`] || '';
-            employmentFields[`employment_end_date_gap_${i}`] = annexureData.gap_validation[`employment_end_date_gap_${i}`] || '';
+    const createEmploymentFields = (noOfEmployments, fieldValue) => {
+        // Ensure employment_fields is parsed if it's a JSON string
+        let employmentFieldsData = fieldValue.employment_fields;
+
+        // Check if it's a string (i.e., it's been stringified previously) and parse it
+        if (typeof employmentFieldsData === 'string') {
+            employmentFieldsData = JSON.parse(employmentFieldsData);
+        } else {
         }
+
+        const employmentFields = {}; // Initialize the employmentFields object to store all employment data
+
+        // Dynamically structure the data like: employment_1, employment_2, etc.
+        for (let i = 1; i <= noOfEmployments; i++) {
+
+            const employmentData = employmentFieldsData[`employment_${i}`] || {};
+
+            employmentFields[`employment_${i}`] = {
+                [`employment_type_gap`]: employmentData[`employment_type_gap`] || '',
+                [`employment_start_date_gap`]: employmentData[`employment_start_date_gap`] || '',
+                [`employment_end_date_gap`]: employmentData[`employment_end_date_gap`] || '',
+            };
+
+        }
+
         return employmentFields;
     };
-    const updateEmploymentFields = (noOfEmployment, fieldValue) => {
-        // Generate all possible employment fields
-        const allEmploymentFields = createEmploymentFields(noOfEmployment);
 
-        // Manually compute the updated data before updating state
-        const updatedData = {
-            ...initialAnnexureData, // Copy existing state
-            gap_validation: {
-                ...initialAnnexureData.gap_validation, // Preserve existing values
-                ...allEmploymentFields, // Ensure all new employment fields are included
-            },
-        };
+    const updateEmploymentFields = (noOfEmployments, fieldValue) => {
 
-        // Override only the values present in `fieldValue`
-        Object.keys(fieldValue).forEach((key) => {
-            if (updatedData.gap_validation.hasOwnProperty(key)) {
-                updatedData.gap_validation[key] = fieldValue[key]; // Update relevant fields only
-            }
-        });
+        // Generate new employment fields based on the provided number of employments
+        const allEmploymentFields = createEmploymentFields(noOfEmployments, fieldValue);
 
-        // Set state asynchronously
-        setInitialAnnexureData(updatedData);
+        // Create a copy of the current annexureData
+        const updatedAnnexureData = { ...annexureData };
 
-        return updatedData; // Now `newData` will contain the updated values
+        // Check if gap_validation exists before modifying
+        if (updatedAnnexureData.gap_validation) {
+            // Delete the existing employment_fields key
+            delete updatedAnnexureData.gap_validation.employment_fields;
+        } else {
+            // If gap_validation doesn't exist, initialize it
+            updatedAnnexureData.gap_validation = {};
+        }
+
+        // Add the new employment_fields data
+        updatedAnnexureData.gap_validation.highest_education_gap = fieldValue.highest_education_gap;
+        updatedAnnexureData.gap_validation.no_of_employment = fieldValue.no_of_employment;
+        updatedAnnexureData.gap_validation.years_of_experience_gap = fieldValue.years_of_experience_gap;
+        updatedAnnexureData.gap_validation.education_fields = JSON.parse(fieldValue.education_fields);
+        updatedAnnexureData.gap_validation.employment_fields = allEmploymentFields;
+
+        // Set state with updated data
+        setAnnexureData(updatedAnnexureData);
+
+        return updatedAnnexureData; // This can be used for further handling if needed
     };
 
 
@@ -295,10 +301,6 @@ const GapStatus = () => {
 
         return { years: Math.abs(years), months: Math.abs(months) };
     };
-
-    console.log('serviceData', serviceData);
-    console.log('serviceValueData', serviceValueData);
-
 
     function calculateDateDifference(date1, date2) {
         const d1 = new Date(date1);
@@ -326,23 +328,24 @@ const GapStatus = () => {
     }
 
     const calculateGaps = () => {
-        // Data from your JSON
-        const secondaryEndDate = annexureData.gap_validation.secondary_end_date_gap;
-        const seniorSecondaryStartDate = annexureData.gap_validation.senior_secondary_start_date_gap;
-        const seniorSecondaryEndDate = annexureData.gap_validation.senior_secondary_end_date_gap;
-        const graduationStartDate = annexureData.gap_validation.graduation_start_date_gap;
-        const graduationEndDate = annexureData.gap_validation.graduation_end_date_gap;
-        const postGraduationStartDate = annexureData.gap_validation.post_graduation_start_date_gap;
-        const postGraduationEndDate = annexureData.gap_validation.post_graduation_end_date_gap;
-        const phdStartDate = annexureData.gap_validation.phd_start_date_gap;
 
-        // Calculate gaps
+        console.log('annexureData.gap_validation', annexureData.gap_validation)
+        // Data from your JSON
+        const secondaryEndDate = annexureData.gap_validation.education_fields.secondary.secondary_end_date_gap;
+        const seniorSecondaryStartDate = annexureData.gap_validation.education_fields.senior_secondary.senior_secondary_start_date_gap;
+        const seniorSecondaryEndDate = annexureData.gap_validation.education_fields.senior_secondary.senior_secondary_end_date_gap;
+        const graduationStartDate = annexureData.gap_validation.education_fields.graduation_1.graduation_start_date_gap;
+        const graduationEndDate = annexureData.gap_validation.education_fields.graduation_1.graduation_end_date_gap;
+        const postGraduationStartDate = annexureData.gap_validation.education_fields.post_graduation_1.post_graduation_start_date_gap;
+        const postGraduationEndDate = annexureData.gap_validation.education_fields.post_graduation_1.post_graduation_end_date_gap;
+        const phdStartDate = annexureData.gap_validation.education_fields.phd_1.phd_start_date_gap;
+
+
         const gapSecToSrSec = calculateDateGap(secondaryEndDate, seniorSecondaryStartDate);
         const gapSrSecToGrad = calculateDateGap(seniorSecondaryEndDate, graduationStartDate);
         const gapGradToPostGrad = calculateDateGap(graduationEndDate, postGraduationStartDate);
         const gapPostGradToPhd = calculateDateGap(postGraduationEndDate, phdStartDate);
 
-        // Only proceed if the gap is not null
         const validGaps = {
             gapSecToSrSec,
             gapSrSecToGrad,
@@ -355,45 +358,91 @@ const GapStatus = () => {
             Object.entries(validGaps).filter(([key, value]) => value !== null)
         );
 
+
         // Update state with non-negative gaps
         setGaps(nonNegativeGaps);
 
         function getEmploymentDates(annexureData) {
             const employmentStartDates = [];
             const employmentEndDates = [];
-
             let i = 1; // Start index
-            while (true) {
-                const startKey = `employment_start_date_gap_${i}`;
-                const endKey = `employment_end_date_gap_${i}`;
 
-                // Break the loop if neither start nor end date exists
-                if (!(startKey in annexureData.gap_validation) && !(endKey in annexureData.gap_validation)) {
+            console.log('%cFetching employment dates...', 'color: blue; font-weight: bold;');
+
+            const employmentValues = annexureData?.gap_validation?.employment_fields;
+            console.log('%cEmployment values:', 'color: green; font-weight: bold;', employmentValues);
+
+            if (!employmentValues) {
+                console.warn('%cNo employment fields found in the data.', 'color: red; font-weight: bold;');
+                return { employmentStartDates, employmentEndDates };
+            }
+
+            while (true) {
+                const employmentKey = `employment_${i}`;
+                const employmentData = employmentValues[employmentKey];
+
+                if (!employmentData) {
+                    console.warn(`%cNo data found for ${employmentKey}, stopping loop.`, 'color: orange;');
                     break;
                 }
 
-                // Push to arrays if exists
-                if (startKey in annexureData.gap_validation) {
-                    employmentStartDates.push({ name: startKey, value: annexureData.gap_validation[startKey] });
-                }
-                if (endKey in annexureData.gap_validation) {
-                    employmentEndDates.push({ name: endKey, value: annexureData.gap_validation[endKey] });
+                // Define keys
+                const startKey = `employment_start_date_gap`;
+                const endKey = `employment_end_date_gap`;
+
+                console.log(`%cChecking ${employmentKey}:`, 'color: blue; font-weight: bold;', employmentData);
+
+                // Check if start or end date exists
+                const hasStartDate = startKey in employmentData;
+                const hasEndDate = endKey in employmentData;
+
+                console.log(`%cChecking keys: ${startKey}: ${hasStartDate}, ${endKey}: ${hasEndDate}`, 'color: purple;');
+
+                if (!hasStartDate && !hasEndDate) {
+                    console.warn(`%cNo start or end date found for ${employmentKey}, stopping loop.`, 'color: orange;');
+                    break;
                 }
 
-                i++; // Increment index
+                // Push values if they exist
+                if (hasStartDate) {
+                    employmentStartDates.push({
+                        name: startKey,
+                        value: employmentData[startKey]
+                    });
+                    console.log(`✅ %cAdded Start Date: ${employmentData[startKey]}`, 'color: green;');
+                }
+                if (hasEndDate) {
+                    employmentEndDates.push({
+                        name: endKey,
+                        value: employmentData[endKey]
+                    });
+                    console.log(`✅ %cAdded End Date: ${employmentData[endKey]}`, 'color: green;');
+                }
+
+                i++; // Move to next employment record
             }
+
+            // Final logs
+            console.log('%cEmployment Start Dates:', 'color: blue; font-weight: bold;', employmentStartDates);
+            console.log('%cEmployment End Dates:', 'color: blue; font-weight: bold;', employmentEndDates);
 
             return { employmentStartDates, employmentEndDates };
         }
+
+
 
         const { employmentStartDates, employmentEndDates } = getEmploymentDates(annexureData);
 
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
+            console.log('Calculating employment date differences...');
+
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
+
+                console.log('Comparing dates:', currentEnd, nextStart);
 
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
                     const diff = calculateDateDifference(currentEnd, nextStart);
@@ -407,9 +456,13 @@ const GapStatus = () => {
                             startValue: nextStart,
                             difference: diff
                         });
+                        console.log('Valid difference found:', differences[differences.length - 1]);
                     }
                 }
             }
+
+            // Log differences
+            console.log('Employment date differences:', differences);
 
             return differences;
         }
@@ -417,58 +470,62 @@ const GapStatus = () => {
         // Get differences
         const dateDifferences = getEmploymentDateDifferences(employmentStartDates, employmentEndDates);
 
+        // Log final employment gaps
+
         setEmployGaps(dateDifferences);
     };
 
 
     const educationData = annexureData.gap_validation;
+
+    console.log('employGaps', employGaps)
     return (
         <>
             <div className="bg-gray-300">
                 <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white">
                     <h2 className='font-bold text-2xl pb-3'>Employment Gap</h2>
-                    <div  className="overflow-x-auto ">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="bg-green-500 text-white ">
-                                <th className="border px-4 py-2">Employment</th>
-                                <th className="border px-4 py-2">Employment Type</th>
-                                <th className="border px-4 py-2">Start Date</th>
-                                <th className="border px-4 py-2">End Date</th>
-                                <th className="border px-4 py-2">Gap Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.from({ length: annexureData["gap_validation"].no_of_employment || 0 }, (_, index) => (
-                                <tr key={index} className="border-b">
-                                    <td className="border px-4 py-2">Employment({index + 1})</td>
-                                    <td className="border px-4 py-2">
-                                        {annexureData["gap_validation"]?.[`employment_type_gap_${index + 1}`] || 'NIL'}
-                                    </td>
-                                    <td className="border px-4 py-2">
-                                        {annexureData["gap_validation"]?.[`employment_start_date_gap_${index + 1}`] || 'NIL'}
-                                    </td>
-                                    <td className="border px-4 py-2">
-                                        {annexureData["gap_validation"]?.[`employment_end_date_gap_${index + 1}`] || 'NIL'}
-                                    </td>
-                                    <td className="border px-4 py-2">
-                                        {employGaps.map((item, idx) => {
-                                            const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
-
-                                            if (item.startValue === annexureData["gap_validation"]?.[`employment_start_date_gap_${index + 1}`]) {
-                                                return (
-                                                    <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
-                                                        {isNoGap ? item.difference : `GAP-${item.difference || 'No gap Found'}`}
-                                                    </p>
-                                                );
-                                            }
-                                            return null;
-                                        })}
-                                    </td>
+                    <div className="overflow-x-auto ">
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="bg-green-500 text-white ">
+                                    <th className="border px-4 py-2">Employment</th>
+                                    <th className="border px-4 py-2">Employment Type</th>
+                                    <th className="border px-4 py-2">Start Date</th>
+                                    <th className="border px-4 py-2">End Date</th>
+                                    <th className="border px-4 py-2">Gap Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {Array.from({ length: annexureData["gap_validation"].no_of_employment || 0 }, (_, index) => (
+                                    <tr key={index} className="border-b">
+                                        <td className="border px-4 py-2">Employment({index + 1})</td>
+                                        <td className="border px-4 py-2">
+                                            {annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_type_gap`] || 'NIL'}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`] || 'NIL'}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_end_date_gap`] || 'NIL'}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {employGaps.map((item, idx) => {
+                                                const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
+
+                                                if (item.startValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`]) {
+                                                    return (
+                                                        <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
+                                                            {isNoGap ? item.difference : `GAP-${item.difference || 'No gap Found'}`}
+                                                        </p>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                     <h2 className='font-bold text-2xl pb-3'>Education Gap</h2>
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
@@ -479,22 +536,79 @@ const GapStatus = () => {
                                 {/* Row for School Name */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">School Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.secondary_school_name_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_school_name_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Start Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.secondary_start_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_start_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for End Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.secondary_end_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_end_date_gap`] || 'NIL'}</td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        {
+                            (() => {
+                                let index = 1;
+                                let elements = [];
+
+                                while (true) {
+                                    const key = `secondary_corespondence_${index}`;
+
+                                    // Check if the key exists in education_fields
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const secondarySection = annexureData.gap_validation.education_fields[key];
+
+                                    elements.push(
+                                        <div className="border border-black p-4 mt-4 rounded-md">
+                                            <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">School Name</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{secondarySection?.secondary_school_name_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Start Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{secondarySection?.secondary_start_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">End Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{secondarySection?.secondary_end_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+
+                                    index++; // Move to the next secondary_corespondence_*
+                                }
+
+                                return elements;
+                            })()
+                        }
+
                     </div>
 
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
@@ -505,19 +619,19 @@ const GapStatus = () => {
                                 {/* Row for School Name */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">School Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.senior_secondary_school_name_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_school_name_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Start Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.senior_secondary_start_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_start_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for End Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.senior_secondary_end_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_end_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Gap Status */}
@@ -527,6 +641,63 @@ const GapStatus = () => {
                                 </tr>
                             </tbody>
                         </table>
+
+                        {
+                            (() => {
+                                let index = 1;
+                                let elements = [];
+
+                                while (true) {
+                                    const key = `senior_secondary_corespondence_${index}`;
+
+                                    // Check if the key exists in education_fields
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const seniorSecondarySection = annexureData.gap_validation.education_fields[key];
+
+                                    elements.push(
+                                        <div className="border border-black mt-4 p-4 rounded-md">
+                                            <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">School Name</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{seniorSecondarySection?.senior_secondary_school_name_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Start Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{seniorSecondarySection?.senior_secondary_start_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">End Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{seniorSecondarySection?.senior_secondary_end_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+
+                                    index++; // Move to the next senior_secondary_corespondence_*
+                                }
+
+                                return elements;
+                            })()
+                        }
+
                     </div>
 
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
@@ -537,31 +708,31 @@ const GapStatus = () => {
                                 {/* Row for Institute Name */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.graduation_course_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_course_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for School Name */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.graduation_university_institute_name_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_university_institute_name_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Specialization */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.graduation_specialization_major_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_specialization_major_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Start Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.graduation_start_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_start_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for End Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.graduation_end_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_end_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Gap Status */}
@@ -571,6 +742,75 @@ const GapStatus = () => {
                                 </tr>
                             </tbody>
                         </table>
+
+                        {
+                            (() => {
+                                let index = 1;
+                                let elements = [];
+
+                                while (true) {
+                                    const key = `graduation_corespondence_${index}`;
+
+                                    // Check if the key exists in education_fields
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const graduationSection = annexureData.gap_validation.education_fields[key];
+
+                                    elements.push(
+                                        <div className="border border-black p-4 mt-4 rounded-md">
+                                            <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">University / Institute Name</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{graduationSection?.graduation_university_institute_name_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Course</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{graduationSection?.graduation_course_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Specialization Major</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{graduationSection?.graduation_specialization_major_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Start Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{graduationSection?.graduation_start_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">End Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{graduationSection?.graduation_end_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+
+                                    index++; // Move to the next graduation_corespondence_*
+                                }
+
+                                return elements;
+                            })()
+                        }
+
                     </div>
 
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
@@ -580,31 +820,31 @@ const GapStatus = () => {
                                 {/* Row for Course */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Course</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.post_graduation_course_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_course_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for University / Institute Name */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.post_graduation_university_institute_name_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_university_institute_name_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Specialization */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.post_graduation_specialization_major_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_specialization_major_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Start Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.post_graduation_start_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_start_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for End Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.post_graduation_end_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_end_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Gap Status */}
@@ -614,6 +854,75 @@ const GapStatus = () => {
                                 </tr>
                             </tbody>
                         </table>
+
+                        {
+                            (() => {
+                                let index = 1;
+                                let elements = [];
+
+                                while (true) {
+                                    const key = `post_graduation_corespondence_${index}`;
+
+                                    // Check if the key exists in education_fields
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const postGraduationSection = annexureData.gap_validation.education_fields[key];
+
+                                    elements.push(
+                                        <div className="border border-black mt-4 p-4 rounded-md">
+                                            <h3 className="text-lg font-bold py-3">Correspondence POST GRADUATION {index}</h3>
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">University / Institute Name</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{postGraduationSection?.post_graduation_university_institute_name_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Course</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{postGraduationSection?.post_graduation_course_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Specialization Major</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{postGraduationSection?.post_graduation_specialization_major_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Start Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{postGraduationSection?.post_graduation_start_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">End Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{postGraduationSection?.post_graduation_end_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+
+                                    index++; // Move to the next post_graduation_corespondence_*
+                                }
+
+                                return elements;
+                            })()
+                        }
+
                     </div>
 
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
@@ -624,31 +933,31 @@ const GapStatus = () => {
                                 {/* Row for Course */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Course</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.phd_institute_name_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_institute_name_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for University / Institute Name */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.phd_school_name_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_school_name_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Specialization */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.phd_specialization_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_specialization_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Start Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.phd_start_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_start_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for End Date */}
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.phd_end_date_gap || 'NIL'}</td>
+                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_end_date_gap`] || 'NIL'}</td>
                                 </tr>
 
                                 {/* Row for Gap Message */}
@@ -658,6 +967,75 @@ const GapStatus = () => {
                                 </tr>
                             </tbody>
                         </table>
+
+                        {
+                            (() => {
+                                let index = 1;
+                                let elements = [];
+
+                                while (true) {
+                                    const key = `phd_corespondence_${index}`;
+
+                                    // Check if the key exists in education_fields
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const phdSection = annexureData.gap_validation.education_fields[key];
+
+                                    elements.push(
+                                        <div key={index} className='border border-black p-4 mt-4 rounded-md'>
+                                            <h3 className="text-lg font-bold py-3">Correspondence PHD {index}</h3>
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Institute Name</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{phdSection?.phd_institute_name_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">School Name</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{phdSection?.phd_school_name_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Start Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{phdSection?.phd_start_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">End Date</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{phdSection?.phd_end_date_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="border border-gray-300 p-2">Specialization</td>
+                                                        <td className="border border-gray-300 p-2">
+                                                            <span>{phdSection?.phd_specialization_gap || ''}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+
+                                    index++; // Move to the next phd_corespondence_*
+                                }
+
+                                return elements;
+                            })()
+                        }
+
                     </div>
 
                 </div>

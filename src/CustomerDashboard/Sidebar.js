@@ -3,7 +3,7 @@ import { HomeIcon, UserIcon } from "@heroicons/react/24/outline";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { FaDropbox } from "react-icons/fa";
 import { AiFillDropboxCircle } from "react-icons/ai";
-import { GrServices } from "react-icons/gr";
+import { GrIntegration, GrServices } from "react-icons/gr";
 import DashBoard from './Dashboard';
 import EmployeeManagement from './EmployeeManagement';
 import AddUser from './AddUser';
@@ -15,7 +15,7 @@ import ReportCaseTable from "./ReportCaseTable";
 import DropBoxList from "./DropBoxList";
 import CandidateList from "./CandidateList";
 import CaseLog from './CaseLog'
-import Callback from './Callback'
+import Integration from './Integration'
 import { IoCall } from "react-icons/io5";
 import { useApiCall } from '../ApiCallContext';
 import DeletionRequest from "./DeletionRequest";
@@ -35,7 +35,8 @@ const tabComponents = {
   escalation: <EscalationMatrix />,
   case_logs: <CaseLog />,
   callback: <DeletionRequest />,
-  subuser: <SubUserCredentials />
+  subuser: <SubUserCredentials />,
+  integartion: <Integration />
 
 };
 
@@ -46,6 +47,7 @@ const tabNames = {
   report_case: (<><GrServices className="h-6 w-6 mr-3 text-gray-600" />Report & Case Status</>),
   dropbox: (<><FaDropbox className="h-6 w-6 mr-3 text-gray-600" />Client DropBox</>),
   case_logs: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Case Logs</>),
+  integartion: (<><GrIntegration className="h-6 w-6 mr-3 text-gray-600" />Integration</>),
   callback: (<><IoCall className="h-6 w-6 mr-3 text-gray-600" /> Deletion Requests</>),
   Candidate: (<><AiFillDropboxCircle className="h-6 w-6 mr-3 text-gray-600" />Candidate DropBox</>),
   update_password: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Update Password</>),

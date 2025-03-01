@@ -916,6 +916,7 @@ const AdminChekin = () => {
                 const annexureImagesKey = Object.keys(annexureData).find((key) =>
                     key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
                 );
+                console.log('')
 
                 if (annexureImagesKey) {
                     const annexureImagesStr = annexureData[annexureImagesKey];
@@ -928,7 +929,7 @@ const AdminChekin = () => {
                         doc.text("No annexure images available.", 10, yPosition);
                         yPosition += 10;
                     } else {
-                        const imageBases = await fetchImageToBase(annexureImagesStr.trim());
+                        const imageBases = await fetchImageToBase(annexureImagesSplitArr.trim());
                         if (imageBases) {
                             imageBases.forEach((image, index) => {
                                 if (!image.base64 || !image.base64.startsWith('data:image/')) {

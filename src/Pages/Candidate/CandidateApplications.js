@@ -213,14 +213,18 @@ const GenerateReport = () => {
 
             // Filter out null or invalid items
             const filteredResults = result.results?.filter((item) => item != null) || [];
-            const sortedFilteredResults = filteredResults.sort((a, b) => {
-                const orderA = parseInt(a.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
-                const orderB = parseInt(b.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
 
+            const sortedFilteredResults = filteredResults.sort((a, b) => {
+                // Use optional chaining to check if annexureData exists
+                const orderA = parseInt(a?.annexureData?.sorting_order) || Number.MAX_SAFE_INTEGER;
+                const orderB = parseInt(b?.annexureData?.sorting_order) || Number.MAX_SAFE_INTEGER;
+            
                 return orderA - orderB;
             });
+            
             setServicesDataInfo(sortedFilteredResults); // Set service data
             return sortedFilteredResults;
+            
 
         } catch (error) {
             console.error("Error fetching service data:", error);
