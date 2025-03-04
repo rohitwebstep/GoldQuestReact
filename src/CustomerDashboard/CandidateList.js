@@ -7,8 +7,10 @@ import CandidateForm from './CandidateForm';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 import Modal from 'react-modal';
-
+import { useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 const CandidateList = () => {
+    const navigate = useNavigate();
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
 
     const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -26,9 +28,10 @@ const CandidateList = () => {
         setSelectedAttachments([]);
     };
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusChange, setStatusChange] = useState('');
     const [itemsPerPage, setItemPerPage] = useState(10)
     const [currentPage, setCurrentPage] = useState(1);
-    const { handleEditCandidate, candidateListData, fetchClient, candidateLoading } = useContext(DropBoxContext);
+    const { handleEditCandidate, candidateListData, fetchClient, candidateLoading, setUniqueBgv, UniqueBgv, } = useContext(DropBoxContext);
     const API_URL = useApi();
 
     useEffect(() => {
@@ -36,6 +39,19 @@ const CandidateList = () => {
             fetchClient();
         }
     }, [fetchClient]);
+    const handleBGVClick = (cef_id, branch_id, applicationId) => {
+        // Navigate to the Candidate BGV page with the cef_id
+        navigate(`/customer-dashboard/customer-bgv?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+    };
+    const handleDAVClick = (def_id, branch_id, applicationId) => {
+        // Navigate to the Candidate BGV page with the cef_id
+        navigate(`/customer-dashboard/customer-dav?def_id=${def_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+    };
+    const handleCheckGap = (cef_id, branch_id, applicationId) => {
+        // Navigate to the Candidate BGV page with the cef_id
+        navigate(`/customer-dashboard/customer-gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+    };
+
 
 
     const handleViewMore = (services) => {
@@ -57,11 +73,17 @@ const CandidateList = () => {
 
         );
     });
+    const handleStatusChange = (event) => {
+        setStatusChange(event.target.value);
+    }; 
+    const filteredOptions = filteredItems.filter(item =>
+        item.cef_submitted.toString().includes(statusChange.toLowerCase())
+    );
 
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredOptions.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredOptions.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -133,8 +155,37 @@ const CandidateList = () => {
         setItemPerPage(selectedValue)
 
     }
+   
 
+    const exportToExcel = () => {
+        // Filtered data to export
+        const dataToExport = currentItems;
 
+        // Map the data to match the structure of the table headers
+        const formattedData = dataToExport.map((report, index) => ({
+            Index: index + 1,
+            Name: report.name,
+            Email: report.email,
+            MobileNumber: report.mobile_number,
+            Services: Array.isArray(report.serviceNames) && report.serviceNames.length > 0
+                ? report.serviceNames.join(', ')
+                : 'No Services',
+            CreatedAt: report.created_at ? new Date(report.created_at).toLocaleDateString() : 'NIL',
+            "CEF Filled Date": report.cef_filled_date ? new Date(report.cef_filled_date).toLocaleDateString() : 'NIL',
+            "DAV Filled Date": report.dav_filled_date ? new Date(report.dav_filled_date).toLocaleDateString() : 'NIL',
+            FormStatus: report.is_form_opened === 1 ? 'Open' : 'Not Yet Opened',
+            EmploymentGap: report.is_employment_gap || 'NIL',
+            EducationGap: report.is_education_gap || 'NIL',
+        }));
+
+        // Create a worksheet and workbook
+        const ws = XLSX.utils.json_to_sheet(formattedData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
+
+        // Write the Excel file to disk
+        XLSX.writeFile(wb, 'Candidate-Applications.xlsx');
+    };
 
     const handleEdit = (client) => {
         handleEditCandidate(client);
@@ -245,7 +296,6 @@ const CandidateList = () => {
 
 
 
-
     return (
         <>
 
@@ -260,7 +310,7 @@ const CandidateList = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-5 justify-between">
+                                <div className="md:flex gap-3 ">
                                     <select name="" id="" onChange={handleSelectChange} className='outline-none border p-2 md:p-3 w-full text-left rounded-md md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
@@ -271,8 +321,17 @@ const CandidateList = () => {
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                                        onClick={exportToExcel}
+                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        type="button"
+                                        disabled={currentItems.length === 0}
+                                    >
+                                        Export to Excel
+                                    </button>
                                 </div>
                             </form>
+
                         </div>
                         <div className="col md:flex justify-end ">
                             <form action="">
@@ -288,6 +347,23 @@ const CandidateList = () => {
                             </form>
                         </div>
 
+                    </div>
+
+                    <div className='border'>
+                        <select className='w-full p-3' onChange={handleStatusChange} name='is_bgv_submitted' id='is_bgv_submitted'>
+                            <option value="">BGV Submitted</option>
+                            {UniqueBgv.map((item, index) => {
+                                return (
+                                    <>
+                                        <option value={item.cef_submitted}>
+                                            {item.cef_submitted === 1 ? "Yes" : "No"}
+                                        </option>
+                                    </>
+
+                                )
+                            })}
+
+                        </select>
                     </div>
                     <div className="overflow-x-auto py-6 md:px-4">
                         {candidateLoading ? (
@@ -308,13 +384,26 @@ const CandidateList = () => {
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">BGV Filled Date</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">DAV Filled Date</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Is Form Opened</th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Employment Gap</th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Education Gap</th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Gap Check</th>
+
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
+                                            BGV
+                                        </th>
+
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
+                                            DAV
+                                        </th>
+
+
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">View Docs</th>
                                         <th className="md:py-3 p-2 text-center md:px-4 text-white border-r border-b whitespace-nowrap uppercase">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {currentItems.map((report, index) => (
-                                        <tr key={report.id || index}>
+                                        <tr key={report.id || index} className={report?.cef_submitted === 1 ? "bg-green-100" : ""}>
                                             <td className="md:py-3 p-2 md:px-4 border-l border-b border-r whitespace-nowrap capitalize">{index + 1}</td>
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.name}</td>
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.email}</td>
@@ -441,8 +530,104 @@ const CandidateList = () => {
                                                     )
                                                 }
                                             </td>
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
+                                                    ? "text-green-500"
+                                                    : report.is_employment_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {report.is_employment_gap || "NIL"}
+                                            </td>
 
 
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_education_gap === "no"
+                                                    ? "text-green-500"
+                                                    : report.is_education_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {report.is_education_gap || "NIL"}
+                                            </td>
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
+                                                    ? "text-green-500"
+                                                    : report.is_employment_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {report.is_employment_gap === "yes" || report.is_employment_gap === "no" ? (
+                                                    <button
+                                                        className=""
+                                                        onClick={() =>
+                                                            handleCheckGap(report.cef_id, report.branch_id, report.main_id)
+                                                        }
+                                                    >
+                                                        Check GAP STATUS
+                                                    </button>
+                                                ) : (
+                                                    "NIL"
+                                                )}
+                                            </td>
+
+
+                                            {report.cef_id ? (
+                                                <td className="border px-4 py-2">
+                                                    <button
+                                                        className="bg-blue-500 uppercase border border-white hover:border-blue-500 text-white px-4 py-2 rounded hover:bg-white hover:text-blue-500"
+                                                        onClick={() => handleBGVClick(report.cef_id, report.branch_id, report.main_id)}
+                                                    >
+                                                        BGV
+                                                    </button>
+                                                </td>
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
+
+
+
+                                            {report.dav_id ? (
+                                                <td className="border px-4 py-2">
+                                                    <button
+                                                        className="bg-purple-500 uppercase border border-white hover:border-purple-500 text-white px-4 py-2 rounded hover:bg-white hover:text-purple-500"
+                                                        onClick={() => handleDAVClick(report.dav_id, report.branch_id, report.main_id)}
+                                                    >
+                                                        DAV
+                                                    </button>
+                                                </td>
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
+
+                                            {/* {report.cef_submitted === 0 || (report.dav_exist === 1 && report.dav_submitted === 0) ? (
+                                                <td className="border px-4 py-2">
+                                                    <button
+                                                        className={`bg-green-600 uppercase border border-white hover:border-green-500 text-white px-4 py-2 rounded hover:bg-white ${loadingRow === report.id ? "opacity-50 cursor-not-allowed hover:text-green-500 " : "hover:text-green-500"
+                                                            }`}
+                                                        onClick={() => handleSendLink(report.main_id, report.branch_id, report.customer_id, report.id)}
+                                                        disabled={loadingRow} // Disable only the clicked button
+                                                    >
+                                                        {loadingRow === report.id ? "Sending..." : "SEND LINK"}
+                                                    </button>
+                                                </td>
+                                            ) : <td className="border px-4 py-2">NIL</td>} */}
+
+                                            <td className="md:py-3 p-2 md:px-4 border whitespace-nowrap">
+                                                {report.service_data?.cef ? (
+                                                    <button
+                                                        className="md:px-4 py-2 p-2 bg-green-500 text-white rounded"
+                                                        onClick={() => handleViewDocuments(report.service_data.cef)}
+                                                    >
+                                                        View Documents
+                                                    </button>
+                                                ) : (
+                                                    <span>No Attachments</span>
+                                                )}
+                                            </td>
                                             {isModalOpenDoc && (
                                                 <Modal
                                                     isOpen={isModalOpenDoc}

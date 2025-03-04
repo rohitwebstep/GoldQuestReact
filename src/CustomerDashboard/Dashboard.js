@@ -172,7 +172,7 @@ const Dashboard = () => {
                                         </select>
                                         <button
                                             onClick={() => exportToExcel(applicationGroup.applications, key)}
-                                            className="bg-green-600 text-white py-3 px-8 rounded-md capitalize"
+                                            className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
                                             type='button'
                                         >
                                             Excel

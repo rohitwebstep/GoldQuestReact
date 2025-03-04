@@ -6,6 +6,9 @@ import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import ClientForm from './ClientForm';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
+
+
 
 const DropBoxList = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
@@ -211,6 +214,31 @@ const DropBoxList = () => {
     };
 
 
+    const exportToExcel = () => {
+        // Prepare the data for Excel export
+        const data = currentItems.map((report, index) => ({
+            SLNo: index + 1 + (currentPage - 1) * itemsPerPage,
+            ApplicationId: report.application_id || 'NIL',
+            EmployeeName: report.name || 'NIL',
+            ApplicationDate: new Date(report.created_at).toLocaleDateString(),
+            Location: report.location || 'NIL',
+            BatchNumber: report.batch_number || 'NIL',
+            SubClient: report.sub_client || 'NIL',
+            Services: report.serviceNames ? report.serviceNames.join(', ') : 'No Services',
+            SpocCaseName: report.single_point_of_contact || 'NIL',
+            EmployeeId: report.employee_id || 'NIL',
+        }));
+
+        // Create a new worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+
+        // Create a new workbook and append the worksheet
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Reports');
+
+        // Export the workbook to Excel
+        XLSX.writeFile(wb, 'Client-Applications.xlsx');
+    };
 
 
     return (
@@ -227,8 +255,11 @@ const DropBoxList = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-5 justify-between">
-                                    <select name="" id="" onChange={handleSelectChange} className='outline-none border p-2 md:p-3 w-full text-left rounded-md md:w-6/12'>
+                                <div className="md:flex gap-2">
+                                    <select name="options" id="" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -238,6 +269,14 @@ const DropBoxList = () => {
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                                        onClick={exportToExcel}
+                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        type="button"
+                                        disabled={currentItems.length === 0}
+                                    >
+                                        Export to Excel
+                                    </button>
                                 </div>
                             </form>
                         </div>

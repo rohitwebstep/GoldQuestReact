@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'; import { useApi
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 const GapStatus = () => {
-    const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
     const [initialAnnexureData, setInitialAnnexureData] = useState({
         gap_validation: {
             phd_institute_name_gap: '',
@@ -46,20 +46,29 @@ const GapStatus = () => {
     const [employGaps, setEmployGaps] = useState({});
     const queryParams = new URLSearchParams(location.search);
 
-    const branchId = queryParams.get('branch_id');
     const applicationId = queryParams.get('applicationId');
+
+
     const fetchData = useCallback(() => {
-        setIsApiLoading(true);
-        setLoading(true); // Start loading
+        const branchData = JSON.parse(localStorage.getItem("branch")) || {};
+        const branchEmail = branchData?.email;
+        setIsBranchApiLoading(true);
+        setLoading(true);
+        const branchId = JSON.parse(localStorage.getItem("branch"))?.branch_id;
+        const token = localStorage.getItem("branch_token");
+        const queryParams = new URLSearchParams(location.search);
 
-        const MyToken = localStorage.getItem('_token');
-        const adminData = JSON.parse(localStorage.getItem('admin') || '{}');
-        const admin_id = adminData?.id;
+        const applicationId = queryParams.get('applicationId');
 
-        if (!MyToken || !admin_id || !applicationId || !branchId) {
-            setLoading(false); // Stop loading if required params are missing
-            return;
-        }
+        const payLoad = {
+            application_id: applicationId,
+            branch_id: branchId,
+            _token: token,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
 
         const requestOptions = {
             method: "GET",
@@ -67,14 +76,14 @@ const GapStatus = () => {
         };
 
         fetch(
-            `https://api.goldquestglobal.in/candidate-master-tracker/gap-check?application_id=${applicationId}&branch_id=${branchId}&admin_id=${admin_id}&_token=${MyToken}`,
+            `https://api.goldquestglobal.in/branch/candidate-application/gap-check?${queryString}`,
             requestOptions
         )
             .then(res => {
                 return res.json().then(data => {
                     const newToken = data.token || data._token || '';
                     if (newToken) {
-                        localStorage.setItem("_token", newToken); // Save the new token in localStorage
+                        localStorage.setItem("branch_token", newToken); // Save the new token in localStorage
                     }
                     if (data.message && data.message.toLowerCase().includes("invalid") && data.message.toLowerCase().includes("token")) {
                         // Session expired, redirect to login
@@ -84,7 +93,7 @@ const GapStatus = () => {
                             icon: "warning",
                             confirmButtonText: "Ok",
                         }).then(() => {
-                            window.location.href = `/admin-login`; // Stop loading if required params are missing
+                            window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`; // Stop loading if required params are missing
                         });
                         return; // Stop further execution after session expiry
                     }
@@ -209,12 +218,16 @@ const GapStatus = () => {
             })
             .finally(() => {
                 setLoading(false);
-                setIsApiLoading(false); // End loading
+                setIsBranchApiLoading(false); // End loading
             });
-    }, [applicationId, branchId]);
+    }, [applicationId]);
+
     useEffect(() => {
-        fetchData();
-    }, [fetchData])
+        if (!isBranchApiLoading) {
+            fetchData();
+        }
+    }, [fetchData]);
+
 
     const renderGapMessage = (gap) => {
         if (gap?.years > 0 || gap?.months > 0) {
@@ -288,7 +301,6 @@ const GapStatus = () => {
         return updatedAnnexureData; // This can be used for further handling if needed
     };
 
-
     const calculateDateGap = (startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -336,14 +348,14 @@ const GapStatus = () => {
     const calculateGaps = () => {
 
         // Data from your JSON
-        const secondaryEndDate = annexureData.gap_validation.education_fields.secondary.secondary_end_date_gap;
-        const seniorSecondaryStartDate = annexureData.gap_validation.education_fields.senior_secondary.senior_secondary_start_date_gap;
-        const seniorSecondaryEndDate = annexureData.gap_validation.education_fields.senior_secondary.senior_secondary_end_date_gap;
-        const graduationStartDate = annexureData.gap_validation.education_fields.graduation_1.graduation_start_date_gap;
-        const graduationEndDate = annexureData.gap_validation.education_fields.graduation_1.graduation_end_date_gap;
-        const postGraduationStartDate = annexureData.gap_validation.education_fields.post_graduation_1.post_graduation_start_date_gap;
-        const postGraduationEndDate = annexureData.gap_validation.education_fields.post_graduation_1.post_graduation_end_date_gap;
-        const phdStartDate = annexureData.gap_validation.education_fields.phd_1.phd_start_date_gap;
+        const secondaryEndDate = annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap;
+        const seniorSecondaryStartDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap;
+        const seniorSecondaryEndDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_end_date_gap;
+        const graduationStartDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_start_date_gap;
+        const graduationEndDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_end_date_gap;
+        const postGraduationStartDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_start_date_gap;
+        const postGraduationEndDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_end_date_gap;
+        const phdStartDate = annexureData.gap_validation.education_fields.phd_1?.phd_start_date_gap;
 
 
         const gapSecToSrSec = calculateDateGap(secondaryEndDate, seniorSecondaryStartDate);
@@ -384,6 +396,7 @@ const GapStatus = () => {
                 const employmentData = employmentValues[employmentKey];
 
                 if (!employmentData) {
+                    console.warn(`%cNo data found for ${employmentKey}, stopping loop.`, 'color: orange;');
                     break;
                 }
 
@@ -419,7 +432,8 @@ const GapStatus = () => {
                 i++; // Move to next employment record
             }
 
-          
+            // Final logs
+
             return { employmentStartDates, employmentEndDates };
         }
 
@@ -430,12 +444,9 @@ const GapStatus = () => {
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
-
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
-
-
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
                     const diff = calculateDateDifference(currentEnd, nextStart);
 
@@ -453,7 +464,6 @@ const GapStatus = () => {
             }
 
             // Log differences
-
             return differences;
         }
 
@@ -471,7 +481,6 @@ const GapStatus = () => {
     return (
         <>
             <div className="bg-gray-300">
-                <button className='bg-green-500 text-white rounded-md p-3'>Go back </button>
                 <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white">
                     <h2 className='font-bold text-2xl pb-3'>Employment Gap</h2>
                     <div className="overflow-x-auto ">
@@ -499,9 +508,15 @@ const GapStatus = () => {
                                             {annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_end_date_gap`] || 'NIL'}
                                         </td>
                                         <td className="border px-4 py-2">
-                                            {employGaps.map((item, idx) => {
+                                            {employGaps?.map((item, idx) => {
+                                                // Check if item or item.difference is null, undefined, or empty before processing
+                                                if (!item || !item.difference) {
+                                                    return null; // Skip this iteration if item or item.difference is invalid
+                                                }
+
                                                 const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
 
+                                                // Check if the start value matches the employment start date gap for the current index
                                                 if (item.startValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`]) {
                                                     return (
                                                         <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
@@ -511,6 +526,7 @@ const GapStatus = () => {
                                                 }
                                                 return null;
                                             })}
+
                                         </td>
                                     </tr>
                                 ))}

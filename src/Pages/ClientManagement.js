@@ -17,16 +17,11 @@ const debounce = (func, delay) => {
   };
 };
 
-
-
 const ClientManagement = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
-
   const [showModal, setShowModal] = useState(false); // State to handle modal visibility
   const states = State.getStatesOfCountry('IN');
-
   const optionState = states.map(state => ({ value: state.isoCode, label: state.name }));
-
   const { handleTabChange } = useSidebar();
   const [files, setFiles] = useState([]);
   const [options, setOptions] = useState(optionState);

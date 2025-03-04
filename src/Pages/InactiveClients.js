@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApiCall } from '../ApiCallContext'; // Import the hook for ApiCallContext
+import * as XLSX from 'xlsx';
 
 const InactiveClients = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
@@ -213,7 +214,7 @@ const InactiveClients = () => {
         console.error('Fetch error:', error);
         Swal.fire('Error', `Failed to unblock the client ${name}: ${error.message}`, 'error');
       }
-      finally{
+      finally {
         setIsApiLoading(false);
       }
     }
@@ -225,8 +226,38 @@ const InactiveClients = () => {
     const selectedValue = parseInt(e.target.value, 10);
     setItemsPerPage(selectedValue);
   };
-  const hasMultipleServices = services.length > 1;
+  const exportToExcel = () => {
+    // Filtered data to export
+    const dataToExport = currentItems;
 
+    // Map the data to match the structure of the table headers
+    const formattedData = dataToExport.map((client, index) => ({
+      Index: index + 1,
+      "Client Code": client.client_unique_id,
+      "Company Name": client.name,
+      "Name of Client Spoc": client.single_point_of_contact,
+
+      // Use the client ID (or the correct field) for finding services
+      Services: services
+        .find((serviceGroup) => serviceGroup.customerId === client.main_id)?.services
+        .map((service) => service.serviceTitle).join(', ') || 'NIL',
+
+      "Date of Service Agreement": client.agreement_date ? new Date(client.agreement_date).toLocaleDateString() : 'NIL',
+      "Contact Person": client.contact_person_name || 'NIL',
+      "Mobile": client.mobile || 'NIL',
+      "Client Standard Procedure": client.client_standard || 'NIL',
+      Address: client.address || 'NIL',
+      industry_classification: client.industry_classification || 'NIL',
+    }));
+
+    // Create a worksheet and workbook
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
+
+    // Write the Excel file to disk
+    XLSX.writeFile(wb, 'Inactive-Client-Listing.xlsx');
+  };
 
   return (
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
@@ -234,8 +265,16 @@ const InactiveClients = () => {
 
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 px-4">
         <div className="col">
-          <div className="flex gap-5 justify-between">
-            <select name="options" onChange={handleSelectChange} className='outline-none  p-2 text-left rounded-md w-full md:w-6/12'>
+          <div className="flex gap-1 ">
+            <select
+              name="options"
+              onChange={(e) => {
+                handleSelectChange(e); // Call the select change handler
+                setCurrentPage(1); // Reset current page to 1
+              }}
+              className="outline-none  border p-3 text-left rounded-md w-full md:w-6/12"
+            >
+
               <option value="10">10 Rows</option>
               <option value="20">20 Rows</option>
               <option value="50">50 Rows</option>
@@ -245,6 +284,14 @@ const InactiveClients = () => {
               <option value="400">400 Rows</option>
               <option value="500">500 Rows</option>
             </select>
+            <button
+                  onClick={exportToExcel}
+                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  type="button"
+                  disabled={currentItems.length === 0}
+                >
+                  Export to Excel
+                </button>
           </div>
         </div>
         <div className="col md:flex justify-end">

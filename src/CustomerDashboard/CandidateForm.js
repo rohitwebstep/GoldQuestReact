@@ -44,9 +44,6 @@ const CandidateForm = () => {
         }
     };
 
-console.log('input',input)
-
-
     const handlePackageChange = (e) => {
         const selectedValue = e.target.value; // The selected package ID
 

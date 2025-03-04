@@ -4,6 +4,7 @@ import { useApi } from '../ApiContext';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const DeletionRequest = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall(); // Access isBranchApiLoading from ApiCallContext
@@ -38,11 +39,11 @@ const DeletionRequest = () => {
             branch_id: branchId,
             _token: token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-          };
-          
-          // Zet het object om naar een query string
-          const queryString = new URLSearchParams(payLoad).toString();
-          
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
+
 
         try {
             const response = await fetch(`${API_URL}/branch/delete-request/list?${queryString}`, {
@@ -94,14 +95,13 @@ const DeletionRequest = () => {
             setIsBranchApiLoading(false);
         }
     }, []);
-  
+
 
     useEffect(() => {
         if (!isBranchApiLoading) {
             fetchClientDrop();
         }
     }, [fetchClientDrop]);
-    console.log('listdata', listData)
 
 
     const filteredItems = listData.filter(item => {
@@ -354,7 +354,30 @@ const DeletionRequest = () => {
             }
         });
     };
+    const exportToExcel = () => {
+        const data = currentItems.map((report, index) => ({
+            SLNo: index + 1 + (currentPage - 1) * itemsPerPage,
+            AdminName: report.admin_name || 'NIL',
+            AdminEmail: report.admin_email || 'NIL',
+            AdminMobile: report.admin_mobile || 'NIL',
+            CustomerName: report.customer_name || 'NIL',
+            CustomerMobile: report.customer_mobile || 'NIL',
+            DirectorEmail: report.director_email || 'NIL',
+            FromDate: new Date(report.from).toLocaleDateString(),
+            ToDate: new Date(report.to).toLocaleDateString(),
+            Status: report.status || 'NIL',
+        }));
 
+        // Create a new worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+
+        // Create a new workbook and append the worksheet
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Reports');
+
+        // Export the workbook to Excel
+        XLSX.writeFile(wb, 'Deletion-Requests.xlsx');
+    };
 
     return (
         <>
@@ -365,8 +388,11 @@ const DeletionRequest = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-5 justify-between">
-                                    <select name="" id="" onChange={handleSelectChange} className='outline-none border p-2 md:p-3 w-full text-left rounded-md md:w-6/12'>
+                                <div className="md:flex gap-2">
+                                    <select name="options" id="" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border '>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -376,6 +402,14 @@ const DeletionRequest = () => {
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                                        onClick={exportToExcel}
+                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        type="button"
+                                        disabled={currentItems.length === 0}
+                                    >
+                                        Export to Excel
+                                    </button>
                                 </div>
                             </form>
                         </div>

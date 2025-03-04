@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import Modal from 'react-modal';
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const CandidateExcelTrackerStatus = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -339,6 +340,69 @@ const CandidateExcelTrackerStatus = () => {
             });
     };
 
+
+
+    const exportToExcel = () => {
+        // Create an array of headers
+        const headers = [
+            'Index',
+            'Name',
+            'Employee ID',
+            'Mobile Number',
+            'Email',
+            'Created At',
+            'Employment Gap',
+            'Education Gap',
+            'Check GAP Status',
+            'CEF Filled Date',
+            'DAV Filled Date',
+        ];
+
+        // Prepare data rows
+        const data = currentItems.map((data, index) => [
+            index + 1,
+            data.name || 'NIL',
+            data.employee_id || 'NIL',
+            data.mobile_number || 'NIL',
+            data.email || 'NIL',
+            data.created_at
+                ? (new Date(data.created_at))
+                    .toLocaleDateString('en-GB')
+                    .split('/')
+                    .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                    .join('-')
+                : 'NIL',
+            data.is_employment_gap || 'NIL',
+            data.is_education_gap || 'NIL',
+            (data.is_employment_gap === "yes" || data.is_employment_gap === "no") ? "YES" : 'NIL',
+            data.cef_filled_date
+                ? (new Date(data.cef_filled_date))
+                    .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                    .split('/')
+                    .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                    .join('-')
+                : 'NIL',
+            data.dav_filled_date
+                ? new Intl.DateTimeFormat('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit',
+                }).format(new Date(data.dav_filled_date))
+                : 'NIL',
+        ]);
+
+        // Create a worksheet from the data
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+
+        // Create a workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Reports');
+
+        // Export to Excel
+        XLSX.writeFile(wb, 'Report_Data.xlsx');
+    };
+
+
     return (
         <div className="bg-[#c1dff2]">
             <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] bg-white">
@@ -348,17 +412,27 @@ const CandidateExcelTrackerStatus = () => {
                     <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="flex gap-5 justify-between">
-                                    <select name="options" id="" onChange={handleSelectChange} className='outline-none pe-14 ps-2 text-left rounded-md w-full border md:w-10/12'>
+                                <div className="flex gap-2">
+                                    <select name="options" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-auto'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
-                                        <option value="100">100 Rows</option>
                                         <option value="200">200 Rows</option>
                                         <option value="300">300 Rows</option>
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                                        onClick={exportToExcel}
+                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        type="button"
+                                        disabled={currentItems.length === 0}
+                                    >
+                                        Export to Excel
+                                    </button>
                                     <button onClick={goBack} className="bg-green-500 mx-2 whitespace-nowrap hover:bg-green-400 text-white rounded-md p-3">Go Back</button>
 
                                 </div>
@@ -496,10 +570,10 @@ const CandidateExcelTrackerStatus = () => {
                                             </td>
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
-                                                        ? "text-green-500"
-                                                        : data.is_employment_gap === "yes"
-                                                            ? "text-red-500"
-                                                            : "text-black"
+                                                    ? "text-green-500"
+                                                    : data.is_employment_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
                                                     }`}
                                             >
                                                 {data.is_employment_gap === "yes" || data.is_employment_gap === "no" ? (

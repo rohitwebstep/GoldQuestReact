@@ -4,6 +4,7 @@ import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import Swal from 'sweetalert2';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const TatDelay = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -176,10 +177,45 @@ const TatDelay = () => {
   }, [fetchTat]);
 
   const handleSelectChange = (e) => {
-
     const selectedValue = e.target.value;
     setItemPerPage(selectedValue)
   }
+
+  const exportToExcel = () => {
+    // Define table headers
+    const headers = [
+        'Index',
+        'TAT Days',
+        'Application Created At',
+        'Application ID',
+        'Application Name',
+        'Days Out of TAT',
+    ];
+
+    // Map data to an array that can be used in the Excel file
+    const data = currentItems.map((item, index) => [
+        index + 1 + (currentPage - 1) * itemsPerPage,
+        item.tat_days ||'NIL',
+        new Date(item.application_created_at).getDate() +
+            '-' +
+            (new Date(item.application_created_at).getMonth() + 1) +
+            '-' +
+            new Date(item.application_created_at).getFullYear(),
+        item.application_id || 'NIL',
+        item.application_name || 'NIL',
+        item.days_out_of_tat || 'NIL',
+    ]);
+
+    // Create a worksheet from the data
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+
+    // Create a workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'TAT Applications');
+
+    // Export to Excel
+    XLSX.writeFile(wb, 'TAT_Applications.xlsx');
+};
 
   return (
     <>
@@ -190,17 +226,27 @@ const TatDelay = () => {
         <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
           <div className="col">
             <form action="">
-              <div className="flex gap-5 justify-between">
-                <select name="options" id="" onChange={handleSelectChange} className='outline-none p-3  ps-2 text-left rounded-md w-full md:w-6/12'>
+              <div className="flex gap-2">
+                <select name="options" onChange={(e) => {
+                  handleSelectChange(e); // Call the select change handler
+                  setCurrentPage(1); // Reset current page to 1
+                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
-                  <option value="100">100 Rows</option>
                   <option value="200">200 Rows</option>
                   <option value="300">300 Rows</option>
                   <option value="400">400 Rows</option>
                   <option value="500">500 Rows</option>
                 </select>
+                <button
+                  onClick={exportToExcel}
+                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  type="button"
+                  disabled={currentItems.length === 0}
+                >
+                  Export to Excel
+                </button>
 
               </div>
             </form>

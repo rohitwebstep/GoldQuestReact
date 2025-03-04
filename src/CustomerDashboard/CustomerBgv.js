@@ -10,10 +10,9 @@ import axios from 'axios';
 import LogoBgv from '../Images/LogoBgv.jpg'
 import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
-import html2pdf, { f } from 'html2pdf.js';
 import { jsPDF } from 'jspdf';
 const CandidateBGV = () => {
-    const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { branchApiLoading, setIsBranchApiLoading } = useApiCall();
     const contentRef = useRef();
     const [error, setError] = useState(null);
     const [customBgv, setCustomBgv] = useState('');
@@ -34,7 +33,8 @@ const CandidateBGV = () => {
     const applicationId = queryParams.get('applicationId');
 
     const fetchImageToBase = async (imageUrls) => {
-        setIsApiLoading(true); // Set loading state to true before making the request
+        setIsBranchApiLoading(true);
+        // Set loading state to true before making the request
         try {
             // Define headers for the POST request
             const headers = {
@@ -53,7 +53,7 @@ const CandidateBGV = () => {
                 { headers }
             );
 
-            // Assuming the response data contains an array of images
+
             return response.data.images || [];  // Return images or an empty array if no images are found
         } catch (error) {
             console.error("Error fetching images:", error);
@@ -69,7 +69,7 @@ const CandidateBGV = () => {
             return null; // Return null if an error occurs
         } finally {
             // Reset the loading state after the API request finishes (success or failure)
-            setIsApiLoading(false);
+            setIsBranchApiLoading(false);
         }
     };
 
@@ -140,6 +140,8 @@ const CandidateBGV = () => {
                     } else {
                         doc.text("Unable to load image.", 10, 40);
                     }
+
+                    yPosition += imageHeight + 10;
                 } else {
                     // If the resume file is not an image, show a button to view the document
                     const resumeUrl = resumeFile;
@@ -163,10 +165,7 @@ const CandidateBGV = () => {
             }
 
         }
-        doc.setTextColor(0, 0, 0);
-        if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
-            yPosition += imageHeight + 10;
-        }
+      
         yPosition += 10;
         if (cefData && cefData.govt_id) {
             // Split the comma-separated string into an array of image URLs
@@ -623,7 +622,7 @@ const CandidateBGV = () => {
                             });
                             // Add the table data
                             doc.autoTable({
-                                head: [['Correspondence', 'University/Institute Name', 'Course', 'Specialization Major', 'Start Date', 'End Date']],
+                                head: [['Correspondence','University/Institute Name', 'Course', 'Specialization Major', 'Start Date', 'End Date']],
                                 body: Graduation,
                                 startY: doc.autoTable.previous.finalY + 30, // Start below the title
                                 theme: 'grid',
@@ -691,7 +690,7 @@ const CandidateBGV = () => {
                             });
                             // Add the table data
                             doc.autoTable({
-                                head: [['Correspondence', 'School Name', 'Start Date', 'End Date']],
+                                head: [['Correspondence','School Name', 'Start Date', 'End Date']],
                                 body: seniorSecondarySections,
                                 startY: doc.autoTable.previous.finalY + 20, // Start below the title
                                 theme: 'grid',
@@ -832,34 +831,34 @@ const CandidateBGV = () => {
                             yPosition = doc.autoTable.previous.finalY + 10;
                             for (let idx = 0; idx < employGaps.length; idx++) {
                                 const item = employGaps[idx];  // Fix: Use idx directly, not idx - 1
-
-
+                            
+                            
                                 if (item) {
                                     const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
-
+                            
                                     const isMatchingEndDate = item.endValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index}`]?.[`employment_end_date_gap`];
-
+                            
                                     if (isMatchingEndDate) {
                                         // Prepare the text to be shown in the document
                                         const textToDisplay = `${isNoGap ? item.difference : `GAP:${item.difference || 'No gap Found'}`}`;
-
+                            
                                         // Log the text that will be displayed
-
+                            
                                         // Display the text in the document
                                         doc.text(
                                             textToDisplay,
                                             14,
                                             doc.autoTable.previous.finalY + 7
                                         );
-
+                            
                                         // Update yPosition for next table or text
                                         yPosition = doc.autoTable.previous.finalY + 10;
-
+                            
                                     }
                                 }
                             }
-
-
+                            
+                           
                         });
                     }
 
@@ -916,6 +915,7 @@ const CandidateBGV = () => {
                     );
 
                     if (fileInputs.length > 0) {
+
                         const imagePromises = fileInputs.map(async (inputName) => {
                             const annexureImagesStr = annexureData[service.db_table]?.[inputName];
                             let annexureDataImageHeight = 220;
@@ -933,10 +933,9 @@ const CandidateBGV = () => {
                                 const imageBases = await fetchImageToBase(imageUrls);
                                 for (const image of imageBases) {
                                     if (!image.base64.startsWith('data:image/')) continue;
-
-                                    doc.addPage();
-                                    yPosition = 20;
-
+                                  
+                                        doc.addPage();
+                                        yPosition = 20;
 
                                     try {
                                         const imageWidth = doc.internal.pageSize.width - 10;
@@ -967,16 +966,19 @@ const CandidateBGV = () => {
 
 
     const fetchData = useCallback(() => {
-        setIsApiLoading(true);
-        setLoading(true); // Start loading
+        const branchData = JSON.parse(localStorage.getItem("branch")) || {};
+        const branchEmail = branchData?.email;
+        setIsBranchApiLoading(true);
+        setLoading(true);
+        const branchId = JSON.parse(localStorage.getItem("branch"))?.branch_id;
+        const token = localStorage.getItem("branch_token");
 
-        const MyToken = localStorage.getItem('_token');
         const adminData = JSON.parse(localStorage.getItem('admin') || '{}');
         const admin_id = adminData?.id;
 
-        if (!MyToken || !admin_id || !applicationId || !branchId) {
-            setError('Missing required parameters or authentication token.');
-            setLoading(false); // Stop loading if required params are missing
+        if (!token || !admin_id || !applicationId || !branchId) {
+            setLoading(false);
+            window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;// Stop loading if required params are missing
             return;
         }
 
@@ -985,15 +987,27 @@ const CandidateBGV = () => {
             redirect: "follow",
         };
 
+
+        const payLoad = {
+            application_id: applicationId,
+            branch_id: branchId,
+            _token: token,
+            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
+
+
         fetch(
-            `https://api.goldquestglobal.in/candidate-master-tracker/bgv-application-by-id?application_id=${applicationId}&branch_id=${branchId}&admin_id=${admin_id}&_token=${MyToken}`,
+            `https://api.goldquestglobal.in/branch/candidate-application/bgv-application-by-id?${queryString}`,
             requestOptions
         )
             .then(res => {
                 return res.json().then(data => {
                     const newToken = data.token || data._token || '';
                     if (newToken) {
-                        localStorage.setItem("_token", newToken); // Save the new token in localStorage
+                        localStorage.setItem("branch_token", newToken); // Save the new token in localStorage
                     }
                     if (data.message && data.message.toLowerCase().includes("invalid") && data.message.toLowerCase().includes("token")) {
                         // Session expired, redirect to login
@@ -1003,7 +1017,8 @@ const CandidateBGV = () => {
                             icon: "warning",
                             confirmButtonText: "Ok",
                         }).then(() => {
-                            window.location.href = "/admin-login"; // Redirect to login page
+                            // Redirect to customer login page in the current tab
+                            window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
                         });
                         return; // Stop further execution after session expiry
                     }
@@ -1123,22 +1138,16 @@ const CandidateBGV = () => {
                 setError(err.message || 'An unexpected error occurred.');
             })
             .finally(() => {
-                setLoading(false);
-                setIsApiLoading(false); // End loading
+                setLoading(false)
+                setIsBranchApiLoading(false); // End loading
             });
     }, [applicationId, branchId]);
-
-
 
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
     const [gaps, setGaps] = useState({});
     const [employGaps, setEmployGaps] = useState({});
-
     const [loading, setLoading] = useState(false);
-    const [loadingData, setLoadingData] = useState(false)
     const [conditionHtml, setConditionHtml] = useState("");
-
-
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
 
@@ -1180,18 +1189,13 @@ const CandidateBGV = () => {
 
     const updateEmploymentFields = (noOfEmployments, fieldValue) => {
 
-        // Generate new employment fields based on the provided number of employments
         const allEmploymentFields = createEmploymentFields(noOfEmployments, fieldValue);
 
-        // Create a copy of the current annexureData
         const updatedAnnexureData = { ...annexureData };
 
-        // Check if gap_validation exists before modifying
         if (updatedAnnexureData.gap_validation) {
-            // Delete the existing employment_fields key
             delete updatedAnnexureData.gap_validation.employment_fields;
         } else {
-            // If gap_validation doesn't exist, initialize it
             updatedAnnexureData.gap_validation = {};
         }
 
@@ -1488,6 +1492,7 @@ const CandidateBGV = () => {
 
     const calculateGaps = () => {
 
+        //console.log('annexureData.gap_validation', annexureData.gap_validation)
         // Data from your JSON
         const secondaryEndDate = annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap || null;
         const seniorSecondaryStartDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap || null;
@@ -1524,8 +1529,10 @@ const CandidateBGV = () => {
             const employmentEndDates = [];
             let i = 1; // Start index
 
+            //console.log('%cFetching employment dates...', 'color: blue; font-weight: bold;');
 
             const employmentValues = annexureData?.gap_validation?.employment_fields;
+            //console.log('%cEmployment values:', 'color: green; font-weight: bold;', employmentValues);
 
             if (!employmentValues) {
                 console.warn('%cNo employment fields found in the data.', 'color: red; font-weight: bold;');
@@ -1545,11 +1552,13 @@ const CandidateBGV = () => {
                 const startKey = `employment_start_date_gap`;
                 const endKey = `employment_end_date_gap`;
 
+                //console.log(`%cChecking ${employmentKey}:`, 'color: blue; font-weight: bold;', employmentData);
 
                 // Check if start or end date exists
                 const hasStartDate = startKey in employmentData;
                 const hasEndDate = endKey in employmentData;
 
+                //console.log(`%cChecking keys: ${startKey}: ${hasStartDate}, ${endKey}: ${hasEndDate}`, 'color: purple;');
 
                 if (!hasStartDate && !hasEndDate) {
                     console.warn(`%cNo start or end date found for ${employmentKey}, stopping loop.`, 'color: orange;');
@@ -1562,17 +1571,22 @@ const CandidateBGV = () => {
                         name: startKey,
                         value: employmentData[startKey]
                     });
+                    //console.log(`✅ %cAdded Start Date: ${employmentData[startKey]}`, 'color: green;');
                 }
                 if (hasEndDate) {
                     employmentEndDates.push({
                         name: endKey,
                         value: employmentData[endKey]
                     });
+                    //console.log(`✅ %cAdded End Date: ${employmentData[endKey]}`, 'color: green;');
                 }
 
                 i++; // Move to next employment record
             }
 
+            // Final logs
+            //console.log('%cEmployment Start Dates:', 'color: blue; font-weight: bold;', employmentStartDates);
+            //console.log('%cEmployment End Dates:', 'color: blue; font-weight: bold;', employmentEndDates);
 
             return { employmentStartDates, employmentEndDates };
         }
@@ -1584,11 +1598,13 @@ const CandidateBGV = () => {
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
+            //console.log('Calculating employment date differences...');
 
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
 
+                //console.log('Comparing dates:', currentEnd, nextStart);
 
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
                     const diff = calculateDateDifference(currentEnd, nextStart);
@@ -1602,11 +1618,13 @@ const CandidateBGV = () => {
                             startValue: nextStart,
                             difference: diff
                         });
+                        //console.log('Valid difference found:', differences[differences.length - 1]);
                     }
                 }
             }
 
             // Log differences
+            //console.log('Employment date differences:', differences);
 
             return differences;
         }
@@ -1621,10 +1639,11 @@ const CandidateBGV = () => {
 
 
     useEffect(() => {
-        if (!isApiLoading) {
+        if (!branchApiLoading) {
             fetchData();
         }
     }, [fetchData, annexureData]);
+    //console.log('gaps', gaps)
 
 
     return (
@@ -2571,7 +2590,6 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                             while (true) {
                                                                                 const key = `phd_corespondence_${index}`;
 
-                                                                                // Check if the key exists in education_fields
                                                                                 if (!annexureData?.gap_validation?.education_fields?.[key]) {
                                                                                     break; // Exit loop if the key is missing
                                                                                 }
@@ -2724,7 +2742,6 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                         while (true) {
                                                                             const key = `post_graduation_corespondence_${index}`;
 
-                                                                            // Check if the key exists in education_fields
                                                                             if (!annexureData?.gap_validation?.education_fields?.[key]) {
                                                                                 break; // Exit loop if the key is missing
                                                                             }
@@ -3008,6 +3025,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
 
                                                                         while (true) {
                                                                             const key = `senior_secondary_corespondence_${index}`;
+
 
                                                                             // Check if the key exists in education_fields
                                                                             if (!annexureData?.gap_validation?.education_fields?.[key]) {
@@ -3615,14 +3633,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
 
                                 </div>
 
-
-
-
-
                             </div>
-
-
-
                         </form>
 
                     </>

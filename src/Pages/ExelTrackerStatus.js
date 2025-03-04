@@ -10,6 +10,7 @@ import { BranchContextExel } from './BranchContextExel';
 import Swal from 'sweetalert2';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const AdminChekin = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -341,15 +342,21 @@ const AdminChekin = () => {
 
                 // If no invalid token message, proceed with result filtering
                 const filteredResults = result.results.filter((item) => item != null);
+
                 const sortedFilteredResults = filteredResults.sort((a, b) => {
-                    const orderA = parseInt(a.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
-                    const orderB = parseInt(b.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER;
-                
+                    const orderA = a.annexureData && a.annexureData.sorting_order != null
+                        ? parseInt(a.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER
+                        : Number.MAX_SAFE_INTEGER;
+
+                    const orderB = b.annexureData && b.annexureData.sorting_order != null
+                        ? parseInt(b.annexureData.sorting_order) || Number.MAX_SAFE_INTEGER
+                        : Number.MAX_SAFE_INTEGER;
+
                     return orderA - orderB;
                 });
 
-                console.log(`sortedFilteredResults - `, sortedFilteredResults);
                 return sortedFilteredResults;
+
             } else {
                 const result = await response.json(); // Get the result to show the error message from API
                 const errorMessage = result.message || response.statusText || 'Failed to fetch service data';
@@ -468,8 +475,6 @@ const AdminChekin = () => {
     };
 
 
-
-
     const generatePDF = async (index, reportDownloadFlag, reportInfo) => {
         const applicationInfo = data[index];
         const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services, reportDownloadFlag);
@@ -477,7 +482,6 @@ const AdminChekin = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         let yPosition = 5;
         const backgroundColor = '#f5f5f5';
-        // console.log('applicationInfo', applicationInfo)
 
         doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
@@ -487,7 +491,7 @@ const AdminChekin = () => {
             const imageBases = await fetchImageToBase([applicationInfo?.photo.trim()]);
             doc.addImage(imageBases?.[0]?.base64 || "https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 40, yPosition, 30, 30);
 
-        } else{
+        } else {
             doc.addImage("https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 45, yPosition, 30, 30);
 
         }
@@ -916,12 +920,11 @@ const AdminChekin = () => {
                 const annexureImagesKey = Object.keys(annexureData).find((key) =>
                     key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
                 );
-                console.log('')
 
                 if (annexureImagesKey) {
                     const annexureImagesStr = annexureData[annexureImagesKey];
                     const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
-                
+
                     if (annexureImagesSplitArr.length === 0) {
                         doc.setFont("helvetica", "italic");
                         doc.setFontSize(10);
@@ -936,25 +939,25 @@ const AdminChekin = () => {
                                     console.error(`Invalid base64 data for image ${index + 1}`);
                                     return;
                                 }
-                
+
                                 // Use the scaleImageForPDF function to get the full width
                                 const { width, height } = scaleImageForPDF(image.width, image.height, doc.internal.pageSize.width - 20, 80);
-                
+
                                 if (yPosition + height > doc.internal.pageSize.height - 20) {
                                     doc.addPage();
                                     yPosition = 10;
                                 }
-                
+
                                 const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
                                 const textWidth = doc.getTextWidth(annexureText);
                                 const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-                
+
                                 doc.setFont("helvetica", "bold");
                                 doc.setFontSize(10);
                                 doc.setTextColor(0, 0, 0);
                                 doc.text(annexureText, centerX, yPosition + 10);
                                 yPosition += 15;
-                
+
                                 const centerXImage = (doc.internal.pageSize.width - width) / 2;
                                 try {
                                     // Add the image with the calculated width (full width) and proportional height
@@ -973,7 +976,7 @@ const AdminChekin = () => {
                     doc.text("No annexure images available.", 10, yPosition);
                     yPosition += 15;
                 }
-                
+
             }
 
 
@@ -981,12 +984,12 @@ const AdminChekin = () => {
                 // Scale to full width (stretch the image)
                 const width = availableWidth;  // Stretch the image to full available width
                 const height = (imageHeight * availableWidth) / pageWidth;  // Calculate the height proportionally to the new width
-            
+
                 return { width, height };  // Return the stretched width and height
             }
-            
-            
-            
+
+
+
 
             addFooter(doc);
             annexureIndex++;
@@ -1144,6 +1147,8 @@ the information responsible for employment decisions based on the information pr
     useEffect(() => {
         if (!isApiLoading) { fetchData(); }
     }, [clientId, branch_id]);
+
+    
     useEffect(() => {
         if (!isApiLoading) {
             fetchAdminList();
@@ -1223,8 +1228,42 @@ the information responsible for employment decisions based on the information pr
     }
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const userRole = adminData.role;
-    // console.log('adminData', adminData)
-    // console.log('userRole', userRole)
+    const exportToExcel = () => {
+        const worksheetData = currentItems.map((data, index) => ({
+            "Index": index + 1,
+            "Admin TAT": data.adminTAT || "NIL",
+            "Location": data.location || "NIL",
+            "Name": data.name || "NIL",
+            "Application ID": data.application_id || "NIL",
+            "Employee ID": data.employee_id || "NIL",
+            "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
+            "Updated At": data.updated_at ? new Date(data.updated_at).toLocaleDateString() : "NIL",
+            "Report Type": data.report_type || "NIL",
+            "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
+            "Generated By": data.report_generated_by_name || "NIL",
+            "QC Done By": data.qc_done_by_name || "NIL",
+            "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
+            "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
+            "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
+            "Second Level Insuff": data.second_insufficiency_marks,
+            "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
+            "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
+            "Third Level Insuff Marks": data?.third_insufficiency_marks,
+            "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
+            "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
+            "Reason For Delay": data || "NIL",
+            "overall_status": data?.overall_status || "NIL",
+            "Delay Reason": data.delay_reason || "NIL",
+            "tat_days": data?.tat_days || "NIL",
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+        // Save the workbook to a file
+        XLSX.writeFile(wb, "Data.xlsx");
+    };
 
     return (
         <div className="bg-[#c1dff2]">
@@ -1250,7 +1289,10 @@ the information responsible for employment decisions based on the information pr
                         <div className="col">
                             <form action="">
                                 <div className="flex gap-5 justify-between">
-                                    <select name="options" id="" onChange={handleSelectChange} className='outline-none pe-14 ps-2 text-left rounded-md border w-10/12'>
+                                    <select name="options" id="" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -1260,6 +1302,14 @@ the information responsible for employment decisions based on the information pr
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+                    Export to Excel
+                  </button>
                                     <button onClick={goBack} className="bg-green-500 mx-2 whitespace-nowrap hover:bg-green-400 text-white rounded-md p-3">Go Back</button>
 
                                 </div>

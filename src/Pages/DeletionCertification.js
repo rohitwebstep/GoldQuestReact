@@ -7,7 +7,8 @@ import PulseLoader from "react-spinners/PulseLoader";
 import { useApi } from '../ApiContext'; // use the custom hook
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import Modal from 'react-modal';
-import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
+
 import 'jspdf-autotable';
 import { useApiCall } from '../ApiCallContext';
 Modal.setAppElement('#root');
@@ -142,7 +143,7 @@ const DeletionCertification = () => {
 
   const handleDelete = (id, type) => {
     const validateError = Validate(); // Perform validation only if not editing
- 
+
     if (Object.keys(validateError).length === 0) {
       setError({}); // Clear any previous errors before proceeding
       setShowModal(false);
@@ -166,28 +167,28 @@ const DeletionCertification = () => {
               Swal.showLoading();
             },
           });
-  
+
           const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
           const storedToken = localStorage.getItem("_token");
-  
+
           if (!admin_id || !storedToken) {
             console.error("Admin ID or token is missing.");
             Swal.close();
             setIsApiLoading(false); // Set loading state to false if missing token
             return;
           }
-  
+
           const formdata = new FormData();
           const requestOptions = {
             method: "POST",
             body: formdata,
             redirect: "follow"
           };
-  
+
           let url;
           let successMessage = ''; // Initialize success message
           let queryParams;
-  
+
           queryParams = new URLSearchParams({
             id: id,
             admin_id: admin_id || '',
@@ -197,7 +198,7 @@ const DeletionCertification = () => {
             client_applications: formData.isClientApplication || '',
             candidate_applications: formData.isCandidateApplication || '',
           }).toString();
-  
+
           if (type === 'client') {
             url = `${API_URL}/delete-request/create?${queryParams}`;
           } else {
@@ -205,7 +206,7 @@ const DeletionCertification = () => {
             setIsApiLoading(false); // Set loading state to false if type is not 'client'
             return;
           }
-  
+
           fetch(url, requestOptions)
             .then((response) => response.json())
             .then((result) => {
@@ -213,7 +214,7 @@ const DeletionCertification = () => {
               if (newToken) {
                 localStorage.setItem("_token", newToken); // Update the token if present in the response
               }
-  
+
               if (!result.ok) {
                 // Check for token expiration or other errors
                 if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
@@ -233,16 +234,16 @@ const DeletionCertification = () => {
                   );
                 }
               }
-  
+
               successMessage = result.message || 'The request has been deleted successfully.'; // Set success message
-  
+
               fetchData(); // Refresh data, this might be unnecessary to call twice
               Swal.fire(
                 'Deleted!',
                 successMessage,
                 'success'
               );
-  
+
               setFormData({
                 fromDate: '',
                 toDate: '',
@@ -252,7 +253,7 @@ const DeletionCertification = () => {
             })
             .catch((error) => {
               console.error('Fetch error:', error);
-             
+
             })
             .finally(() => {
               loadingSwal.close(); // Close loading spinner
@@ -264,7 +265,32 @@ const DeletionCertification = () => {
       setError(validateError); // Set error if validation fails
     }
   };
-  
+  const exportToExcel = () => {
+    // Filtered data to export
+    const dataToExport = currentItems;
+
+    // Map the data to match the structure of the table headers
+    const formattedData = dataToExport.map((client, index) => ({
+      Index: index + 1,
+      "Client Code": client.client_unique_id,
+      "Company Name": client.name,
+      "Name of Client Spoc": client.single_point_of_contact,
+      "Date of Service Agreement": client.agreement_date ? new Date(client.agreement_date).toLocaleDateString() : 'NIL',
+      "Contact Person": client.contact_person_name || 'NIL',
+      "Mobile": client.mobile || 'NIL',
+      "Client Standard Procedure": client.client_standard || 'NIL',
+      Address: client.address || 'NIL',
+      industry_classification: client.industry_classification || 'NIL',
+    }));
+
+    // Create a worksheet and workbook
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
+
+    // Write the Excel file to disk
+    XLSX.writeFile(wb, 'Client-Deletion-Certificate.xlsx');
+  };
 
 
   return (
@@ -274,18 +300,30 @@ const DeletionCertification = () => {
 
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-3">
         <div className="col">
-          <div className="flex gap-5 justify-between">
-            <select name="options" onChange={handleSelectChange} className='outline-none  p-3 text-left rounded-md w-full md:w-6/12'>
-              <option value="10">10 Rows</option>
-              <option value="20">20 Rows</option>
-              <option value="50">50 Rows</option>
-              <option value="100">100 Rows</option>
-              <option value="200">200 Rows</option>
-              <option value="300">300 Rows</option>
-              <option value="400">400 Rows</option>
-              <option value="500">500 Rows</option>
-            </select>
-          </div>
+          <form action="">
+            <div className="flex gap-2">
+              <select name="options" onChange={(e) => {
+                handleSelectChange(e); // Call the select change handler
+                setCurrentPage(1); // Reset current page to 1
+              }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                <option value="10">10 Rows</option>
+                <option value="20">20 Rows</option>
+                <option value="50">50 Rows</option>
+                <option value="200">200 Rows</option>
+                <option value="300">300 Rows</option>
+                <option value="400">400 Rows</option>
+                <option value="500">500 Rows</option>
+              </select>
+            <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+               Export To Excel
+              </button>
+            </div>
+          </form>
         </div>
         <div className="col md:flex justify-end">
           <form action="">

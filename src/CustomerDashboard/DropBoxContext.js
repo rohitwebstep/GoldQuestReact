@@ -11,6 +11,7 @@ export const DropBoxProvider = ({ children }) => {
     const [inputError, setInputError] = useState({});
     const API_URL = useApi();
     const [services, setServices] = useState([]);
+    const [UniqueBgv, setUniqueBgv] = useState([]);
     const [uniquePackages, setUniquePackages] = useState([]);
     const [listData, setListData] = useState([]);
     const [candidateListData, setCandidateListData] = useState([]);
@@ -284,6 +285,14 @@ export const DropBoxProvider = ({ children }) => {
                         });
                     }
                 });
+
+                const candidateApplications = result.data?.candidateApplications
+
+                const uniqueCefSubmitted = [...new Set(candidateApplications.map(application => application.cef_submitted))]
+                    .map(cef_submitted => ({ cef_submitted }));
+                setUniqueBgv(uniqueCefSubmitted);
+
+
                 setUniquePackages(uniquePackages);
             }
         } catch (error) {
@@ -412,6 +421,8 @@ export const DropBoxProvider = ({ children }) => {
             handleEditCandidate,
             setServices,
             listData,
+            setUniqueBgv,
+            UniqueBgv,
             setListData,
             setUniquePackages,
             fetchServices,

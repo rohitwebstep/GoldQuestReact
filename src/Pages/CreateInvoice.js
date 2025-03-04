@@ -721,7 +721,6 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
   }
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear - 1, currentYear - 2];
-console.log('clientCode',options)
 
   return (
     <div className="p-2 md:p-12">

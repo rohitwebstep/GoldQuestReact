@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { useApi } from '../ApiContext';
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApiCall } from '../ApiCallContext'; // Import the hook for ApiCallContext
+import * as XLSX from 'xlsx';
 
 const ServiceList = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
@@ -187,6 +188,33 @@ const ServiceList = () => {
     });
   };
 
+ const exportToExcel = () => {
+    // Filtered data to export
+    const dataToExport = currentItems;
+
+    // Map the data to match the structure of the table headers
+    const formattedData = dataToExport.map((service, index) => ({
+      Index: index + 1,
+      "Service Name": service.title,
+      "Service Description": service.description,
+      "SAC": service.sac_code,
+      "Short Code": service.short_code,
+      "Service Group": service.group,
+      "Email Description": service.email_description,
+    }));
+
+    // Create a worksheet and workbook
+
+    
+     const ws = XLSX.utils.json_to_sheet(formattedData);
+  
+      // Create a new workbook and append the worksheet to it
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Reports");
+  
+      // Write the Excel file and trigger the download
+      XLSX.writeFile(wb, "Services-List.xlsx");
+  };
 
 
   return (
@@ -196,16 +224,33 @@ const ServiceList = () => {
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
         <div className="col">
           <form action="">
-            <div className="flex gap-5 justify-between">
-              <select name="options" onChange={handleSelectChange} id="" className='outline-none border p-2 ps-2 text-left text-sm rounded-md w-10/12'>
+            <div className="flex gap-2">
+              <select
+                name="options"
+                onChange={(e) => {
+                  handleSelectChange(e); // Call the select change handler
+                  setCurrentPage(1); // Reset current page to 1
+                }}
+                className="outline-none border p-3 text-left rounded-md w-full md:w-6/12"
+              >
+
                 <option value="10">10 Rows</option>
                 <option value="20">20 Rows</option>
                 <option value="50">50 Rows</option>
+                <option value="100">100 Rows</option>
                 <option value="200">200 Rows</option>
                 <option value="300">300 Rows</option>
                 <option value="400">400 Rows</option>
                 <option value="500">500 Rows</option>
               </select>
+            <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+               Export To Excel
+              </button>
             </div>
           </form>
         </div>
@@ -244,7 +289,7 @@ const ServiceList = () => {
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((item,index) => (
+              {currentItems.map((item, index) => (
                 <tr key={item.id}>
                   <td className="py-2 px-4 border-l border-r text-sm border-b whitespace-nowrap">                        {index + 1 + (currentPage - 1) * itemsPerPage}
                   </td>

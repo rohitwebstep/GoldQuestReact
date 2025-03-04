@@ -47,10 +47,8 @@ const Customer = ({ children }) => {
         const response = await axios.post(`${API_URL}/branch/verify-branch-login`, payLoad);
   
         if (response.data.status) {
-          console.log('response',response)
           // Check if there's a new token and update localStorage if it exists
           const newToken = response.data._token || response.data.token;
-          console.log('newToken',newToken)
           if (newToken) {
             localStorage.setItem("branch_token", newToken); // Update the token in localStorage
           }

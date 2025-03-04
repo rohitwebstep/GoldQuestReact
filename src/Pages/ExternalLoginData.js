@@ -5,6 +5,7 @@ import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApi } from '../ApiContext';
 import Swal from 'sweetalert2';
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const ExternalLoginData = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -209,7 +210,55 @@ const ExternalLoginData = () => {
     window.open(`customer-login?email=${encodeURIComponent(email)}`, '_blank');
 
   }
+  const flattenDataForExport = () => {
+    const flattenedData = currentItems.map((item, index) => {
+      // Flattening the data for the table
+      const branchData = item.branch_count > 1 && openAccordionId === item.main_id
+        ? branches.map((branch) => ({
+            "Branch Name": branch.name,
+            "Email": branch.email,
+          }))
+        : [];
 
+      // Flattened data for client details and branches
+      const clientData = {
+        "S.No": index + 1 + indexOfFirstItem,
+        "Client Unique ID": item.client_unique_id,
+        "Name": item.name,
+        "Mobile": item.mobile,
+      };
+
+      const data = [clientData];
+
+      // If there are branch details to be shown, include them in the export
+      if (branchData.length > 0) {
+        branchData.forEach((branch) => {
+          data.push({
+            ...clientData, // Copy client details to each branch
+            ...branch,
+          });
+        });
+      }
+      return data;
+    });
+
+    // Flatten the nested arrays into a single array
+    return flattenedData.flat();
+  };
+  
+
+  const exportToExcel = () => {
+    const flattenedData = flattenDataForExport();
+    // Create a worksheet from the flattened data
+    const ws = XLSX.utils.json_to_sheet(flattenedData);
+
+    // Create a new workbook and append the worksheet to it
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Client Data");
+
+    // Write the Excel file and trigger the download
+    XLSX.writeFile(wb, "client_data.xlsx");
+  };
 
   return (
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
@@ -218,17 +267,28 @@ const ExternalLoginData = () => {
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
         <div className="col">
           <form action="">
-            <div className="flex gap-5 justify-between">
-              <select name="options" onChange={handleSelectChange} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
-                <option value="10">10 Rows</option>
-                <option value="20">20 Rows</option>
-                <option value="50">50 Rows</option>
-                <option value="200">200 Rows</option>
-                <option value="300">300 Rows</option>
-                <option value="400">400 Rows</option>
-                <option value="500">500 Rows</option>
-              </select>
-            </div>
+          <div className="flex gap-2">
+                <select name="options"   onChange={(e) => {
+                handleSelectChange(e); // Call the select change handler
+                setCurrentPage(1); // Reset current page to 1
+              }}id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                  <option value="10">10 Rows</option>
+                  <option value="20">20 Rows</option>
+                  <option value="50">50 Rows</option>
+                  <option value="200">200 Rows</option>
+                  <option value="300">300 Rows</option>
+                  <option value="400">400 Rows</option>
+                  <option value="500">500 Rows</option>
+                </select>
+              <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+               Export To Excel
+              </button>
+              </div>
           </form>
         </div>
         <div className="col md:flex justify-end ">

@@ -4,6 +4,9 @@ import './App.css';
 import Render from './Pages/Render';
 import ForgotPassword from './Pages/ForgotPassword';
 import CustomerLogin from './CustomerDashboard/CustomerLogin';
+import CustomerBgv from './CustomerDashboard/CustomerBgv';
+import CustomerGapStatus from './CustomerDashboard/CustomerGapStatus';
+import CustomerDav from './CustomerDashboard/CustomerDav';
 import SetNewPassword from './Pages/SetNewPassword';
 import Login from './Dashboard/Login';
 import CustomerDashboard from './CustomerDashboard/CustomerDashboard';
@@ -94,6 +97,9 @@ const App = () => {
                                       {/* Customer Routes */}
                                       <Route path="/customer-login" element={<CustomerLogin />} />
                                       <Route path="/customer-dashboard" element={<Customer><CustomerDashboard /></Customer>} />
+                                      <Route path="/customer-dashboard/customer-bgv" element={<Customer><CustomerBgv /></Customer>} />
+                                      <Route path="/customer-dashboard/customer-dav" element={<Customer><CustomerDav /></Customer>} />
+                                      <Route path="/customer-dashboard/customer-gap-check" element={<Customer><CustomerGapStatus /></Customer>} />
                                       <Route path='customer-login/customer-reset-password' element={<CustomerResetPassword />} />
                                       <Route path='customer-login/customer-forgotpassword' element={<CustomerForgotPassword />} />
                                       {/* Admin Routes */}

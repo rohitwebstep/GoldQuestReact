@@ -71,7 +71,7 @@ const Sidebar = () => {
   return (
     <>
       <CustomerHeader />
-      <div className="flex flex-col md:flex-row h-full">
+      <div className="flex flex-col items-stretch md:flex-row">
         <button
           className="md:hidden p-3 fixed top-0 left-0  bg-green-400 text-white w-full  focus:outline-none"
           onClick={handleToggle}
@@ -90,7 +90,7 @@ const Sidebar = () => {
           className={`w-full md:w-1/5 mt-10 md:mt-0 flex flex-col bg-white border-e fixed md:relative top-0 left-0  h-full  transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
             } md:translate-x-0`}
         >
-          <div className="h-screen">
+          <div className="h-full">
             <div className="px-3" id="sider_content">
               <div className="flex flex-col px-3 py-8">
                 <ul>

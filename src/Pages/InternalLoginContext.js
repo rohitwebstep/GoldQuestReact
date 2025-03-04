@@ -28,7 +28,6 @@ export const LoginProvider = ({ children }) => {
 
     const handleEditAdmin = (selectedAdmin) => {
         setEditAdmin(true);
-        console.log('selectedAdmin', selectedAdmin);
 
         // Check if service_ids exists and is a string, then parse it into an array
         const parsedServiceGroups = (() => {
@@ -122,11 +121,9 @@ export const LoginProvider = ({ children }) => {
     
             // Handle successful response
             const adminRoles = data.data;
-            console.log('adminRoles', adminRoles);
             setRoles(adminRoles.roles.roles || []);
             setGroup(adminRoles.services?.filter(Boolean) || []);
             setData(adminRoles?.admins || []); // Set the admin data
-            console.log('groups', group);
     
             // Update token if provided
             const newToken = data?._token || data?.token;
@@ -159,7 +156,6 @@ export const LoginProvider = ({ children }) => {
         });
     };
 
-    console.log('data', data)
 
     return (
         <LoginContext.Provider value={{

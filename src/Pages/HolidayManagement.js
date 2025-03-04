@@ -6,6 +6,7 @@ import HolidayManagementForm from './HolidayManagementForm';
 import { useHoliday } from './HolidayManagementContext';
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const HolidayManagement = () => {
     const API_URL = useApi();
@@ -201,6 +202,24 @@ const HolidayManagement = () => {
         });
     };
 
+    const exportToExcel = () => {
+        // Prepare the data for Excel export
+        const data = currentItems.map((email, index) => ({
+            Index: index + 1 + (currentPage - 1) * itemsPerPage,
+            'Holiday Title': email.title,
+            'Holiday Date': email.name.trim(),
+        }));
+
+        // Create a new worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+
+        // Create a new workbook and append the worksheet
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Emails');
+
+        // Export the workbook to Excel
+        XLSX.writeFile(wb, 'emails.xlsx');
+    };
 
     return (
         <>
@@ -217,8 +236,11 @@ const HolidayManagement = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="flex gap-5 justify-between">
-                                    <select name="options" onChange={handleSelectChange} id="" className='border outline-none w-full md:w-10/12  p-2 text-left rounded-md '>
+                                <div className="flex gap-2">
+                                    <select name="options" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -227,6 +249,14 @@ const HolidayManagement = () => {
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+                    Export to Excel
+                  </button>
                                 </div>
                             </form>
                         </div>

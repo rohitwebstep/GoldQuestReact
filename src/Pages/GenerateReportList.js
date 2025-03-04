@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
-
+import * as XLSX from 'xlsx';
 const GenerateReportList = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall();
 
@@ -19,21 +19,21 @@ const GenerateReportList = () => {
     setExpandedRows((prev) => {
       // Create a new object with all rows collapsed
       const newState = {};
-      
+
       // If the clicked row was previously closed, set it to open
       newState[index] = !prev[index];
-      
+
       // Close all other rows
       Object.keys(prev).forEach((key) => {
         if (key !== index.toString()) {
           newState[key] = false;
         }
       });
-  
+
       return newState;
     });
   };
-  
+
 
   useEffect(() => {
     const admin_id = JSON.parse(localStorage.getItem("admin"))?.id || "";
@@ -245,7 +245,38 @@ const GenerateReportList = () => {
     };
   }, []);
 
+  const flattenDataForExport = () => {
+    const flattenedData = data.map((report, index) => {
+      const services = Object.entries(report.services).map(([service, status]) => {
+        return `${service}: ${status.replace(/_/g, ' ')}`;
+      }).join(", ");
 
+      return {
+        "S.No": index + 1,
+        "Application ID": report.applicationId,
+        "Applicant Name": report.applicantName,
+        "Status": report.status,
+        "Services": services,
+      };
+    });
+
+    return flattenedData;
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    const flattenedData = flattenDataForExport();
+
+    // Create a worksheet from the flattened data
+    const ws = XLSX.utils.json_to_sheet(flattenedData);
+
+    // Create a new workbook and append the worksheet to it
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reports");
+
+    // Write the Excel file and trigger the download
+    XLSX.writeFile(wb, "Generate-Report-List.xlsx");
+  };
   return (
     <>
       <div className=" py-4 px-4">
@@ -254,8 +285,11 @@ const GenerateReportList = () => {
         <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
           <div className="col">
             <form action="">
-              <div className="flex gap-5 justify-between">
-                <select name="options" onChange={handleSelectChange} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+              <div className="flex gap-2">
+                <select name="options" onChange={(e) => {
+                  handleSelectChange(e); // Call the select change handler
+                  setCurrentPage(1); // Reset current page to 1
+                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
@@ -264,6 +298,14 @@ const GenerateReportList = () => {
                   <option value="400">400 Rows</option>
                   <option value="500">500 Rows</option>
                 </select>
+                <button
+                  onClick={exportToExcel}
+                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  type="button"
+                  disabled={currentItems.length === 0}
+                >
+                  Export to Excel
+                </button>
               </div>
             </form>
           </div>

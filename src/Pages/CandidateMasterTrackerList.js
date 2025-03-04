@@ -6,6 +6,7 @@ import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import Swal from 'sweetalert2'; // Make sure to import SweetAlert2
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const CandidateMasterTrackerList = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -204,9 +205,7 @@ const CandidateMasterTrackerList = () => {
         );
     });
 
-    // const filteredOptions = filteredItems.filter(item =>
-    //     item.status.toLowerCase().includes(selectedStatus.toLowerCase())
-    // );
+  
 
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -284,17 +283,35 @@ const CandidateMasterTrackerList = () => {
         handleTabChange('Candidate_tracker_status');
     };
 
-    const handleStatusChange = (event) => {
-        const selected = event.target.value;
-        fetchClient(selected);
-
-    };
     const handleSelectChange = (e) => {
 
         const selectedValue = e.target.value;
         setItemPerPage(selectedValue)
 
     }
+
+
+        const exportToExcel = () => {
+            // Filtered data to export
+            const dataToExport = currentItems;
+    
+            // Map the data to match the structure of the table headers
+            const formattedData = dataToExport.map((client, index) => ({
+                Index: index + 1,
+                "Client Code": client.client_unique_id,
+                "Company Name": client.name,
+                "Client Spoc": client.single_point_of_contact,
+                "Active Cases": client.application_count || 'NIL',
+            }));
+    
+            // Create a worksheet and workbook
+            const ws = XLSX.utils.json_to_sheet(formattedData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
+    
+            // Write the Excel file to disk
+            XLSX.writeFile(wb, 'Candidate-Mater-Tracker.xlsx');
+        };
 
 
     return (
@@ -306,17 +323,27 @@ const CandidateMasterTrackerList = () => {
                 <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                     <div className="col">
                         <form action="">
-                            <div className="flex gap-5 justify-between">
-                                <select name="" id="" onChange={handleSelectChange} className='outline-none border p-3 text-left rounded-md w-full md:w-6/12'>
+                        <div className="flex gap-2">
+                                <select name="options" onChange={(e) => {
+                                    handleSelectChange(e); // Call the select change handler
+                                    setCurrentPage(1); // Reset current page to 1
+                                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
                                     <option value="10">10 Rows</option>
                                     <option value="20">20 Rows</option>
                                     <option value="50">50 Rows</option>
-                                    <option value="100">100 Rows</option>
                                     <option value="200">200 Rows</option>
                                     <option value="300">300 Rows</option>
                                     <option value="400">400 Rows</option>
                                     <option value="500">500 Rows</option>
                                 </select>
+                               <button
+                  onClick={exportToExcel}
+                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  type="button"
+                  disabled={currentItems.length === 0}
+                >
+                  Export to Excel
+                </button>
                             </div>
                         </form>
                     </div>

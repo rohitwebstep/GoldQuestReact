@@ -23,7 +23,6 @@ const ScopeOfServices = () => {
         display: "block",
         margin: "0 auto",
     };
-    console.log('storedBranchData',storedBranchData)
 
     const fetchServicePackage = useCallback(async () => {
         if (!customer_id || !branch?.id || !branch_token) {

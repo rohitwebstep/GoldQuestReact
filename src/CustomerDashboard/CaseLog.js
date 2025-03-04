@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
-import axios from 'axios';
+import * as XLSX from 'xlsx';
+
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 import Swal from 'sweetalert2';
@@ -47,13 +48,13 @@ const CaseLog = () => {
         const payLoad = {
             branch_id: branch_id,
             _token: branch_token,
-            ticket_number:ticket_number,
+            ticket_number: ticket_number,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-          };
-          
-          // Zet het object om naar een query string
-          const queryString = new URLSearchParams(payLoad).toString();
-          
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
+
 
         fetch(`https://api.goldquestglobal.in/branch/ticket/view?${queryString}`, requestOptions)
             .then((response) => {
@@ -170,7 +171,7 @@ const CaseLog = () => {
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
 
         });
-      
+
 
         const requestOptions = {
             method: "POST",
@@ -379,7 +380,7 @@ const CaseLog = () => {
             method: "GET",
             redirect: "follow"
         };
-       
+
 
         setIsBranchApiLoading(true); // Set loading state to true
         setLoading(true); // Set loading state to true
@@ -387,11 +388,11 @@ const CaseLog = () => {
             branch_id: branch_id,
             _token: branch_token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-          };
-          
-          // Zet het object om naar een query string
-          const queryString = new URLSearchParams(payLoad).toString();
-          
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
+
         // Make the API request to fetch tickets
         fetch(`https://api.goldquestglobal.in/branch/ticket/list?${queryString}`, requestOptions)
             .then((response) => response.json())  // Always parse response as JSON
@@ -482,7 +483,7 @@ const CaseLog = () => {
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
 
         };
-      
+
 
         // Show loading spinner using Swal
         const swalInstance = Swal.fire({
@@ -622,13 +623,13 @@ const CaseLog = () => {
                 const payLoad = {
                     branch_id: branch_id,
                     _token: branch_token,
-                    ticket_number:ticket_number,
+                    ticket_number: ticket_number,
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-                  };
-                  
-                  // Zet het object om naar een query string
-                  const queryString = new URLSearchParams(payLoad).toString();
-                  
+                };
+
+                // Zet het object om naar een query string
+                const queryString = new URLSearchParams(payLoad).toString();
+
                 // Proceed with the deletion request
                 fetch(
                     `https://api.goldquestglobal.in/branch/ticket/delete?${queryString}`,
@@ -698,7 +699,25 @@ const CaseLog = () => {
             }
         });
     };
+    const exportToExcel = () => {
+        // Filtered data to export
+        const dataToExport = currentItems;
 
+        // Map the data to match the structure of the table headers
+        const formattedData = dataToExport.map((ticket, index) => ({
+            Index: index + 1,
+            "Case Title": ticket.tile,
+            "Ticket Number": ticket.ticket_number,
+        }));
+
+        // Create a worksheet and workbook
+        const ws = XLSX.utils.json_to_sheet(formattedData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Filtered Data');
+
+        // Write the Excel file to disk
+        XLSX.writeFile(wb, 'Tickets.xlsx');
+    };
 
 
     return (
@@ -744,16 +763,28 @@ const CaseLog = () => {
                     <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="flex gap-5 justify-between">
-                                    <select name="options" onChange={handleSelectChange} id="" className='border outline-none w-10/12  p-2 text-left rounded-md '>
+                                <div className="md:flex gap-2">
+                                    <select name="options" id="" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border '>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
+                                        <option value="100">100 Rows</option>
                                         <option value="200">200 Rows</option>
                                         <option value="300">300 Rows</option>
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                                        onClick={exportToExcel}
+                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        type="button"
+                                        disabled={currentItems.length === 0}
+                                    >
+                                        Export to Excel
+                                    </button>
                                 </div>
                             </form>
                         </div>

@@ -99,21 +99,15 @@ const GenerateReport = () => {
 
     const handleSortingOrderChange = (e, index) => {
         const newSortingOrder = e.target.value;
-        console.log("New Sorting Order Input:", newSortingOrder);
 
         setSortingOrder((prevState) => {
-            console.log("Previous Sorting Order State:", prevState);
 
             const updatedState = { ...prevState }; // Ensure we are working with an object
             updatedState[index] = newSortingOrder; // Update if exists, or add if not
 
-            console.log("Updated Sorting Order State:", updatedState);
             return updatedState;
         });
     };
-
-
-    console.log('sortingorder', sortingOrder);
 
 
     // Check if all statuses (ignoring empty ones) are 'completed'
@@ -218,13 +212,13 @@ const GenerateReport = () => {
                 // Use optional chaining to check if annexureData exists
                 const orderA = parseInt(a?.annexureData?.sorting_order) || Number.MAX_SAFE_INTEGER;
                 const orderB = parseInt(b?.annexureData?.sorting_order) || Number.MAX_SAFE_INTEGER;
-            
+
                 return orderA - orderB;
             });
-            
+
             setServicesDataInfo(sortedFilteredResults); // Set service data
             return sortedFilteredResults;
-            
+
 
         } catch (error) {
             console.error("Error fetching service data:", error);
@@ -745,7 +739,6 @@ const GenerateReport = () => {
 
     const handleSubmit = useCallback(async (e, allSortingOrder) => {
         e.preventDefault();
-        console.log(`allSortingOrder - `, allSortingOrder);
         setIsApiLoading(true); // Start global loading spinner
         // setLoading(true); // Start specific loading spinner
 
@@ -773,7 +766,7 @@ const GenerateReport = () => {
                         const formJson = serviceData.reportFormJson?.json
                             ? JSON.parse(serviceData.reportFormJson.json)
                             : null;
-                            let sortingOrderfinal = serviceData?.annexureData?.sorting_order || '';
+                        let sortingOrderfinal = serviceData?.annexureData?.sorting_order || '';
 
                         if (!formJson) {
                             console.warn(`Invalid formJson for service at index ${index}`);
@@ -806,25 +799,18 @@ const GenerateReport = () => {
                             });
                         });
 
-                        console.log("dbTable:", dbTable);
 
                         const category = formJson.db_table || "";
-                        console.log("Category:", category);
 
                         const status = selectedStatuses?.[index] || "";
-                        console.log("Status:", status);
 
-                        console.log(`allSortingOrder - `, allSortingOrder);
                         const sorting_order = allSortingOrder?.[dbTable] || sortingOrderfinal || '';
-                        console.log("Sorting Order:", sorting_order);
 
                         if (annexure[category]) {
-                            console.log("Before Updating Annexure:", JSON.stringify(annexure[category]));
 
                             annexure[category].status = status;
                             annexure[category].sorting_order = sorting_order;
 
-                            console.log("After Updating Annexure:", JSON.stringify(annexure[category]));
                         }
 
                         return { annexure };
@@ -866,17 +852,6 @@ const GenerateReport = () => {
                 annexure: filteredSubmissionData,
                 send_mail: fileCount === 0 ? 1 : 0,
             });
-            console.log('raw', {
-                admin_id: adminData?.id || "",
-                _token: token || "",
-                branch_id: branchid,
-                customer_id: branchInfo?.customer_id || "",
-                application_id: applicationId,
-                ...formData,
-                annexure: filteredSubmissionData,
-                send_mail: fileCount === 0 ? 1 : 0,
-            })
-
 
             const requestOptions = {
                 method: "PUT",

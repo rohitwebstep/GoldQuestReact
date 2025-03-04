@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const CallbackAdmin = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -156,24 +157,53 @@ const CallbackAdmin = () => {
     setItemsPerPage(selectedValue);
   };
 
+  const exportToExcel = () => {
+    // Prepare the data for Excel export
+    const data = currentItems.map((item, index) => ({
+      Index: index + 1 + (currentPage - 1) * itemsPerPage,
+      CustomerName: item.customer_name || 'NIL',
+      BranchName: item.branch_name || 'NIL',
+      SinglePointOfContact: item.single_point_of_contact || 'NIL',
+      RequestedAt: new Date(item.requested_at).toLocaleDateString(),
+    }));
 
+    // Create a new worksheet
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Create a new workbook and append the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Requests');
+
+    // Export the workbook to Excel
+    XLSX.writeFile(wb, 'requests.xlsx');
+  };
   return (
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
       <h2 className='text-center text-2xl font-bold my-5'>Callback Request</h2>
 
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 px-4">
         <div className="col">
-          <div className="flex gap-5 justify-between">
-            <select name="options" onChange={handleSelectChange} className='outline-none  p-2 text-left border rounded-md w-full md:w-6/12'>
-              <option value="10">10 Rows</option>
-              <option value="20">20 Rows</option>
-              <option value="50">50 Rows</option>
-              <option value="100">100 Rows</option>
-              <option value="200">200 Rows</option>
-              <option value="300">300 Rows</option>
-              <option value="400">400 Rows</option>
-              <option value="500">500 Rows</option>
-            </select>
+        <div className="flex gap-2">
+                <select name="options" onChange={(e) => {
+                  handleSelectChange(e); // Call the select change handler
+                  setCurrentPage(1); // Reset current page to 1
+                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                  <option value="10">10 Rows</option>
+                  <option value="20">20 Rows</option>
+                  <option value="50">50 Rows</option>
+                  <option value="200">200 Rows</option>
+                  <option value="300">300 Rows</option>
+                  <option value="400">400 Rows</option>
+                  <option value="500">500 Rows</option>
+                </select>
+                <button
+                  onClick={exportToExcel}
+                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  type="button"
+                  disabled={currentItems.length === 0}
+                >
+                  Export to Excel
+                </button>
           </div>
         </div>
         <div className="col md:flex justify-end">

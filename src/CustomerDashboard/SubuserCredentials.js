@@ -4,6 +4,7 @@ import { useApiCall } from '../ApiCallContext';
 import { useApi } from "../ApiContext";
 import PulseLoader from "react-spinners/PulseLoader";
 import "jspdf-autotable";
+import * as XLSX from 'xlsx';
 
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 const SubUserCredentials = () => {
@@ -45,117 +46,117 @@ const SubUserCredentials = () => {
 
     // **Wachtwoordlengtevalidatie**
     if (!isEditEmail && formData.password && formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters long';
+      newErrors.password = 'Password must be at least 8 characters long';
     }
 
     if (!isEditEmail && formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Your passwords do not match';
+      newErrors.confirmPassword = 'Your passwords do not match';
     }
 
     if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        setLoading(false);
-        return;
+      setErrors(newErrors);
+      setLoading(false);
+      return;
     }
 
     setErrors({});
     try {
-        const myHeaders = new Headers();
-        myHeaders.append('Content-Type', 'application/json');
+      const myHeaders = new Headers();
+      myHeaders.append('Content-Type', 'application/json');
 
-        const rawData = {
-            branch_id,
-            _token,
-            email: formData.email,
-            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-        };
-        
-        const rawData1 = {
-            branch_id,
-            _token,
-            email: formData.email,
-            id: formData.id,
-            ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-        };
-        
-        if (!isEditEmail) {
-            rawData.password = formData.password;
-        }
+      const rawData = {
+        branch_id,
+        _token,
+        email: formData.email,
+        ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+      };
 
-        if (branchData?.type === "sub_user" && branchData.id) {
-            rawData.sub_user_id = `${branchData.id}`;
-        }
+      const rawData1 = {
+        branch_id,
+        _token,
+        email: formData.email,
+        id: formData.id,
+        ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+      };
 
-        const requestOptions = {
-            method: isEditEmail ? 'PUT' : 'POST',
-            headers: myHeaders,
-            body: JSON.stringify(isEditEmail ? rawData1 : rawData),
-            redirect: 'follow',
-        };
+      if (!isEditEmail) {
+        rawData.password = formData.password;
+      }
 
-        const apiUrl = isEditEmail
-            ? 'https://api.goldquestglobal.in/branch/sub-user/update-email'
-            : 'https://api.goldquestglobal.in/branch/sub-user/create';
+      if (branchData?.type === "sub_user" && branchData.id) {
+        rawData.sub_user_id = `${branchData.id}`;
+      }
 
-        const response = await fetch(apiUrl, requestOptions);
-        const result = await response.json();
+      const requestOptions = {
+        method: isEditEmail ? 'PUT' : 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(isEditEmail ? rawData1 : rawData),
+        redirect: 'follow',
+      };
 
-        // **Handle session expiration**
-        if (
-            result.status === false &&
-            result.message?.toLowerCase().includes("invalid token")
-        ) {
-            Swal.fire({
-                title: "Session Expired",
-                text: "Your session has expired. Please log in again.",
-                icon: "warning",
-                confirmButtonText: "Ok",
-            }).then(() => {
-                window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
-            });
-            return;
-        }
+      const apiUrl = isEditEmail
+        ? 'https://api.goldquestglobal.in/branch/sub-user/update-email'
+        : 'https://api.goldquestglobal.in/branch/sub-user/create';
 
-        if (!response.ok || result.status === false) {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: result.message || "Operation failed.",
-            });
-            throw new Error(result.message || "Operation failed.");
-        }
+      const response = await fetch(apiUrl, requestOptions);
+      const result = await response.json();
 
-        // **Bewaar nieuwe token indien beschikbaar**
-        if (result.token || result._token) {
-            localStorage.setItem("branch_token", result.token || result._token);
-        }
-
+      // **Handle session expiration**
+      if (
+        result.status === false &&
+        result.message?.toLowerCase().includes("invalid token")
+      ) {
         Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: isEditEmail ? "Email updated successfully!" : "User created successfully!",
+          title: "Session Expired",
+          text: "Your session has expired. Please log in again.",
+          icon: "warning",
+          confirmButtonText: "Ok",
+        }).then(() => {
+          window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
         });
+        return;
+      }
 
-        fetchData();
-        setFormData({
-            title: "",
-            email: "",
-            password: "",
-            confirmPassword: "",
+      if (!response.ok || result.status === false) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: result.message || "Operation failed.",
         });
-        setIsEditEmail(false);
+        throw new Error(result.message || "Operation failed.");
+      }
+
+      // **Bewaar nieuwe token indien beschikbaar**
+      if (result.token || result._token) {
+        localStorage.setItem("branch_token", result.token || result._token);
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: isEditEmail ? "Email updated successfully!" : "User created successfully!",
+      });
+
+      fetchData();
+      setFormData({
+        title: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setIsEditEmail(false);
 
     } catch (error) {
-        Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: error.message || "An error occurred. Please try again.",
-        });
-        console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "An error occurred. Please try again.",
+      });
+      console.error("Error:", error);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
 
 
@@ -184,10 +185,10 @@ const SubUserCredentials = () => {
       _token: _token,
       ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
     };
-    
+
     // Zet het object om naar een query string
     const queryString = new URLSearchParams(payLoad).toString();
-    
+
     fetch(
       `${API_URL}/branch/sub-user/list?${queryString}`,
       requestOptions
@@ -254,8 +255,8 @@ const SubUserCredentials = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const filteredItems = Array.isArray(data)
-  ? data.filter(item => item?.email?.toLowerCase().includes(searchTerm.toLowerCase()))
-  : [];
+    ? data.filter(item => item?.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
 
   const handleSelectChange = (e) => {
     const checkedStatus = e.target.value;
@@ -364,7 +365,23 @@ const SubUserCredentials = () => {
     });
   };
 
+  const exportToExcel = () => {
+    // Prepare the data for Excel export
+    const data = currentItems.map((user, index) => ({
+      Index: index + 1 + (currentPage - 1) * itemsPerPage,
+      userName: user.email || 'NIL',
+    }));
 
+    // Create a new worksheet
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Create a new workbook and append the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reports');
+
+    // Export the workbook to Excel
+    XLSX.writeFile(wb, 'Subusers.xlsx');
+  };
 
   return (
     <>
@@ -438,8 +455,11 @@ const SubUserCredentials = () => {
           <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
             <div className="col">
               <form action="">
-                <div className="flex gap-5 justify-between">
-                  <select name="options" onChange={handleSelectChange} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-10/12'>
+                <div className="flex gap-2">
+                  <select name="options" onChange={(e) => {
+                    handleSelectChange(e); // Call the select change handler
+                    setCurrentPage(1); // Reset current page to 1
+                  }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
                     <option value="10">10 Rows</option>
                     <option value="20">20 Rows</option>
                     <option value="50">50 Rows</option>
@@ -448,6 +468,14 @@ const SubUserCredentials = () => {
                     <option value="400">400 Rows</option>
                     <option value="500">500 Rows</option>
                   </select>
+                  <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+                    Export to Excel
+                  </button>
                 </div>
               </form>
             </div>

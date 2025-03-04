@@ -1,20 +1,19 @@
-import React, {useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import Swal from 'sweetalert2';
 import { useApi } from '../ApiContext';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
+import * as XLSX from 'xlsx';
 
 const AdminDeletionRequest = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
-
     const [listData, setListData] = useState([])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('');
     const [itemsPerPage, setItemPerPage] = useState(10)
     const API_URL = useApi();
     const [currentPage, setCurrentPage] = useState(1);
-
     const fetchClientDrop = useCallback(async () => {
         try {
             setIsApiLoading(true);
@@ -96,13 +95,12 @@ const AdminDeletionRequest = () => {
             fetchClientDrop();
         }
     }, [fetchClientDrop]);
-    console.log('listdata',listData)
 
 
     const filteredItems = listData.filter(item => {
         return (
             item.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.admin_name?.toLowerCase().includes(searchTerm.toLowerCase()) 
+            item.admin_name?.toLowerCase().includes(searchTerm.toLowerCase())
 
         );
     });
@@ -169,11 +167,38 @@ const AdminDeletionRequest = () => {
     };
 
     const handleSelectChange = (e) => {
-
         const selectedValue = e.target.value;
         setItemPerPage(selectedValue)
-
     }
+
+
+    const exportToExcel = () => {
+        // Prepare the data for Excel export
+        const data = currentItems.map((report, index) => ({
+            Index: index + 1 + (currentPage - 1) * itemsPerPage,
+            AdminName: report.admin_name || 'NIL',
+            AdminEmail: report.admin_email || 'NIL',
+            AdminMobile: report.admin_mobile || 'NIL',
+            CustomerName: report.customer_name || 'NIL',
+            CustomerMobile: report.customer_mobile || 'NIL',
+            DirectorEmail: report.director_email || 'NIL',
+            FromDate: new Date(report.from).toLocaleDateString(),
+            ToDate: new Date(report.to).toLocaleDateString(),
+            Status: report.status || 'NIL',
+        }));
+
+        // Create a new worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+
+        // Create a new workbook and append the worksheet
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Reports');
+
+        // Export the workbook to Excel
+        XLSX.writeFile(wb, 'reports.xlsx');
+    };
+
+
 
     return (
         <>
@@ -184,17 +209,27 @@ const AdminDeletionRequest = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-5 justify-between">
-                                    <select name="" id="" onChange={handleSelectChange} className='outline-none border p-2 md:p-3 w-full text-left rounded-md md:w-6/12'>
+                                <div className="flex gap-2">
+                                    <select name="options" onChange={(e) => {
+                                        handleSelectChange(e); // Call the select change handler
+                                        setCurrentPage(1); // Reset current page to 1
+                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
-                                        <option value="100">100 Rows</option>
                                         <option value="200">200 Rows</option>
                                         <option value="300">300 Rows</option>
                                         <option value="400">400 Rows</option>
                                         <option value="500">500 Rows</option>
                                     </select>
+                                    <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    type="button"
+                    disabled={currentItems.length === 0}
+                  >
+                    Export to Excel
+                  </button>
                                 </div>
                             </form>
                         </div>
@@ -263,7 +298,7 @@ const AdminDeletionRequest = () => {
                                             </td>
 
                                             <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm">{report.status || 'NIL'}</td>
-                                           
+
                                         </tr>
                                     ))}
                                 </tbody>
