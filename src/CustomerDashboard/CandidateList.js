@@ -163,7 +163,7 @@ const CandidateList = () => {
                     console.error("Branch ID or token is missing.");
                     return;
                 }
-               
+
 
                 const requestOptions = {
                     method: "DELETE",
@@ -175,15 +175,15 @@ const CandidateList = () => {
                     requestOptions.sub_user_id = branchData.id;
                 }
                 const payLoad = {
-                    id:id,
+                    id: id,
                     branch_id: branchId,
                     _token: branch_token,
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
-                  };
-                  
-                  // Zet het object om naar een query string
-                  const queryString = new URLSearchParams(payLoad).toString();
-                  
+                };
+
+                // Zet het object om naar een query string
+                const queryString = new URLSearchParams(payLoad).toString();
+
                 fetch(`${API_URL}/branch/candidate-application/delete?${queryString}`, requestOptions)
                     .then(response => response.json()) // Parse the JSON response
                     .then(result => {
@@ -305,6 +305,9 @@ const CandidateList = () => {
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Mobile Number</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Services</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Date/Time</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">BGV Filled Date</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">DAV Filled Date</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Is Form Opened</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">View Docs</th>
                                         <th className="md:py-3 p-2 text-center md:px-4 text-white border-r border-b whitespace-nowrap uppercase">Action</th>
                                     </tr>
@@ -315,6 +318,7 @@ const CandidateList = () => {
                                             <td className="md:py-3 p-2 md:px-4 border-l border-b border-r whitespace-nowrap capitalize">{index + 1}</td>
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.name}</td>
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.email}</td>
+
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.mobile_number}</td>
                                             <td className="border p-2  md:px-4 py-2 text-left">
                                                 <div className='flex whitespace-nowrap'>
@@ -395,18 +399,49 @@ const CandidateList = () => {
                                                     })()
                                                 ) : 'NIL'}
                                             </td>
-                                            <td className="md:py-3 p-2 md:px-4 border whitespace-nowrap">
-                                                {report.service_data?.cef ? (
-                                                    <button
-                                                        className="md:px-4 py-2 p-2 bg-green-500 text-white rounded"
-                                                        onClick={() => handleViewDocuments(report.service_data.cef)}
-                                                    >
-                                                        View Documents
-                                                    </button>
-                                                ) : (
-                                                    <span>No Attachments</span>
-                                                )}
+
+
+
+                                            {currentItems.some(item => item.cef_filled_date) ? (
+                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
+                                                    {report.cef_filled_date
+                                                        ? (new Date(report.cef_filled_date))
+                                                            .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                                                            .split('/')
+                                                            .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                                                            .join('-')
+                                                        : 'NIL'}
+                                                </td>
+
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
+
+
+                                            {currentItems.some(item => item.dav_filled_date) ? (
+                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
+                                                    {report.dav_filled_date
+                                                        ? (new Date(report.dav_filled_date))
+                                                            .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                                                            .split('/')
+                                                            .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                                                            .join('-')
+                                                        : 'NIL'}
+                                                </td>
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
+
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
+                                                {
+                                                    report.is_form_opened === 1 ? (
+                                                        <span className="text-green-500">Open</span>  // Green text for "Open"
+                                                    ) : (
+                                                        <span className="text-red-500">Not Yet Opened</span>  // Red text for "Not Yet Opened"
+                                                    )
+                                                }
                                             </td>
+
 
                                             {isModalOpenDoc && (
                                                 <Modal

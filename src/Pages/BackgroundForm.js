@@ -70,7 +70,7 @@ const BackgroundForm = () => {
 
 
     const addCoressPondencePhd = () => {
-         //  console.log(`Initial annexureData (PhD):`, annexureData);
+        //  console.log(`Initial annexureData (PhD):`, annexureData);
 
         // Clone the current state
         let updatedData = { ...annexureData };
@@ -89,7 +89,7 @@ const BackgroundForm = () => {
         }
 
         const educationFields = updatedData.gap_validation.education_fields;
-         //  console.log(`Current educationFields (PhD):`, educationFields);
+        //  console.log(`Current educationFields (PhD):`, educationFields);
 
         // Get existing phd_corespondence keys
         const phdKeys = Object.keys(educationFields);
@@ -105,7 +105,7 @@ const BackgroundForm = () => {
         }
 
         // Log the new key
-         //  console.log(`New key to be added: ${newKey}`);
+        //  console.log(`New key to be added: ${newKey}`);
 
         // Add new entry to education_fields
         updatedData.gap_validation.education_fields[newKey] = {};
@@ -113,12 +113,12 @@ const BackgroundForm = () => {
         // Update state to trigger re-render
         setAnnexureData({ ...updatedData });
 
-         //  console.log(`New PhD key added: ${newKey}`, updatedData);
+        //  console.log(`New PhD key added: ${newKey}`, updatedData);
     };
 
 
     const addCoressPondencePostGraduation = () => {
-         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+        //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
 
         // Clone the current state
         let updatedData = { ...annexureData };
@@ -137,7 +137,7 @@ const BackgroundForm = () => {
         }
 
         const educationFields = updatedData.gap_validation.education_fields;
-         //  console.log(`Current educationFields (Post Graduation):`, educationFields);
+        //  console.log(`Current educationFields (Post Graduation):`, educationFields);
 
         // Get existing post_graduation_corespondence keys
         const postGraduationKeys = Object.keys(educationFields);
@@ -153,7 +153,7 @@ const BackgroundForm = () => {
         }
 
         // Log the new key
-         //  console.log(`New key to be added: ${newKey}`);
+        //  console.log(`New key to be added: ${newKey}`);
 
         // Add new entry to education_fields
         updatedData.gap_validation.education_fields[newKey] = {};
@@ -161,7 +161,7 @@ const BackgroundForm = () => {
         // Update state to trigger re-render
         setAnnexureData({ ...updatedData });
 
-         //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+        //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
     };
     const addCoressPondenceGraduation = () => {
         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
@@ -221,7 +221,7 @@ const BackgroundForm = () => {
     };
 
     const addCoressPondenceSeniorSecondary = () => {
-         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+        //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
 
         // Clone the current state
         let updatedData = { ...annexureData };
@@ -240,7 +240,7 @@ const BackgroundForm = () => {
         }
 
         const educationFields = updatedData.gap_validation.education_fields;
-         //  console.log(`Current educationFields (Post Graduation):`, educationFields);
+        //  console.log(`Current educationFields (Post Graduation):`, educationFields);
 
         // Get existing post_graduation_corespondence keys
         const postGraduationKeys = Object.keys(educationFields);
@@ -256,7 +256,7 @@ const BackgroundForm = () => {
         }
 
         // Log the new key
-         //  console.log(`New key to be added: ${newKey}`);
+        //  console.log(`New key to be added: ${newKey}`);
 
         // Add new entry to education_fields
         updatedData.gap_validation.education_fields[newKey] = {};
@@ -264,10 +264,10 @@ const BackgroundForm = () => {
         // Update state to trigger re-render
         setAnnexureData({ ...updatedData });
 
-         //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+        //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
     };
     const addCoressPondenceSecondary = () => {
-         //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
+        //  console.log(`Initial annexureData (Post Graduation):`, annexureData);
 
         // Clone the current state
         let updatedData = { ...annexureData };
@@ -300,7 +300,7 @@ const BackgroundForm = () => {
         }
 
         // Log the new key
-         //  console.log(`New key to be added: ${newKey}`);
+        //  console.log(`New key to be added: ${newKey}`);
 
         // Add new entry to education_fields
         updatedData.gap_validation.education_fields[newKey] = {};
@@ -308,7 +308,7 @@ const BackgroundForm = () => {
         // Update state to trigger re-render
         setAnnexureData({ ...updatedData });
 
-         //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
+        //  console.log(`New Post Graduation key added: ${newKey}`, updatedData);
     };
 
     const updateEmploymentFields = (noOfEmployments, fieldValue) => {
@@ -348,7 +348,7 @@ const BackgroundForm = () => {
 
 
     const [annexureData, setAnnexureData] = useState(initialAnnexureData);
-     //  console.log('annexureData', annexureData)
+    //  console.log('annexureData', annexureData)
 
 
     const handleServiceChange = (tableName, fieldName, value) => {
@@ -366,8 +366,8 @@ const BackgroundForm = () => {
         calculateGaps();
     };
     const handleEmploymentGapChange = (tableName, group, type, fieldName, value) => {
-         //  console.log('Updating:', { tableName, group, type, fieldName, value });
-         //  console.log('Before update:', annexureData);
+        //  console.log('Updating:', { tableName, group, type, fieldName, value });
+        //  console.log('Before update:', annexureData);
 
         setAnnexureData((prevData) => {
             const updatedData = {
@@ -384,7 +384,7 @@ const BackgroundForm = () => {
                 }
             };
 
-             //  console.log('After update:', updatedData);
+            //  console.log('After update:', updatedData);
             return updatedData;
         });
 
@@ -413,7 +413,7 @@ const BackgroundForm = () => {
         return { years: Math.abs(years), months: Math.abs(months) };
     };
 
-     //  console.log(`AnnexureData - `, annexureData);
+    //  console.log(`AnnexureData - `, annexureData);
 
 
     function calculateDateDifference(date1, date2) {
@@ -551,13 +551,11 @@ const BackgroundForm = () => {
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
-            console.log('Calculating employment date differences...');
 
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
 
-                console.log('Comparing dates:', currentEnd, nextStart);
 
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
                     const diff = calculateDateDifference(currentEnd, nextStart);
@@ -599,7 +597,7 @@ const BackgroundForm = () => {
         validateDate();
     }, [annexureData]);
 
-     //  console.log('annexuredata', annexureData)
+    //  console.log('annexuredata', annexureData)
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
     const [errors, setErrors] = useState({});
@@ -667,7 +665,7 @@ const BackgroundForm = () => {
         },
     });
 
-
+console.log('declaration_date',formData.personal_information.declaration_date)
 
     const fetchApplicationStatus = async () => {
         setLoadingData(true);
@@ -994,7 +992,7 @@ const BackgroundForm = () => {
 
     const validate = () => {
 
-         //  console.log(`Validate Function Started`);
+        //  console.log(`Validate Function Started`);
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
             "image/jpeg", "image/png", "application/pdf",
@@ -1008,23 +1006,23 @@ const BackgroundForm = () => {
             return {}; // Skip validation for gap_validation service
         }
 
-         //  console.log(`service - `, service);
+        //  console.log(`service - `, service);
 
         // Loop through the rows to validate files and fields
         service.rows.forEach((row, rowIndex) => {
             // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
             const shouldSkipServiceValidation = service.rows.some(row => {
-                 //  console.log("Processing row:", row); // Log each row
+                //  console.log("Processing row:", row); // Log each row
 
                 return row.inputs.some(input => {
-                     //  console.log("Processing input:", input); // Log each input
+                    //  console.log("Processing input:", input); // Log each input
 
                     const startsWithCondition = input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done');
-                     //  console.log("startsWithCondition:", startsWithCondition); // Log the startsWithCondition check
+                    //  console.log("startsWithCondition:", startsWithCondition); // Log the startsWithCondition check
 
                     const annexureDataCondition = annexureData[service.db_table]?.[input.name];
 
-                     //  console.log("annexureDataCondition:", annexureDataCondition); // Log the annexureData condition value
+                    //  console.log("annexureDataCondition:", annexureDataCondition); // Log the annexureData condition value
 
                     if (
                         annexureDataCondition === null ||
@@ -1032,7 +1030,7 @@ const BackgroundForm = () => {
                         (typeof annexureDataCondition === 'string' && annexureDataCondition.trim() === '')
                         || annexureDataCondition == 0 || !annexureDataCondition
                     ) {
-                         //  console.log("annexureDataCondition is null, undefined, or empty string. Skipping...");
+                        //  console.log("annexureDataCondition is null, undefined, or empty string. Skipping...");
                         return false;
                     }
 
@@ -1040,18 +1038,18 @@ const BackgroundForm = () => {
                         startsWithCondition &&
                         annexureDataCondition;
 
-                     //  console.log("Final Condition for input:", input.name, "=>", finalCondition); // Log the final condition evaluation
+                    //  console.log("Final Condition for input:", input.name, "=>", finalCondition); // Log the final condition evaluation
 
                     return finalCondition;
                 });
             });
 
-             //  console.log("shouldSkipServiceValidation:", shouldSkipServiceValidation); // Log final result
+            //  console.log("shouldSkipServiceValidation:", shouldSkipServiceValidation); // Log final result
 
 
 
             // Log the checkbox validation
-             //  console.log(`shouldSkipServiceValidation - `, shouldSkipServiceValidation);
+            //  console.log(`shouldSkipServiceValidation - `, shouldSkipServiceValidation);
 
             if (shouldSkipServiceValidation) {
                 return {}; // Skip all validation for this service and return empty errors
@@ -1079,54 +1077,54 @@ const BackgroundForm = () => {
                     }, {});
 
                     // Log the mapping and annexure data map
-                     //  console.log('Created File Name:', createdFileName);
-                     //  console.log('Annexure Images Map:', annexureImagesMap);
-                     //  console.log('Annexure Images files:', files);
+                    //  console.log('Created File Name:', createdFileName);
+                    //  console.log('Annexure Images Map:', annexureImagesMap);
+                    //  console.log('Annexure Images files:', files);
 
                     const validateFile = (fileName) => {
                         let fileErrors = [];
 
-                         //  console.log('Validating file:', fileName);
+                        //  console.log('Validating file:', fileName);
 
                         // Check if createdFileName is valid and the structure exists in 'files'
                         let filesToCheck = createdFileName && files[createdFileName]
                             ? files[createdFileName][fileName]
                             : undefined;
 
-                         //  console.log('Step 1 - filesToCheck from files object:', filesToCheck);
+                        //  console.log('Step 1 - filesToCheck from files object:', filesToCheck);
 
                         if (!filesToCheck) {
-                             //  console.log('Step 2 - filesToCheck is empty, checking annexureImagesMap');
+                            //  console.log('Step 2 - filesToCheck is empty, checking annexureImagesMap');
 
                             filesToCheck = annexureImagesMap && annexureImagesMap[fileName]
                                 ? (annexureImagesMap[fileName] || undefined)  // Ensures empty values are treated as undefined
                                 : undefined;
 
-                             //  console.log('Step 3 - filesToCheck from annexureImagesMap:', filesToCheck);
+                            //  console.log('Step 3 - filesToCheck from annexureImagesMap:', filesToCheck);
                         }
 
 
                         if (typeof filesToCheck === "string" && filesToCheck.trim() !== "" ||
                             (Array.isArray(filesToCheck) && filesToCheck.length > 0)) {
-                             //  console.log("filesToCheck has a valid value:", filesToCheck);
+                            //  console.log("filesToCheck has a valid value:", filesToCheck);
                         } else {
                             filesToCheck = undefined;
                         }
 
 
                         // Log the file check process
-                         //  console.log('Files to Check for', fileName, ':', filesToCheck);
+                        //  console.log('Files to Check for', fileName, ':', filesToCheck);
 
                         // If the file exists in annexureImageData, skip validation for this file
                         if (filesToCheck && annexureImagesMap[fileName]) {
-                             //  console.log(`${fileName} is in annexureImageData, skipping validation. 1`);
+                            //  console.log(`${fileName} is in annexureImageData, skipping validation. 1`);
                             delete newErrors[fileName]; // Clear any previous error for this file
                             return fileErrors; // No errors for already uploaded files
                         }
 
                         // Handle the scenario where the checkbox is unchecked but files are still present in the structure
                         if (!annexureData[service.db_table]?.[input.name] && filesToCheck && filesToCheck.length > 0) {
-                             //  console.log('Files present but checkbox unchecked, clearing error for:', fileName);
+                            //  console.log('Files present but checkbox unchecked, clearing error for:', fileName);
                             delete newErrors[fileName]; // Clear error if files are found
                         }
 
@@ -1140,11 +1138,11 @@ const BackgroundForm = () => {
 
 
                             if (!filesToCheck || filesToCheck.length === 0) {
-                                 //  console.log(`Error: ${fileName} is also required.`);
+                                //  console.log(`Error: ${fileName} is also required.`);
                                 fileErrors.push(`${fileName} is required.`);
                             }
                         } else {
-                             //  console.log(`✅ Valid annexureData for ${input.name}:`, JSON.stringify(annexureData[service.db_table]?.[input.name], null, 2));
+                            //  console.log(`✅ Valid annexureData for ${input.name}:`, JSON.stringify(annexureData[service.db_table]?.[input.name], null, 2));
                         }
 
 
@@ -1152,17 +1150,17 @@ const BackgroundForm = () => {
                         if (filesToCheck && filesToCheck.length > 0) {
                             filesToCheck.forEach((fileItem) => {
                                 // Log each file being checked
-                                 //  console.log('Validating file:', fileItem.name);
+                                //  console.log('Validating file:', fileItem.name);
 
                                 // Validate file size
                                 if (fileItem.size > maxSize) {
-                                     //  console.log(`Error: ${fileItem.name} exceeds size limit.`);
+                                    //  console.log(`Error: ${fileItem.name} exceeds size limit.`);
                                     fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
                                 }
 
                                 // Validate file type
                                 if (!allowedTypes.includes(fileItem.type)) {
-                                     //  console.log(`Error: ${fileItem.name} has invalid type.`);
+                                    //  console.log(`Error: ${fileItem.name} has invalid type.`);
                                     fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
                                 }
                             });
@@ -1190,7 +1188,7 @@ const BackgroundForm = () => {
                     const inputValue = annexureData[service.db_table]?.[input.name];
 
                     if (input.required && (!inputValue || inputValue.trim() === '')) {
-                         //  console.log(`Field ${input.name} is empty, setting error.`);
+                        //  console.log(`Field ${input.name} is empty, setting error.`);
                         newErrors[input.name] = 'This field is required';
                     } else {
                         // Clear the error if the field has value
@@ -1340,45 +1338,45 @@ const BackgroundForm = () => {
         let validationErrors = {};
 
         // Validate based on the active tab
-         //  console.log("Active Tab:", activeTab);
-         //  console.log(`serviceDataMain.length - `, serviceDataMain.length);
+        //  console.log("Active Tab:", activeTab);
+        //  console.log(`serviceDataMain.length - `, serviceDataMain.length);
 
         if (activeTab === 0) {
-             //  console.log("Validating first tab...");
+            //  console.log("Validating first tab...");
             validationErrors = validate1(); // Validation for the first tab
         } else if (activeTab === 1) {
-             //  console.log("Validating second tab...");
+            //  console.log("Validating second tab...");
             validationErrors = validateSec(); // Validation for the second tab
         } else if (activeTab > 0 && activeTab <= (serviceDataMain.length + 2)) {
-             //  console.log("Validating service-related tab:", activeTab);
-             //  console.log(`serviceDataMain - `, serviceDataMain);
+            //  console.log("Validating service-related tab:", activeTab);
+            //  console.log(`serviceDataMain - `, serviceDataMain);
             // Iterate over serviceDataMain for the rows to toggle visibility
             serviceDataMain[activeTab - 2].rows.forEach((row, rowIndex) => {
-                 //  console.log(`Processing row ${rowIndex} in activeTab ${activeTab - 2}:`, row);
+                //  console.log(`Processing row ${rowIndex} in activeTab ${activeTab - 2}:`, row);
 
                 const checkboxInput = row.inputs.find(input => input.type === 'checkbox');
-                 //  console.log("Found checkbox input:", checkboxInput);
+                //  console.log("Found checkbox input:", checkboxInput);
 
                 const checkboxName = checkboxInput?.name;
-                 //  console.log("Checkbox input name:", checkboxName);
+                //  console.log("Checkbox input name:", checkboxName);
 
                 const annexureValue = annexureData[serviceDataMain[activeTab - 2].db_table]?.[checkboxName] ?? false;
-                 //  console.log("Annexure value:", annexureValue);
+                //  console.log("Annexure value:", annexureValue);
 
                 const isChecked = ["1", 1, true, "true"].includes(annexureValue);
-                 //  console.log("Is checked:", isChecked);
+                //  console.log("Is checked:", isChecked);
 
                 toggleRowsVisibility(activeTab - 2, rowIndex, isChecked);
             });
 
-             //  console.log("Validating service-related tabs...");
+            //  console.log("Validating service-related tabs...");
             validationErrors = validate(); // Validation for service-related tabs
         } else if (activeTab === serviceDataMain.length + 2) {
-             //  console.log("Validating last tab...");
+            //  console.log("Validating last tab...");
             validationErrors = validate2(); // Validation for the last tab
         }
 
-         //  console.log("Final Validation Errors:", validationErrors);
+        //  console.log("Final Validation Errors:", validationErrors);
 
         // Check if there are no validation errors
         if (Object.keys(validationErrors).length === 0) {
@@ -1651,7 +1649,7 @@ const BackgroundForm = () => {
 
         // Now handle the required fields validation
         const requiredFields = [
-            "declaration_date", // Add other required fields here if needed
+            "declaration_date","name_declaration" // Add other required fields here if needed
         ];
 
         requiredFields.forEach((field) => {
@@ -1673,16 +1671,17 @@ const BackgroundForm = () => {
 
 
     useEffect(() => {
-        const currentDate = new Date().toISOString().split('T')[0];
-        setFormData((prevData) => ({
-            ...prevData,
+        const currentDate = new Date().toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
+        
+        // Update formData state with the current date for declaration_date
+        setFormData(prevState => ({
+            ...prevState,
             personal_information: {
-                ...prevData.personal_information,
-                declaration_date: currentDate,
-            },
+                ...prevState.personal_information,
+                declaration_date: currentDate, // Set current date
+            }
         }));
     }, []);
-
     const handleFileChange = (dbTable, fileName, e) => {
         const selectedFiles = Array.from(e.target.files);
         const maxSize = 2 * 1024 * 1024;
@@ -1783,7 +1782,7 @@ const BackgroundForm = () => {
             setProgress(0); // Reset progress before starting
         }
 
-         //  console.log('serviceDataMain', serviceDataMain)
+        //  console.log('serviceDataMain', serviceDataMain)
         // Initialize requestData
         const requestData = {
             branch_id: decodedValues.branch_id,
@@ -1805,14 +1804,22 @@ const BackgroundForm = () => {
                 delete annexureData.gap_validation.is_submitted;
             }
 
-            // Stringify the education and employment fields
-            const educationFieldsString = JSON.stringify(annexureData.gap_validation.education_fields);
-            const employmentFieldsString = JSON.stringify(annexureData.gap_validation.employment_fields);
+            // Check if the education_fields and employment_fields are already stringified
+            const isEducationFieldsStringified = typeof annexureData.gap_validation.education_fields === 'string';
+            const isEmploymentFieldsStringified = typeof annexureData.gap_validation.employment_fields === 'string';
+            console.log('isEducationFieldsStringified',isEducationFieldsStringified)
+            console.log('isEmploymentFieldsStringified',isEmploymentFieldsStringified)
 
-            // Ensure gap_validation exists in requestData
+            // Only stringify if the fields are not already stringified
+            const educationFieldsString = isEducationFieldsStringified
+                ? annexureData.gap_validation.education_fields
+                : JSON.stringify(annexureData.gap_validation.education_fields);
 
+            const employmentFieldsString = isEmploymentFieldsStringified
+                ? annexureData.gap_validation.employment_fields
+                : JSON.stringify(annexureData.gap_validation.employment_fields);
 
-            // Assign stringified fields to the gap_validation object
+            // Assign stringified fields to the gap_validation object in requestData
             requestData.annexure.gap_validation.education_fields = educationFieldsString;
             requestData.annexure.gap_validation.employment_fields = employmentFieldsString;
 
@@ -1821,15 +1828,8 @@ const BackgroundForm = () => {
             requestData.is_employment_gap = isEmploymentGapPresent;
         }
 
-        //  console.log("Final requestData:", requestData);
-
-
-
-
         // Logging for debugging purposes
-         //  console.log('requestData', requestData);
-
-
+        // console.log('requestData', requestData);
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -1840,6 +1840,7 @@ const BackgroundForm = () => {
             body: JSON.stringify(requestData),
             redirect: "follow",
         };
+
 
         try {
             // Send the form data request to the API
@@ -2015,7 +2016,7 @@ const BackgroundForm = () => {
         setErrors(newErrors);
     };
 
-     //  console.log('employgaps-', employGaps)
+    //  console.log('employgaps-', employGaps)
 
     const uploadCustomerLogo = async (cef_id, fileCount, TotalApiCalls, custombgv) => {
 
@@ -3160,16 +3161,16 @@ const BackgroundForm = () => {
 
                                                                                         while (true) {
                                                                                             const key = `phd_corespondence_${index}`;
-                                                                                             //  console.log(`Checking key: ${key}`);
+                                                                                            //  console.log(`Checking key: ${key}`);
 
                                                                                             // Check if the key exists in education_fields
                                                                                             if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                                                                                 //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                                //  console.log(`Key ${key} not found, exiting loop.`);
                                                                                                 break; // Exit loop if the key is missing
                                                                                             }
 
                                                                                             const phdSection = annexureData.gap_validation.education_fields[key];
-                                                                                             //  console.log(`Processing data for: ${key}`, phdSection);
+                                                                                            //  console.log(`Processing data for: ${key}`, phdSection);
 
                                                                                             elements.push(
                                                                                                 <div key={index} className='border border-black p-4 mt-4 rounded-md'>
@@ -3181,7 +3182,7 @@ const BackgroundForm = () => {
                                                                                                                 type="text"
                                                                                                                 value={phdSection?.phd_institute_name_gap || ''}
                                                                                                                 onChange={(e) => {
-                                                                                                                     //  console.log(`Updating Institute Name for ${key}:`, e.target.value);
+                                                                                                                    //  console.log(`Updating Institute Name for ${key}:`, e.target.value);
                                                                                                                     handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_institute_name_gap", e.target.value);
                                                                                                                 }}
                                                                                                                 name="phd_institute_name_gap"
@@ -3194,7 +3195,7 @@ const BackgroundForm = () => {
                                                                                                                 type="text"
                                                                                                                 value={phdSection?.phd_school_name_gap || ''}
                                                                                                                 onChange={(e) => {
-                                                                                                                     //  console.log(`Updating School Name for ${key}:`, e.target.value);
+                                                                                                                    //  console.log(`Updating School Name for ${key}:`, e.target.value);
                                                                                                                     handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_school_name_gap", e.target.value);
                                                                                                                 }}
                                                                                                                 name="phd_school_name_gap"
@@ -3207,7 +3208,7 @@ const BackgroundForm = () => {
                                                                                                                 type="date"
                                                                                                                 value={phdSection?.phd_start_date_gap || ''}
                                                                                                                 onChange={(e) => {
-                                                                                                                     //  console.log(`Updating Start Date for ${key}:`, e.target.value);
+                                                                                                                    //  console.log(`Updating Start Date for ${key}:`, e.target.value);
                                                                                                                     handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_start_date_gap", e.target.value);
                                                                                                                 }}
                                                                                                                 name="phd_start_date_gap"
@@ -3221,7 +3222,7 @@ const BackgroundForm = () => {
                                                                                                                 type="date"
                                                                                                                 value={phdSection?.phd_end_date_gap || ''}
                                                                                                                 onChange={(e) => {
-                                                                                                                     //  console.log(`Updating End Date for ${key}:`, e.target.value);
+                                                                                                                    //  console.log(`Updating End Date for ${key}:`, e.target.value);
                                                                                                                     handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_end_date_gap", e.target.value);
                                                                                                                 }}
                                                                                                                 name="phd_end_date_gap"
@@ -3236,7 +3237,7 @@ const BackgroundForm = () => {
                                                                                                             id="phd_specialization_gap"
                                                                                                             value={phdSection?.phd_specialization_gap || ''}
                                                                                                             onChange={(e) => {
-                                                                                                                 //  console.log(`Updating Specialization for ${key}:`, e.target.value);
+                                                                                                                //  console.log(`Updating Specialization for ${key}:`, e.target.value);
                                                                                                                 handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_specialization_gap", e.target.value);
                                                                                                             }}
                                                                                                             name="phd_specialization_gap"
@@ -3246,11 +3247,11 @@ const BackgroundForm = () => {
                                                                                                 </div>
                                                                                             );
 
-                                                                                             //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                            //  console.log(`Finished processing ${key}, moving to next index.`);
                                                                                             index++; // Move to the next phd_corespondence_*
                                                                                         }
 
-                                                                                         //  console.log(`Final elements array:`, elements);
+                                                                                        //  console.log(`Final elements array:`, elements);
                                                                                         return elements;
                                                                                     })()
                                                                                 }
@@ -3334,16 +3335,16 @@ const BackgroundForm = () => {
 
                                                                                     while (true) {
                                                                                         const key = `post_graduation_corespondence_${index}`;
-                                                                                         //  console.log(`Checking key: ${key}`);
+                                                                                        //  console.log(`Checking key: ${key}`);
 
                                                                                         // Check if the key exists in education_fields
                                                                                         if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            //  console.log(`Key ${key} not found, exiting loop.`);
                                                                                             break; // Exit loop if the key is missing
                                                                                         }
 
                                                                                         const phdSection = annexureData.gap_validation.education_fields[key];
-                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+                                                                                        //  console.log(`Processing data for: ${key}`, phdSection);
 
                                                                                         elements.push(
                                                                                             <div className="border border-black  mt-4 p-4 rounded-md">
@@ -3417,11 +3418,11 @@ const BackgroundForm = () => {
                                                                                             </div>
                                                                                         );
 
-                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        //  console.log(`Finished processing ${key}, moving to next index.`);
                                                                                         index++; // Move to the next phd_corespondence_*
                                                                                     }
 
-                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    //  console.log(`Final elements array:`, elements);
                                                                                     return elements;
                                                                                 })()
                                                                             }
@@ -3504,16 +3505,16 @@ const BackgroundForm = () => {
 
                                                                                     while (true) {
                                                                                         const key = `graduation_corespondence_${index}`;
-                                                                                         //  console.log(`Checking key: ${key}`);
+                                                                                        //  console.log(`Checking key: ${key}`);
 
                                                                                         // Check if the key exists in education_fields
                                                                                         if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            //  console.log(`Key ${key} not found, exiting loop.`);
                                                                                             break; // Exit loop if the key is missing
                                                                                         }
 
                                                                                         const phdSection = annexureData.gap_validation.education_fields[key];
-                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+                                                                                        //  console.log(`Processing data for: ${key}`, phdSection);
 
                                                                                         elements.push(
                                                                                             <div className="border border-black p-4 mt-4 rounded-md">
@@ -3587,11 +3588,11 @@ const BackgroundForm = () => {
                                                                                             </div>
                                                                                         );
 
-                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        //  console.log(`Finished processing ${key}, moving to next index.`);
                                                                                         index++; // Move to the next phd_corespondence_*
                                                                                     }
 
-                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    //  console.log(`Final elements array:`, elements);
                                                                                     return elements;
                                                                                 })()
                                                                             }
@@ -3648,16 +3649,16 @@ const BackgroundForm = () => {
 
                                                                                     while (true) {
                                                                                         const key = `senior_secondary_corespondence_${index}`;
-                                                                                         //  console.log(`Checking key: ${key}`);
+                                                                                        //  console.log(`Checking key: ${key}`);
 
                                                                                         // Check if the key exists in education_fields
                                                                                         if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            //  console.log(`Key ${key} not found, exiting loop.`);
                                                                                             break; // Exit loop if the key is missing
                                                                                         }
 
                                                                                         const phdSection = annexureData.gap_validation.education_fields[key];
-                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+                                                                                        //  console.log(`Processing data for: ${key}`, phdSection);
 
                                                                                         elements.push(
                                                                                             <div className="border border-black mt-4 p-4 rounded-md">
@@ -3680,11 +3681,11 @@ const BackgroundForm = () => {
                                                                                                         <label>Start Date</label>
                                                                                                         <input
                                                                                                             type="date"
-                                                                                                            value={phdSection?.senior_secondary_end_date_gap || ''}
+                                                                                                            value={phdSection?.senior_secondary_start_date_gap || ''}
                                                                                                             onChange={(e) => {
-                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_end_date_gap", e.target.value);
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_start_date_gap", e.target.value);
                                                                                                             }}
-                                                                                                            name="senior_secondary_end_date_gap"
+                                                                                                            name="senior_secondary_start_date_gap"
                                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                                         />
                                                                                                     </div>
@@ -3704,11 +3705,11 @@ const BackgroundForm = () => {
                                                                                             </div>
                                                                                         );
 
-                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        //  console.log(`Finished processing ${key}, moving to next index.`);
                                                                                         index++; // Move to the next phd_corespondence_*
                                                                                     }
 
-                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    //  console.log(`Final elements array:`, elements);
                                                                                     return elements;
                                                                                 })()
                                                                             }
@@ -3766,16 +3767,16 @@ const BackgroundForm = () => {
 
                                                                                     while (true) {
                                                                                         const key = `secondary_corespondence_${index}`;
-                                                                                         //  console.log(`Checking key: ${key}`);
+                                                                                        //  console.log(`Checking key: ${key}`);
 
                                                                                         // Check if the key exists in education_fields
                                                                                         if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                                                                             //  console.log(`Key ${key} not found, exiting loop.`);
+                                                                                            //  console.log(`Key ${key} not found, exiting loop.`);
                                                                                             break; // Exit loop if the key is missing
                                                                                         }
 
                                                                                         const phdSection = annexureData.gap_validation.education_fields[key];
-                                                                                         //  console.log(`Processing data for: ${key}`, phdSection);
+                                                                                        //  console.log(`Processing data for: ${key}`, phdSection);
 
                                                                                         elements.push(
                                                                                             <div className="border border-black p-4 mt-4 rounded-md">
@@ -3822,11 +3823,11 @@ const BackgroundForm = () => {
                                                                                             </div>
                                                                                         );
 
-                                                                                         //  console.log(`Finished processing ${key}, moving to next index.`);
+                                                                                        //  console.log(`Finished processing ${key}, moving to next index.`);
                                                                                         index++; // Move to the next phd_corespondence_*
                                                                                     }
 
-                                                                                     //  console.log(`Final elements array:`, elements);
+                                                                                    //  console.log(`Final elements array:`, elements);
                                                                                     return elements;
                                                                                 })()
                                                                             }
@@ -4166,23 +4167,23 @@ const BackgroundForm = () => {
 
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' > Name </label>
+                                                                    <label className='text-sm' >Declaration Name < span className='text-red-500' >* </span> </label>
                                                                     < input
                                                                         value={formData.personal_information.name_declaration}
                                                                         onChange={handleChange}
                                                                         type="text"
                                                                         className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                         name="name_declaration"
-
                                                                     />
+                                                                    {errors.name_declaration && <p className="text-red-500 text-sm"> {errors.name_declaration} </p>}
                                                                 </div>
 
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' > Date < span className='text-red-500' >* </span></label >
+                                                                    <label className='text-sm' >Declaration Date < span className='text-red-500' >* </span></label >
                                                                     <input
                                                                         onChange={handleChange}
-                                                                        value={formData.declaration_date}
+                                                                        value={formData.personal_information.declaration_date}
                                                                         type="date"
                                                                         className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                         name="declaration_date"
