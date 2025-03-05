@@ -3462,9 +3462,9 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                             <label>Start Date</label>
                                                                                             <input
                                                                                                 type="date"
-                                                                                                value={phdSection?.secondary_end_date_gap || ''}
+                                                                                                value={phdSection?.secondary_start_date_gap || ''}
                                                                                                 disabled
-                                                                                                name="secondary_end_date_gap"
+                                                                                                name="secondary_start_date_gap"
                                                                                                 className="p-2 border w-full border-gray-300 rounded-md"
                                                                                             />
                                                                                         </div>

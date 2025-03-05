@@ -3646,11 +3646,11 @@ const BackgroundForm = () => {
                                                                                                         <label>Start Date</label>
                                                                                                         <input
                                                                                                             type="date"
-                                                                                                            value={phdSection?.secondary_end_date_gap || ''}
+                                                                                                            value={phdSection?.secondary_start_date_gap || ''}
                                                                                                             onChange={(e) => {
-                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_end_date_gap", e.target.value);
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_start_date_gap", e.target.value);
                                                                                                             }}
-                                                                                                            name="secondary_end_date_gap"
+                                                                                                            name="secondary_start_date_gap"
                                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                                         />
                                                                                                     </div>

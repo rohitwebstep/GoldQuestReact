@@ -469,7 +469,6 @@ const GapStatus = () => {
     return (
         <>
             <div className="bg-gray-300">
-                <button className='bg-green-500 text-white rounded-md p-3'>Go back </button>
                 <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white">
                     <h2 className='font-bold text-2xl pb-3'>Employment Gap</h2>
                     <div className="overflow-x-auto ">
