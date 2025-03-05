@@ -484,8 +484,6 @@ const CandidateBGV = () => {
                         } else {
                         }
 
-
-
                     }
                     yPosition = doc.autoTable.previous.finalY + 10;
                     // Post Graduation
@@ -919,6 +917,7 @@ const CandidateBGV = () => {
                         const imagePromises = fileInputs.map(async (inputName) => {
                             const annexureImagesStr = annexureData[service.db_table]?.[inputName];
                             let annexureDataImageHeight = 220;
+                    
                             if (annexureImagesStr) {
                                 const imageUrls = annexureImagesStr.split(",").map(url => url.trim());
                                 if (imageUrls.length === 0) {
@@ -929,29 +928,44 @@ const CandidateBGV = () => {
                                     yPosition += 10;
                                     return;
                                 }
-
-                                const imageBases = await fetchImageToBase(imageUrls);
+                    
+                                // Filter out non-image URLs (pdf, xls, etc.)
+                                const imageUrlsToProcess = imageUrls.filter(url => {
+                                    const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                                    return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                                });
+                    
+                                if (imageUrlsToProcess.length === 0) {
+                                    doc.setFont("helvetica", "italic");
+                                    doc.setFontSize(10);
+                                    doc.setTextColor(150, 150, 150);
+                                    doc.text("No valid annexure images available.", 10, yPosition + 10);
+                                    yPosition += 10;
+                                    return;
+                                }
+                    
+                                const imageBases = await fetchImageToBase(imageUrlsToProcess);
                                 for (const image of imageBases) {
                                     if (!image.base64.startsWith('data:image/')) continue;
-
+                    
                                     doc.addPage();
                                     yPosition = 20;
-
-
+                    
                                     try {
                                         const imageWidth = doc.internal.pageSize.width - 10;
+                                        // Adjust height if needed based on image dimensions or conditions
                                         doc.addImage(image.base64, image.type, 5, yPosition + 20, imageWidth, annexureDataImageHeight);
                                         yPosition += (annexureDataImageHeight + 30);
-
                                     } catch (error) {
                                         console.error(`Error adding image:`, error);
                                     }
                                 }
                             }
                         });
-
+                    
                         await Promise.all(imagePromises);
                     }
+                    
                 }
 
 

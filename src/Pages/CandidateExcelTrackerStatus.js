@@ -11,6 +11,9 @@ import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import Modal from 'react-modal';
 import { useApiCall } from '../ApiCallContext';
 import * as XLSX from 'xlsx';
+import axios from 'axios';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const CandidateExcelTrackerStatus = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
@@ -35,7 +38,20 @@ const CandidateExcelTrackerStatus = () => {
     const clientId = queryParams.get('clientId');
     const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
     const token = localStorage.getItem('_token');
-
+    const base64ToBlob = (base64) => {
+        try {
+            // Convert Base64 string to binary
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            return new Blob([byteNumbers], { type: "image/png" });
+        } catch (error) {
+            console.error("Error converting base64 to blob:", error);
+            return null;
+        }
+    };
     // Fetch data from the main API
     const fetchData = useCallback(() => {
         setIsApiLoading(true);
@@ -401,7 +417,136 @@ const CandidateExcelTrackerStatus = () => {
         // Export to Excel
         XLSX.writeFile(wb, 'Report_Data.xlsx');
     };
+  
 
+    const fetchImageToBase = async (imageUrls) => {
+        setIsApiLoading(true); // Set loading state to true before making the request
+        try {
+            // Define headers for the POST request
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            // Prepare the body payload for the POST request
+            const raw = {
+                image_urls: imageUrls,
+            };
+
+            // Send the POST request to the API and wait for the response
+            const response = await axios.post(
+                "https://api.goldquestglobal.in/test/image-to-base",
+                raw,
+                { headers }
+            );
+
+            // Assuming the response data contains an array of images
+            return response.data.images || [];  // Return images or an empty array if no images are found
+        } catch (error) {
+            console.error("Error fetching images:", error);
+
+            // If the error contains a response, log the detailed response error
+            if (error.response) {
+                console.error("Response error:", error.response.data);
+            } else {
+                // If no response, it means the error occurred before the server could respond
+                console.error("Request error:", error.message);
+            }
+
+            return null; // Return null if an error occurs
+        } finally {
+            // Reset the loading state after the API request finishes (success or failure)
+            setIsApiLoading(false);
+        }
+    };
+    const handleDownloadAll = async (attachments) => {
+        const zip = new JSZip();
+        let allUrls = [];
+    
+        try {
+            // Collect all image URLs and organize by category/label
+            Object.entries(attachments).forEach(([category, files]) => {
+                files.forEach(attachment => {
+                    const label = Object.keys(attachment)[0];
+                    const fileUrls = attachment[label]?.split(",").map(url => url.trim());
+    
+                    if (fileUrls && fileUrls.length > 0) {
+                        allUrls.push({ category, label, urls: fileUrls });
+                    }
+                });
+            });
+    
+            if (allUrls.length === 0) {
+                console.warn("No valid image URLs found.");
+                return;
+            }
+    
+            // Fetch all images as Base64
+            const allImageUrls = allUrls.flatMap(item => item.urls);
+            const base64Response = await fetchImageToBase(allImageUrls);
+            const base64Images = base64Response || []; // Ensure it's an array
+    
+            if (base64Images.length === 0) {
+                console.error("No images received from API.");
+                return;
+            }
+    
+            // Create a list of promises to download files
+            const downloadPromises = [];
+    
+            let imageIndex = 0;
+    
+            // Process each image
+            for (const { category, label, urls } of allUrls) {
+                for (const url of urls) {
+                    // Find the corresponding base64 data
+                    const imageData = base64Images.find(img => img.imageUrl === url);
+    
+                    if (imageData && imageData.base64.startsWith("data:image")) {
+                        const base64Data = imageData.base64.split(",")[1]; // Extract Base64 content
+                        const blob = base64ToBlob(base64Data, imageData.type); // Pass type dynamically
+    
+                        if (blob) {
+                            const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
+    
+                            // Add file to ZIP (to prepare for a zip download)
+                            zip.file(fileName, blob);
+    
+                            // Create and trigger the individual download
+                            const blobUrl = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = blobUrl;
+                            link.download = fileName;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(blobUrl);
+    
+                            // Add the download to the promises list (to ensure it's completed before zipping)
+                            downloadPromises.push(new Promise(resolve => {
+                                link.onload = resolve; // Resolve when the link has triggered the download
+                            }));
+                        }
+                    } else {
+                        console.warn(`Skipping invalid Base64 data for URL: ${url}`);
+                    }
+                    imageIndex++;
+                }
+            }
+    
+            // Wait for all individual downloads to complete
+            await Promise.all(downloadPromises);
+    
+            // Generate ZIP file and trigger download
+            const zipContent = await zip.generateAsync({ type: "blob" });
+            saveAs(zipContent, "attachments.zip");
+            console.log("✅ ZIP file downloaded successfully!");
+    
+        } catch (error) {
+            console.error("❌ Error generating ZIP:", error);
+        }
+    };
+    
+    
 
     return (
         <div className="bg-[#c1dff2]">
@@ -694,7 +839,6 @@ const CandidateExcelTrackerStatus = () => {
                                                                             </li>
                                                                         );
                                                                     })}
-
                                                                 </ul>
                                                             </li>
                                                         ))}
@@ -703,8 +847,12 @@ const CandidateExcelTrackerStatus = () => {
                                                         <button className="modal-close-button" onClick={handleCloseModalDoc}>
                                                             Close
                                                         </button>
+                                                        {/* <button className="modal-download-button bg-blue-500 text-white p-2 rounded-md px-4 mt-2" onClick={handleDownloadAll}>
+                                                            Download All
+                                                        </button> */}
                                                     </div>
                                                 </div>
+
                                             </Modal>
                                         )}
                                     </React.Fragment>

@@ -173,7 +173,7 @@ const CandidateList = () => {
             CreatedAt: report.created_at ? new Date(report.created_at).toLocaleDateString() : 'NIL',
             "CEF Filled Date": report.cef_filled_date ? new Date(report.cef_filled_date).toLocaleDateString() : 'NIL',
             "DAV Filled Date": report.dav_filled_date ? new Date(report.dav_filled_date).toLocaleDateString() : 'NIL',
-            FormStatus: report.is_form_opened === 1 ? 'Open' : 'Not Yet Opened',
+            FormStatus: report.is_bgv_form_opened === "1" ? 'Open' : 'Not Yet Opened',
             EmploymentGap: report.is_employment_gap || 'NIL',
             EducationGap: report.is_education_gap || 'NIL',
         }));
@@ -523,7 +523,7 @@ const CandidateList = () => {
 
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
                                                 {
-                                                    report.is_form_opened === 1 ? (
+                                                    report.is_bgv_form_opened ==="1" ? (
                                                         <span className="text-green-500">Open</span>  // Green text for "Open"
                                                     ) : (
                                                         <span className="text-red-500">Not Yet Opened</span>  // Red text for "Not Yet Opened"
