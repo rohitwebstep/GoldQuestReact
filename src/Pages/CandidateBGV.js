@@ -117,7 +117,7 @@ const CandidateBGV = () => {
         yPosition += 20; // Move yPosition down for the next section
 
         const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
-        const imageHeight = 100; // Fixed height of 500px for the image
+        const imageHeight = 80; // Fixed height of 500px for the image
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
@@ -144,17 +144,27 @@ const CandidateBGV = () => {
                     // If the resume file is not an image, show a button to view the document
                     const resumeUrl = resumeFile;
 
-                    // Display text for the document and add the button
-                    doc.text("No image found. Click below to view the document:", 10, 50);
+                    // Center the text for "No image found. Click below to view the document:"
+                    const messageText = "No image found. Click below to view the document:";
+                    const messageTextWidth = doc.getTextWidth(messageText);
+                    const messageTextX = (doc.internal.pageSize.width - messageTextWidth) / 2;
+
+                    // Display the message and center it
+                    doc.text(messageText, messageTextX, 50);
 
                     // Create a clickable link (button style) for viewing the document
-                    doc.setTextColor(0, 0, 255); // Set the text color to blue (like a link)
-                    doc.textWithLink('View Document', 10, 60, { url: resumeUrl });  // Opens the document in a new tab
+                    doc.setTextColor(255, 0, 0); // Set the text color to blue (like a link)
+                    doc.textWithLink('View Document', messageTextX, 60, { url: resumeUrl });  // Opens the document in a new tab
                 }
             } else {
-                // If no resume file is available
-                doc.text("No CV uploaded.", 10, 40);
+                // If no resume file is available, center the text for "No CV uploaded."
+                const noCVText = "No CV uploaded.";
+                const noCVTextWidth = doc.getTextWidth(noCVText);
+                const noCVTextX = (doc.internal.pageSize.width - noCVTextWidth) / 2;
+
+                doc.text(noCVText, noCVTextX, 40);
             }
+
 
             // Helper function to determine if the file is an image (you can improve this with more MIME type checks)
             function isImage(fileName) {
@@ -184,43 +194,110 @@ const CandidateBGV = () => {
                     if (imageBases?.[0]?.base64) {
                         // Set font size and add the label for each image
                         doc.setFontSize(12);
-                        doc.text("Govt ID #" + (i + 1), doc.internal.pageSize.width / 2, yPosition + (i * (imageHeight)), {
-                            align: 'center'
-                        }); // Adjust yPosition for each image
+                        const labelText = "Govt ID #" + (i + 1);
+                        const labelTextWidth = doc.getTextWidth(labelText);
+                        const labelCenterX = (doc.internal.pageSize.width - labelTextWidth) / 2;
+
+                        // Add label at the center for each image
+                        doc.text(labelText, labelCenterX, yPosition);
 
                         // Add image to the document
-                        doc.addImage(imageBases?.[0]?.base64, 'PNG', 5, yPosition + 5 + (i * (imageHeight + 20)), imageWidth, imageHeight);
+                        doc.addImage(imageBases?.[0]?.base64, 'PNG', 5, yPosition + 5, imageWidth, imageHeight);
+
+                        // Update yPosition after adding the image
+                        yPosition += imageHeight + 30; // Adjust for image height + some margin
                     } else {
-                        // If no image is found for this govt_id
-                        doc.text("Image #" + (i + 1) + " not found.", 10, yPosition + (i * (imageHeight + 20)));
+                        // If no image is found for this govt_id, center the message
+                        const messageText = "Image #" + (i + 1) + " not found.";
+                        const messageTextWidth = doc.getTextWidth(messageText);
+                        const messageCenterX = (doc.internal.pageSize.width - messageTextWidth) / 2;
+
+                        doc.text(messageText, messageCenterX, yPosition);
+
+                        // Update yPosition after showing the message
+                        yPosition += imageHeight + 30; // Adjust for message height + margin
+                    }
+
+                    // If content exceeds the page size, add a new page
+                    if (yPosition > doc.internal.pageSize.height - 40) {  // If yPosition exceeds page height, add a new page
+                        doc.addPage();
+                        yPosition = 10;  // Reset yPosition for the new page
                     }
                 }
             } else {
-                // If no government ID images are available in the string
-                doc.text("No Government ID images uploaded.", 10, 40);
+                // If no government ID images are available in the string, center the message
+                const noImagesText = "No Government ID images uploaded.";
+                const noImagesTextWidth = doc.getTextWidth(noImagesText);
+                const noImagesCenterX = (doc.internal.pageSize.width - noImagesTextWidth) / 2;
+
+                doc.text(noImagesText, noImagesCenterX, 40);
             }
         } else {
-            // If govt_id is not present in cefData
-            doc.text("No Government ID uploaded.", 10, 40);
+            // If govt_id is not present in cefData, center the message
+            const noGovtIdText = "No Government ID uploaded.";
+            const noGovtIdTextWidth = doc.getTextWidth(noGovtIdText);
+            const noGovtIdCenterX = (doc.internal.pageSize.width - noGovtIdTextWidth) / 2;
+
+            doc.text(noGovtIdText, noGovtIdCenterX, 40);
         }
+
+
+
 
         if (customBgv === 1) {
             doc.addPage();
         }
         const passport_photoHeight = 200;
         yPosition = 30;
+
         if (customBgv === 1) {
-            doc.text("Passport Photo.", doc.internal.pageSize.width / 2, yPosition, {
+            // Center the "Passport Photo" header
+            const headerText = "Passport Photo.";
+            doc.text(headerText, doc.internal.pageSize.width / 2, yPosition, {
                 align: 'center'
             });
+
             if (cefData && cefData.passport_photo) {
-                const imageBases = await fetchImageToBase([cefData?.passport_photo.trim()]);
-                doc.addImage(imageBases?.[0]?.base64, 'PNG', 5, yPosition + 10, imageWidth, passport_photoHeight);
+                const imageUrls = [cefData.passport_photo.trim()];
+                const imageUrlsToProcess = imageUrls.filter(url => {
+                    const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                });
+
+                // If it's an image, add to PDF
+                if (imageUrlsToProcess.length > 0) {
+                    const imageBases = await fetchImageToBase(imageUrlsToProcess);
+                    doc.addImage(imageBases[0]?.base64, imageBases[0]?.type, 5, yPosition + 10, imageWidth, passport_photoHeight);
+                    yPosition += passport_photoHeight + 20; // Adjust position for next content
+                } else {
+                    // If it's not an image (e.g., PDF, XLS), show a clickable link centered
+                    const fileUrl = cefData.passport_photo.trim();
+                    const buttonText = `Click to open Passport Photo File`;
+                    const buttonTextWidth = doc.getTextWidth(buttonText);
+                    const buttonCenterX = (doc.internal.pageSize.width - buttonTextWidth) / 2;
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 0, 0); // Blue color for the button text
+                    doc.text(buttonText, buttonCenterX + 10, yPosition + 10);
+
+                    // Create clickable link to open the file
+                    doc.link(buttonCenterX, yPosition + 10, buttonTextWidth, 10, { url: fileUrl });
+
+                    yPosition += 20;
+                }
             } else {
-                // If no resume file is available
-                doc.text("No CV uploaded.", 10, 40);
+                // If no passport photo is available, display a message
+                const noPhotoText = "No Passport Photo uploaded.";
+                const noPhotoTextWidth = doc.getTextWidth(noPhotoText);
+                const noPhotoCenterX = (doc.internal.pageSize.width - noPhotoTextWidth) / 2;
+                doc.text(noPhotoText, noPhotoCenterX, yPosition + 10);
+
+                yPosition += 20;
             }
         }
+
+
 
         const tableData = [
             { title: "Full Name", value: cefData.full_name || "N/A" },
@@ -299,33 +376,89 @@ const CandidateBGV = () => {
 
         const aadharcardimageHeight = 100;
         yPosition = doc.autoTable.previous.finalY + 10;
-        if (customBgv === 1 && nationality === "Indian" && cefData.aadhar_card_image) {
-            doc.addPage();
-            yPosition = 10;
-        }
-        if (customBgv === 1 && nationality === "Indian") {
-            doc.text('Aadhar Card Image', doc.internal.pageSize.width / 2, yPosition + 10, {
-                align: 'center'
-            });
-            if (cefData && cefData.aadhar_card_image) {
-                const imageBases = await fetchImageToBase([cefData?.aadhar_card_image.trim()]);
-                doc.addImage(imageBases?.[0]?.base64, imageBases?.[0]?.type, 5, yPosition + 20, imageWidth, aadharcardimageHeight);
-            }
-            yPosition = yPosition + aadharcardimageHeight + 20;
-            if (cefData && cefData.pan_card_image) {
 
+        if (customBgv === 1 && nationality === "Indian") {
+            // Add Aadhaar card image if available
+            if (cefData.aadhar_card_image) {
+                doc.addPage();
+                let yPosition = 10; // Reset yPosition for a new page
+                doc.setTextColor(0, 0, 0);
+                // Center the "Aadhar Card Image" header
+                doc.text('Aadhar Card Image', doc.internal.pageSize.width / 2, yPosition + 10, {
+                    align: 'center'
+                });
+
+                // Process Aadhaar card image
+                const imageUrls = [cefData.aadhar_card_image.trim()];
+                const imageUrlsToProcess = imageUrls.filter(url => {
+                    const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                });
+
+                // If it's an image, add to PDF
+                if (imageUrlsToProcess.length > 0) {
+                    const imageBases = await fetchImageToBase(imageUrlsToProcess);
+                    doc.addImage(imageBases[0]?.base64, imageBases[0]?.type, 5, yPosition + 20, imageWidth, aadharcardimageHeight);
+                    yPosition += aadharcardimageHeight + 20;
+                } else {
+                    // If not an image (e.g., PDF or XLS), show a clickable link centered
+                    const fileUrl = cefData.aadhar_card_image.trim();
+                    const buttonText = `Click to open Aadhar Card File`;
+                    const textWidth = doc.getTextWidth(buttonText);
+                    const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 0, 0);
+                    doc.text(buttonText, centerX, yPosition + 20);
+
+                    // Create clickable link to open the file
+                    doc.link(centerX, yPosition + 10, textWidth, 10, { url: fileUrl });
+
+                    yPosition += 20;
+                }
+            }
+
+            // Add PAN card image if available
+            if (cefData.pan_card_image) {
+                // Center the "Pan Card Image" header
+                doc.setTextColor(0, 0, 0);
                 doc.text('Pan Card Image', doc.internal.pageSize.width / 2, yPosition + 10, {
                     align: 'center'
                 });
-                const imageBases = await fetchImageToBase([cefData?.pan_card_image.trim()]);
-                doc.addImage(imageBases?.[0]?.base64, imageBases?.[0]?.type, 5, yPosition + 20, imageWidth, aadharcardimageHeight);
+
+                const imageUrls = [cefData.pan_card_image.trim()];
+                const imageUrlsToProcess = imageUrls.filter(url => {
+                    const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                });
+
+                // If it's an image, add to PDF
+                if (imageUrlsToProcess.length > 0) {
+                    const imageBases = await fetchImageToBase(imageUrlsToProcess);
+                    doc.addImage(imageBases[0]?.base64, imageBases[0]?.type, 5, yPosition + 20, imageWidth, aadharcardimageHeight);
+                    yPosition += aadharcardimageHeight + 20;
+                } else {
+                    // If not an image (e.g., PDF or XLS), show a clickable link centered
+                    const fileUrl = cefData.pan_card_image.trim();
+                    const buttonText = `Click to open Pan Card File`;
+                    const textWidth = doc.getTextWidth(buttonText);
+                    const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 0, 0);
+                    doc.text(buttonText, centerX, yPosition + 20);
+
+                    // Create clickable link to open the file
+                    doc.link(centerX, yPosition + 10, textWidth, 10, { url: fileUrl });
+
+                    yPosition += 20;
+                }
             }
+        }
 
 
-        }
-        if (customBgv === 1 && nationality === "Indian" && cefData.aadhar_card_image) {
-            yPosition = doc.autoTable.previous.finalY + aadharcardimageHeight;
-        }
         else {
             yPosition = doc.autoTable.previous.finalY + 10;
         }
@@ -385,6 +518,77 @@ const CandidateBGV = () => {
 
         yPosition = doc.autoTable.previous.finalY + 10;
 
+
+        doc.addPage();
+        let newYPosition = 20
+        doc.autoTable({
+            head: [[{ content: 'Declaration and Authorization', colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
+            ], // Table headers
+            body: [
+                ['Name', cefData.name_declaration],
+                ['Date', cefData.declaration_date],
+            ],
+            startY: newYPosition, // Starting Y position
+            margin: { top: 20 }, // Margin for the table
+            theme: 'grid', // You can change the table theme (grid, stripes, etc.)
+        });
+
+
+
+
+        newYPosition = doc.autoTable.previous.finalY + 20; // Adjusting for space from the last table
+
+        doc.text("Attach Signature.", doc.internal.pageSize.width / 2, newYPosition, { align: 'center' });
+
+        const lineHeight = 10;
+        const margin = 10;
+        const DocHeight = 100; // Height for images (adjust as needed)
+
+        // Check if the signature exists
+        if (cefData && cefData.signature) {
+            // Check if the signature is an image
+            const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            const isImage = validImageExtensions.some(ext => cefData.signature.toLowerCase().endsWith(ext));
+
+            if (isImage) {
+                // Fetch the base64 image
+                const imageBases = await fetchImageToBase([cefData.signature]);
+
+                // Assuming imageBases[0] exists and contains the base64 string
+                if (imageBases && imageBases[0] && imageBases[0].base64) {
+                    const imageBase64 = imageBases[0].base64;
+                    const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
+
+                    // Add the image to the PDF
+                    doc.addImage(imageBase64, 'PNG', 5, newYPosition + 20, imageWidth, DocHeight);
+                    newYPosition += DocHeight + 20; // Update the position after the image
+                }
+            } else {
+                // If not an image, show a clickable button to view the document
+                const buttonText = "Click to view attached document";
+                const textWidth = doc.getTextWidth(buttonText);
+                const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+                // Add the text at the center
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.setTextColor(255, 0, 0); // Red color for the button text
+                doc.text(buttonText, centerX + 10, newYPosition + 10);
+
+                // Create the clickable link to open the document (e.g., cefData.signature could be a URL to the document)
+                doc.link(centerX, newYPosition + 10, textWidth, 10, { url: cefData.signature });
+
+                // Update the position after the link
+                newYPosition += lineHeight + 20; // Adjust space for next content
+            }
+        } else {
+            // If no signature exists, add a message or alternative content
+            doc.text("No Signature uploaded.", 10, newYPosition + 10);
+            newYPosition += lineHeight + 20; // Adjust space for next content
+        }
+
+
+
         (async () => {
             if (!serviceDataMain.length) return; // If no services, return early
 
@@ -412,7 +616,7 @@ const CandidateBGV = () => {
 
 
                     doc.setFontSize(12);
-
+                    doc.setTextColor(0, 0, 0);
                     if (annexureData?.gap_validation?.highest_education_gap === 'phd') {
 
 
@@ -914,68 +1118,97 @@ const CandidateBGV = () => {
                     );
 
                     if (fileInputs.length > 0) {
-                        const imagePromises = fileInputs.map(async (inputName) => {
-                            const annexureImagesStr = annexureData[service.db_table]?.[inputName];
+                        const filePromises = fileInputs.map(async (inputName) => {
+                            const annexureFilesStr = annexureData[service.db_table]?.[inputName];
                             let annexureDataImageHeight = 220;
-                    
-                            if (annexureImagesStr) {
-                                const imageUrls = annexureImagesStr.split(",").map(url => url.trim());
-                                if (imageUrls.length === 0) {
+
+                            if (annexureFilesStr) {
+                                const fileUrls = annexureFilesStr.split(",").map(url => url.trim());
+                                if (fileUrls.length === 0) {
                                     doc.setFont("helvetica", "italic");
                                     doc.setFontSize(10);
                                     doc.setTextColor(150, 150, 150);
-                                    doc.text("No annexure images available.", 10, yPosition + 10);
+                                    doc.text("No annexure files available.", 10, yPosition + 10);
                                     yPosition += 10;
                                     return;
                                 }
-                    
+
                                 // Filter out non-image URLs (pdf, xls, etc.)
-                                const imageUrlsToProcess = imageUrls.filter(url => {
+                                const imageUrlsToProcess = fileUrls.filter(url => {
                                     const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                                     return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
                                 });
-                    
-                                if (imageUrlsToProcess.length === 0) {
-                                    doc.setFont("helvetica", "italic");
-                                    doc.setFontSize(10);
-                                    doc.setTextColor(150, 150, 150);
-                                    doc.text("No valid annexure images available.", 10, yPosition + 10);
-                                    yPosition += 10;
-                                    return;
-                                }
-                    
-                                const imageBases = await fetchImageToBase(imageUrlsToProcess);
-                                for (const image of imageBases) {
-                                    if (!image.base64.startsWith('data:image/')) continue;
-                    
-                                    doc.addPage();
-                                    yPosition = 20;
-                    
-                                    try {
-                                        const imageWidth = doc.internal.pageSize.width - 10;
-                                        // Adjust height if needed based on image dimensions or conditions
-                                        doc.addImage(image.base64, image.type, 5, yPosition + 20, imageWidth, annexureDataImageHeight);
-                                        yPosition += (annexureDataImageHeight + 30);
-                                    } catch (error) {
-                                        console.error(`Error adding image:`, error);
+
+                                // Filter out URLs that are not images
+                                const nonImageUrlsToProcess = fileUrls.filter(url => {
+                                    const validNonImageExtensions = ['pdf', 'xls', 'xlsx'];
+                                    return validNonImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                                });
+
+                                // Handle image files
+                                if (imageUrlsToProcess.length > 0) {
+                                    const imageBases = await fetchImageToBase(imageUrlsToProcess);
+                                    for (const image of imageBases) {
+                                        if (!image.base64.startsWith('data:image/')) continue;
+
+                                        doc.addPage();
+                                        yPosition = 20;
+
+                                        try {
+                                            const imageWidth = doc.internal.pageSize.width - 10;
+                                            // Adjust height if needed based on image dimensions or conditions
+                                            doc.addImage(image.base64, image.type, 5, yPosition + 20, imageWidth, annexureDataImageHeight);
+                                            yPosition += (annexureDataImageHeight + 30);
+                                        } catch (error) {
+                                            console.error(`Error adding image:`, error);
+                                        }
                                     }
                                 }
+
+                                // Handle non-image files (PDF, XLS, etc.)
+                                const pageHeight = doc.internal.pageSize.height;
+                                const margin = 10; // margin from top and bottom
+                                let lineHeight = 10; // space between lines
+
+                                if (nonImageUrlsToProcess.length > 0) {
+                                    nonImageUrlsToProcess.forEach(url => {
+                                        // Calculate available space on the current page
+                                        if (yPosition + lineHeight > pageHeight - margin) {
+                                            doc.addPage(); // Add a new page if there's not enough space
+                                            yPosition = margin; // Reset yPosition after adding a new page
+                                        }
+
+                                        // Add a button to open the file in a new tab
+                                        doc.setFont("helvetica", "normal");
+                                        doc.setFontSize(10);
+                                        doc.setTextColor(255, 0, 0);
+                                        const buttonText = `Click to open the file`;
+                                        const textWidth = doc.getTextWidth(buttonText);
+                                        const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+                                        // Add the text at the center and create the link
+                                        doc.text(buttonText, centerX, yPosition + 10);
+                                        doc.link(centerX, yPosition + 10, textWidth, 10, { url: url });
+
+                                        // Adjust yPosition for the next line
+                                        yPosition += lineHeight + 2; // Adjust for button space
+                                    });
+                                }
+
                             }
                         });
-                    
-                        await Promise.all(imagePromises);
+
+                        await Promise.all(filePromises);
                     }
-                    
+
+
                 }
 
-
             }
-
             doc.save(`${customerInfo?.client_unique_id}-${customerInfo?.name}`);
 
+
         })();
-
-
 
     };
 
@@ -1640,6 +1873,10 @@ const CandidateBGV = () => {
         }
     }, [fetchData, annexureData]);
 
+    function isImage(fileUrl) {
+        const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        return validImageExtensions.some(ext => fileUrl.toLowerCase().endsWith(ext));
+    }
 
     return (
         <>
@@ -1754,12 +1991,28 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                             id="resume_file"
 
                                                         />
-                                                        <p className="text-gray-500 text-sm mt-2" >
-                                                            Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                        </p>
+
                                                         {cefData.resume_file && (
-                                                            <div className='md:h-20 md:w-20 border rounded-md p-2'><img src={cefData.resume_file || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
+                                                            <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                {isImage(cefData.resume_file) ? (
+                                                                    <img
+                                                                        src={cefData.resume_file}
+                                                                        className='h-full w-full object-contain p-3'
+                                                                        alt="Resume Image"
+                                                                    />
+                                                                ) : (
+                                                                    <a
+                                                                        href={cefData.resume_file}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center justify-center h-full w-full border bg-blue-500 text-white rounded-md"
+                                                                    >
+                                                                        View Document
+                                                                    </a>
+                                                                )}
+                                                            </div>
                                                         )}
+
                                                     </div>
                                                 )}
                                                 < div className="form-group col-span-2" >
@@ -1771,9 +2024,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                         name="govt_id"
                                                         disabled // Allow  disabled file selection
                                                     />
-                                                    <p className="text-gray-500 text-sm mt-2" >
-                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                    </p>
+
                                                     <div className='md:grid grid-cols-5 gap-3'>
 
                                                         {cefData.govt_id ? (
@@ -1787,14 +2038,14 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                             <img src={item} alt={`Image ${index}`} className='p-3 ' />
                                                                         ) : (
                                                                             <div>
-                                                                                <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                <button onClick={() => window.open(item, '_blank')} className='border-green-500 rounded-md p-3 '>Open Link</button>
                                                                             </div>
                                                                         )}
                                                                     </div>
                                                                 );
                                                             })
                                                         ) : (
-                                                            <p>No image or link available</p>
+                                                            <p><></></p>
                                                         )}
                                                     </div>
 
@@ -1811,16 +2062,12 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                 <input
                                                                     type="file"
                                                                     accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-
                                                                     className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                     name="passport_photo"
-
                                                                     disabled
 
                                                                 />
-                                                                <p className="text-gray-500 text-sm mt-2" >
-                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                </p>
+
                                                                 <div className='md:grid grid-cols-5 gap-3'>
                                                                     {cefData.passport_photo ? (
                                                                         cefData.passport_photo.split(',').map((item, index) => {
@@ -1828,19 +2075,19 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                             const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
                                                                             return (
-                                                                                <div key={index} className='border rounded-md flex items-center justify-center'>
+                                                                                <div key={index} className='border rounded-md flex items-center justify-center mt-2 p-3'>
                                                                                     {isImage ? (
                                                                                         <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                     ) : (
                                                                                         <div>
-                                                                                            <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                            <button onClick={() => window.open(item, '_blank')} className='border-green-500 p-3 rounded border'>Open Link</button>
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
                                                                             );
                                                                         })
                                                                     ) : (
-                                                                        <p>No image or link available</p>
+                                                                        <p><></></p>
                                                                     )}
                                                                 </div>
 
@@ -1996,13 +2243,33 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                         className="form-control border rounded w-full p-1 mt-2"
                                                                     />
 
-                                                                    <p className="text-gray-500 text-sm mt-2">
-                                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
-                                                                    </p>
-                                                                    {cefData.aadhar_card_image && (
-                                                                        <div className='md:h-20 md:w-20 border rounded-md p-2'><img src={cefData.aadhar_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
+                                                                    {
+                                                                        cefData.aadhar_card_image && (
+                                                                            isImage(cefData.aadhar_card_image) ? (
+                                                                                // If it's an image, display it
+                                                                                <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                                    <img
+                                                                                        src={cefData.aadhar_card_image || "NO IMAGE FOUND"}
+                                                                                        alt="Aadhar Card"
+                                                                                        className='h-full w-full object-contain p-3'
+                                                                                    />
+                                                                                </div>
+                                                                            ) : (
+                                                                                // If it's not an image, show a clickable link (view document)
+                                                                                <div className='mt-2'>
+                                                                                    <a
+                                                                                        href={cefData.aadhar_card_image}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="text-red-500 "
+                                                                                    >
+                                                                                        View Aadhar Card Document
+                                                                                    </a>
+                                                                                </div>
+                                                                            )
+                                                                        )
+                                                                    }
 
-                                                                    )}
 
                                                                 </div>
                                                             </>
@@ -2054,13 +2321,33 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                 className="form-control border rounded w-full p-1 mt-2"
 
                                                             />
-                                                            <p className="text-gray-500 text-sm mt-2" >
-                                                                Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                            </p>
-                                                            {cefData.pan_card_image && (
-                                                                <div className='md:h-20 md:w-20 border rounded-md p-2'><img src={cefData.pan_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
 
+
+                                                            {cefData.pan_card_image && (
+                                                                isImage(cefData.pan_card_image) ? (
+                                                                    // If it's an image, display it
+                                                                    <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                        <img
+                                                                            src={cefData.pan_card_image || "NO IMAGE FOUND"}
+                                                                            className='h-full w-full object-contain p-3'
+                                                                            alt="Pan Card Image"
+                                                                        />
+                                                                    </div>
+                                                                ) : (
+                                                                    // If it's not an image, show a clickable link (view document)
+                                                                    <div className='mt-2'>
+                                                                        <a
+                                                                            href={cefData.pan_card_image}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-red-500 "
+                                                                        >
+                                                                            View Pan Card Document
+                                                                        </a>
+                                                                    </div>
+                                                                )
                                                             )}
+
                                                         </div>
                                                     )}
 
@@ -3400,8 +3687,8 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                                             accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
                                                                                                             className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
                                                                                                         />
-                                                                                                        <div className="border p-3 rounded-md mt-4">
-                                                                                                            {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
+                                                                                                        {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
+                                                                                                            <div className="border p-3 rounded-md mt-4">
                                                                                                                 <Swiper
                                                                                                                     spaceBetween={10} // Space between slides
                                                                                                                     slidesPerView={5} // Default is 5 images per view for larger screens
@@ -3451,10 +3738,10 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                                                         );
                                                                                                                     })}
                                                                                                                 </Swiper>
-                                                                                                            ) : (
-                                                                                                                <p>No image or link available</p>
-                                                                                                            )}
-                                                                                                        </div>
+                                                                                                            </div>
+                                                                                                        ) : (
+                                                                                                            <p><></></p>
+                                                                                                        )}
 
                                                                                                     </>
                                                                                                 )}
@@ -3555,12 +3842,31 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                         id="signature"
                                                         disabled
                                                     />
-                                                    < p className="text-gray-500 text-sm mt-2" >
-                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                    </p>
+
                                                     {
                                                         cefData.signature && (
-                                                            <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefData.signature} alt="No Signature Found" className='h-full w-full' /></div>
+                                                            isImage(cefData.signature) ? (
+                                                                // If it's an image, display it
+                                                                <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                    <img
+                                                                        src={cefData.signature || "NO IMAGE FOUND"}
+                                                                        alt="Signature"
+                                                                        className='h-full w-full object-contain p-3'
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                // If it's not an image, show a clickable link (view document)
+                                                                <div className='mt-3'>
+                                                                    <a
+                                                                        href={cefData.signature}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-blue-500 "
+                                                                    >
+                                                                        View Signature Document
+                                                                    </a>
+                                                                </div>
+                                                            )
                                                         )
                                                     }
 

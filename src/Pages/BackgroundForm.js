@@ -56,7 +56,10 @@ const BackgroundForm = () => {
     };
 
 
-
+    function isImage(fileUrl) {
+        const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        return validImageExtensions.some(ext => fileUrl.toLowerCase().endsWith(ext));
+    }
 
     const addCoressPondencePhd = () => {
 
@@ -1035,22 +1038,6 @@ const BackgroundForm = () => {
                         }
 
 
-                        // If files exist for the input, perform file validation
-                        if (filesToCheck && filesToCheck.length > 0) {
-                            filesToCheck.forEach((fileItem) => {
-                                // Log each file being checked
-
-                                if (fileItem.size > maxSize) {
-                                    fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
-                                }
-
-                                // Validate file type
-                                if (!allowedTypes.includes(fileItem.type)) {
-                                    fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-                                }
-                            });
-                        }
-
                         return fileErrors;
                     };
 
@@ -1326,23 +1313,10 @@ const BackgroundForm = () => {
             if (file && file[0]) {
                 // Multiple files uploaded
                 file.forEach((fileItem) => {
-                    if (fileItem.size > maxSize) {
-                        fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
-                    }
 
-                    if (!allowedTypes.includes(fileItem.type)) {
-                        fileErrors.push(`${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-                    }
                 });
             } else if (file && file.size) {
-                // Single file uploaded
-                if (file.size > maxSize) {
-                    fileErrors.push(`${file.name}: File size must be less than 2MB.`);
-                }
 
-                if (!allowedTypes.includes(file.type)) {
-                    fileErrors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-                }
             } else {
                 // File is required and was not found
                 fileErrors.push(`${fileName} is required.`);
@@ -1398,16 +1372,6 @@ const BackgroundForm = () => {
                 if (!file.name || !file.size) {
                     resumeFileErrors.push('Resume file is required.');
                 } else {
-
-                    // Validate the file type
-                    if (!file.name.match(/\.(pdf|docx|doc|jpg|jpeg|png)$/i)) {
-                        resumeFileErrors.push('Invalid file type. Please upload a PDF, DOCX, or image file.');
-                    }
-
-                    // Validate file size (example: 5MB max)
-                    if (file.size > 5 * 1024 * 1024) {
-                        resumeFileErrors.push('File size exceeds the limit of 5MB.');
-                    }
 
                     if (resumeFileErrors.length === 0) {
                         const fileErrors = validateFile('resume_file');
@@ -1483,11 +1447,12 @@ const BackgroundForm = () => {
             // If file doesn't exist in cefDataApp, continue validation
             if (file) {
                 file.forEach((fileItem) => {
-                    if (fileItem.size > maxSize) {
-                        const errorMessage = `${fileItem.name}: File size must be less than 2MB.`;
-                        fileErrors.push(errorMessage);
-                    }
-
+                    // Remove the size validation block
+                    // if (fileItem.size > maxSize) {
+                    //     const errorMessage = `${fileItem.name}: File size must be less than 2MB.`;
+                    //     fileErrors.push(errorMessage);
+                    // }
+            
                     if (!allowedTypes.includes(fileItem.type)) {
                         const errorMessage = `${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`;
                         fileErrors.push(errorMessage);
@@ -1497,6 +1462,7 @@ const BackgroundForm = () => {
                 const errorMessage = `${fileName} is required.`;
                 fileErrors.push(errorMessage);
             }
+            
 
             return fileErrors;
         };
@@ -1547,15 +1513,15 @@ const BackgroundForm = () => {
 
         let errors = [];
 
-        selectedFiles.forEach((file) => {
-            if (file.size > maxSize) {
-                errors.push(`${file.name}: File size must be less than 2MB.`);
-            }
+        // selectedFiles.forEach((file) => {
+        //     if (file.size > maxSize) {
+        //         errors.push(`${file.name}: File size must be less than 2MB.`);
+        //     }
 
-            if (!allowedTypes.includes(file.type)) {
-                errors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-            }
-        });
+        //     if (!allowedTypes.includes(file.type)) {
+        //         errors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
+        //     }
+        // });
 
         if (errors.length > 0) {
             setErrors((prevErrors) => ({
@@ -1660,6 +1626,9 @@ const BackgroundForm = () => {
             // Check if the education_fields and employment_fields are already stringified
             const isEducationFieldsStringified = typeof annexureData.gap_validation.education_fields === 'string';
             const isEmploymentFieldsStringified = typeof annexureData.gap_validation.employment_fields === 'string';
+            console.log('isEducationFieldsStringified', isEducationFieldsStringified);
+            console.log('isEmploymentFieldsStringified', isEmploymentFieldsStringified);
+
 
             // Only stringify if the fields are not already stringified
             const educationFieldsString = isEducationFieldsStringified
@@ -1741,7 +1710,7 @@ const BackgroundForm = () => {
                 if (fileCount === 0) {
                     Swal.fire({
                         title: "Success",
-                        text: "CEF Application Created Successfully.",
+                        text: result.message || "BGV Application Created Successfully.",
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
@@ -1752,7 +1721,7 @@ const BackgroundForm = () => {
                     setProgress(100); // Set progress to 100% after file upload
                     Swal.fire({
                         title: "Success",
-                        text: "CEF Application Created Successfully and files uploaded.",
+                        text: result.message || "BGV Application Created Successfully",
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
@@ -2106,9 +2075,7 @@ const BackgroundForm = () => {
 
                                                                     />
                                                                     {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
-                                                                    <p className="text-gray-500 text-sm mt-2" >
-                                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                    </p>
+
                                                                     {cefDataApp.resume_file && (
                                                                         <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
                                                                     )}
@@ -2126,9 +2093,7 @@ const BackgroundForm = () => {
                                                                     ref={(el) => (refs.current["applications_govt_id"] = el)} // Attach ref here
                                                                 />
                                                                 {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
-                                                                <p className="text-gray-500 text-sm mt-2" >
-                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                </p>
+
                                                                 <div className='md:grid grid-cols-5 gap-3'>
 
                                                                     {cefDataApp.govt_id ? (
@@ -2176,9 +2141,7 @@ const BackgroundForm = () => {
 
                                                                             />
                                                                             {errors.passport_photo && <p className="text-red-500 text-sm" > {errors.passport_photo} </p>}
-                                                                            <p className="text-gray-500 text-sm mt-2" >
-                                                                                Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                            </p>
+
                                                                             <div className='md:grid grid-cols-5 gap-3'>
                                                                                 {cefDataApp.passport_photo ? (
                                                                                     cefDataApp.passport_photo.split(',').map((item, index) => {
@@ -2191,7 +2154,7 @@ const BackgroundForm = () => {
                                                                                                     <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                                 ) : (
                                                                                                     <div>
-                                                                                                        <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                                        <button onClick={() => window.open(item, '_blank')} className='border-green-500 p-3 rounded border'>Open Link</button>
                                                                                                     </div>
                                                                                                 )}
                                                                                             </div>
@@ -2376,13 +2339,32 @@ const BackgroundForm = () => {
                                                                                 {errors.aadhar_card_image && (
                                                                                     <p className="text-red-500 text-sm">{errors.aadhar_card_image}</p>
                                                                                 )}
-                                                                                <p className="text-gray-500 text-sm mt-2">
-                                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
-                                                                                </p>
-                                                                                {cefDataApp.aadhar_card_image && (
-                                                                                    <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
-
-                                                                                )}
+                                                                                {
+                                                                                    cefDataApp.aadhar_card_image && (
+                                                                                        isImage(cefDataApp.aadhar_card_image) ? (
+                                                                                            // If it's an image, display it
+                                                                                            <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                                                <img
+                                                                                                    src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"}
+                                                                                                    alt="Aadhar Card"
+                                                                                                    className='h-full w-full object-contain p-3'
+                                                                                                />
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            // If it's not an image, show a clickable link (view document)
+                                                                                            <div className='mt-2'>
+                                                                                                <a
+                                                                                                    href={cefDataApp.aadhar_card_image}
+                                                                                                    target="_blank"
+                                                                                                    rel="noopener noreferrer"
+                                                                                                    className="text-red-500 "
+                                                                                                >
+                                                                                                    View Aadhar Card Document
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        )
+                                                                                    )
+                                                                                }
 
                                                                             </div>
                                                                         </>
@@ -2444,12 +2426,29 @@ const BackgroundForm = () => {
 
                                                                         />
                                                                         {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
-                                                                        <p className="text-gray-500 text-sm mt-2" >
-                                                                            Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                        </p>
                                                                         {cefDataApp.pan_card_image && (
-                                                                            <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
-
+                                                                            isImage(cefDataApp.pan_card_image) ? (
+                                                                                // If it's an image, display it
+                                                                                <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                                    <img
+                                                                                        src={cefDataApp.pan_card_image || "NO IMAGE FOUND"}
+                                                                                        className='h-full w-full object-contain p-3'
+                                                                                        alt="Pan Card Image"
+                                                                                    />
+                                                                                </div>
+                                                                            ) : (
+                                                                                // If it's not an image, show a clickable link (view document)
+                                                                                <div className='mt-2'>
+                                                                                    <a
+                                                                                        href={cefDataApp.pan_card_image}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="text-red-500 "
+                                                                                    >
+                                                                                        View Pan Card Document
+                                                                                    </a>
+                                                                                </div>
+                                                                            )
                                                                         )}
                                                                     </div>
                                                                 )}
@@ -3890,60 +3889,59 @@ const BackgroundForm = () => {
                                                                                                                     />
 
                                                                                                                     {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
-                                                                                                                        <Swiper
-                                                                                                                            spaceBetween={10} // Space between slides
-                                                                                                                            slidesPerView={5} // Default is 5 images per view for larger screens
-                                                                                                                            loop={true} // Loop through images
-                                                                                                                            autoplay={{
-                                                                                                                                delay: 1000,
-                                                                                                                                disableOnInteraction: false, // Keeps autoplay active on interaction
-                                                                                                                            }}
-                                                                                                                            pagination={{
-                                                                                                                                clickable: true,
-                                                                                                                            }}
-                                                                                                                            navigation={{ // Enable next/prev buttons
-                                                                                                                                nextEl: '.swiper-button-next',
-                                                                                                                                prevEl: '.swiper-button-prev',
-                                                                                                                            }}
-                                                                                                                            breakpoints={{
-                                                                                                                                // When the screen width is 640px or smaller (mobile devices)
-                                                                                                                                640: {
-                                                                                                                                    slidesPerView: 1, // Show 1 image per slide on mobile
-                                                                                                                                },
-                                                                                                                                // When the screen width is 768px or larger (tablet and desktop)
-                                                                                                                                768: {
-                                                                                                                                    slidesPerView: 3, // Show 3 images per slide on tablets (optional)
-                                                                                                                                },
-                                                                                                                                1024: {
-                                                                                                                                    slidesPerView: 6, // Show 3 images per slide on tablets (optional)
-                                                                                                                                },
-                                                                                                                            }}
-                                                                                                                        >
-                                                                                                                            {annexureData[service.db_table][input.name].split(',').map((item, index) => {
-                                                                                                                                const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
+                                                                                                                        <div className="border p-3 rounded-md mt-4">
+                                                                                                                            <Swiper
+                                                                                                                                spaceBetween={10} // Space between slides
+                                                                                                                                slidesPerView={5} // Default is 5 images per view for larger screens
+                                                                                                                                loop={true} // Loop through images
+                                                                                                                                autoplay={{
+                                                                                                                                    delay: 1000,
+                                                                                                                                    disableOnInteraction: false, // Keeps autoplay active on interaction
+                                                                                                                                }}
+                                                                                                                                pagination={{
+                                                                                                                                    clickable: true,
+                                                                                                                                }}
+                                                                                                                                navigation={{ // Enable next/prev buttons
+                                                                                                                                    nextEl: '.swiper-button-next',
+                                                                                                                                    prevEl: '.swiper-button-prev',
+                                                                                                                                }}
+                                                                                                                                breakpoints={{
+                                                                                                                                    // When the screen width is 640px or smaller (mobile devices)
+                                                                                                                                    640: {
+                                                                                                                                        slidesPerView: 1, // Show 1 image per slide on mobile
+                                                                                                                                    },
+                                                                                                                                    // When the screen width is 768px or larger (tablet and desktop)
+                                                                                                                                    768: {
+                                                                                                                                        slidesPerView: 3, // Show 3 images per slide on tablets (optional)
+                                                                                                                                    },
+                                                                                                                                    1024: {
+                                                                                                                                        slidesPerView: 6, // Show 3 images per slide on tablets (optional)
+                                                                                                                                    },
+                                                                                                                                }}
+                                                                                                                            >
+                                                                                                                                {annexureData[service.db_table][input.name].split(',').map((item, index) => {
+                                                                                                                                    const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
-                                                                                                                                return (
-                                                                                                                                    <SwiperSlide key={index}>
-
-                                                                                                                                        {isImage ? (
-                                                                                                                                            <div className="border p-3 rounded-md mt-4">
-                                                                                                                                                <div className="swiper-slide-container">
+                                                                                                                                    return (
+                                                                                                                                        <SwiperSlide key={index}>
+                                                                                                                                            <div className="swiper-slide-container">
+                                                                                                                                                {isImage ? (
                                                                                                                                                     <img
                                                                                                                                                         src={item}
                                                                                                                                                         alt={`Image ${index}`}
                                                                                                                                                         className='md:h-[100px] md:w-[100px]'
                                                                                                                                                     />
-                                                                                                                                                </div>
+                                                                                                                                                ) : (
+                                                                                                                                                    <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                                                                                )}
                                                                                                                                             </div>
-                                                                                                                                        ) : (
-                                                                                                                                            ''
-                                                                                                                                        )}
-                                                                                                                                    </SwiperSlide>
-                                                                                                                                );
-                                                                                                                            })}
-                                                                                                                        </Swiper>
+                                                                                                                                        </SwiperSlide>
+                                                                                                                                    );
+                                                                                                                                })}
+                                                                                                                            </Swiper>
+                                                                                                                        </div>
                                                                                                                     ) : (
-                                                                                                                        <p></p>
+                                                                                                                        <p><></></p>
                                                                                                                     )}
 
                                                                                                                 </>
@@ -4053,13 +4051,35 @@ const BackgroundForm = () => {
 
                                                                 />
                                                                 {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
-                                                                < p className="text-gray-500 text-sm mt-2" >
-                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                </p>
-                                                                {cefDataApp.signature && (
-                                                                    <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefDataApp.signature} alt="No Signature Found" className='h-full w-full' /></div>
 
-                                                                )}
+
+                                                                {
+                                                                    cefDataApp.signature && (
+                                                                        isImage(cefDataApp.signature) ? (
+                                                                            // If it's an image, display it
+                                                                            <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                                <img
+                                                                                    src={cefDataApp.signature || "NO IMAGE FOUND"}
+                                                                                    alt="Signature"
+                                                                                    className='h-full w-full object-contain p-3'
+                                                                                />
+                                                                            </div>
+                                                                        ) : (
+                                                                            // If it's not an image, show a clickable link (view document)
+                                                                            <div className='mt-2'>
+                                                                                <a
+                                                                                    href={cefDataApp.signature}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="text-blue-500 "
+                                                                                >
+                                                                                    View Signature Document
+                                                                                </a>
+                                                                            </div>
+                                                                        )
+                                                                    )
+                                                                }
+
 
 
                                                             </div>

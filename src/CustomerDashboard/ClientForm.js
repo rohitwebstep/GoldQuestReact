@@ -31,14 +31,6 @@ const ClientForm = () => {
     };
     const validate = () => {
         const newErrors = {};
-        const maxSize = 2 * 1024 * 1024; // 2MB size limit
-        const allowedTypes = [
-            'image/jpeg', 'image/png', 'application/pdf',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ]; // Allowed file types
-
-        // Helper function to validate a file field
         const validateFile = (fileName) => {
             if (inputError[fileName] && inputError[fileName].length > 0) {
                 // If there are existing errors, return them
@@ -54,17 +46,6 @@ const ClientForm = () => {
                     }
                 }
 
-                if (selectedFiles && selectedFiles.length > 0) {
-                    selectedFiles.forEach((file) => {
-                        if (file.size > maxSize) {
-                            fileErrors.push(`${file.name}: File size must be less than 2MB.`);
-                        }
-
-                        if (!allowedTypes.includes(file.type)) {
-                            fileErrors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-                        }
-                    });
-                }
 
                 return fileErrors;
             }
@@ -98,30 +79,8 @@ const ClientForm = () => {
 
     const handleFileChange = (fileName, e) => {
         const selectedFiles = Array.from(e.target.files);
-
-        const maxSize = 2 * 1024 * 1024; // 2MB size limit
-        const allowedTypes = [
-            'image/jpeg', 'image/png', 'application/pdf',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ]; // Allowed file types
-
         let errors = [];
 
-        // Validate each file
-        selectedFiles.forEach((file) => {
-            // Check file size
-            if (file.size > maxSize) {
-                errors.push(`${file.name}: File size must be less than 2MB.`);
-            }
-
-            // Check file type (MIME type)
-            if (!allowedTypes.includes(file.type)) {
-                errors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-            }
-        });
-
-        // If there are errors, show them and don't update the state
         if (errors.length > 0) {
             setInputError((prevErrors) => ({
                 ...prevErrors,
@@ -169,7 +128,7 @@ const ClientForm = () => {
         const fileCount = Object.keys(files).length;
         const serviceData = JSON.stringify(services);
         setIsBranchApiLoading(true);  // Start loading
-    
+
         try {
             // Loop through the files to upload
             for (const [index, [key, value]] of Object.entries(files).entries()) {
@@ -178,17 +137,17 @@ const ClientForm = () => {
                 customerLogoFormData.append('_token', branch_token);
                 customerLogoFormData.append('customer_code', customer_code);
                 customerLogoFormData.append('client_application_id', insertedId);
-    
+
                 if (branchData?.type === "sub_user") {
                     customerLogoFormData.append("sub_user_id", branchData.id);
                 }
-    
+
                 // Append each file in the category to FormData
                 for (const file of value) {
                     customerLogoFormData.append('images', file);
                 }
                 customerLogoFormData.append('upload_category', key);
-    
+
                 // Append additional data on the last iteration
                 if (fileCount === (index + 1)) {
                     customerLogoFormData.append('send_mail', isEditClient ? 0 : 1); // 0 for edit, 1 for new
@@ -196,7 +155,7 @@ const ClientForm = () => {
                     customerLogoFormData.append('client_application_name', clientInput.name);
                     customerLogoFormData.append('client_application_generated_id', new_application_id);
                 }
-    
+
                 // Perform the upload
                 const response = await axios.post(
                     `${API_URL}/branch/client-application/upload`,
@@ -207,7 +166,7 @@ const ClientForm = () => {
                         },
                     }
                 );
-    
+
                 // Store new token if returned
                 const newToken = response?.data?._token || response?.data?.token;
                 if (newToken) {
@@ -215,13 +174,13 @@ const ClientForm = () => {
                 }
             }
         } catch (err) {
-            console.error('Error uploading logo:', err); 
+            console.error('Error uploading logo:', err);
             Swal.fire('Error!', `An error occurred while uploading logo: ${err.message}`, 'error');
         } finally {
             setIsBranchApiLoading(false);  // Stop loading once all files are processed
         }
     };
-    
+
 
 
     const handleSubmit = async (e) => {
@@ -338,10 +297,10 @@ const ClientForm = () => {
                     insertedId = result?.result?.results?.insertId;
                     new_application_id = result?.result?.new_application_id;
                 }
-                
+
                 // Bepaal succesbericht vooraf, niet overschrijven later
                 let successMessage = isEditClient ? "Application Updated Successfully" : "Application Created Successfully";
-                
+
                 if (fileCount > 0) {
                     // Bestand uploaden als een ID beschikbaar is
                     if (isEditClient) {
@@ -358,7 +317,7 @@ const ClientForm = () => {
                         }
                     }
                 }
-                
+
 
 
                 // Show the success message
@@ -490,7 +449,7 @@ const ClientForm = () => {
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
                                     <label htmlFor="organisation_name" className='text-sm'>Name of the organisation<span className="text-red-500">*</span></label>
-                                    <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full capitalize rounded-md p-2 mt-2" disabled value={branch_name?.name ||branch_name?.branch_name} />
+                                    <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full capitalize rounded-md p-2 mt-2" disabled value={branch_name?.name || branch_name?.branch_name} />
                                     {inputError.organisation_name && <p className='text-red-500'>{inputError.organisation_name}</p>}
                                 </div>
                                 <div className="mb-4 md:w-6/12">
@@ -505,9 +464,7 @@ const ClientForm = () => {
                                     accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
                                     onChange={(e) => handleFileChange('attach_documents', e)} />
                                 {inputError.attach_documents && <p className='text-red-500'>{inputError.attach_documents}</p>}
-                                <p className="text-gray-500 text-sm mt-2">
-                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
-                                </p>
+                                
                             </div>
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">

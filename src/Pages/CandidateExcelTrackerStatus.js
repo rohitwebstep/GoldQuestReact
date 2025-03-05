@@ -417,7 +417,7 @@ const CandidateExcelTrackerStatus = () => {
         // Export to Excel
         XLSX.writeFile(wb, 'Report_Data.xlsx');
     };
-  
+
 
     const fetchImageToBase = async (imageUrls) => {
         setIsApiLoading(true); // Set loading state to true before making the request
@@ -463,17 +463,28 @@ const CandidateExcelTrackerStatus = () => {
         let allUrls = [];
     
         try {
+            console.log("Starting the process to collect image URLs...");
+    
             // Collect all image URLs and organize by category/label
             Object.entries(attachments).forEach(([category, files]) => {
-                files.forEach(attachment => {
-                    const label = Object.keys(attachment)[0];
-                    const fileUrls = attachment[label]?.split(",").map(url => url.trim());
+                console.log(`Processing category: ${category}`);
+                if (Array.isArray(files)) {
+                    files.forEach(attachment => {
+                        const label = Object.keys(attachment)[0];
+                        const fileUrls = attachment[label]?.split(",").map(url => url.trim());
     
-                    if (fileUrls && fileUrls.length > 0) {
+                        console.log(`Label: ${label}`);
+                        console.log(`URLs for label "${label}":`, fileUrls);
+    
+                        // Add to allUrls for future processing
                         allUrls.push({ category, label, urls: fileUrls });
-                    }
-                });
+                    });
+                } else {
+                    console.error(`Expected an array for category "${category}", but got:`, files);
+                }
             });
+    
+            console.log("Finished collecting all URLs:", allUrls);
     
             if (allUrls.length === 0) {
                 console.warn("No valid image URLs found.");
@@ -482,22 +493,26 @@ const CandidateExcelTrackerStatus = () => {
     
             // Fetch all images as Base64
             const allImageUrls = allUrls.flatMap(item => item.urls);
+            console.log("All image URLs to fetch:", allImageUrls);
+    
             const base64Response = await fetchImageToBase(allImageUrls);
             const base64Images = base64Response || []; // Ensure it's an array
+    
+            console.log("Base64 images fetched:", base64Images);
     
             if (base64Images.length === 0) {
                 console.error("No images received from API.");
                 return;
             }
     
-            // Create a list of promises to download files
-            const downloadPromises = [];
-    
+            // Process each image and add them to the ZIP file
             let imageIndex = 0;
     
-            // Process each image
             for (const { category, label, urls } of allUrls) {
+                console.log(`Processing category: ${category}, label: ${label}`);
                 for (const url of urls) {
+                    console.log(`Processing URL: ${url}`);
+    
                     // Find the corresponding base64 data
                     const imageData = base64Images.find(img => img.imageUrl === url);
     
@@ -508,23 +523,9 @@ const CandidateExcelTrackerStatus = () => {
                         if (blob) {
                             const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
     
-                            // Add file to ZIP (to prepare for a zip download)
+                            console.log(`Adding file to ZIP with name: ${fileName}`);
+                            // Add file to ZIP
                             zip.file(fileName, blob);
-    
-                            // Create and trigger the individual download
-                            const blobUrl = URL.createObjectURL(blob);
-                            const link = document.createElement("a");
-                            link.href = blobUrl;
-                            link.download = fileName;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(blobUrl);
-    
-                            // Add the download to the promises list (to ensure it's completed before zipping)
-                            downloadPromises.push(new Promise(resolve => {
-                                link.onload = resolve; // Resolve when the link has triggered the download
-                            }));
                         }
                     } else {
                         console.warn(`Skipping invalid Base64 data for URL: ${url}`);
@@ -533,12 +534,14 @@ const CandidateExcelTrackerStatus = () => {
                 }
             }
     
-            // Wait for all individual downloads to complete
-            await Promise.all(downloadPromises);
+            console.log("Generating ZIP file...");
     
-            // Generate ZIP file and trigger download
+            // Generate ZIP file content
             const zipContent = await zip.generateAsync({ type: "blob" });
+    
+            // Use FileSaver.js to download the ZIP file
             saveAs(zipContent, "attachments.zip");
+    
             console.log("✅ ZIP file downloaded successfully!");
     
         } catch (error) {
@@ -546,7 +549,10 @@ const CandidateExcelTrackerStatus = () => {
         }
     };
     
-    
+
+
+
+
 
     return (
         <div className="bg-[#c1dff2]">
@@ -847,9 +853,9 @@ const CandidateExcelTrackerStatus = () => {
                                                         <button className="modal-close-button" onClick={handleCloseModalDoc}>
                                                             Close
                                                         </button>
-                                                        {/* <button className="modal-download-button bg-blue-500 text-white p-2 rounded-md px-4 mt-2" onClick={handleDownloadAll}>
+                                                        <button className="modal-download-button bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(selectedAttachments)}>
                                                             Download All
-                                                        </button> */}
+                                                        </button>
                                                     </div>
                                                 </div>
 

@@ -10,95 +10,532 @@ import axios from 'axios';
 import LogoBgv from '../Images/LogoBgv.jpg'
 import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
+
 const BackgroundForm = () => {
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
+    const [gaps, setGaps] = useState({});
+    const [employGaps, setEmployGaps] = useState({});
+
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(false)
     const [conditionHtml, setConditionHtml] = useState("");
-    const [employmentType, setEmploymentType] = useState('');
-    const [education, setEducation] = useState({
-        highest_education: "",
-        phd_institute_name_gap: "",
-        phd_school_name_gap: "",
-        phd_start_date_gap: "",
-        phd_end_date_gap: "",
-        phd_specialization_gap: "",
-        post_graduation_university_institute_name_gap: "",
-        post_graduation_course_gap: "",
-        post_graduation_specialization_major_gap: "",
-        post_graduation_passing_year_gap: "",
-        graduation_university_institute_name_gap: "",
-        graduation_course_gap: "",
-        graduation_specialization_major_gap: "",
-        graduation_passing_year_gap: "",
-        senior_secondary_school_name_gap: "",
-        senior_secondary_start_date_gap: "",
-        senior_secondary_end_date_gap: "",
-        secondary_school_name_gap: "",
-        secondary_start_date_gap: "",
-        secondary_end_date_gap: "",
+    const [initialAnnexureData, setInitialAnnexureData] = useState({
+        gap_validation: {
+            highest_education_gap: '',
+            years_of_experience_gap: '',
+            no_of_employment: 0,
+
+        }
     });
 
-    const initialAnnexureData = {
-        gap_validation: {
-            phd_institute_name_gap: '',
-            phd_school_name_gap: '',
-            phd_start_date_gap: '',
-            phd_end_date_gap: '',
-            phd_specialization_gap: '',
-            post_graduation_university_institute_name_gap: '',
-            post_graduation_course_gap: '',
-            post_graduation_specialization_major_gap: '',
-            post_graduation_passing_year_gap: '',
-            graduation_university_institute_name_gap: '',
-            graduation_course_gap: '',
-            graduation_specialization_major_gap: '',
-            graduation_passing_year_gap: '',
-            senior_secondary_school_name_gap: '',
-            senior_secondary_start_date_gap: '',
-            senior_secondary_end_date_gap: '',
-            secondary_school_name_gap: '',
-            secondary_start_date_gap: '',
-            secondary_end_date_gap: '',
-            self_employment_business_type_gap: '',
-            self_employment_company_name_gap: '',
-            self_employment_start_date_gap: '',
-            self_employment_end_date_gap: '',
-            family_business_business_type_gap: '',
-            family_business_company_name_gap: '',
-            family_business_start_date_gap: '',
-            family_business_end_date_gap: '',
-            training_type_gap: '',
-            training_institute_comapny_name_gap: '',
-            training_company_name_gap: '',
-            training_start_date_gap: '',
-            training_end_date_gap: '',
-            certification_title_gap: '',
-            certification_institute_company_name_gap: '',
-            certification_start_date_gap: '',
-            certification_end_date_gap: '',
-            freelancer_type_gap: '',
-            freelancer_start_date_gap: '',
-            freelancer_end_date_gap: '',
-            highest_education_gap: '',
-            employmentType_gap: "",
+    const createEmploymentFields = (noOfEmployments, fieldValue) => {
+        let employmentFieldsData = fieldValue.employment_fields;
+
+        // Check if it's a string (i.e., it's been stringified previously) and parse it
+        if (typeof employmentFieldsData === 'string') {
+            employmentFieldsData = JSON.parse(employmentFieldsData);
+        } else {
         }
+
+        const employmentFields = {}; // Initialize the employmentFields object to store all employment data
+
+        // Dynamically structure the data like: employment_1, employment_2, etc.
+        for (let i = 1; i <= noOfEmployments; i++) {
+
+            const employmentData = employmentFieldsData[`employment_${i}`] || {};
+
+            employmentFields[`employment_${i}`] = {
+                [`employment_type_gap`]: employmentData[`employment_type_gap`] || '',
+                [`employment_start_date_gap`]: employmentData[`employment_start_date_gap`] || '',
+                [`employment_end_date_gap`]: employmentData[`employment_end_date_gap`] || '',
+            };
+
+        }
+
+        return employmentFields;
     };
+
+
+
+
+    const addCoressPondencePhd = () => {
+
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset it to an empty object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+
+        // Get existing phd_corespondence keys
+        const phdKeys = Object.keys(educationFields);
+        const phdCorrespondenceKeys = phdKeys.filter(key => key.startsWith('phd_corespondence_'));
+
+        let newKey;
+        if (phdCorrespondenceKeys.length === 0) {
+            newKey = 'phd_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...phdCorrespondenceKeys.map(key => parseInt(key.split('_')[2], 10)));
+            newKey = `phd_corespondence_${lastNumber + 1}`;
+        }
+
+
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+    };
+
+
+    const addCoressPondencePostGraduation = () => {
+
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('post_graduation_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'post_graduation_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[3], 10)));
+            newKey = `post_graduation_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+    };
+    const addCoressPondenceGraduation = () => {
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('graduation_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'graduation_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[2], 10)));
+            newKey = `graduation_corespondence_${lastNumber + 1}`;
+        }
+
+
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+    };
+
+    const addCoressPondenceSeniorSecondary = () => {
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            console.error('education_fields is not an object, resetting it to an empty object');
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('senior_secondary_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'senior_secondary_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[3], 10)));
+            newKey = `senior_secondary_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+    };
+    const addCoressPondenceSecondary = () => {
+
+        // Clone the current state
+        let updatedData = { ...annexureData };
+
+        // Ensure gap_validation exists
+        if (!updatedData.gap_validation) {
+            updatedData.gap_validation = {};
+        }
+
+        // Ensure education_fields exists and is an object
+        if (!updatedData.gap_validation.education_fields) {
+            updatedData.gap_validation.education_fields = {};
+        } else if (typeof updatedData.gap_validation.education_fields !== 'object') {
+            updatedData.gap_validation.education_fields = {}; // Reset to an object if it's not
+        }
+
+        const educationFields = updatedData.gap_validation.education_fields;
+
+        // Get existing post_graduation_corespondence keys
+        const postGraduationKeys = Object.keys(educationFields);
+        const postGraduationCorrespondenceKeys = postGraduationKeys.filter(key => key.startsWith('secondary_corespondence_'));
+
+        let newKey;
+        if (postGraduationCorrespondenceKeys.length === 0) {
+            newKey = 'secondary_corespondence_1';
+        } else {
+            // Extract numeric values, find max, and increment
+            const lastNumber = Math.max(...postGraduationCorrespondenceKeys.map(key => parseInt(key.split('_')[2], 10)));
+            newKey = `secondary_corespondence_${lastNumber + 1}`;
+        }
+
+        // Log the new key
+
+        // Add new entry to education_fields
+        updatedData.gap_validation.education_fields[newKey] = {};
+
+        // Update state to trigger re-render
+        setAnnexureData({ ...updatedData });
+
+    };
+
+    const updateEmploymentFields = (noOfEmployments, fieldValue) => {
+
+        // Generate new employment fields based on the provided number of employments
+        const allEmploymentFields = createEmploymentFields(noOfEmployments, fieldValue);
+
+
+        // Create a copy of the current annexureData
+        const updatedAnnexureData = { ...annexureData };
+
+        // Check if gap_validation exists before modifying
+        if (updatedAnnexureData.gap_validation) {
+            // Delete the existing employment_fields key
+            delete updatedAnnexureData.gap_validation.employment_fields;
+        } else {
+            // If gap_validation doesn't exist, initialize it
+            updatedAnnexureData.gap_validation = {};
+        }
+
+        // Add the new employment_fields data
+        updatedAnnexureData.gap_validation.highest_education_gap = fieldValue.highest_education_gap;
+        updatedAnnexureData.gap_validation.no_of_employment = fieldValue.no_of_employment;
+        updatedAnnexureData.gap_validation.years_of_experience_gap = fieldValue.years_of_experience_gap;
+        updatedAnnexureData.gap_validation.education_fields = JSON.parse(fieldValue.education_fields);
+        updatedAnnexureData.gap_validation.employment_fields = allEmploymentFields;
+
+        // Set state with updated data
+        setAnnexureData(updatedAnnexureData);
+
+        return updatedAnnexureData; // This can be used for further handling if needed
+    };
+
+
+
+
+
     const [annexureData, setAnnexureData] = useState(initialAnnexureData);
+
+
+    const handleServiceChange = (tableName, fieldName, value) => {
+        setAnnexureData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                [tableName]: {
+                    ...prevData[tableName],
+                    [fieldName]: value
+                }
+            };
+            return updatedData;
+        });
+        validateDate();
+        calculateGaps();
+    };
+    const handleEmploymentGapChange = (tableName, group, type, fieldName, value) => {
+
+
+        setAnnexureData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                [tableName]: {
+                    ...prevData[tableName], // Keep other properties
+                    [group]: {
+                        ...prevData[tableName]?.[group], // Preserve group data
+                        [type]: {
+                            ...prevData[tableName]?.[group]?.[type], // Preserve type data
+                            [fieldName]: value // Correctly replace the value
+                        }
+                    }
+                }
+            };
+
+            return updatedData;
+        });
+
+        validateDate();
+        calculateGaps();
+    };
+
+
+    const calculateDateGap = (startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (start > end) {
+            return null; // Return null for negative gaps (startDate is later than endDate)
+        }
+
+        let years = end.getFullYear() - start.getFullYear();
+        let months = end.getMonth() - start.getMonth();
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        return { years: Math.abs(years), months: Math.abs(months) };
+    };
+
+
+
+    function calculateDateDifference(date1, date2) {
+        const d1 = new Date(date1);
+        const d2 = new Date(date2);
+
+        if (isNaN(d1) || isNaN(d2)) return "Invalid Date";
+
+        // Check if date1 is greater than or equal to date2
+        if (d1 >= d2) return "No gap";
+
+        let years = d2.getFullYear() - d1.getFullYear();
+        let months = d2.getMonth() - d1.getMonth();
+        let days = d2.getDate() - d1.getDate();
+
+        if (days < 0) {
+            months--;
+            days += new Date(d2.getFullYear(), d2.getMonth(), 0).getDate();
+        }
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        return `${years > 0 ? years + " year(s) " : ""}${months > 0 ? months + " month(s) " : ""}${days > 0 ? days + " day(s)" : ""}`.trim();
+    }
+
+
+
+    const calculateGaps = () => {
+
+        // Data from your JSON
+        const secondaryEndDate = annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap || null;
+        const seniorSecondaryStartDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap || null;
+        const seniorSecondaryEndDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_end_date_gap || null;
+        const graduationStartDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_start_date_gap || null;
+        const graduationEndDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_end_date_gap || null;
+        const postGraduationStartDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_start_date_gap || null;
+        const postGraduationEndDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_end_date_gap || null;
+        const phdStartDate = annexureData?.gap_validation?.education_fields?.phd_1?.phd_start_date_gap || null;
+
+        const gapSecToSrSec = calculateDateGap(secondaryEndDate, seniorSecondaryStartDate);
+        const gapSrSecToGrad = calculateDateGap(seniorSecondaryEndDate, graduationStartDate);
+        const gapGradToPostGrad = calculateDateGap(graduationEndDate, postGraduationStartDate);
+        const gapPostGradToPhd = calculateDateGap(postGraduationEndDate, phdStartDate);
+
+        const validGaps = {
+            gapSecToSrSec,
+            gapSrSecToGrad,
+            gapGradToPostGrad,
+            gapPostGradToPhd
+        };
+
+        // Filter out null gaps (negative values)
+        const nonNegativeGaps = Object.fromEntries(
+            Object.entries(validGaps).filter(([key, value]) => value !== null)
+        );
+
+
+        // Update state with non-negative gaps
+        setGaps(nonNegativeGaps);
+
+        function getEmploymentDates(annexureData) {
+            const employmentStartDates = [];
+            const employmentEndDates = [];
+            let i = 1; // Start index
+
+
+            const employmentValues = annexureData?.gap_validation?.employment_fields;
+
+            if (!employmentValues) {
+                return { employmentStartDates, employmentEndDates };
+            }
+
+            while (true) {
+                const employmentKey = `employment_${i}`;
+                const employmentData = employmentValues[employmentKey];
+
+                if (!employmentData) {
+                    break;
+                }
+
+                // Define keys
+                const startKey = `employment_start_date_gap`;
+                const endKey = `employment_end_date_gap`;
+
+
+                // Check if start or end date exists
+                const hasStartDate = startKey in employmentData;
+                const hasEndDate = endKey in employmentData;
+
+
+                if (!hasStartDate && !hasEndDate) {
+                    console.warn(`%cNo start or end date found for ${employmentKey}, stopping loop.`, 'color: orange;');
+                    break;
+                }
+
+                // Push values if they exist
+                if (hasStartDate) {
+                    employmentStartDates.push({
+                        name: startKey,
+                        value: employmentData[startKey]
+                    });
+                }
+                if (hasEndDate) {
+                    employmentEndDates.push({
+                        name: endKey,
+                        value: employmentData[endKey]
+                    });
+                }
+
+                i++; // Move to next employment record
+            }
+
+
+            return { employmentStartDates, employmentEndDates };
+        }
+
+
+
+        const { employmentStartDates, employmentEndDates } = getEmploymentDates(annexureData);
+
+        function getEmploymentDateDifferences(startDates, endDates) {
+            let differences = [];
+
+
+            for (let i = 0; i < endDates.length; i++) {
+                const currentEnd = endDates[i].value;
+                const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
+
+
+                if (currentEnd && nextStart && currentEnd !== nextStart) {
+                    const diff = calculateDateDifference(currentEnd, nextStart);
+
+                    // Only add valid differences (not empty strings or null)
+                    if (diff) {
+                        differences.push({
+                            endName: endDates[i].name,
+                            endValue: currentEnd,
+                            startName: startDates[i + 1].name,
+                            startValue: nextStart,
+                            difference: diff
+                        });
+                    }
+                }
+            }
+
+            // Log differences
+
+            return differences;
+        }
+
+        // Get differences
+        const dateDifferences = getEmploymentDateDifferences(employmentStartDates, employmentEndDates);
+
+        // Log final employment gaps
+
+        setEmployGaps(dateDifferences);
+    };
+
+
+
     useEffect(() => {
         if (!annexureData) {
             setAnnexureData(initialAnnexureData);
         }
+        validateDate();
     }, [annexureData]);
 
-    const handleEducationChange = (e) => {
-        const { name, value } = e.target;
-
-        setEducation((prev) => ({
-            ...prev, // Spread the previous state
-            [name]: value // Update the specific field
-        }));
-    };
 
     const [activeTab, setActiveTab] = useState(0); // Tracks the active tab (0, 1, or 2)
     const [errors, setErrors] = useState({});
@@ -165,213 +602,6 @@ const BackgroundForm = () => {
 
         },
     });
-    const [isDuplicateInProgress, setIsDuplicateInProgress] = useState(false);
-    const duplicateRow = (serviceIndex, rowIndex, row, isInitialDuplication = true, inputIndex = 1) => {
-        // Ensure serviceDataMain exists and is structured correctly
-        if (!serviceDataMain || !Array.isArray(serviceDataMain)) {
-            console.error("serviceDataMain is not available or is not an array");
-            return;
-        }
-
-        // Retrieve the correct service data object
-        const service = serviceDataMain[serviceIndex];
-        if (!service || !service.rows) {
-            console.error("Invalid service data or rows not found");
-            return;
-        }
-
-        const targetRowClasses = row.inputs[0]?.['data-target']?.row?.class || [];
-        if (!Array.isArray(targetRowClasses) || targetRowClasses.length === 0) {
-            console.error("No valid target row classes found in the button data");
-            return;
-        }
-
-        const matchingRows = service.rows.filter((serviceRow) => {
-            return targetRowClasses.some(className => serviceRow.class && serviceRow.class.includes(className));
-        });
-
-        if (matchingRows.length === 0) {
-            return;
-        }
-
-        // Track the maximum input index across all rows
-        let existingInputNames = new Set(); // Track already existing input names
-
-        service.rows.forEach((row) => {
-            row.inputs.forEach((input) => {
-                const match = input.name.match(/_(\d+)$/); // Check for the trailing number in input name
-                if (match) {
-                    const currentIndex = parseInt(match[1], 10);
-                    existingInputNames.add(input.name); // Track this name as already existing
-                    inputIndex = Math.max(inputIndex, currentIndex + 1);  // Update the max inputIndex
-                }
-            });
-        });
-
-        // Set the next available index for rows (this is row-wise)
-        let maxIndex = 0;
-        service.rows.forEach((row) => {
-            const match = row.class?.match(/row-(\d+)/); // Match row-<number>
-            if (match) {
-                const currentIndex = parseInt(match[1], 10);
-                maxIndex = Math.max(maxIndex, currentIndex); // Get the highest index
-            }
-        });
-
-        let rowIndexToUse = maxIndex + 1;
-
-        const newRows = matchingRows.map((matchingRow) => {
-            const newRow = {
-                ...matchingRow,  // Copy the properties from the matched row
-                class: `row-${rowIndexToUse}`, // Add the next available index to the outer row class
-                inputs: matchingRow.inputs.map((input) => {
-                    let newInputName = `${input.name.replace(/_\d+$/, '')}_${inputIndex}`;
-
-                    // If the input name already exists (from previous duplications), adjust the index
-                    while (existingInputNames.has(newInputName)) {
-                        inputIndex++; // Increment index until the name is unique
-                        newInputName = `${input.name.replace(/_\d+$/, '')}_${inputIndex}`;
-                    }
-
-                    existingInputNames.add(newInputName); // Add the new input name to the set
-
-                    return {
-                        ...input,
-                        name: newInputName, // Update the name with the current input index
-                        value: isInitialDuplication ? (annexureData[service.db_table]?.[input.name] || input.value || '') : '', // Reset value for subsequent duplications
-                    };
-                }),
-            };
-
-            rowIndexToUse++; // Increment rowIndexToUse to ensure the rows are in order
-            return newRow;
-        });
-
-        const buttonRowIndex = service.rows.findIndex(row => row.inputs.some(input => input.type === "button"));
-        if (buttonRowIndex === -1) {
-            console.error("Button row not found");
-            return;
-        }
-
-        const updatedRows = [
-            ...service.rows.slice(0, buttonRowIndex),
-            ...newRows,
-            ...service.rows.slice(buttonRowIndex),
-        ];
-
-        const updatedServiceData = [...serviceDataMain];
-        updatedServiceData[serviceIndex] = {
-            ...service,
-            rows: updatedRows,
-        };
-        setServiceDataMain(updatedServiceData);  // Update the state with the new rows
-
-        // Log the duplicated rows inputs for debugging
-        newRows.forEach(newRow => {
-            newRow.inputs.forEach(input => {
-            });
-        });
-
-        // Now, update annexureData for the new duplicated rows
-        newRows.forEach((newRow) => {
-            newRow.inputs.forEach((input) => {
-                const fieldValue = annexureImageData.find(data => data && data.hasOwnProperty(input.name));
-                const newValue = fieldValue ? fieldValue[input.name] : input.value || "  ";
-
-                // Update annexureData for the new duplicated input
-                setAnnexureData((prevData) => {
-                    const updatedData = {
-                        ...prevData,
-                        [service.db_table]: {
-                            ...prevData[service.db_table],
-                            [input.name]: newValue,
-                        },
-                    };
-
-                    return updatedData;
-                });
-            });
-        });
-
-        // Check if the newly duplicated row is filled, and if it is, trigger duplication again (with empty values for the original row)
-        if (isInitialDuplication) {
-            const rowsToDuplicate = service.rows.filter((row) => {
-                return row.inputs.some(input => input['data-target']);
-            });
-
-            rowsToDuplicate.forEach((originalRow) => {
-                const isRowFilled = originalRow.inputs.every(input => input.value !== ''); // Check if all inputs have values
-
-                if (isRowFilled) {
-
-                    // Create an empty duplicate of the original row (reset input values)
-                    const emptyRow = {
-                        ...originalRow,
-                        inputs: originalRow.inputs.map(input => ({
-                            ...input,
-                            value: '',  // Reset the value to empty
-                        })),
-                    };
-
-                    // Increment the inputIndex for the next duplication
-                    duplicateRow(serviceIndex, rowIndex, emptyRow, false, inputIndex + 1);
-                }
-            });
-        }
-    };
-    console.log('setAnnexureData', annexureData)
-
-
-
-    useEffect(() => {
-        const duplicateRowsIfNeeded = () => {
-            setIsDuplicateInProgress(true);
-
-            serviceDataMain.forEach((service, serviceIndex) => {
-                if (!service || !service.rows) {
-                    return;
-                }
-
-                const serviceHasDuplicateRow = service.rows.some((row) => {
-                    return row.inputs.some(input => input['data-action'] === 'duplicate');
-                });
-
-                if (serviceHasDuplicateRow) {
-                    const rowsToDuplicate = service.rows.filter((row) => {
-                        return row.inputs.some(input => input['data-action'] === 'duplicate');
-                    });
-
-                    rowsToDuplicate.forEach((mainRow, rowIndex) => {
-                        const isRowFilled = mainRow.inputs.every(input => {
-                            const inputVal = annexureData[service.db_table]?.[input.name] || '';
-                            return inputVal !== ''; // Ensure the row is filled
-                        });
-
-                        // Case 1: First-time duplicate (row is filled and not duplicated yet)
-                        if (isRowFilled && !mainRow.isNewlyDuplicated) {
-                            mainRow.isNewlyDuplicated = true;
-                            duplicateRow(serviceIndex, rowIndex, mainRow); // Duplicate the row
-
-                            // Check if the newly created row is filled and duplicate again if so
-                            const newRow = service.rows.find(r => r.class === mainRow.class);
-                            if (newRow) {
-                                const isNewRowFilled = newRow.inputs.every(input => input.value !== '');
-                                if (isNewRowFilled) {
-                                    duplicateRow(serviceIndex, rowIndex, mainRow); // Duplicate again
-                                }
-                            }
-                        } else if (isRowFilled && mainRow.isNewlyDuplicated) {
-                        } else if (!isRowFilled && mainRow.isNewlyDuplicated) {
-                            mainRow.isNewlyDuplicated = false;
-                        }
-                    });
-                }
-            });
-        };
-
-        duplicateRowsIfNeeded();
-    }, [serviceDataMain, annexureData, isDuplicateInProgress]);
-
 
     const fetchApplicationStatus = async () => {
         setLoadingData(true);
@@ -411,7 +641,7 @@ const BackgroundForm = () => {
                             permanent_address: cefData?.permanent_address || formData.permanent_address,
                             current_address_pin_code: cefData?.current_address_pin_code || formData.current_address_pin_code,
                             permanent_pin_code: cefData?.permanent_pin_code || formData.permanent_pin_code,
-                            declaration_date: cefData?.declaration_date || formData.declaration_date,
+                            declaration_date: formData.personal_information.declaration_date || cefData?.declaration_date,
                             current_address: cefData?.current_address || formData.current_address,
                             current_address_landline_number: cefData?.current_address_landline_number || formData.current_address_landline_number,
                             permanent_address_landline_number: cefData?.permanent_address_landline_number || formData.permanent_address_landline_number,
@@ -479,7 +709,7 @@ const BackgroundForm = () => {
                             }
                         }
                     }
-                    setAnnexureImageData(allJsonDataValue)
+                    setAnnexureImageData(allJsonDataValue);
 
 
                     // Constructing the annexureData object
@@ -509,36 +739,18 @@ const BackgroundForm = () => {
                                 });
                             });
                         } else {
-                            Object.keys(initialAnnexureData.gap_validation).forEach((item, index) => {
-                                console.log('item', item)
-                                // Fetch the dynamic field value from allJsonDataValue
-                                let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty(item)); // Check for null or undefined before accessing `hasOwnProperty`
-                                console.log('fieldValue', fieldValue)
-                                // If fieldValue exists, we set it, otherwise, static value should remain
-                                if (fieldValue && fieldValue.hasOwnProperty(item)) {
-                                    console.log(`Found dynamic value for ${item}:`, fieldValue[item]);
-
-                                    // Set dynamic value in the correct field in annexureData
-                                    if (!annexureData[service.db_table]) {
-                                        annexureData[service.db_table] = {}; // Initialize the service table if it doesn't exist
-                                    }
-
-                                    // Set the dynamic value in the service table under the input's name
-                                    annexureData[service.db_table][item] = fieldValue[item] || "";
-
-
-                                } else {
-                                    // No dynamic value found, so keep the static value as is or update it with a default if necessary
-
-                                }
-                            });
-
-
+                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('no_of_employment')); // Check for null or undefined before accessing `hasOwnProperty`
+                            let initialAnnexureDataNew = initialAnnexureData;
+                            if (fieldValue && fieldValue.hasOwnProperty('no_of_employment')) {
+                                initialAnnexureDataNew = updateEmploymentFields(fieldValue.no_of_employment, fieldValue); // Call function to handle employment fields
+                            } else {
+                            }
+                            annexureData[service.db_table].employment_fields = initialAnnexureDataNew.gap_validation.employment_fields;
                         }
 
                     });
 
-
+                    calculateGaps();
                     setAnnexureData(annexureData);
                     const fileInputs = allJsonData
                         .flatMap(item =>
@@ -554,23 +766,32 @@ const BackgroundForm = () => {
                     setServiceDataImageInputNames(fileInputs);
                     setServiceDataMain(allJsonData);
 
-                }
-                else {
-                    // Application does not exist or other error: Hide the form and show an alert
-                    const form = document.getElementById('bg-form');
-                    if (form) {
-                        form.remove();
-                    } else {
-                    }
+
+                } else {
+
                     setApiStatus(false);
 
-                    // Show message from the response
                     Swal.fire({
                         title: 'Notice',
                         text: result.message || 'Application does not exist.',
                         icon: 'warning',
                         confirmButtonText: 'OK',
+                        allowOutsideClick: false,  // Disable side clicks
+                        allowEscapeKey: false,    // Disable escape key to close
+                        preConfirm: () => {
+                            // Prevent the modal from closing when the OK button is clicked
+                            return false;  // This will stop the modal from closing
+                        },
+                        customClass: {
+                            container: 'custom-container',  // Add class to the container
+                            popup: 'custom-popup',          // Optional: Add class to the entire popup
+                            header: 'custom-header'         // Optional: Add class to the header
+                        }
                     });
+
+
+
+
                 }
             } catch (err) {
                 Swal.fire({
@@ -689,6 +910,7 @@ const BackgroundForm = () => {
 
 
     const validate = () => {
+
         const maxSize = 2 * 1024 * 1024; // 2MB size limit
         const allowedTypes = [
             "image/jpeg", "image/png", "application/pdf",
@@ -698,29 +920,48 @@ const BackgroundForm = () => {
 
         let newErrors = {}; // Object to store errors
         const service = serviceDataMain[activeTab - 2];
-        if (service.db_table == '"gap_validation"') {
-            return;
+        if (service.db_table == 'gap_validation') {
+            return {}; // Skip validation for gap_validation service
         }
-        // Convert annexureImageData into a map for faster lookup
-
 
 
         // Loop through the rows to validate files and fields
         service.rows.forEach((row, rowIndex) => {
             // Check if any of the checkboxes 'done_or_not' or 'has_not_done' is checked for this row
-            const shouldSkipServiceValidation = service.rows.some(row =>
-                row.inputs.some(input =>
-                    input.type === 'checkbox' &&
-                    (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done')) &&
-                    checkedCheckboxes[input.name]
-                )
-            );
+            const shouldSkipServiceValidation = service.rows.some(row => {
+
+                return row.inputs.some(input => {
+
+                    const startsWithCondition = input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done');
+
+                    const annexureDataCondition = annexureData[service.db_table]?.[input.name];
+
+
+                    if (
+                        annexureDataCondition === null ||
+                        annexureDataCondition === undefined ||
+                        (typeof annexureDataCondition === 'string' && annexureDataCondition.trim() === '')
+                        || annexureDataCondition == 0 || !annexureDataCondition
+                    ) {
+                        return false;
+                    }
+
+                    const finalCondition = input.type === 'checkbox' &&
+                        startsWithCondition &&
+                        annexureDataCondition;
+
+
+                    return finalCondition;
+                });
+            });
+
 
             if (shouldSkipServiceValidation) {
                 return {}; // Skip all validation for this service and return empty errors
             }
 
             row.inputs.forEach((input, inputIndex) => {
+
                 // Skip validation for this input if the row was skipped due to checkbox being checked
                 if (shouldSkipServiceValidation) {
                     return;
@@ -728,6 +969,7 @@ const BackgroundForm = () => {
 
                 if (input.type === 'file') {
                     const fileName = input.name;
+
                     const mapping = serviceDataImageInputNames.find(entry => entry[fileName]);
                     const createdFileName = mapping ? mapping[fileName] : undefined;
                     const annexureImagesMap = annexureImageData.reduce((acc, item) => {
@@ -739,32 +981,65 @@ const BackgroundForm = () => {
                         return acc;
                     }, {});
 
+
+
                     const validateFile = (fileName) => {
                         let fileErrors = [];
 
+
                         // Check if createdFileName is valid and the structure exists in 'files'
-                        const filesToCheck = createdFileName && files[createdFileName] ? files[createdFileName][fileName] : undefined;
+                        let filesToCheck = createdFileName && files[createdFileName]
+                            ? files[createdFileName][fileName]
+                            : undefined;
+
+
+                        if (!filesToCheck) {
+
+                            filesToCheck = annexureImagesMap && annexureImagesMap[fileName]
+                                ? (annexureImagesMap[fileName] || undefined)  // Ensures empty values are treated as undefined
+                                : undefined;
+
+                        }
+
+
+                        if (typeof filesToCheck === "string" && filesToCheck.trim() !== "" ||
+                            (Array.isArray(filesToCheck) && filesToCheck.length > 0)) {
+                        } else {
+                            filesToCheck = undefined;
+                        }
 
                         // If the file exists in annexureImageData, skip validation for this file
-                        if (annexureImagesMap[fileName]) {
+                        if (filesToCheck && annexureImagesMap[fileName]) {
                             delete newErrors[fileName]; // Clear any previous error for this file
                             return fileErrors; // No errors for already uploaded files
                         }
 
                         // Handle the scenario where the checkbox is unchecked but files are still present in the structure
-                        if (!checkedCheckboxes[input.name] && filesToCheck && filesToCheck.length > 0) {
+                        if (!annexureData[service.db_table]?.[input.name] && filesToCheck && filesToCheck.length > 0) {
                             delete newErrors[fileName]; // Clear error if files are found
                         }
 
-                        // If the checkbox is unchecked and no files are present, add an error
-                        if (!checkedCheckboxes[input.name] && (!filesToCheck || filesToCheck.length === 0)) {
-                            fileErrors.push(`${fileName} is required.`);
+
+                        if (
+                            !annexureData[service.db_table]?.[input.name] || // Not found or undefined
+                            (typeof annexureData[service.db_table]?.[input.name] === "string" && annexureData[service.db_table]?.[input.name].trim() === "") || // Empty/whitespace string
+                            (typeof annexureData[service.db_table]?.[input.name] === "object" && !Array.isArray(annexureData[service.db_table]?.[input.name]) && Object.keys(annexureData[service.db_table]?.[input.name]).length === 0) || // Empty object
+                            (Array.isArray(annexureData[service.db_table]?.[input.name]) && annexureData[service.db_table]?.[input.name].length === 0) // Empty array
+                        ) {
+
+
+                            if (!filesToCheck || filesToCheck.length === 0) {
+                                fileErrors.push(`${fileName} is required.`);
+                            }
+                        } else {
                         }
+
 
                         // If files exist for the input, perform file validation
                         if (filesToCheck && filesToCheck.length > 0) {
                             filesToCheck.forEach((fileItem) => {
-                                // Validate file size
+                                // Log each file being checked
+
                                 if (fileItem.size > maxSize) {
                                     fileErrors.push(`${fileItem.name}: File size must be less than 2MB.`);
                                 }
@@ -799,33 +1074,24 @@ const BackgroundForm = () => {
 
                     if (input.required && (!inputValue || inputValue.trim() === '')) {
                         newErrors[input.name] = 'This field is required';
+                    } else {
+                        // Clear the error if the field has value
+                        delete newErrors[input.name];
                     }
                 }
             });
         });
 
-        // Log the errors at the end of validation
-        if (Object.keys(newErrors).length > 0) {
-            // Errors exist, handle accordingly
-        } else {
-            // No errors, handle accordingly
-        }
-
         return newErrors; // Return the accumulated errors
     };
 
 
-
-    const handleCheckboxChange = (checkboxName, isChecked) => {
-        setCheckedCheckboxes((prevState) => ({
-            ...prevState,
-            [checkboxName]: isChecked,
-        }));
-    };
     const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
+
+
         setHiddenRows((prevState) => {
             const newState = { ...prevState };
-            const serviceRows = serviceDataMain[serviceIndex].rows;
+            const serviceRows = serviceDataMain[serviceIndex].rows || serviceDataMain.rows;
             const row = serviceRows[rowIndex];
             const fileInputs = row.inputs.filter(input => input.type === 'file');
             let removedFileInputs = [];
@@ -836,8 +1102,10 @@ const BackgroundForm = () => {
                 (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'))
             );
 
+
             if (isSpecialCheckbox) {
                 if (isChecked) {
+
                     // Remove from serviceDataImageInputNames when checked
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = prevFileInputs.filter(fileInput => {
@@ -917,6 +1185,7 @@ const BackgroundForm = () => {
                     }
 
                 } else {
+
                     // Restore removed file inputs when unchecked
                     setServiceDataImageInputNames((prevFileInputs) => {
                         const updatedFileInputs = [...prevFileInputs, ...removedFileInputs];
@@ -948,48 +1217,37 @@ const BackgroundForm = () => {
             return newState;
         });
     };
-    console.log('conditionhtml', conditionHtml)
-
-
-    const handleServiceChange = (tableName, fieldName, value) => {
-        // Update state with new value
-        setAnnexureData((prevData) => {
-            const updatedData = {
-                ...prevData,
-                [tableName]: {
-                    ...prevData[tableName],
-                    [fieldName]: value
-                }
-            };
-
-
-            return updatedData;
-        });
-
-        // Trigger validation (if necessary)
-        validate();
-    };
-
 
     const handleNext = () => {
         let validationErrors = {};
 
-        // Validate based on the active tab
+
         if (activeTab === 0) {
             validationErrors = validate1(); // Validation for the first tab
         } else if (activeTab === 1) {
             validationErrors = validateSec(); // Validation for the second tab
-        } else if (activeTab > 0 && activeTab <= serviceDataMain.length) {
+        } else if (activeTab > 0 && activeTab <= (serviceDataMain.length + 2)) {
+            serviceDataMain[activeTab - 2].rows.forEach((row, rowIndex) => {
+
+                const checkboxInput = row.inputs.find(input => input.type === 'checkbox');
+
+                const checkboxName = checkboxInput?.name;
+
+                const annexureValue = annexureData[serviceDataMain[activeTab - 2].db_table]?.[checkboxName] ?? false;
+
+                const isChecked = ["1", 1, true, "true"].includes(annexureValue);
+
+                toggleRowsVisibility(activeTab - 2, rowIndex, isChecked);
+            });
+
             validationErrors = validate(); // Validation for service-related tabs
         } else if (activeTab === serviceDataMain.length + 2) {
             validationErrors = validate2(); // Validation for the last tab
         }
 
-        // Check if there are no validation errors
         if (Object.keys(validationErrors).length === 0) {
             setErrors({}); // Clear any previous errors
 
-            // If there are no errors and the active tab is not the last one, move to the next tab
             if (activeTab < serviceDataMain.length + 2) {
                 setActiveTab(activeTab + 1);
             }
@@ -998,6 +1256,22 @@ const BackgroundForm = () => {
         }
     };
 
+    const handleCheckboxChange = (checkboxName, isChecked, tablename) => {
+        setCheckedCheckboxes((prevState) => ({
+            ...prevState,
+            [checkboxName]: isChecked,
+        }));
+        setAnnexureData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                [tablename]: {
+                    ...prevData[tablename],
+                    [checkboxName]: isChecked
+                }
+            };
+            return updatedData;
+        });
+    };
 
 
     const validate1 = () => {
@@ -1013,8 +1287,8 @@ const BackgroundForm = () => {
 
 
         const requiredFields = [
-            "full_name", "former_name", "mb_no", "father_name", "dob",
-            "gender", "nationality", "marital_status",
+            "marital_status", "full_name", "former_name", "mb_no", "father_name", "dob",
+            "gender", "nationality",
         ];
 
 
@@ -1165,7 +1439,7 @@ const BackgroundForm = () => {
     const validateSec = () => {
         const newErrors = {};
         const requiredFields = [
-            "current_address",
+            "current_address", "permanent_address",
             "current_address_landline_number", "permanent_address_landline_number", "current_address_state", "permanent_address_state",
             "current_prominent_landmark", "permanent_prominent_landmark", "current_address_stay_to", "permanent_address_stay_to",
             "current_address_nearest_police_station", "permanent_address_nearest_police_station", "current_address_pin_code",
@@ -1240,7 +1514,7 @@ const BackgroundForm = () => {
 
         // Now handle the required fields validation
         const requiredFields = [
-            "declaration_date", // Add other required fields here if needed
+            "declaration_date", "name_declaration" // Add other required fields here if needed
         ];
 
         requiredFields.forEach((field) => {
@@ -1261,16 +1535,6 @@ const BackgroundForm = () => {
     }, []);
 
 
-    useEffect(() => {
-        const currentDate = new Date().toISOString().split('T')[0];
-        setFormData((prevData) => ({
-            ...prevData,
-            personal_information: {
-                ...prevData.personal_information,
-                declaration_date: currentDate,
-            },
-        }));
-    }, []);
 
     const handleFileChange = (dbTable, fileName, e) => {
         const selectedFiles = Array.from(e.target.files);
@@ -1283,15 +1547,15 @@ const BackgroundForm = () => {
 
         let errors = [];
 
-        selectedFiles.forEach((file) => {
-            if (file.size > maxSize) {
-                errors.push(`${file.name}: File size must be less than 2MB.`);
-            }
+        // selectedFiles.forEach((file) => {
+        //     if (file.size > maxSize) {
+        //         errors.push(`${file.name}: File size must be less than 2MB.`);
+        //     }
 
-            if (!allowedTypes.includes(file.type)) {
-                errors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
-            }
-        });
+        //     if (!allowedTypes.includes(file.type)) {
+        //         errors.push(`${file.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`);
+        //     }
+        // });
 
         if (errors.length > 0) {
             setErrors((prevErrors) => ({
@@ -1316,6 +1580,27 @@ const BackgroundForm = () => {
         });
 
     };
+
+    let isGapPresent = "no";
+
+    // Check if any gap exists
+    for (let key in gaps) {
+        if (gaps[key].years > 0 || gaps[key].months > 0) {
+            isGapPresent = "yes";
+            break;  // No need to check further once a gap is found
+        }
+    }
+
+
+    let isEmploymentGapPresent = "no";
+
+    // Check if any gap exists in the employment gaps
+    for (let i = 0; i < employGaps.length; i++) {
+        if (employGaps[i].difference !== "No gap") {
+            isEmploymentGapPresent = "yes";
+            break;  // No need to check further once a gap is found
+        }
+    }
 
     const handleSubmit = async (custombgv, e) => {
         e.preventDefault();
@@ -1351,18 +1636,53 @@ const BackgroundForm = () => {
             setProgress(0); // Reset progress before starting
         }
 
-
-
+        // Initialize requestData
         const requestData = {
             branch_id: decodedValues.branch_id,
             customer_id: decodedValues.customer_id,
             application_id: decodedValues.app_id,
             ...formData,
-            is_submitted: 0,
+            is_submitted: custombgv,
             annexure: annexureData,
             send_mail: fileCount === 0 ? 1 : 0, // Send mail if no files are uploaded
             is_custom_bgv: custombgv, // Use the passed value for is_custom_bgv
         };
+
+        // Check if 'GAP VALIDATION' section is present
+        const gapValidationSection = serviceDataMain.find(section => section.heading === "GAP VALIDATION");
+
+        if (gapValidationSection) {
+            // If the "GAP VALIDATION" section is present, remove is_submitted from annexureData.gap_validation
+            if (annexureData && annexureData.gap_validation) {
+                delete annexureData.gap_validation.is_submitted;
+            }
+
+            // Check if the education_fields and employment_fields are already stringified
+            const isEducationFieldsStringified = typeof annexureData.gap_validation.education_fields === 'string';
+            const isEmploymentFieldsStringified = typeof annexureData.gap_validation.employment_fields === 'string';
+            console.log('isEducationFieldsStringified', isEducationFieldsStringified);
+            console.log('isEmploymentFieldsStringified', isEmploymentFieldsStringified);
+
+
+            // Only stringify if the fields are not already stringified
+            const educationFieldsString = isEducationFieldsStringified
+                ? annexureData.gap_validation.education_fields
+                : JSON.stringify(annexureData.gap_validation.education_fields);
+
+            const employmentFieldsString = isEmploymentFieldsStringified
+                ? annexureData.gap_validation.employment_fields
+                : JSON.stringify(annexureData.gap_validation.employment_fields);
+
+            // Assign stringified fields to the gap_validation object in requestData
+            requestData.annexure.gap_validation.education_fields = educationFieldsString;
+            requestData.annexure.gap_validation.employment_fields = employmentFieldsString;
+
+            // Add the gap fields to requestData based on your conditions
+            requestData.is_education_gap = isGapPresent;
+            requestData.is_employment_gap = isEmploymentGapPresent;
+        }
+
+        // Logging for debugging purposes
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -1373,6 +1693,7 @@ const BackgroundForm = () => {
             body: JSON.stringify(requestData),
             redirect: "follow",
         };
+
 
         try {
             // Send the form data request to the API
@@ -1423,19 +1744,18 @@ const BackgroundForm = () => {
                 if (fileCount === 0) {
                     Swal.fire({
                         title: "Success",
-                        text: "CEF Application Created Successfully.",
+                        text: result.message || "BGV Application Created Successfully.",
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
                         fetchApplicationStatus(); // Call fetch status after submission
                     });
                 } else {
-                    // Handle file upload if files exist for custombgv 1
                     await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv); // Upload files
                     setProgress(100); // Set progress to 100% after file upload
                     Swal.fire({
                         title: "Success",
-                        text: "CEF Application Created Successfully and files uploaded.",
+                        text: result.message || "BGV Application Created Successfully",
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
@@ -1479,7 +1799,6 @@ const BackgroundForm = () => {
             }
 
         } catch (error) {
-            console.error("Error:", error);
             Swal.fire("Error!", error.message, "error");
         } finally {
             // Stop loading indicator and close modal after processing
@@ -1487,12 +1806,72 @@ const BackgroundForm = () => {
             setShowModal(false);
         }
     };
+    const validateDate = () => {
+        const newErrors = {};
 
+        // Fetch dates from annexureData
+        const {
+            secondary_end_date_gap,
+            senior_secondary_start_date_gap,
+            senior_secondary_end_date_gap,
+            graduation_start_date_gap,
+            graduation_end_date_gap,
+            post_graduation_start_date_gap,
+            post_graduation_end_date_gap,
+            phd_start_date_gap,
+        } = annexureData.gap_validation;
 
-    const uploadCustomerLogo = async (cef_id, fileCount, custombgv) => {
-        if (custombgv == 1) {
+        // Helper function to convert string dates to Date objects
+        const parseDate = (dateString) => new Date(dateString);
+
+        // Convert the date strings into Date objects for comparison
+        const secondaryEndDate = parseDate(secondary_end_date_gap);
+        const seniorSecondaryStartDate = parseDate(senior_secondary_start_date_gap);
+        const seniorSecondaryEndDate = parseDate(senior_secondary_end_date_gap);
+        const graduationStartDate = parseDate(graduation_start_date_gap);
+        const graduationEndDate = parseDate(graduation_end_date_gap);
+        const postGraduationStartDate = parseDate(post_graduation_start_date_gap);
+        const postGraduationEndDate = parseDate(post_graduation_end_date_gap);
+        const phdStartDate = parseDate(phd_start_date_gap);
+
+        // Validation logic
+
+        // Senior Secondary Start should be after Secondary End
+        if (seniorSecondaryStartDate < secondaryEndDate) {
+            newErrors.senior_secondary_start_date_gap = "Senior Secondary start date must be after Secondary end date.";
+        }
+
+        // Graduation Start should be after Senior Secondary End
+        if (graduationStartDate < seniorSecondaryEndDate) {
+            newErrors.graduation_start_date_gap = "Graduation start date must be after Senior Secondary end date.";
+        }
+
+        // Graduation End should be after Graduation Start
+        if (graduationEndDate < graduationStartDate) {
+            newErrors.graduation_end_date_gap = "Graduation end date must be after Graduation start date.";
+        }
+
+        // Post Graduation Start should be after Graduation End
+        if (postGraduationStartDate < graduationEndDate) {
+            newErrors.post_graduation_start_date_gap = "Post Graduation start date must be after Graduation end date.";
+        }
+
+        // Post Graduation End should be after Post Graduation Start
+        if (postGraduationEndDate < postGraduationStartDate) {
+            newErrors.post_graduation_end_date_gap = "Post Graduation end date must be after Post Graduation start date.";
+        }
+
+        // PhD Start should be after Post Graduation End
+        if (phdStartDate < postGraduationEndDate) {
+            newErrors.phd_start_date_gap = "PhD start date must be after Post Graduation end date.";
+        }
+
+        setErrors(newErrors);
+    };
+    const uploadCustomerLogo = async (cef_id, fileCount, TotalApiCalls, custombgv) => {
+
+        if (custombgv == 0) {
             setLoading(false);
-            return;
         }
 
         let progressIncrement = 100 / fileCount; // Calculate progress increment per file
@@ -1523,8 +1902,11 @@ const BackgroundForm = () => {
             for (const file of allValues) {
                 customerLogoFormData.append('images', file); // Append each file to the FormData
             }
+
+
             if (fileCount === index + 1) {
-                customerLogoFormData.append('send_mail', 1);
+                customerLogoFormData.append('send_mail', custombgv);
+                customerLogoFormData.append('is_submitted', custombgv);
             }
             try {
                 // Make the API request to upload the logo
@@ -1549,6 +1931,19 @@ const BackgroundForm = () => {
     };
 
     const isFormFilled = formData[`tab${activeTab + 1}`] !== "";
+
+
+    useEffect(() => {
+        const currentDate = new Date().toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
+
+        setFormData(prevState => ({
+            ...prevState,
+            personal_information: {
+                ...prevState.personal_information,
+                declaration_date: currentDate, // Set current date
+            }
+        }));
+    }, []);
 
     return (
         <>
@@ -1602,7 +1997,7 @@ const BackgroundForm = () => {
                                     </div>
 
                                 ) : (
-                                    <div className='py-5'>
+                                    <div className='py-5' id="hiddenForm">
 
                                         <div className="md:w-10/12 mx-auto p-6" >
                                             {status === 1 && (
@@ -1718,7 +2113,7 @@ const BackgroundForm = () => {
                                                                         Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                     </p>
                                                                     {cefDataApp.resume_file && (
-                                                                        <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+                                                                        <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -1737,7 +2132,7 @@ const BackgroundForm = () => {
                                                                 <p className="text-gray-500 text-sm mt-2" >
                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                 </p>
-                                                                <div className='grid grid-cols-5 gap-3'>
+                                                                <div className='md:grid grid-cols-5 gap-3'>
 
                                                                     {cefDataApp.govt_id ? (
                                                                         cefDataApp.govt_id.split(',').map((item, index) => {
@@ -1747,7 +2142,7 @@ const BackgroundForm = () => {
                                                                             return (
                                                                                 <div key={index} className='border rounded-md flex items-center justify-center'>
                                                                                     {isImage ? (
-                                                                                        <img src={item} alt={`Image ${index}`} />
+                                                                                        <img src={item} alt={`Image ${index}`} className='p-3 ' />
                                                                                     ) : (
                                                                                         <div>
                                                                                             <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -1757,7 +2152,7 @@ const BackgroundForm = () => {
                                                                             );
                                                                         })
                                                                     ) : (
-                                                                        <p>No image or link available</p>
+                                                                        <p></p>
                                                                     )}
                                                                 </div>
 
@@ -1787,7 +2182,7 @@ const BackgroundForm = () => {
                                                                             <p className="text-gray-500 text-sm mt-2" >
                                                                                 Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                             </p>
-                                                                            <div className='grid grid-cols-5 gap-3'>
+                                                                            <div className='md:grid grid-cols-5 gap-3'>
                                                                                 {cefDataApp.passport_photo ? (
                                                                                     cefDataApp.passport_photo.split(',').map((item, index) => {
                                                                                         // Check if the item is an image (based on its extension)
@@ -1796,7 +2191,7 @@ const BackgroundForm = () => {
                                                                                         return (
                                                                                             <div key={index} className='border rounded-md flex items-center justify-center'>
                                                                                                 {isImage ? (
-                                                                                                    <img src={item} alt={`Image ${index}`} />
+                                                                                                    <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                                 ) : (
                                                                                                     <div>
                                                                                                         <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -1806,7 +2201,7 @@ const BackgroundForm = () => {
                                                                                         );
                                                                                     })
                                                                                 ) : (
-                                                                                    <p>No image or link available</p>
+                                                                                    <p></p>
                                                                                 )}
                                                                             </div>
 
@@ -1933,19 +2328,20 @@ const BackgroundForm = () => {
                                                                     {errors.gender && <p className="text-red-500 text-sm" >{errors.gender} </p>}
                                                                 </div>
                                                             </div>
-                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
-                                                                {nationality === "Indian" && (
-                                                                    <div className='form-group'>
-                                                                        <label className='text-sm'>Aadhar card No</label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name="aadhar_card_number"
-                                                                            value={formData.personal_information.aadhar_card_number}
-                                                                            onChange={handleChange}
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                        />
-                                                                    </div>
-                                                                )}
+                                                            {nationality === "Indian" && (
+                                                                <div className='form-group'>
+                                                                    <label className='text-sm'>Aadhar card No</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        name="aadhar_card_number"
+                                                                        value={formData.personal_information.aadhar_card_number}
+                                                                        onChange={handleChange}
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+
 
 
                                                                 {
@@ -1987,7 +2383,7 @@ const BackgroundForm = () => {
                                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                                                                                 </p>
                                                                                 {cefDataApp.aadhar_card_image && (
-                                                                                    <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+                                                                                    <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
 
                                                                                 )}
 
@@ -1995,23 +2391,24 @@ const BackgroundForm = () => {
                                                                         </>
                                                                     )
                                                                 }
+                                                            </div>
 
-                                                                {nationality === "Indian" && (
-                                                                    <div className='form-group' >
-                                                                        <label className='text-sm' > Pan card No </label>
-                                                                        < input
-                                                                            type="text"
-                                                                            name="pan_card_number"
-                                                                            value={formData.personal_information.pan_card_number}
-                                                                            onChange={handleChange}
+                                                            {nationality === "Indian" && (
+                                                                <div className='form-group' >
+                                                                    <label className='text-sm' > Pan card No </label>
+                                                                    < input
+                                                                        type="text"
+                                                                        name="pan_card_number"
+                                                                        value={formData.personal_information.pan_card_number}
+                                                                        onChange={handleChange}
 
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                        />
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                    />
 
-                                                                    </div>
-                                                                )
-                                                                }
-
+                                                                </div>
+                                                            )
+                                                            }
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                                 {
                                                                     status === 1 && nationality === "Indian" && (
@@ -2054,7 +2451,7 @@ const BackgroundForm = () => {
                                                                             Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                         </p>
                                                                         {cefDataApp.pan_card_image && (
-                                                                            <div className='h-20 w-20 border rounded-md'><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} alt="NO IMAGE FOUND" /></div>
+                                                                            <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.pan_card_image || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
 
                                                                         )}
                                                                     </div>
@@ -2080,7 +2477,7 @@ const BackgroundForm = () => {
                                                             }
                                                             {nationality === "Other" && (
                                                                 <>
-                                                                    < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+                                                                    < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                                         <div className="form-group" >
                                                                             <label className='text-sm' >Passport No</label>
@@ -2135,9 +2532,8 @@ const BackgroundForm = () => {
                                                                     {errors.nationality && <p className="text-red-500 text-sm" > {errors.nationality} </p>}
                                                                 </div>
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
+                                                                    <label className='text-sm' htmlFor="marital_status"> Marital Status: <span className="text-red-500 text-lg" >*</span></label >
                                                                     <select
-                                                                        ref={(el) => (refs.current["marital_status"] = el)}
                                                                         className="form-control border rounded w-full p-2 mt-2"
                                                                         name="marital_status"
                                                                         id="marital_status"
@@ -2145,13 +2541,13 @@ const BackgroundForm = () => {
                                                                         value={formData.personal_information.marital_status}
 
                                                                     >
-                                                                        <option value="" > SELECT Marital STATUS </option>
-                                                                        < option value="Dont wish to disclose" > Don't wish to disclose</option>
-                                                                        < option value="Single" > Single </option>
-                                                                        < option value="Married" > Married </option>
-                                                                        < option value="Widowed" > Widowed </option>
-                                                                        < option value="Divorced" > Divorced </option>
-                                                                        < option value="Separated" > Separated </option>
+                                                                        <option value="" selected> SELECT Marital STATUS </option>
+                                                                        < option value="Don't wish to disclose"> Don't wish to disclose</option>
+                                                                        < option value="Single"> Single </option>
+                                                                        < option value="Married"> Married </option>
+                                                                        < option value="Widowed"> Widowed </option>
+                                                                        < option value="Divorced"> Divorced </option>
+                                                                        < option value="Separated"> Separated </option>
                                                                     </select>
                                                                     {errors.marital_status && <p className="text-red-500 text-sm" > {errors.marital_status} </p>}
                                                                 </div>
@@ -2318,228 +2714,237 @@ const BackgroundForm = () => {
                                                         <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
 
                                                             <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Permanent Address </h3>
-                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md" >
+                                                            <div className='border border-black p-4 rounded-md'>
+                                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4 " >
 
-                                                                <div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address"
-                                                                        name="permanent_address"
-                                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
+                                                                    <div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_address}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_address"
+                                                                            name="permanent_address"
+                                                                            disabled={isSameAsPermanent} // Disable if checkbox is checked
 
-                                                                        ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
+                                                                            ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
 
-                                                                    />
-                                                                    {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
+                                                                        />
+                                                                        {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
+                                                                    </div>
+
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_pin_code}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_pin_code"
+                                                                            name="permanent_pin_code"
+                                                                            ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_address_landline_number}
+                                                                            type="number"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_address_landline_number"
+                                                                            name="permanent_address_landline_number"
+                                                                            ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_address_state}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_address_state"
+                                                                            name="permanent_address_state"
+                                                                            ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_prominent_landmark}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_prominent_landmark"
+                                                                            name="permanent_prominent_landmark"
+                                                                            ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_address_stay_to}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_address_stay_to"
+                                                                            name="permanent_address_stay_to"
+                                                                            ref={(el) => (refs.current["permanent_address_stay_to"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
+                                                                    </div>
+
                                                                 </div>
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
+                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.<span className="text-red-500">*</span></label>
+                                                                    < input
                                                                         onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_pin_code}
+                                                                        value={formData.personal_information.permanent_address_nearest_police_station}
                                                                         type="text"
                                                                         className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_pin_code"
-                                                                        name="permanent_pin_code"
-                                                                        ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
+                                                                        id="permanent_address_nearest_police_station"
+                                                                        name="permanent_address_nearest_police_station"
 
                                                                     />
-                                                                    {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
+                                                                    {errors.permanent_address_nearest_police_station && <p className="text-red-500 text-sm" > {errors.permanent_address_nearest_police_station} </p>}
                                                                 </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address_landline_number}
-                                                                        type="number"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address_landline_number"
-                                                                        name="permanent_address_landline_number"
-                                                                        ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address_state}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address_state"
-                                                                        name="permanent_address_state"
-                                                                        ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_prominent_landmark}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_prominent_landmark"
-                                                                        name="permanent_prominent_landmark"
-                                                                        ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address_stay_to}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address_stay_to"
-                                                                        name="permanent_address_stay_to"
-                                                                        ref={(el) => (refs.current["permanent_address_stay_to"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.permanent_address_stay_to && <p className="text-red-500 text-sm" > {errors.permanent_address_stay_to} </p>}
-                                                                </div>
-
                                                             </div>
-                                                        </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.personal_information.permanent_address_nearest_police_station}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_address_nearest_police_station"
-                                                                name="permanent_address_nearest_police_station"
-
-                                                            />
                                                         </div>
                                                         <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
                                                             <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange}
                                                                 id="" className='me-2' /><label>Same as Permanent Address</label>
 
                                                             <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Current Address </h3>
-                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md" >
+                                                            <div className='border border-black p-4 rounded-md'>
+                                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
+
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.current_address}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_address"
+                                                                            name="current_address"
+                                                                            disabled={isSameAsPermanent} // Disable if checkbox is checked
+
+                                                                            ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.current_address_pin_code}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_address_pin_code"
+                                                                            name="current_address_pin_code"
+                                                                            ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.current_address_landline_number}
+                                                                            type="number"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_address_landline_number"
+                                                                            name="current_address_landline_number"
+                                                                            ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.current_address_state}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_address_state"
+                                                                            name="current_address_state"
+                                                                            ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.current_prominent_landmark}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_prominent_landmark"
+                                                                            name="current_prominent_landmark"
+                                                                            ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
+                                                                    </div>
+                                                                    < div className="form-group" >
+                                                                        <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
+                                                                        <input
+                                                                            onChange={handleChange}
+                                                                            value={formData.personal_information.current_address_stay_to}
+                                                                            type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_address_stay_to"
+                                                                            name="current_address_stay_to"
+                                                                            ref={(el) => (refs.current["current_address_stay_to"] = el)} // Attach ref here
+
+                                                                        />
+                                                                        {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
+                                                                    </div>
+
+                                                                </div>
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
-                                                                    <input
+                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.<span className="text-red-500">*</span></label>
+                                                                    < input
                                                                         onChange={handleChange}
-                                                                        value={formData.personal_information.current_address}
+                                                                        value={formData.personal_information.current_address_nearest_police_station}
                                                                         type="text"
                                                                         className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address"
-                                                                        name="current_address"
-                                                                        disabled={isSameAsPermanent} // Disable if checkbox is checked
-
-                                                                        ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
+                                                                        id="current_address_nearest_police_station"
+                                                                        name="current_address_nearest_police_station"
+                                                                        ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
 
                                                                     />
-                                                                    {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_pin_code}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_pin_code"
-                                                                        name="current_address_pin_code"
-                                                                        ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
+                                                                    {errors.current_address_nearest_police_station && <p className="text-red-500 text-sm" > {errors.current_address_nearest_police_station} </p>}
 
-                                                                    />
-                                                                    {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
                                                                 </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_landline_number}
-                                                                        type="number"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_landline_number"
-                                                                        name="current_address_landline_number"
-                                                                        ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_state}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_state"
-                                                                        name="current_address_state"
-                                                                        ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_prominent_landmark}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_prominent_landmark"
-                                                                        name="current_prominent_landmark"
-                                                                        ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
-                                                                </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_stay_to}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_stay_to"
-                                                                        name="current_address_stay_to"
-                                                                        ref={(el) => (refs.current["current_address_stay_to"] = el)} // Attach ref here
-
-                                                                    />
-                                                                    {errors.current_address_stay_to && <p className="text-red-500 text-sm" > {errors.current_address_stay_to} </p>}
-                                                                </div>
-
                                                             </div>
-                                                        </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                            < input
-                                                                onChange={handleChange}
-                                                                value={formData.personal_information.current_address_nearest_police_station}
-                                                                type="text"
-                                                                className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_address_nearest_police_station"
-                                                                name="current_address_nearest_police_station"
-                                                                ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
-
-                                                            />
                                                         </div>
                                                     </>
                                                 )}
                                                 {serviceDataMain.map((service, serviceIndex) => {
                                                     if (activeTab === serviceIndex + 2) {
                                                         return (
-                                                            <div key={serviceIndex} className="p-6">
+                                                            <div key={serviceIndex} className="md:p-6">
                                                                 <h2 className="text-2xl font-bold mb-6">{service.heading}</h2>
-                                                                {service.db_table == "gap_validation" && <><label for="highest_education" className='font-bold'>Your Highest Education:</label>
+                                                                {service.db_table == "gap_validation" && <><label for="highest_education" className='font-bold uppercase'>Your Highest Education:</label>
                                                                     <select id="highest_education_gap" name="highest_education_gap"
                                                                         value={annexureData["gap_validation"].highest_education_gap || ''}
                                                                         onChange={(e) => handleServiceChange("gap_validation", "highest_education_gap", e.target.value)}
@@ -2552,172 +2957,515 @@ const BackgroundForm = () => {
                                                                         <option value="senior_secondary">Senior Secondary Education</option>
                                                                         <option value="secondary">Secondary Education</option>
                                                                     </select>
-                                                                    {annexureData["gap_validation"].highest_education_gap === 'phd' && (
+                                                                    {
+                                                                        annexureData["gap_validation"].highest_education_gap === 'phd' && (
+                                                                            <>
+                                                                                <h3 className="text-lg font-bold py-3">PHD</h3>
+                                                                                <div className='border border-black p-4 rounded-md'>
+                                                                                    <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                        <div>
+                                                                                            <label>Institute Name</label>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_institute_name_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_institute_name_gap`, e.target.value)}
+                                                                                                name="phd_institute_name_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <label>School Name</label>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_school_name_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_school_name_gap`, e.target.value)}
+                                                                                                name="phd_school_name_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <label>Start Date</label>
+                                                                                            <input
+                                                                                                type="date"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_start_date_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_start_date_gap`, e.target.value)}
+                                                                                                name="phd_start_date_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                            {errors["phd_start_date_gap"] && <p className="text-red-500 text-sm">{errors["phd_start_date_gap"]}</p>}
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <label>End Date</label>
+                                                                                            <input
+                                                                                                type="date"
+                                                                                                value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_end_date_gap`] || ''}
+                                                                                                onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", `phd_end_date_gap`, e.target.value)}
+                                                                                                name="phd_end_date_gap"
+                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                            />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="mt-2 mb-3">
+                                                                                        <label htmlFor="phd_specialization_gap" className="block text-sm font-medium text-gray-700">Specialization</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            id="phd_specialization_gap"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.phd_1?.[`phd_specialization_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "phd_1", "phd_specialization_gap", e.target.value)}
+                                                                                            name="phd_specialization_gap"
+                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                        />
+                                                                                    </div>
+                                                                                </div>
+                                                                                {
+                                                                                    (() => {
+                                                                                        let index = 1;
+                                                                                        let elements = [];
+
+                                                                                        while (true) {
+                                                                                            const key = `phd_corespondence_${index}`;
+
+                                                                                            // Check if the key exists in education_fields
+                                                                                            if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                                                                break; // Exit loop if the key is missing
+                                                                                            }
+
+                                                                                            const phdSection = annexureData.gap_validation.education_fields[key];
+
+                                                                                            elements.push(
+                                                                                                <div key={index} className='border border-black p-4 mt-4 rounded-md'>
+                                                                                                    <h3 className="text-lg font-bold py-3">Correspondence PHD {index}</h3>
+                                                                                                    <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                                        <div>
+                                                                                                            <label>Institute Name</label>
+                                                                                                            <input
+                                                                                                                type="text"
+                                                                                                                value={phdSection?.phd_institute_name_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_institute_name_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_institute_name_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>School Name</label>
+                                                                                                            <input
+                                                                                                                type="text"
+                                                                                                                value={phdSection?.phd_school_name_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_school_name_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_school_name_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>Start Date</label>
+                                                                                                            <input
+                                                                                                                type="date"
+                                                                                                                value={phdSection?.phd_start_date_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_start_date_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_start_date_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                            {errors["phd_start_date_gap"] && <p className="text-red-500 text-sm">{errors["phd_start_date_gap"]}</p>}
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>End Date</label>
+                                                                                                            <input
+                                                                                                                type="date"
+                                                                                                                value={phdSection?.phd_end_date_gap || ''}
+                                                                                                                onChange={(e) => {
+                                                                                                                    handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_end_date_gap", e.target.value);
+                                                                                                                }}
+                                                                                                                name="phd_end_date_gap"
+                                                                                                                className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className="mt-2 mb-3">
+                                                                                                        <label htmlFor="phd_specialization_gap" className="block text-sm font-medium text-gray-700">Specialization</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            id="phd_specialization_gap"
+                                                                                                            value={phdSection?.phd_specialization_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "phd_specialization_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="phd_specialization_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            );
+
+                                                                                            index++; // Move to the next phd_corespondence_*
+                                                                                        }
+
+                                                                                        return elements;
+                                                                                    })()
+                                                                                }
+                                                                                <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondencePhd}>
+                                                                                    Add Correspondence PHD Education
+                                                                                </button>
+
+                                                                            </>
+                                                                        )
+                                                                    }
+
+
+                                                                    {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
                                                                         <>
-                                                                            <h3 className="text-lg font-bold py-3">PHD</h3>
-                                                                            <div className=' border border-black p-4 rounded-md'>
-                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
+
+                                                                            <h3 className="text-lg font-bold py-3">POST GRADUATION</h3>
+                                                                            <div className="border border-black p-4 rounded-md">
+                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                                     <div>
-                                                                                        <label>Institute Name</label>
+                                                                                        <label>University / Institute Name</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].phd_institute_name_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_institute_name_gap", e.target.value)}
-                                                                                            name="phd_institute_name_gap"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_university_institute_name_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_university_institute_name_gap`, e.target.value)}
+                                                                                            name="post_graduation_university_institute_name_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
                                                                                     <div>
-                                                                                        <label>School Name</label>
+                                                                                        <label>Course</label>
                                                                                         <input
                                                                                             type="text"
-                                                                                            value={annexureData["gap_validation"].phd_school_name_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_school_name_gap", e.target.value)}
-                                                                                            name="phd_school_name_gap"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_course_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_course_gap`, e.target.value)}
+                                                                                            name="post_graduation_course_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
+                                                                                    <div>
+                                                                                        <label>Specialization Major</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_specialization_major_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_specialization_major_gap`, e.target.value)}
+
+                                                                                            name="post_graduation_specialization_major_gap"
+                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                        />
+                                                                                    </div>
+
                                                                                     <div>
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].phd_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_start_date_gap", e.target.value)}
-                                                                                            name="phd_start_date_gap"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_start_date_gap`, e.target.value)}
+
+                                                                                            name="post_graduation_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
+                                                                                        {errors["post_graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["post_graduation_start_date_gap"]}</p>}
                                                                                     </div>
-                                                                                    <div>
-                                                                                        <label>End Date</label>
-                                                                                        <input
-                                                                                            type="date"
-                                                                                            value={annexureData["gap_validation"].phd_end_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "phd_end_date_gap", e.target.value)}
-                                                                                            name="phd_end_date_gap"
-                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                        />
-                                                                                    </div>
+
                                                                                 </div>
-                                                                                <div className="mt-2 mb-3">
-                                                                                    <label>Specialization</label>
+                                                                                <div>
+                                                                                    <label>End Date</label>
                                                                                     <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].phd_specialization_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "phd_specialization_gap", e.target.value)}
-                                                                                        name="phd_specialization_gap"
+                                                                                        type="date"
+                                                                                        value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_end_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "post_graduation_1", `post_graduation_end_date_gap`, e.target.value)}
+                                                                                        name="post_graduation_end_date_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
                                                                             </div>
+
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `post_graduation_corespondence_${index}`;
+
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black  mt-4 p-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3 ">Correspondence POST GRADUATION {index}</h3>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                                                    <div>
+                                                                                                        <label>University / Institute Name</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.post_graduation_university_institute_name_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_university_institute_name_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="post_graduation_university_institute_name_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Course</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.post_graduation_course_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_course_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="post_graduation_course_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Specialization Major</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.post_graduation_specialization_major_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_specialization_major_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="post_graduation_specialization_major_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.post_graduation_start_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_start_date_gap", e.target.value);
+                                                                                                            }}
+
+                                                                                                            name="post_graduation_start_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                        {errors["post_graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["post_graduation_start_date_gap"]}</p>}
+                                                                                                    </div>
+
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>End Date</label>
+                                                                                                    <input
+                                                                                                        type="date"
+                                                                                                        value={phdSection?.post_graduation_end_date_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "post_graduation_end_date_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="post_graduation_end_date_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondencePostGraduation}>
+                                                                                Add Correspondence POST GRADUATION Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
 
-                                                                    {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
-                                                                        <>
-                                                                            <h3 className="text-lg font-bold py-3">POST GRADUATION</h3>
-                                                                            <div className="md:grid grid-cols-2 gap-3 my-4 border border-black p-4 rounded-md">
-                                                                                <div>
-                                                                                    <label>University / Institute Name</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].post_graduation_university_institute_name_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_university_institute_name_gap", e.target.value)}
-                                                                                        name="post_graduation_university_institute_name_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>Course</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].post_graduation_course_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_course_gap", e.target.value)}
-                                                                                        name="post_graduation_course_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>Specialization Major</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].post_graduation_specialization_major_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_specialization_major_gap", e.target.value)}
-                                                                                        name="post_graduation_specialization_major_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>Year of Passing</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].post_graduation_passing_year_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "post_graduation_passing_year_gap", e.target.value)}
-                                                                                        name="post_graduation_passing_year_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        </>
-                                                                    )}
+
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
                                                                         <>
                                                                             <h3 className="text-lg font-bold py-3">GRADUATION</h3>
-                                                                            <div className="md:grid grid-cols-2 gap-3 my-4 border border-black p-4 rounded-md">
-                                                                                <div>
-                                                                                    <label>University / Institute Name</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].graduation_university_institute_name_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_university_institute_name_gap", e.target.value)}
-                                                                                        name="graduation_university_institute_name_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
+                                                                            <div className="border border-black p-4 rounded-md">
+                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                                    <div>
+                                                                                        <label>University / Institute Name</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_university_institute_name_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_university_institute_name_gap`, e.target.value)}
+                                                                                            name="graduation_university_institute_name_gap"
+                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label>Course</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_course_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_course_gap`, e.target.value)}
+                                                                                            name="graduation_course_gap"
+                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label>Specialization Major</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_specialization_major_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_specialization_major_gap`, e.target.value)}
+
+                                                                                            name="graduation_specialization_major_gap"
+                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                        />
+                                                                                    </div>
+
+                                                                                    <div>
+                                                                                        <label>Start Date</label>
+                                                                                        <input
+                                                                                            type="date"
+                                                                                            value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_start_date_gap`, e.target.value)}
+
+                                                                                            name="graduation_start_date_gap"
+                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                        />
+                                                                                        {errors["graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["graduation_start_date_gap"]}</p>}
+                                                                                    </div>
+
                                                                                 </div>
                                                                                 <div>
-                                                                                    <label>Course</label>
+                                                                                    <label>End Date</label>
                                                                                     <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].graduation_course_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_course_gap", e.target.value)}
-                                                                                        name="graduation_course_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>Specialization Major</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].graduation_specialization_major_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_specialization_major_gap", e.target.value)}
-                                                                                        name="graduation_specialization_major_gap"
-                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
-                                                                                    />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label>Year of Passing</label>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={annexureData["gap_validation"].graduation_passing_year_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "graduation_passing_year_gap", e.target.value)}
-                                                                                        name="graduation_passing_year_gap"
+                                                                                        type="date"
+                                                                                        value={annexureData?.gap_validation?.education_fields?.graduation_1?.[`graduation_end_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "graduation_1", `graduation_end_date_gap`, e.target.value)}
+                                                                                        name="graduation_end_date_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
                                                                                 </div>
                                                                             </div>
+
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `graduation_corespondence_${index}`;
+
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black p-4 mt-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4 ">
+                                                                                                    <div>
+                                                                                                        <label>University / Institute Name</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.graduation_university_institute_name_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_university_institute_name_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="graduation_university_institute_name_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Course</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.graduation_course_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_course_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="graduation_course_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>Specialization Major</label>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={phdSection?.graduation_specialization_major_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_specialization_major_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="graduation_specialization_major_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.graduation_start_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_start_date_gap", e.target.value);
+                                                                                                            }}
+
+                                                                                                            name="graduation_start_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                        {errors["graduation_start_date_gap"] && <p className="text-red-500 text-sm">{errors["graduation_start_date_gap"]}</p>}
+                                                                                                    </div>
+
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>End Date</label>
+                                                                                                    <input
+                                                                                                        type="date"
+                                                                                                        value={phdSection?.graduation_end_date_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "graduation_end_date_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="graduation_end_date_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceGraduation}>
+                                                                                Add Correspondence GRADUATION Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
+
+
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
                                                                         <>
                                                                             <h3 className="text-lg font-bold py-3">SENIOR SECONDARY</h3>
-                                                                            <div className="border border-black p-4 rounded-md">
+                                                                            <div className="border border-black  p-4 rounded-md">
                                                                                 <div className="my-3">
                                                                                     <label>School Name</label>
                                                                                     <input
                                                                                         type="text"
-                                                                                        value={annexureData["gap_validation"].senior_secondary_school_name_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "senior_secondary_school_name_gap", e.target.value)}
+                                                                                        value={annexureData?.gap_validation?.education_fields?.senior_secondary?.[`senior_secondary_school_name_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "senior_secondary", `senior_secondary_school_name_gap`, e.target.value)}
                                                                                         name="senior_secondary_school_name_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
@@ -2727,8 +3475,8 @@ const BackgroundForm = () => {
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].senior_secondary_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "senior_secondary_start_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.senior_secondary?.[`senior_secondary_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "senior_secondary", `senior_secondary_start_date_gap`, e.target.value)}
                                                                                             name="senior_secondary_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2737,16 +3485,93 @@ const BackgroundForm = () => {
                                                                                         <label>End Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].senior_secondary_end_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "senior_secondary_end_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.senior_secondary?.[`senior_secondary_end_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "senior_secondary", `senior_secondary_end_date_gap`, e.target.value)}
                                                                                             name="senior_secondary_end_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `senior_secondary_corespondence_${index}`;
+
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black mt-4 p-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
+
+                                                                                                <div className="my-3">
+                                                                                                    <label>School Name</label>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={phdSection?.senior_secondary_school_name_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_school_name_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="senior_secondary_school_name_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.senior_secondary_start_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_start_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="senior_secondary_start_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>End Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.senior_secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "senior_secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="senior_secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSeniorSecondary}>
+                                                                                Add Correspondence Senior Secondary Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
+
+
 
                                                                     {(annexureData["gap_validation"].highest_education_gap === 'secondary' || annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
                                                                         <>
@@ -2756,8 +3581,8 @@ const BackgroundForm = () => {
                                                                                     <label>School Name</label>
                                                                                     <input
                                                                                         type="text"
-                                                                                        value={annexureData["gap_validation"].secondary_school_name_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "secondary_school_name_gap", e.target.value)}
+                                                                                        value={annexureData?.gap_validation?.education_fields?.secondary?.[`secondary_school_name_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "secondary", `secondary_school_name_gap`, e.target.value)}
                                                                                         name="secondary_school_name_gap"
                                                                                         className="p-2 border w-full border-gray-300 rounded-md"
                                                                                     />
@@ -2767,8 +3592,8 @@ const BackgroundForm = () => {
                                                                                         <label>Start Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].secondary_start_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "secondary_start_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.secondary?.[`secondary_start_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "secondary", `secondary_start_date_gap`, e.target.value)}
                                                                                             name="secondary_start_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
@@ -2777,292 +3602,179 @@ const BackgroundForm = () => {
                                                                                         <label>End Date</label>
                                                                                         <input
                                                                                             type="date"
-                                                                                            value={annexureData["gap_validation"].secondary_end_date_gap || ''}
-                                                                                            onChange={(e) => handleServiceChange("gap_validation", "secondary_end_date_gap", e.target.value)}
+                                                                                            value={annexureData?.gap_validation?.education_fields?.secondary?.[`secondary_end_date_gap`] || ''}
+                                                                                            onChange={(e) => handleEmploymentGapChange("gap_validation", "education_fields", "secondary", `secondary_end_date_gap`, e.target.value)}
                                                                                             name="secondary_end_date_gap"
                                                                                             className="p-2 border w-full border-gray-300 rounded-md"
                                                                                         />
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+
+                                                                            {
+                                                                                (() => {
+                                                                                    let index = 1;
+                                                                                    let elements = [];
+
+                                                                                    while (true) {
+                                                                                        const key = `secondary_corespondence_${index}`;
+
+
+                                                                                        // Check if the key exists in education_fields
+                                                                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+
+                                                                                            break; // Exit loop if the key is missing
+                                                                                        }
+
+                                                                                        const phdSection = annexureData.gap_validation.education_fields[key];
+
+
+                                                                                        elements.push(
+                                                                                            <div className="border border-black p-4 mt-4 rounded-md">
+                                                                                                <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
+
+                                                                                                <div className="my-3">
+                                                                                                    <label>School Name</label>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={phdSection?.secondary_school_name_gap || ''}
+                                                                                                        onChange={(e) => {
+                                                                                                            handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_school_name_gap", e.target.value);
+                                                                                                        }}
+                                                                                                        name="secondary_school_name_gap"
+                                                                                                        className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <div className="md:grid grid-cols-2 gap-3 my-4">
+                                                                                                    <div>
+                                                                                                        <label>Start Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label>End Date</label>
+                                                                                                        <input
+                                                                                                            type="date"
+                                                                                                            value={phdSection?.secondary_end_date_gap || ''}
+                                                                                                            onChange={(e) => {
+                                                                                                                handleEmploymentGapChange("gap_validation", "education_fields", key, "secondary_end_date_gap", e.target.value);
+                                                                                                            }}
+                                                                                                            name="secondary_end_date_gap"
+                                                                                                            className="p-2 border w-full border-gray-300 rounded-md"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        );
+
+
+                                                                                        index++; // Move to the next phd_corespondence_*
+                                                                                    }
+
+
+                                                                                    return elements;
+                                                                                })()
+                                                                            }
+                                                                            <button className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSecondary}>
+                                                                                Add Correspondence Secondary Education
+                                                                            </button>
+
                                                                         </>
                                                                     )}
+
                                                                     <div className='mt-5'>
-                                                                        <label htmlFor="employmentType_gap" className='font-bold'>Select Employment Type</label>
-                                                                        <select
-                                                                            id="employmentType_gap"
-                                                                            value={annexureData["gap_validation"].employmentType_gap || ''}
-                                                                            onChange={(e) => handleServiceChange("gap_validation", "employmentType_gap", e.target.value)}
-
-                                                                            className="mt-1 mb-3 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-
-                                                                        >
-                                                                            <option value="">--Select Employment Type--</option>
-                                                                            <option value="selfEmployment">Self Employment</option>
-                                                                            <option value="familyBusiness">Family Business</option>
-                                                                            <option value="training">Training</option>
-                                                                            <option value="certification">Certification</option>
-                                                                            <option value="freelancer">Freelancer</option>
-                                                                        </select>
+                                                                        <label htmlFor="employmentType_gap" className='font-bold'>EMPLOYMENT</label>
+                                                                        <div className='mb-3'>
+                                                                            <label htmlFor="years_of_experience_gap">Year's of Experience</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                id="years_of_experience_gap"
+                                                                                name="years_of_experience_gap"
+                                                                                value={annexureData["gap_validation"].years_of_experience_gap || ''}
+                                                                                onChange={(e) => handleServiceChange("gap_validation", "years_of_experience_gap", e.target.value)}
+                                                                                className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label htmlFor="no_of_employment">No of Employment</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                id="no_of_employment"
+                                                                                name="no_of_employment"
+                                                                                value={annexureData["gap_validation"].no_of_employment || ''}
+                                                                                onChange={(e) => handleServiceChange("gap_validation", "no_of_employment", e.target.value)}
+                                                                                className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                            />
+                                                                        </div>
                                                                     </div>
-                                                                </>}
-                                                                {annexureData["gap_validation"].employmentType_gap === 'selfEmployment' && (
-                                                                    <>
-                                                                        <h3 className="text-lg font-bold pb-3">SELF EMPLOYMENT</h3>
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
-                                                                            <div>
-                                                                                <label htmlFor="self_employment_business_type_gap">Business Type</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="self_employment_business_type_gap"
-                                                                                    name="self_employment_business_type_gap"
-                                                                                    value={annexureData["gap_validation"].self_employment_business_type_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_business_type_gap", e.target.value)}
 
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
+                                                                    {/* Dynamically render Employment Forms based on no_of_employment */}
+                                                                    {Array.from({ length: annexureData["gap_validation"].no_of_employment || 0 }, (_, index) => (
+                                                                        <div key={index} className='border border-black p-4 rounded-md my-3'>
+                                                                            <h3 className="text-lg font-bold pb-3">Employment({index + 1})</h3>
                                                                             <div>
-                                                                                <label htmlFor="self_employment_company_name_gap">Company Name</label>
-                                                                                <input
+                                                                                <label htmlFor={`employment_type_gap`}>Employment Type</label>
+                                                                                <select
                                                                                     type="text"
-                                                                                    id="self_employment_company_name_gap"
-                                                                                    name="self_employment_company_name_gap"
-                                                                                    value={annexureData["gap_validation"].self_employment_company_name_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_company_name_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="self_employment_start_date_gap">Start Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="self_employment_start_date_gap"
-                                                                                    name="self_employment_start_date_gap"
-                                                                                    value={annexureData["gap_validation"].self_employment_start_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_start_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="self_employment_end_date_gap">End Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="self_employment_end_date_gap"
-                                                                                    name="self_employment_end_date_gap"
-                                                                                    value={annexureData["gap_validation"].self_employment_end_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "self_employment_end_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    </>
-                                                                )}
-
-                                                                {annexureData["gap_validation"].employmentType_gap === 'familyBusiness' && (
-                                                                    <>
-                                                                        <h3 className="text-lg font-bold pb-3">FAMILY BUSINESS</h3>
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
-                                                                            <div>
-                                                                                <label htmlFor="family_business_business_type_gap">Business Type</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="family_business_business_type_gap"
-                                                                                    name="family_business_business_type_gap"
-                                                                                    value={annexureData["gap_validation"].family_business_business_type_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_business_type_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="family_business_company_name_gap">Company Name</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="family_business_company_name_gap"
-                                                                                    name="family_business_company_name_gap"
-                                                                                    value={annexureData["gap_validation"].family_business_company_name_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_company_name_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="family_business_start_date_gap">Start Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="family_business_start_date_gap"
-                                                                                    name="family_business_start_date_gap"
-                                                                                    value={annexureData["gap_validation"].family_business_start_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_start_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="family_business_end_date_gap">End Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="family_business_end_date_gap"
-                                                                                    name="family_business_end_date_gap"
-                                                                                    value={annexureData["gap_validation"].family_business_start_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "family_business_start_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    </>
-                                                                )}
-
-                                                                {annexureData["gap_validation"].employmentType_gap === 'training' && (
-                                                                    <>
-                                                                        <h3 className="text-lg font-bold pb-3">TRAINING</h3>
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
-                                                                            <div>
-                                                                                <label htmlFor="training_type_gap">Training Type</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="training_type_gap"
-                                                                                    name="training_type_gap"
-                                                                                    value={annexureData["gap_validation"].training_type_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_type_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="training_institute_comapny_name_gap">Institute/Company Name</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="training_institute_comapny_name_gap"
-                                                                                    name="training_institute_comapny_name_gap"
-                                                                                    value={annexureData["gap_validation"].training_institute_comapny_name_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_institute_comapny_name_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-
-                                                                            <div>
-                                                                                <label htmlFor="training_start_date_gap">Start Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="training_start_date_gap"
-                                                                                    name="training_start_date_gap"
-                                                                                    value={annexureData["gap_validation"].training_start_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_start_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="training_end_date_gap">End Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="training_end_date_gap"
-                                                                                    name="training_end_date_gap"
-                                                                                    value={annexureData["gap_validation"].training_end_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "training_end_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    </>
-                                                                )}
-
-                                                                {annexureData["gap_validation"].employmentType_gap === 'certification' && (
-                                                                    <>
-                                                                        <h3 className="text-lg font-bold pb-3">CERTIFICATION</h3>
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-black p-4 rounded-md ">
-                                                                            <div>
-                                                                                <label htmlFor="certification_title_gap">Certification Title</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="certification_title_gap"
-                                                                                    name="certification_title_gap"
-                                                                                    value={annexureData["gap_validation"].certification_title_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_title_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="certification_institute_company_name_gap">Institute/Company Name</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="certification_institute_company_name_gap"
-                                                                                    name="certification_institute_company_name_gap"
-                                                                                    value={annexureData["gap_validation"].certification_institute_company_name_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_institute_company_name_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="certification_start_date_gap">Start Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="certification_start_date_gap"
-                                                                                    name="certification_start_date_gap"
-                                                                                    value={annexureData["gap_validation"].certification_start_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_start_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <label htmlFor="certification_end_date_gap">End Date</label>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    id="certification_end_date_gap"
-                                                                                    name="certification_end_date_gap"
-                                                                                    value={annexureData["gap_validation"].certification_end_date_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "certification_end_date_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    </>
-                                                                )}
-
-                                                                {annexureData["gap_validation"].employmentType_gap === 'freelancer' && (
-                                                                    <>
-
-                                                                        <h3 className="text-lg font-bold pb-3">FREELANCER</h3>
-                                                                        <div className="border border-black p-4 rounded-md">
-                                                                            <div>
-                                                                                <label htmlFor="freelancer_type_gap">Freelancer Type</label>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    id="freelancer_type_gap"
-                                                                                    name="freelancer_type_gap"
-                                                                                    value={annexureData["gap_validation"].freelancer_type_gap || ''}
-                                                                                    onChange={(e) => handleServiceChange("gap_validation", "freelancer_type_gap", e.target.value)}
-                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2"
-                                                                                />
+                                                                                    id={`employment_type_gap`}
+                                                                                    name={`employment_type_gap`}
+                                                                                    value={annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_type_gap`] || ''}
+                                                                                    onChange={(e) => handleEmploymentGapChange("gap_validation", "employment_fields", `employment_${index + 1}`, `employment_type_gap`, e.target.value)}
+                                                                                    className="form-control border rounded w-full bg-white p-2 mt-2 mb-2"
+                                                                                >
+                                                                                    <option value="">Select Your Employment Type</option>
+                                                                                    <option value="employed">Employed</option>
+                                                                                    <option value="self-employed">Self Employed</option>
+                                                                                    <option value="freelancer">Freelancer</option>
+                                                                                    <option value="family-business">Family Business</option>
+                                                                                </select>
                                                                             </div>
                                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                {/* Start Date Field */}
                                                                                 <div>
-                                                                                    <label htmlFor="freelancer_start_date_gap">Start Date</label>
+                                                                                    <label htmlFor={`employment_start_date_gap`}>Start Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        id="freelancer_start_date_gap"
-                                                                                        name="freelancer_start_date_gap"
-                                                                                        value={annexureData["gap_validation"].freelancer_start_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "freelancer_start_date_gap", e.target.value)}
+                                                                                        id={`employment_start_date_gap`}
+                                                                                        name={`employment_start_date_gap`}
+                                                                                        value={annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "employment_fields", `employment_${index + 1}`, `employment_start_date_gap`, e.target.value)}
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
+
+
+                                                                                {/* End Date Field */}
                                                                                 <div>
-                                                                                    <label htmlFor="freelancer_end_date_gap">End Date</label>
+                                                                                    <label htmlFor={`employment_end_date_gap`}>End Date</label>
                                                                                     <input
                                                                                         type="date"
-                                                                                        id="freelancer_end_date_gap"
-                                                                                        name="freelancer_end_date_gap"
-                                                                                        value={annexureData["gap_validation"].freelancer_end_date_gap || ''}
-                                                                                        onChange={(e) => handleServiceChange("gap_validation", "freelancer_end_date_gap", e.target.value)}
+                                                                                        id={`employment_end_date_gap`}
+                                                                                        name={`employment_end_date_gap`}
+                                                                                        value={annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_end_date_gap`] || ''}
+                                                                                        onChange={(e) => handleEmploymentGapChange("gap_validation", "employment_fields", `employment_${index + 1}`, `employment_end_date_gap`, e.target.value)}
                                                                                         className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                     />
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    </>
-                                                                )}
+                                                                    ))}
+
+                                                                </>
+                                                                }
+
+
 
                                                                 {service.db_table !== "gap_validation" && (
                                                                     <>
-                                                                        <div className="space-y-6" id="servicesForm" key={serviceIndex}>
+                                                                        <div className="md:space-y-6" id="servicesForm" key={serviceIndex}>
                                                                             {service.rows.map((row, rowIndex) => {
                                                                                 if (hiddenRows[`${serviceIndex}-${rowIndex}`]) {
                                                                                     return null;
@@ -3081,13 +3793,13 @@ const BackgroundForm = () => {
                                                                                         )}
 
                                                                                         <div className="space-y-4">
-                                                                                            <div className={`grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
+                                                                                            <div className={`md:grid grid-cols-${row.inputs.length === 1 ? '1' : row.inputs.length === 2 ? '2' : row.inputs.length === 4 ? '2' : row.inputs.length === 5 ? '3' : '3'} gap-3`}>
 
                                                                                                 {row.inputs.map((input, inputIndex) => {
 
                                                                                                     const isCheckbox = input.type === 'checkbox';
                                                                                                     const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
-                                                                                                    const isChecked = checkedCheckboxes[input.name];
+                                                                                                    const isChecked = ["1", 1, true, "true"].includes(annexureData[service.db_table]?.[input.name] ?? false);
 
                                                                                                     // Handle logic for checkbox checked state
                                                                                                     if (isDoneCheckbox && isChecked) {
@@ -3179,48 +3891,64 @@ const BackgroundForm = () => {
                                                                                                                         className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
                                                                                                                         onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
                                                                                                                     />
-                                                                                                                    <div className="border p-3 rounded-md mt-4">
-                                                                                                                        {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
-                                                                                                                            <Swiper
-                                                                                                                                spaceBetween={10} // Space between slides
-                                                                                                                                slidesPerView={5} // Default is 1 image per view
-                                                                                                                                loop={true} // Loop through images
-                                                                                                                                autoplay={{
-                                                                                                                                    delay: 1000,
-                                                                                                                                    disableOnInteraction: false, // Keeps autoplay active on interaction
-                                                                                                                                }}
-                                                                                                                                pagination={{
-                                                                                                                                    clickable: true,
-                                                                                                                                }}
-                                                                                                                                navigation={{ // Enable next/prev buttons
-                                                                                                                                    nextEl: '.swiper-button-next',
-                                                                                                                                    prevEl: '.swiper-button-prev',
-                                                                                                                                }}
-                                                                                                                            >
-                                                                                                                                {annexureData[service.db_table][input.name].split(',').map((item, index) => {
-                                                                                                                                    const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
-                                                                                                                                    return (
-                                                                                                                                        <SwiperSlide key={index}>
-                                                                                                                                            <div className="swiper-slide-container">
-                                                                                                                                                {isImage ? (
+                                                                                                                    {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
+                                                                                                                        <Swiper
+                                                                                                                            spaceBetween={10} // Space between slides
+                                                                                                                            slidesPerView={5} // Default is 5 images per view for larger screens
+                                                                                                                            loop={true} // Loop through images
+                                                                                                                            autoplay={{
+                                                                                                                                delay: 1000,
+                                                                                                                                disableOnInteraction: false, // Keeps autoplay active on interaction
+                                                                                                                            }}
+                                                                                                                            pagination={{
+                                                                                                                                clickable: true,
+                                                                                                                            }}
+                                                                                                                            navigation={{ // Enable next/prev buttons
+                                                                                                                                nextEl: '.swiper-button-next',
+                                                                                                                                prevEl: '.swiper-button-prev',
+                                                                                                                            }}
+                                                                                                                            breakpoints={{
+                                                                                                                                // When the screen width is 640px or smaller (mobile devices)
+                                                                                                                                640: {
+                                                                                                                                    slidesPerView: 1, // Show 1 image per slide on mobile
+                                                                                                                                },
+                                                                                                                                // When the screen width is 768px or larger (tablet and desktop)
+                                                                                                                                768: {
+                                                                                                                                    slidesPerView: 3, // Show 3 images per slide on tablets (optional)
+                                                                                                                                },
+                                                                                                                                1024: {
+                                                                                                                                    slidesPerView: 6, // Show 3 images per slide on tablets (optional)
+                                                                                                                                },
+                                                                                                                            }}
+                                                                                                                        >
+                                                                                                                            {annexureData[service.db_table][input.name].split(',').map((item, index) => {
+                                                                                                                                const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
+
+                                                                                                                                return (
+                                                                                                                                    <SwiperSlide key={index}>
+
+                                                                                                                                        {isImage ? (
+                                                                                                                                            <div className="border p-3 rounded-md mt-4">
+                                                                                                                                                <div className="swiper-slide-container">
                                                                                                                                                     <img
                                                                                                                                                         src={item}
                                                                                                                                                         alt={`Image ${index}`}
-                                                                                                                                                        style={{ maxWidth: "100%", maxHeight: "300px", objectFit: "cover" }}
+                                                                                                                                                        className='md:h-[100px] md:w-[100px]'
                                                                                                                                                     />
-                                                                                                                                                ) : (
-                                                                                                                                                    <button onClick={() => window.open(item, '_blank')}>Open Link</button>
-                                                                                                                                                )}
+                                                                                                                                                </div>
                                                                                                                                             </div>
-                                                                                                                                        </SwiperSlide>
-                                                                                                                                    );
-                                                                                                                                })}
-                                                                                                                            </Swiper>
-                                                                                                                        ) : (
-                                                                                                                            <p>No image or link available</p>
-                                                                                                                        )}
-                                                                                                                    </div>
+                                                                                                                                        ) : (
+                                                                                                                                            ''
+                                                                                                                                        )}
+                                                                                                                                    </SwiperSlide>
+                                                                                                                                );
+                                                                                                                            })}
+                                                                                                                        </Swiper>
+                                                                                                                    ) : (
+                                                                                                                        <p></p>
+                                                                                                                    )}
+
                                                                                                                 </>
                                                                                                             )}
 
@@ -3229,16 +3957,20 @@ const BackgroundForm = () => {
                                                                                                                     <input
                                                                                                                         type="checkbox"
                                                                                                                         name={input.name}
-                                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                                        checked={
+                                                                                                                            ["1", 1, true, "true"].includes(annexureData[service.db_table]?.[input.name] ?? false)
+                                                                                                                        } // Check if the value is 1, indicating it is checked
+                                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}  // Set the value to an empty string if no value is found
                                                                                                                         className="h-5 w-5 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                                                                                                         onChange={(e) => {
-                                                                                                                            handleCheckboxChange(input.name, e.target.checked);
+                                                                                                                            handleCheckboxChange(input.name, e.target.checked, service.db_table);
                                                                                                                             toggleRowsVisibility(serviceIndex, rowIndex, e.target.checked);
                                                                                                                         }}
                                                                                                                     />
                                                                                                                     <span className="text-sm text-gray-700">{input.label}</span>
                                                                                                                 </div>
                                                                                                             )}
+
 
                                                                                                             {errors[input.name] && <p className="text-red-500 text-sm">{errors[input.name]}</p>}
                                                                                                         </div>
@@ -3273,7 +4005,7 @@ const BackgroundForm = () => {
                                                 {/* Step 3 logic */}
                                                 {activeTab === serviceDataMain.length + 2 && (
                                                     <div>
-                                                        <div className='mb-6  p-4 rounded-md border shadow-md bg-white mt-8' >
+                                                        <div className='mb-6  p-4 rounded-md border bg-white mt-8' >
                                                             <h4 className="md:text-start text-start md:text-xl text-sm my-6 font-bold" > Declaration and Authorization </h4>
                                                             < div className="mb-6" >
                                                                 <p className='text-sm' >
@@ -3282,45 +4014,27 @@ const BackgroundForm = () => {
                                                                 </p>
                                                             </div>
 
-                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-6" >
-                                                                <div className="form-group" >
-                                                                    <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={(e) => handleFileChange("applications_signature", "signature", e)}
-                                                                        type="file"
-                                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mt-6" >
 
-                                                                        className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
-                                                                        name="signature"
-                                                                        id="signature"
-
-                                                                    />
-                                                                    {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
-                                                                    < p className="text-gray-500 text-sm mt-2" >
-                                                                        Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
-                                                                    </p>
-                                                                    <div><img src={cefDataApp.signature} alt="No Signature Found" /></div>
-
-                                                                </div>
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' > Name </label>
+                                                                    <label className='text-sm' >Declaration Name < span className='text-red-500' >* </span> </label>
                                                                     < input
                                                                         value={formData.personal_information.name_declaration}
                                                                         onChange={handleChange}
                                                                         type="text"
                                                                         className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                         name="name_declaration"
-
                                                                     />
+                                                                    {errors.name_declaration && <p className="text-red-500 text-sm"> {errors.name_declaration} </p>}
                                                                 </div>
 
 
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' > Date < span className='text-red-500' >* </span></label >
+                                                                    <label className='text-sm' >Declaration Date < span className='text-red-500' >* </span></label >
                                                                     <input
                                                                         onChange={handleChange}
-                                                                        value={formData.declaration_date}
+                                                                        value={formData.personal_information.declaration_date}
                                                                         type="date"
                                                                         className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                                         name="declaration_date"
@@ -3329,40 +4043,66 @@ const BackgroundForm = () => {
 
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                            <div className="form-group" >
+                                                                <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
+                                                                <input
+                                                                    onChange={(e) => handleFileChange("applications_signature", "signature", e)}
+                                                                    type="file"
+                                                                    accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
 
-                                                        < h5 className="md:text-start text-start text-lg my-6 font-bold" > Documents(Mandatory) </h5>
+                                                                    className="form-control border rounded w-full p-1 mt-2 bg-white mb-0"
+                                                                    name="signature"
+                                                                    id="signature"
 
-                                                        < div className="grid grid-cols-1 bg-white shadow-md  md:grid-cols-3 gap-4 pt-4  md:p-4 p-1 rounded-md border" >
-                                                            <div className="p-4" >
-                                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                                    <FaGraduationCap className="mr-3" />
-                                                                    Education
-                                                                </h6>
-                                                                < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
-                                                            </div>
+                                                                />
+                                                                {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
+                                                                < p className="text-gray-500 text-sm mt-2" >
+                                                                    Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
+                                                                </p>
+                                                                {cefDataApp.signature && (
+                                                                    <div className='md:h-20 md:w-20 border rounded-md p-2 '><img src={cefDataApp.signature} alt="No Signature Found" className='h-full w-full' /></div>
 
-                                                            < div className="p-4" >
-                                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                                    <FaBriefcase className="mr-3" />
-                                                                    Employment
-                                                                </h6>
-                                                                < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
-                                                            </div>
+                                                                )}
 
-                                                            < div className="p-4" >
-                                                                <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
-                                                                    <FaIdCard className="mr-3" />
-                                                                    Government ID / Address Proof
-                                                                </h6>
-                                                                < p className='text-sm' > Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
+
                                                             </div>
                                                         </div>
 
 
-                                                        < p className='md:text-start text-start text-sm mt-4' >
-                                                            NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
-                                                        </p>
+
+
+                                                        <div className="bg-white rounded-md border md:p-4">
+                                                            < h5 className="md:text-start text-start text-lg mt-6 mb-2 font-bold" > Documents(Mandatory) </h5>
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4  p-1">
+                                                                <div className="p-4 border rounded-md" >
+                                                                    <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                                        <FaGraduationCap className="mr-3" />
+                                                                        Education
+                                                                    </h6>
+                                                                    < p className='text-sm' > Photocopy of degree certificate and final mark sheet of all examinations.</p>
+                                                                </div>
+
+                                                                < div className="p-4 border rounded-md" >
+                                                                    <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                                        <FaBriefcase className="mr-3" />
+                                                                        Employment
+                                                                    </h6>
+                                                                    < p className='text-sm' > Photocopy of relieving / experience letter for each employer mentioned in the form.</p>
+                                                                </div>
+
+                                                                < div className="p-4 border rounded-md" >
+                                                                    <h6 className="flex items-center md:text-lg text-sm font-bold mb-2" >
+                                                                        <FaIdCard className="mr-3" />
+                                                                        Government ID / Address Proof
+                                                                    </h6>
+                                                                    < p className='text-sm' > Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
+                                                                </div>
+                                                            </div>
+
+                                                            <p className='md:text-start text-start text-sm mt-4 ' >
+                                                                NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to < a href="mailto:onboarding@goldquestglobal.in" > onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a > .
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
