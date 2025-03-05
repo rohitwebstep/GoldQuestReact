@@ -1211,17 +1211,19 @@ the information responsible for employment decisions based on the information pr
       "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
       "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
       "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
-      "Second Level Insuff": data.second_insufficiency_marks,
+      "Second Level Insuff": data.second_insufficiency_marks || 'NIL',
       "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
       "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
-      "Third Level Insuff Marks": data?.third_insufficiency_marks,
+      "Third Level Insuff Marks": data?.third_insufficiency_marks || 'NIL',
       "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
       "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
-      "Reason For Delay": data || "NIL",
+      "Reason For Delay": data.delay_reason || "NIL",
       "overall_status": data?.overall_status || "NIL",
       "Delay Reason": data.delay_reason || "NIL",
       "tat_days": data?.tat_days || "NIL",
     }));
+
+    
 
     const ws = XLSX.utils.json_to_sheet(worksheetData);
     const wb = XLSX.utils.book_new();

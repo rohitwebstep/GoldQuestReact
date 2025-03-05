@@ -918,63 +918,64 @@ const AdminChekin = () => {
                 const annexureData = service.annexureData || {}; // Ensure annexureData is an empty object if it's null or undefined
 
                 const annexureImagesKey = Object.keys(annexureData).find((key) =>
-                    key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
+                  key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
                 );
-
+        
                 if (annexureImagesKey) {
-                    const annexureImagesStr = annexureData[annexureImagesKey];
-                    const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
-
-                    if (annexureImagesSplitArr.length === 0) {
-                        doc.setFont("helvetica", "italic");
-                        doc.setFontSize(10);
-                        doc.setTextColor(150, 150, 150);
-                        doc.text("No annexure images available.", 10, yPosition);
-                        yPosition += 10;
-                    } else {
-                        const imageBases = await fetchImageToBase(annexureImagesSplitArr.trim());
-                        if (imageBases) {
-                            imageBases.forEach((image, index) => {
-                                if (!image.base64 || !image.base64.startsWith('data:image/')) {
-                                    console.error(`Invalid base64 data for image ${index + 1}`);
-                                    return;
-                                }
-
-                                // Use the scaleImageForPDF function to get the full width
-                                const { width, height } = scaleImageForPDF(image.width, image.height, doc.internal.pageSize.width - 20, 80);
-
-                                if (yPosition + height > doc.internal.pageSize.height - 20) {
-                                    doc.addPage();
-                                    yPosition = 10;
-                                }
-
-                                const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
-                                const textWidth = doc.getTextWidth(annexureText);
-                                const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-
-                                doc.setFont("helvetica", "bold");
-                                doc.setFontSize(10);
-                                doc.setTextColor(0, 0, 0);
-                                doc.text(annexureText, centerX, yPosition + 10);
-                                yPosition += 15;
-
-                                const centerXImage = (doc.internal.pageSize.width - width) / 2;
-                                try {
-                                    // Add the image with the calculated width (full width) and proportional height
-                                    doc.addImage(image.base64, image.type, 10, yPosition, width, height);
-                                    yPosition += height + 15;
-                                } catch (error) {
-                                    console.error(`Error adding image ${index + 1}:`, error);
-                                }
-                            });
-                        }
-                    }
-                } else {
+                  const annexureImagesStr = annexureData[annexureImagesKey];
+                  const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
+        
+                  if (annexureImagesSplitArr.length === 0) {
                     doc.setFont("helvetica", "italic");
                     doc.setFontSize(10);
                     doc.setTextColor(150, 150, 150);
                     doc.text("No annexure images available.", 10, yPosition);
-                    yPosition += 15;
+                    yPosition += 10;
+                  } else {
+                    const imageBases = await fetchImageToBase(annexureImagesStr.trim());
+                    if (imageBases) {
+                      imageBases.forEach((image, index) => {
+        
+                        if (!image.base64 || !image.base64.startsWith('data:image/')) {
+                          console.error(`Invalid base64 data for image ${index + 1}`);
+                          return;
+                        }
+        
+                        const { width, height } = scaleImageForPDF(image.width, image.height, doc.internal.pageSize.width - 20, 80);
+                        if (yPosition + height > doc.internal.pageSize.height - 20) {
+                          doc.addPage();
+                          yPosition = 10;
+                        }
+        
+                        const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
+                        const textWidth = doc.getTextWidth(annexureText);
+                        const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+        
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(10);
+                        doc.setTextColor(0, 0, 0);
+                        doc.text(annexureText, centerX, yPosition + 10);
+                        yPosition += 15;
+        
+                        const centerXImage = (doc.internal.pageSize.width - width) / 2;
+                        try {
+                          // Ensure that the base64 data and type are correctly passed
+                          doc.addImage(image.base64, image.type, centerXImage, yPosition, width, height);
+                          yPosition += height + 15;
+                        } catch (error) {
+                          console.error(`Error adding image ${index + 1}:`, error);
+                        }
+                      });
+                    }
+        
+        
+                  }
+                } else {
+                  doc.setFont("helvetica", "italic");
+                  doc.setFontSize(10);
+                  doc.setTextColor(150, 150, 150);
+                  doc.text("No annexure images available.", 10, yPosition);
+                  yPosition += 15;
                 }
 
             }

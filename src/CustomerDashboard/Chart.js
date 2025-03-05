@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import CanvasJSReact from '@canvasjs/react-charts';
 import { useDashboard } from './DashboardContext';
 import PulseLoader from 'react-spinners/PulseLoader';
+import { useApiCall } from '../ApiCallContext';
 
 const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 const Chart = () => {
+    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
     const { fetchDashboard, tableData } = useDashboard();
     const [loading, setLoading] = useState(true);
     const color = "#36A2EB"; // Define loader color
@@ -18,7 +20,9 @@ const Chart = () => {
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            await fetchDashboard();
+            if (!isBranchApiLoading) {
+                await fetchDashboard();
+            }
             setLoading(false);
         };
 

@@ -1,16 +1,20 @@
 import { createContext, useCallback, useState, useContext } from "react";
 import { useApi } from '../ApiContext';
+import { useApiCall } from '../ApiCallContext';
 
 const DashboardContext = createContext();
 
 export const useDashboard = () => useContext(DashboardContext);
 
 const DashboardProvider = ({ children }) => {
+      const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    
     const API_URL = useApi();
     const [tableData, setTableData] = useState({ clientApplications: {} });
     const [loading, setLoading] = useState(true);
 
     const fetchDashboard = useCallback(async () => {
+        setIsBranchApiLoading(true);
         try {
             const branch = JSON.parse(localStorage.getItem("branch"));
             const branch_id = branch?.id;
@@ -46,6 +50,7 @@ const DashboardProvider = ({ children }) => {
             console.error('Fetch error:', error);
         } finally {
             setLoading(false);
+            setIsBranchApiLoading(false)
         }
     }, [API_URL]);
 

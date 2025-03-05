@@ -20,12 +20,8 @@ const Dashboard = () => {
     const [itemsPerPage, setItemsPerPage] = useState({}); // Track items per page for each status
     const [paginatedData, setPaginatedData] = useState({});
 
-    const { fetchDashboard, tableData, loading } = useDashboard();
+    const {tableData, loading } = useDashboard();
 
-
-    useEffect(() => {
-        fetchDashboard();
-    }, [fetchDashboard]);
 
     const formatKey = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 

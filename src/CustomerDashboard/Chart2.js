@@ -6,20 +6,11 @@ import { PulseLoader } from 'react-spinners';  // Import PulseLoader
 const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 const Chart2 = () => {
-  const { fetchDashboard, tableData } = useDashboard();
+  const {tableData } = useDashboard();
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);  // Add loading state
 
-   useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            await fetchDashboard();
-            setLoading(false);
-        };
-
-        loadData();
-    }, [fetchDashboard]);
-
+ 
 
   useEffect(() => {
     if (tableData && tableData.clientApplications) {

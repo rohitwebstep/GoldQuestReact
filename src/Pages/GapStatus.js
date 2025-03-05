@@ -336,14 +336,14 @@ const GapStatus = () => {
     const calculateGaps = () => {
 
         // Data from your JSON
-        const secondaryEndDate = annexureData.gap_validation.education_fields.secondary.secondary_end_date_gap;
-        const seniorSecondaryStartDate = annexureData.gap_validation.education_fields.senior_secondary.senior_secondary_start_date_gap;
-        const seniorSecondaryEndDate = annexureData.gap_validation.education_fields.senior_secondary.senior_secondary_end_date_gap;
-        const graduationStartDate = annexureData.gap_validation.education_fields.graduation_1.graduation_start_date_gap;
-        const graduationEndDate = annexureData.gap_validation.education_fields.graduation_1.graduation_end_date_gap;
-        const postGraduationStartDate = annexureData.gap_validation.education_fields.post_graduation_1.post_graduation_start_date_gap;
-        const postGraduationEndDate = annexureData.gap_validation.education_fields.post_graduation_1.post_graduation_end_date_gap;
-        const phdStartDate = annexureData.gap_validation.education_fields.phd_1.phd_start_date_gap;
+        const secondaryEndDate = annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap;
+        const seniorSecondaryStartDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap;
+        const seniorSecondaryEndDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_end_date_gap;
+        const graduationStartDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_start_date_gap;
+        const graduationEndDate = annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_end_date_gap;
+        const postGraduationStartDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_start_date_gap;
+        const postGraduationEndDate = annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_end_date_gap;
+        const phdStartDate = annexureData.gap_validation?.education_fields?.phd_1?.phd_start_date_gap;
 
 
         const gapSecToSrSec = calculateDateGap(secondaryEndDate, seniorSecondaryStartDate);
@@ -384,6 +384,7 @@ const GapStatus = () => {
                 const employmentData = employmentValues[employmentKey];
 
                 if (!employmentData) {
+                    console.warn(`%cNo data found for ${employmentKey}, stopping loop.`, 'color: orange;');
                     break;
                 }
 
@@ -419,7 +420,8 @@ const GapStatus = () => {
                 i++; // Move to next employment record
             }
 
-          
+            // Final logs
+
             return { employmentStartDates, employmentEndDates };
         }
 
@@ -430,12 +432,9 @@ const GapStatus = () => {
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
-
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
-
-
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
                     const diff = calculateDateDifference(currentEnd, nextStart);
 
@@ -453,7 +452,6 @@ const GapStatus = () => {
             }
 
             // Log differences
-
             return differences;
         }
 
