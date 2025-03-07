@@ -2119,7 +2119,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                             <img src={item} alt={`Image ${index}`} className='p-3 ' />
                                                                         ) : (
                                                                             <div>
-                                                                                <button onClick={() => window.open(item, '_blank')} className='border-green-500 rounded-md p-3 '>Open Link</button>
+                                                                                <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 rounded-md p-3 '>Open Link</button>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -2161,7 +2161,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                         <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                     ) : (
                                                                                         <div>
-                                                                                            <button onClick={() => window.open(item, '_blank')} className='border-green-500 p-3 rounded border'>Open Link</button>
+                                                                                            <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 p-3 rounded border'>Open Link</button>
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
@@ -3818,7 +3818,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                                                                             className='md:h-[100px]'
                                                                                                                                         />
                                                                                                                                     ) : (
-                                                                                                                                        <button onClick={() => window.open(item, '_blank')}>Open Link</button>
+                                                                                                                                        <button onClick={() => window.open(item, '_blank')} type='button'>Open Link</button>
                                                                                                                                     )}
                                                                                                                                 </div>
                                                                                                                             </SwiperSlide>
