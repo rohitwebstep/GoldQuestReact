@@ -123,8 +123,9 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-            <div className="grid md:grid-cols-2 grid-cols-1 gap-6 border-t-2">
+           <div className='border p-2'>
                 {loading ? (
+                     <div className="grid md:grid-cols-2 grid-cols-1 gap-6 border-t-2">
                     <div className="flex justify-center items-center w-full py-10">
                         <PulseLoader
                             color={color}
@@ -134,6 +135,7 @@ const Dashboard = () => {
                             aria-label="Loading Spinner"
                             data-testid="loader"
                         />
+                    </div>
                     </div>
                 ) : Object.keys(tableData.clientApplications).length > 0 ? (
                     Object.keys(tableData.clientApplications).map((key) => {
@@ -238,10 +240,10 @@ const Dashboard = () => {
                         <p className="text-center text-lg">No applications available</p>
                     </div>
                 )}
-            </div>
+         
 
 
-
+         </div>
         </div>
     );
 };

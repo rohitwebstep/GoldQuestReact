@@ -396,7 +396,7 @@ const DeletionCertification = () => {
                       </td>
                     </tr>
                     {showModal && (
-                      <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+                      <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-20 z-50">
                         <div className="bg-white p-5 rounded-md md:w-4/12">
                           <div className='flex justify-between items-center'>
 

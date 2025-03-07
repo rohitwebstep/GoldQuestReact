@@ -132,6 +132,7 @@ const ClientForm = () => {
         try {
             // Loop through the files to upload
             for (const [index, [key, value]] of Object.entries(files).entries()) {
+                const branch_token = localStorage.getItem("branch_token");
                 const customerLogoFormData = new FormData();
                 customerLogoFormData.append('branch_id', branchData?.branch_id);
                 customerLogoFormData.append('_token', branch_token);

@@ -109,11 +109,14 @@ const GenerateReport = () => {
         });
     };
 
+    let allCompleted = false;
 
-    // Check if all statuses (ignoring empty ones) are 'completed'
-    const allCompleted = selectedStatuses
+    // Ensure we're looking for any statuses that are truly "completed" (e.g., "completed_*" or just "completed")
+    allCompleted = selectedStatuses
         .filter(status => status !== "") // Filter out empty statuses
-        .every(status => status.includes('completed')); // Check if the rest are 'completed'
+        .every(status => status.startsWith('completed')); // Only consider "completed" prefixes
+
+
 
 
     const handleFileChange = (index, dbTable, fileName, e) => {
@@ -475,12 +478,13 @@ const GenerateReport = () => {
     };
     const fetchAdminList = useCallback(() => {
         setIsApiLoading(true);  // Start the global loading state
-
         setLoading(true);  // Start specific loading state
 
+        // Get admin ID and token from localStorage
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
 
+        // Check if admin_id or storedToken is missing
         if (!admin_id || !storedToken) {
             console.error("Admin ID or token is missing.");
             setLoading(false);  // Stop loading state if conditions are not met
@@ -497,30 +501,33 @@ const GenerateReport = () => {
         };
 
         fetch(url, requestOptions)
-            .then((response) => {
-                return response.json().then((result) => {
-                    const newToken = result._token || result.token;
-                    if (newToken) {
-                        localStorage.setItem("_token", newToken);  // Update the token in localStorage
-                    }
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return result;
-                });
-            })
+            .then((response) => response.json())  // Ensure the response is parsed correctly
             .then((result) => {
-                if (result.status) {
-                    // Map through the `client_spocs` array to get the names
-                    const spocsWithIds = result.client_spocs.map(spoc => ({
-                        id: spoc.id,
-                        name: spoc.name
-                    }));
-
-                    setAdminNames(spocsWithIds || []);
-                } else {
-                    console.error('Error: ', result.message);
+                // Handle the case where the result is empty, null, or undefined
+                if (!result || typeof result !== 'object') {
+                    throw new Error('Invalid response format');
                 }
+
+                // Update the token if present in the response
+                const newToken = result.token || result._token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken);  // Update the token in localStorage
+                }
+
+                // If response status is not successful, throw an error
+                if (!result.status) {
+                    throw new Error(result.message || 'Error: Unable to fetch admin list');
+                }
+
+                // Map through the `client_spocs` array to get the names, with safety checks
+                const spocsWithIds = result.client_spocs && Array.isArray(result.client_spocs)
+                    ? result.client_spocs.map(spoc => ({
+                        id: spoc.id || null, // Handle cases where `id` might be missing or null
+                        name: spoc.name || ''  // Handle cases where `name` might be missing
+                    }))
+                    : [];
+
+                setAdminNames(spocsWithIds || []);  // Set state with the processed list
             })
             .catch((error) => {
                 console.error('Fetch error:', error);
@@ -530,7 +537,8 @@ const GenerateReport = () => {
                 setLoading(false);  // Stop specific loading state
                 setIsApiLoading(false);  // Stop global loading state once everything is done
             });
-    }, []);  // Empty dependency array, so it only runs once on component mount
+    }, []);
+
 
     useEffect(() => {
         if (!isApiLoading) {
@@ -539,14 +547,14 @@ const GenerateReport = () => {
     }, [fetchAdminList]);
 
     const uploadCustomerLogo = async (email_status) => {
+        setIsApiLoading(true);
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
 
         const fileCount = Object.keys(files).length;
         for (const [rawKey, value] of Object.entries(files)) {
             const key = rawKey.replace("[]", "");
+            const storedToken = localStorage.getItem("_token");
             const customerLogoFormData = new FormData();
-
             customerLogoFormData.append('admin_id', admin_id);
             customerLogoFormData.append('_token', storedToken);
             customerLogoFormData.append('application_id', applicationId);
@@ -587,20 +595,26 @@ const GenerateReport = () => {
                     }
                 );
 
-                // Set new token if available in the response
-                const newToken = response?.data?.filteredResults?.find(
-                    (result) => result?.token || result?._token
-                );
+                // Log the response to check where the token is
+                console.log("Upload Response:", response.data);
+
+                // Now check if the token is available and save it to localStorage
+                const newToken = response?.data?.token || response?.data?._token;
                 if (newToken) {
-                    localStorage.setItem("_token", newToken.token || newToken._token);
+                    localStorage.setItem("_token", newToken);  // Save the new token in localStorage
+                    console.log("New token saved:", newToken);
                 }
 
             } catch (err) {
                 // Handle error
-                console.error(err);
+                console.error('Error during upload:', err);
+                setIsApiLoading(false);
+            } finally {
+                setIsApiLoading(false);
             }
         }
     };
+
 
 
     const handleInputChange = useCallback((e, index) => {
@@ -688,13 +702,13 @@ const GenerateReport = () => {
                         />
                         <div className="relative w-full    mt-4 max-w-full">
                             {annexureImagesSplitArr.length > 0 ? (
-                                <div className="grid grid-cols-6 gap-5">
+                                <div className="flex gap-5 overflow-scroll">
                                     {annexureImagesSplitArr.map((image, index) => (
                                         image.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                                             <img
                                                 src={image.trim()}
                                                 alt={`Image ${index + 1}`}
-                                                className="h-20 w-20 rounded-full"
+                                                className="w-4/12"
                                             />
                                         ) : (
                                             <a
@@ -1524,7 +1538,7 @@ const GenerateReport = () => {
                                     className="border rounded-md p-2 mt-2 uppercase w-full"
                                 >
 
-                                    <option></option>
+                                    <option value="">Selet overall Status</option>
                                     <option value="initiated">INITIATED</option>
                                     <option value="hold">HOLD</option>
                                     <option value="closure advice">CLOSURE ADVICE</option>
@@ -1561,6 +1575,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.report_status}
                                         onChange={handleChange}
                                         className="border rounded-md p-2 mt-2 uppercase w-full">
+                                        <option value="">Selet Report Status</option>
                                         <option value="insuff">insuff</option>
                                         <option value="inititated">inititated</option>
                                         <option value="wip" >wip</option>
@@ -1576,6 +1591,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.report_type}
                                         onChange={handleChange}
                                         className="border rounded-md p-2 mt-2 uppercase w-full">
+                                        <option value="">Selet Report Type</option>
                                         <option value="insuff">insuff</option>
                                         <option value="inititated">inititated</option>
                                         <option value="wip" >wip</option>
@@ -1589,6 +1605,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.final_verification_status}
                                         onChange={handleChange}
                                         id="" className="border w-full rounded-md p-2 mt-2 uppercase">
+                                        <option value="">Selet Verification Status</option>
                                         <option value="green">green</option>
                                         <option value="red">red</option>
                                         <option value="yellow" >yellow</option>
@@ -1608,6 +1625,7 @@ const GenerateReport = () => {
                                         onChange={handleChange}
 
                                         id="" className="border w-full rounded-md p-2 mt-2 uppercase">
+                                        <option value="">Please Select.....</option>
                                         <option value="yes">yes</option>
                                         <option value="no">no</option>
                                     </select>
@@ -1633,6 +1651,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.insuff_address}
                                         onChange={handleChange}
                                         id="" className="border w-full rounded-md p-2 mt-2 uppercase">
+                                        <option value="">Selet Address</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
                                         ))}
@@ -1645,6 +1664,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.basic_entry}
                                         onChange={handleChange}
                                         id="" className="border w-full rounded-md p-2 mt-2 uppercase">
+                                        <option value="">Selet basic entry</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
                                         ))}                                    </select>
@@ -1658,6 +1678,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.education}
                                         onChange={handleChange}
                                         className="border w-full rounded-md p-2 mt-2 uppercase">
+                                        <option value="">Selet Education</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
                                         ))}                                    </select>
@@ -1684,6 +1705,7 @@ const GenerateReport = () => {
                                         value={formData.updated_json.insuffDetails.emp_spoc}
                                         onChange={handleChange}
                                         className="border w-full rounded-md p-2 mt-2 uppercase">
+                                        <option value="">Selet Employment Spoc</option>
                                         <option value="yes">yes</option>
                                         <option value="no">no</option>
                                     </select>

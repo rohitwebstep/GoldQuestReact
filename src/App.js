@@ -108,7 +108,7 @@ const App = () => {
                                       <Route path="/reset-password" element={<SetNewPassword />} />
                                       <Route path="/update-password" element={<Admin><UpdatePassword /></Admin>} />
                                       <Route path="/trackerstatus" element={<Admin><ExelTrackerData /></Admin>} />
-                                      <Route path="/candidate" element={<Admin><CandidateMain /></Admin>} />
+                                      <Route path="/client" element={<Admin><CandidateMain /></Admin>} />
                                       <Route path="/candidate-bgv" element={<Admin><CandidateBGV /></Admin>} />
                                       <Route path="/candidate_genrate_Report" element={<Admin><CandidateGenerateReport /></Admin>} />
                                       <Route path="/candidate-dav" element={<Admin><CandidiateDav /></Admin>} />

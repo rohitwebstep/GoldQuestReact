@@ -364,7 +364,7 @@ export const ClientEditForm = () => {
                                         onChange={handleClientChange}></textarea>
                                 </div>
                                 <div className="mb-4 md:w-6/12">
-                                    <label className="text-gray-500" htmlFor="agreement_duration">Agreement Period: <span className="text-red-600">*</span></label>
+                                    <label className="text-gray-500" htmlFor="agreement_duration">Agreement Period</label>
 
                                     <select name="agreement_duration"
                                         className="border w-full rounded-md p-2 mt-2 outline-none" id="agreement_duration" onChange={handleClientChange} value={clientData.agreement_duration}>

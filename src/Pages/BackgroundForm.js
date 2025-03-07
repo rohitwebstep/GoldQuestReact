@@ -1452,7 +1452,7 @@ const BackgroundForm = () => {
                     //     const errorMessage = `${fileItem.name}: File size must be less than 2MB.`;
                     //     fileErrors.push(errorMessage);
                     // }
-            
+
                     if (!allowedTypes.includes(fileItem.type)) {
                         const errorMessage = `${fileItem.name}: Invalid file type. Only JPG, PNG, PDF, DOCX, and XLSX are allowed.`;
                         fileErrors.push(errorMessage);
@@ -1462,7 +1462,7 @@ const BackgroundForm = () => {
                 const errorMessage = `${fileName} is required.`;
                 fileErrors.push(errorMessage);
             }
-            
+
 
             return fileErrors;
         };
@@ -1575,6 +1575,18 @@ const BackgroundForm = () => {
         const TotalApiCalls = fileCount + 1;
         const dataToSubmitting = 100 / TotalApiCalls;
 
+        if (custombgv === 0) {
+            // Show SweetAlert loading spinner for custombgv === 0
+            Swal.fire({
+                title: "Processing...",
+                text: "Please wait while we process your request.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading(); // Show the loading spinner
+                },
+            });
+        }
+
         let newErrors = {};
         if (custombgv === 1) {
             const validationError = validate2();
@@ -1629,7 +1641,6 @@ const BackgroundForm = () => {
             console.log('isEducationFieldsStringified', isEducationFieldsStringified);
             console.log('isEmploymentFieldsStringified', isEmploymentFieldsStringified);
 
-
             // Only stringify if the fields are not already stringified
             const educationFieldsString = isEducationFieldsStringified
                 ? annexureData.gap_validation.education_fields
@@ -1649,7 +1660,6 @@ const BackgroundForm = () => {
         }
 
         // Logging for debugging purposes
-
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
@@ -1659,7 +1669,6 @@ const BackgroundForm = () => {
             body: JSON.stringify(requestData),
             redirect: "follow",
         };
-
 
         try {
             // Send the form data request to the API
@@ -1685,22 +1694,24 @@ const BackgroundForm = () => {
                 if (fileCount === 0) {
                     Swal.fire({
                         title: "Success",
-                        text: "Your Form is saved successfully. You can proceed to your next step!",
+                        text: activeTab === serviceDataMain.length + 2 ? "Your Form is saved successfully" : 'Your Form is saved successfully. You can proceed to your next step!',
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
                         fetchApplicationStatus(); // Call fetch status only for custombgv 0
+                        Swal.close(); // Close the loading spinner after processing is complete
                     });
                 } else {
                     // Handle file upload logic for custombgv 0, but without progress
                     await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv); // Upload files
                     Swal.fire({
                         title: "Success",
-                        text: "Your Form is saved successfully. You can proceed to your next step!",
+                        text: activeTab === serviceDataMain.length + 2 ? "Your Form is saved successfully" : 'Your Form is saved successfully. You can proceed to your next step!',
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
                         fetchApplicationStatus(); // Call fetch status after success
+                        Swal.close(); // Close the loading spinner after processing is complete
                     });
                 }
             }
@@ -1715,6 +1726,7 @@ const BackgroundForm = () => {
                         confirmButtonText: "Ok",
                     }).then(() => {
                         fetchApplicationStatus(); // Call fetch status after submission
+                        Swal.close(); // Close the loading spinner
                     });
                 } else {
                     await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv); // Upload files
@@ -1726,6 +1738,7 @@ const BackgroundForm = () => {
                         confirmButtonText: "Ok",
                     }).then(() => {
                         fetchApplicationStatus(); // Call fetch status after successful file upload
+                        Swal.close(); // Close the loading spinner
                     });
                 }
 
@@ -1766,12 +1779,14 @@ const BackgroundForm = () => {
 
         } catch (error) {
             Swal.fire("Error!", error.message, "error");
+            Swal.close(); // Close the loading spinner if an error occurs
         } finally {
             // Stop loading indicator and close modal after processing
             setLoading(false);
             setShowModal(false);
         }
     };
+
     const validateDate = () => {
         const newErrors = {};
 
@@ -2077,7 +2092,7 @@ const BackgroundForm = () => {
                                                                     {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
 
                                                                     {cefDataApp.resume_file && (
-                                                                        <div className='md:h-20 md:w-20 border rounded-md'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} className='h-full w-full object-contain p-3' alt="NO IMAGE FOUND" /></div>
+                                                                        <div className=' border rounded-md mt-4'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} className=' object-contain p-3' alt="NO IMAGE FOUND" /></div>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -2094,7 +2109,7 @@ const BackgroundForm = () => {
                                                                 />
                                                                 {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
 
-                                                                <div className='md:grid grid-cols-5 gap-3'>
+                                                                <div className='md:flex overflow-scroll gap-3'>
 
                                                                     {cefDataApp.govt_id ? (
                                                                         cefDataApp.govt_id.split(',').map((item, index) => {
@@ -2102,7 +2117,7 @@ const BackgroundForm = () => {
                                                                             const isImage = item && (item.endsWith('.jpg') || item.endsWith('.jpeg') || item.endsWith('.png'));
 
                                                                             return (
-                                                                                <div key={index} className='border rounded-md flex items-center justify-center'>
+                                                                                <div key={index} className='border mt-3 w-4/12 rounded-md flex items-center justify-center'>
                                                                                     {isImage ? (
                                                                                         <img src={item} alt={`Image ${index}`} className='p-3 ' />
                                                                                     ) : (
@@ -2142,7 +2157,7 @@ const BackgroundForm = () => {
                                                                             />
                                                                             {errors.passport_photo && <p className="text-red-500 text-sm" > {errors.passport_photo} </p>}
 
-                                                                            <div className='md:grid grid-cols-5 gap-3'>
+                                                                            <div className='md:grid grid-cols-3 mt-3 gap-3'>
                                                                                 {cefDataApp.passport_photo ? (
                                                                                     cefDataApp.passport_photo.split(',').map((item, index) => {
                                                                                         // Check if the item is an image (based on its extension)
@@ -2339,39 +2354,43 @@ const BackgroundForm = () => {
                                                                                 {errors.aadhar_card_image && (
                                                                                     <p className="text-red-500 text-sm">{errors.aadhar_card_image}</p>
                                                                                 )}
-                                                                                {
-                                                                                    cefDataApp.aadhar_card_image && (
-                                                                                        isImage(cefDataApp.aadhar_card_image) ? (
-                                                                                            // If it's an image, display it
-                                                                                            <div className='md:h-20 md:w-20 border rounded-md p-2'>
-                                                                                                <img
-                                                                                                    src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"}
-                                                                                                    alt="Aadhar Card"
-                                                                                                    className='h-full w-full object-contain p-3'
-                                                                                                />
-                                                                                            </div>
-                                                                                        ) : (
-                                                                                            // If it's not an image, show a clickable link (view document)
-                                                                                            <div className='mt-2'>
-                                                                                                <a
-                                                                                                    href={cefDataApp.aadhar_card_image}
-                                                                                                    target="_blank"
-                                                                                                    rel="noopener noreferrer"
-                                                                                                    className="text-red-500 "
-                                                                                                >
-                                                                                                    View Aadhar Card Document
-                                                                                                </a>
-                                                                                            </div>
-                                                                                        )
-                                                                                    )
-                                                                                }
+
 
                                                                             </div>
                                                                         </>
                                                                     )
                                                                 }
                                                             </div>
+                                                            {
+                                                                cefDataApp.aadhar_card_image && (
+                                                                    isImage(cefDataApp.aadhar_card_image) ? (
+                                                                        // If it's an image, display it
+                                                                        <div className='border rounded-md my-4 p-2'>
+                                                                            <p className="font-bold ">Aadhar Card Image</p>
+                                                                            <div>
+                                                                                <img
+                                                                                    src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"}
+                                                                                    alt="Aadhar Card"
+                                                                                    className=' object-contain p-3'
+                                                                                />
+                                                                            </div>
 
+                                                                        </div>
+                                                                    ) : (
+                                                                        // If it's not an image, show a clickable link (view document)
+                                                                        <div className='mt-2'>
+                                                                            <a
+                                                                                href={cefDataApp.aadhar_card_image}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="text-red-500 "
+                                                                            >
+                                                                                View Aadhar Card Document
+                                                                            </a>
+                                                                        </div>
+                                                                    )
+                                                                )
+                                                            }
                                                             {nationality === "Indian" && (
                                                                 <div className='form-group' >
                                                                     <label className='text-sm' > Pan card No </label>
@@ -2426,36 +2445,39 @@ const BackgroundForm = () => {
 
                                                                         />
                                                                         {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
-                                                                        {cefDataApp.pan_card_image && (
-                                                                            isImage(cefDataApp.pan_card_image) ? (
-                                                                                // If it's an image, display it
-                                                                                <div className='md:h-20 md:w-20 border rounded-md p-2'>
-                                                                                    <img
-                                                                                        src={cefDataApp.pan_card_image || "NO IMAGE FOUND"}
-                                                                                        className='h-full w-full object-contain p-3'
-                                                                                        alt="Pan Card Image"
-                                                                                    />
-                                                                                </div>
-                                                                            ) : (
-                                                                                // If it's not an image, show a clickable link (view document)
-                                                                                <div className='mt-2'>
-                                                                                    <a
-                                                                                        href={cefDataApp.pan_card_image}
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        className="text-red-500 "
-                                                                                    >
-                                                                                        View Pan Card Document
-                                                                                    </a>
-                                                                                </div>
-                                                                            )
-                                                                        )}
+                                                                        
                                                                     </div>
                                                                 )}
 
 
 
                                                             </div>
+
+                                                            {cefDataApp.pan_card_image && (
+                                                                isImage(cefDataApp.pan_card_image) ? (
+                                                                    // If it's an image, display it
+                                                                    <div className='mt-3 border rounded-md p-2'>
+                                                                        <p className=' font-bold'>Pan Card Image</p>
+                                                                        <img
+                                                                            src={cefDataApp.pan_card_image || "NO IMAGE FOUND"}
+                                                                            className='object-contain p-3'
+                                                                            alt="Pan Card Image"
+                                                                        />
+                                                                    </div>
+                                                                ) : (
+                                                                    // If it's not an image, show a clickable link (view document)
+                                                                    <div className='mt-2'>
+                                                                        <a
+                                                                            href={cefDataApp.pan_card_image}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-red-500 "
+                                                                        >
+                                                                            View Pan Card Document
+                                                                        </a>
+                                                                    </div>
+                                                                )
+                                                            )}
                                                             {
                                                                 status == 0 && nationality === "Other" && (
                                                                     <div className="form-group" >
@@ -3915,7 +3937,7 @@ const BackgroundForm = () => {
                                                                                                                                         slidesPerView: 3, // Show 3 images per slide on tablets (optional)
                                                                                                                                     },
                                                                                                                                     1024: {
-                                                                                                                                        slidesPerView: 6, // Show 3 images per slide on tablets (optional)
+                                                                                                                                        slidesPerView: 4, // Show 3 images per slide on tablets (optional)
                                                                                                                                     },
                                                                                                                                 }}
                                                                                                                             >
@@ -3929,7 +3951,7 @@ const BackgroundForm = () => {
                                                                                                                                                     <img
                                                                                                                                                         src={item}
                                                                                                                                                         alt={`Image ${index}`}
-                                                                                                                                                        className='md:h-[100px] md:w-[100px]'
+                                                                                                                                                        className='md:h-[100px] '
                                                                                                                                                     />
                                                                                                                                                 ) : (
                                                                                                                                                     <button onClick={() => window.open(item, '_blank')}>Open Link</button>
@@ -4057,11 +4079,11 @@ const BackgroundForm = () => {
                                                                     cefDataApp.signature && (
                                                                         isImage(cefDataApp.signature) ? (
                                                                             // If it's an image, display it
-                                                                            <div className='md:h-20 md:w-20 border rounded-md p-2'>
+                                                                            <div className='border rounded-md p-2 mt-3'>
                                                                                 <img
                                                                                     src={cefDataApp.signature || "NO IMAGE FOUND"}
                                                                                     alt="Signature"
-                                                                                    className='h-full w-full object-contain p-3'
+                                                                                    className='object-contain p-3'
                                                                                 />
                                                                             </div>
                                                                         ) : (

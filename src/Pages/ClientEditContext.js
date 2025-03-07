@@ -16,10 +16,11 @@ export const ClientEditProvider = ({ children }) => {
     const [clientData, setClientData] = useState();
     const [custom_bgv, setCustom_Bgv] = useState(0);
 
-    const uploadCustomerLogo = async (admin_id, storedToken, customerInsertId,) => {
+    const uploadCustomerLogo = async (admin_id, customerInsertId,) => {
         const fileCount = Object.keys(files).length;
 
         for (const [index, [key, value]] of Object.entries(files).entries()) {
+            const storedToken = localStorage.getItem("_token");
             const customerLogoFormData = new FormData();
             customerLogoFormData.append('admin_id', admin_id);
             customerLogoFormData.append('_token', storedToken);
@@ -263,7 +264,7 @@ export const ClientEditProvider = ({ children }) => {
               
           } else {
               // Proceed to upload files if files exist
-              await uploadCustomerLogo(admin_id, storedToken, customerInsertId);
+              await uploadCustomerLogo(admin_id, customerInsertId);
               Swal.fire({
                   title: "Success",
                   text: successMessage,

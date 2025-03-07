@@ -7,7 +7,9 @@ import ClientForm from './ClientForm';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 import * as XLSX from 'xlsx';
-
+import axios from 'axios';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 
 const DropBoxList = () => {
@@ -58,7 +60,136 @@ const DropBoxList = () => {
     const handleEdit = (client) => {
         handleEditDrop(client);
     };
+    const fetchImageToBase = async (imageUrls) => {
+        setIsBranchApiLoading(true); // Set loading state to true before making the request
+        try {
+            // Define headers for the POST request
+            const headers = {
+                "Content-Type": "application/json",
+            };
 
+            // Prepare the body payload for the POST request
+            const raw = {
+                image_urls: imageUrls,
+            };
+
+            // Send the POST request to the API and wait for the response
+            const response = await axios.post(
+                "https://api.goldquestglobal.in/test/image-to-base",
+                raw,
+                { headers }
+            );
+
+            // Assuming the response data contains an array of images
+            return response.data.images || [];  // Return images or an empty array if no images are found
+        } catch (error) {
+            console.error("Error fetching images:", error);
+
+            // If the error contains a response, log the detailed response error
+            if (error.response) {
+                console.error("Response error:", error.response.data);
+            } else {
+                // If no response, it means the error occurred before the server could respond
+                console.error("Request error:", error.message);
+            }
+
+            return null; // Return null if an error occurs
+        } finally {
+            // Reset the loading state after the API request finishes (success or failure)
+            setIsBranchApiLoading(false);
+        }
+    };
+    const handleDownloadAll = async (attachments) => {
+        const zip = new JSZip();
+        let allUrls = [];
+        console.log('attachments', attachments);
+
+        try {
+            // Show loading indication
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Collecting image URLs...',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Collect all image URLs
+            const urls = attachments.split(',').map(url => url.trim()); // Split and trim the comma-separated URLs
+
+            allUrls = urls.map(url => ({ category: "attachments", label: "image", urls: [url] }));
+
+            if (allUrls.length === 0) {
+                Swal.fire('No valid image URLs found', '', 'warning');
+                return;
+            }
+
+            // Fetch all images as Base64
+            const base64Response = await fetchImageToBase(urls); // Assuming fetchImageToBase returns Base64 images
+            const base64Images = base64Response || [];
+
+            if (base64Images.length === 0) {
+                Swal.fire('No images received from API', '', 'error');
+                return;
+            }
+
+            // Process each image and add them to the ZIP file
+            let imageIndex = 0;
+            for (const { category, label, urls } of allUrls) {
+                for (const url of urls) {
+                    const imageData = base64Images.find(img => img.imageUrl === url);
+
+                    if (imageData && imageData.base64.startsWith("data:image")) {
+                        const base64Data = imageData.base64.split(",")[1]; // Extract Base64 content
+                        const blob = base64ToBlob(base64Data, imageData.type); // Pass type dynamically
+
+                        if (blob) {
+                            const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
+                            zip.file(fileName, blob);
+                        }
+                    }
+                    imageIndex++;
+                }
+            }
+
+            // Generate ZIP file content
+            const zipContent = await zip.generateAsync({ type: "blob" });
+
+            // Use FileSaver.js to download the ZIP file
+            saveAs(zipContent, "attachments.zip");
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'ZIP file downloaded successfully.',
+                icon: 'success'
+            });
+        } catch (error) {
+            // Handle error and show error message to the user
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while generating the ZIP file.',
+                icon: 'error'
+            });
+        }
+    };
+
+
+    const base64ToBlob = (base64) => {
+        try {
+            // Convert Base64 string to binary
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            return new Blob([byteNumbers], { type: "image/png" });
+        } catch (error) {
+            console.error("Error converting base64 to blob:", error);
+            return null;
+        }
+    };
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -139,7 +270,8 @@ const DropBoxList = () => {
         }).then((result) => {
             if (result.isConfirmed) {
                 setIsBranchApiLoading(true);
-                const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
+                const branchData=JSON.parse(localStorage.getItem("branch"));
+                const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
                 const _token = localStorage.getItem("branch_token");
 
                 if (!branch_id || !_token) {
@@ -154,7 +286,17 @@ const DropBoxList = () => {
                     }
                 };
 
-                fetch(`${API_URL}/branch/client-application/delete?id=${id}&branch_id=${branch_id}&_token=${_token}`, requestOptions)
+
+                const payLoad = {
+                    branch_id: branch_id,
+                    id: id,
+                    _token: _token,
+                    ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                };
+
+                // Convert the object to a query string
+                const queryString = new URLSearchParams(payLoad).toString();
+                fetch(`${API_URL}/branch/client-application/delete?${queryString}`, requestOptions)
                     .then(response => response.json()) // Parse the JSON response
                     .then(result => {
                         // Check if the result contains a message about invalid token (session expired)
@@ -334,7 +476,7 @@ const DropBoxList = () => {
                                                         <img
                                                             src={`${report.photo}`}
                                                             alt="Image"
-                                                            className="md:h-20 h-10 w-20 rounded-full"
+                                                            className="md:h-20 h-10 w-20"
                                                         />
                                                     ) : (
                                                         <a href={`${report.photo}`} target="_blank" rel="noopener noreferrer">
@@ -363,27 +505,7 @@ const DropBoxList = () => {
                                             <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
                                                 {report.attach_documents ? (
                                                     <>
-                                                        {report.attach_documents.split(',').map((doc, index) => {
-                                                            if (index === 0) {
-                                                                return (
-                                                                    <div key={index} className="mb-4">
-                                                                        {doc.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                                                                            <img
-                                                                                src={doc}
-                                                                                alt={`Document ${index + 1}`}
-                                                                                className="md:h-20 h-10 w-20 rounded-full"
-                                                                            />
-                                                                        ) : (
-                                                                            <a href={doc} target="_blank" rel="noopener noreferrer">
-                                                                                <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
-                                                                                    View Document 1
-                                                                                </button>
-                                                                            </a>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            }
-                                                        })}
+
                                                         {report.attach_documents.split(',').length > 1 ? (
                                                             <button
                                                                 onClick={() => openModal(report.id)} // Open modal for clicked report
@@ -401,10 +523,18 @@ const DropBoxList = () => {
 
                                             {activeReportId === report.id && (
                                                 <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                                                    <div className="bg-white rounded-lg p-6 max-w-lg w-full h-[500px] overflow-auto">
-                                                        <h2 className="text-xl font-semibold mb-4">All Documents</h2>
-
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                                                    <div className="bg-white rounded-lg p-6 md:w-6/12 h-[400px] md:h-[500px] overflow-x-auto">
+                                                        <div className='flex justify-between items-center pb-3'> <h2 className="text-xl font-semibold mb-4">All Documents</h2>
+                                                            <div className='flex gap-2'><button className="modal-download-button bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(report.attach_documents)}>
+                                                                Download All
+                                                            </button>
+                                                                <button
+                                                                    onClick={closeModal}
+                                                                    className=" px-4 py-2 bg-red-500 text-white rounded"
+                                                                >
+                                                                    Close
+                                                                </button></div></div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                                             {report.attach_documents.split(',').map((doc, index) => (
                                                                 <div key={index} className="card border p-4 rounded-lg">
                                                                     {doc.match(/\.(jpg|jpeg|png|gif)$/i) ? (
@@ -425,12 +555,7 @@ const DropBoxList = () => {
                                                         </div>
 
 
-                                                        <button
-                                                            onClick={closeModal}
-                                                            className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-                                                        >
-                                                            Close
-                                                        </button>
+
                                                     </div>
                                                 </div>
                                             )}

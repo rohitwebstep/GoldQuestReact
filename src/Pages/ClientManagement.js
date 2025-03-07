@@ -226,7 +226,7 @@ const ClientManagement = () => {
     // Validate required fields
     requiredFields.forEach((field) => {
       if (!input[field]) {
-        newErrors[field] = "This field is required*";
+        newErrors[field] = "This field is required";
       }
     });
 
@@ -253,9 +253,9 @@ const ClientManagement = () => {
     const emailSet = new Set();
     emails.forEach((email, index) => {
       if (!email) {
-        newErrors[`email${index}`] = "This field is required*";
+        newErrors[`email${index}`] = "This field is required";
       } else if (emailSet.has(email)) {
-        newErrors[`email${index}`] = "This email is already used*";
+        newErrors[`email${index}`] = "This email is already used";
       } else {
         emailSet.add(email);
       }
@@ -263,9 +263,6 @@ const ClientManagement = () => {
 
     return newErrors;
   };
-
-
-
 
 
   const handleFocusOut = useCallback(debounce((event) => {
@@ -430,7 +427,7 @@ const ClientManagement = () => {
       }
 
       if (fileCount > 0) {
-        await uploadCustomerLogo(adminData.id, token, customerInsertId, password);
+        await uploadCustomerLogo(adminData.id, customerInsertId, password);
 
         Swal.fire({
           title: "Success",
@@ -456,12 +453,14 @@ const ClientManagement = () => {
 
 
 
-  const uploadCustomerLogo = async (adminId, token, customerInsertId, password) => {
+  const uploadCustomerLogo = async (adminId, customerInsertId, password) => {
     setIsApiLoading(true); // Start loading state
 
     try {
       // Loop through files
       for (const [key, value] of Object.entries(files)) {
+        let token = localStorage.getItem("_token");
+
         const customerLogoFormData = new FormData();
         customerLogoFormData.append("admin_id", adminId);
         customerLogoFormData.append("_token", token);
@@ -750,7 +749,7 @@ const ClientManagement = () => {
                 <div className="mb-4 md:w-6/12">
                   <label className="text-gray-500" htmlFor="state_code">State Code: <span className="text-red-600">*</span></label>
                   <input
-                    type="number"
+                    type="text"
                     name="state_code"
                     id="state_code"
                     className="border w-full rounded-md p-2 mt-2 outline-none text-sm"

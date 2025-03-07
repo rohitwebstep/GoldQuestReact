@@ -444,10 +444,11 @@ const CandidateGenerateReport = () => {
 
     const uploadCustomerLogo = async (email_status) => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
 
         const fileCount = Object.keys(files).length;
         for (const [rawKey, value] of Object.entries(files)) {
+            const storedToken = localStorage.getItem("_token");
+
             const key = rawKey.replace("[]", "");
             const customerLogoFormData = new FormData();
 

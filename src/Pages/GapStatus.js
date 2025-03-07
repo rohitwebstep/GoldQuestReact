@@ -515,6 +515,11 @@ const GapStatus = () => {
                         </table>
                     </div>
                     <h2 className='font-bold text-2xl pb-3'>Education Gap</h2>
+
+
+                    {(annexureData["gap_validation"].highest_education_gap === 'secondary' || annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
+                                                                       
+
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
                         <h2 className='font-bold text-xl pb-3 text-green-500'>SECONDARY:</h2>
 
@@ -597,7 +602,9 @@ const GapStatus = () => {
                         }
 
                     </div>
-
+                    )}
+                    {(annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
+                                                                     
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
                         <h2 className='font-bold text-xl pb-3 text-green-500'>SENIOR SECONDARY:</h2>
 
@@ -686,7 +693,9 @@ const GapStatus = () => {
                         }
 
                     </div>
-
+                    )}
+                    {(annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
+                                                                       
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
                         <h2 className='font-bold text-xl pb-3 text-green-500'>GRADUATION:</h2>
 
@@ -799,7 +808,9 @@ const GapStatus = () => {
                         }
 
                     </div>
-
+                    )}
+                    {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
+                                                                      
                     <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
                         <h2 className='font-bold text-xl pb-3 text-green-500'>POST GRADUATION:</h2>
                         <table className="w-full border">
@@ -911,119 +922,122 @@ const GapStatus = () => {
                         }
 
                     </div>
+                    )}
+                    {
+                        annexureData["gap_validation"].highest_education_gap === 'phd' && (
+                            <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
+                                <h2 className='font-bold text-xl pb-3 text-green-500'>PHD:</h2>
 
-                    <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                        <h2 className='font-bold text-xl pb-3 text-green-500'>PHD:</h2>
+                                <table className="w-full border">
+                                    <tbody>
+                                        {/* Row for Course */}
+                                        <tr>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Course</td>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_institute_name_gap`] || 'NIL'}</td>
+                                        </tr>
 
-                        <table className="w-full border">
-                            <tbody>
-                                {/* Row for Course */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Course</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_institute_name_gap`] || 'NIL'}</td>
-                                </tr>
+                                        {/* Row for University / Institute Name */}
+                                        <tr>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_school_name_gap`] || 'NIL'}</td>
+                                        </tr>
 
-                                {/* Row for University / Institute Name */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_school_name_gap`] || 'NIL'}</td>
-                                </tr>
+                                        {/* Row for Specialization */}
+                                        <tr>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_specialization_gap`] || 'NIL'}</td>
+                                        </tr>
 
-                                {/* Row for Specialization */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_specialization_gap`] || 'NIL'}</td>
-                                </tr>
+                                        {/* Row for Start Date */}
+                                        <tr>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_start_date_gap`] || 'NIL'}</td>
+                                        </tr>
 
-                                {/* Row for Start Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_start_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                        {/* Row for End Date */}
+                                        <tr>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_end_date_gap`] || 'NIL'}</td>
+                                        </tr>
 
-                                {/* Row for End Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.phd_1?.[`phd_end_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                        {/* Row for Gap Message */}
+                                        <tr>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
+                                            <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapPostGradToPhd)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
 
-                                {/* Row for Gap Message */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapPostGradToPhd)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                {
+                                    (() => {
+                                        let index = 1;
+                                        let elements = [];
 
-                        {
-                            (() => {
-                                let index = 1;
-                                let elements = [];
+                                        while (true) {
+                                            const key = `phd_corespondence_${index}`;
 
-                                while (true) {
-                                    const key = `phd_corespondence_${index}`;
+                                            // Check if the key exists in education_fields
+                                            if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                                break; // Exit loop if the key is missing
+                                            }
 
-                                    // Check if the key exists in education_fields
-                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                        break; // Exit loop if the key is missing
-                                    }
+                                            const phdSection = annexureData.gap_validation.education_fields[key];
 
-                                    const phdSection = annexureData.gap_validation.education_fields[key];
+                                            elements.push(
+                                                <div key={index} className='border border-black p-4 mt-4 rounded-md'>
+                                                    <h3 className="text-lg font-bold py-3">Correspondence PHD {index}</h3>
+                                                    <table className="w-full border-collapse">
+                                                        <thead>
+                                                            <tr>
+                                                                <th className="border border-gray-300 p-2 text-left">Field</th>
+                                                                <th className="border border-gray-300 p-2 text-left">Value</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td className="border border-gray-300 p-2">Institute Name</td>
+                                                                <td className="border border-gray-300 p-2">
+                                                                    <span>{phdSection?.phd_institute_name_gap || ''}</span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="border border-gray-300 p-2">School Name</td>
+                                                                <td className="border border-gray-300 p-2">
+                                                                    <span>{phdSection?.phd_school_name_gap || ''}</span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="border border-gray-300 p-2">Start Date</td>
+                                                                <td className="border border-gray-300 p-2">
+                                                                    <span>{phdSection?.phd_start_date_gap || ''}</span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="border border-gray-300 p-2">End Date</td>
+                                                                <td className="border border-gray-300 p-2">
+                                                                    <span>{phdSection?.phd_end_date_gap || ''}</span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="border border-gray-300 p-2">Specialization</td>
+                                                                <td className="border border-gray-300 p-2">
+                                                                    <span>{phdSection?.phd_specialization_gap || ''}</span>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            );
 
-                                    elements.push(
-                                        <div key={index} className='border border-black p-4 mt-4 rounded-md'>
-                                            <h3 className="text-lg font-bold py-3">Correspondence PHD {index}</h3>
-                                            <table className="w-full border-collapse">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Institute Name</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{phdSection?.phd_institute_name_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">School Name</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{phdSection?.phd_school_name_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Start Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{phdSection?.phd_start_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">End Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{phdSection?.phd_end_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Specialization</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{phdSection?.phd_specialization_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    );
+                                            index++; // Move to the next phd_corespondence_*
+                                        }
 
-                                    index++; // Move to the next phd_corespondence_*
+                                        return elements;
+                                    })()
                                 }
 
-                                return elements;
-                            })()
-                        }
-
-                    </div>
+                            </div>
+                        )}
 
                 </div>
             </div>

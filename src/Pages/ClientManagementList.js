@@ -320,9 +320,7 @@ const ClientManagementList = () => {
   }, [fetchData]);
 
 
-
   const handleDelete = (id, type) => {
-
     Swal.fire({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
@@ -333,27 +331,27 @@ const ClientManagementList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         setIsApiLoading(true); // Indicate the loading state
-
+  
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
-
+  
         if (!admin_id || !storedToken) {
           console.error("Admin ID or token is missing.");
           Swal.fire('Error', 'Admin ID or token is missing.', 'error');
           setIsApiLoading(false);
           return;
         }
-
+  
         const requestOptions = {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
           },
         };
-
+  
         let url;
         let successMessage;
-
+  
         // Set the URL and success message based on the type of delete
         if (type === 'client') {
           url = `${API_URL}/customer/delete?id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
@@ -367,43 +365,43 @@ const ClientManagementList = () => {
           setIsApiLoading(false);
           return;
         }
-
+  
         // Send the DELETE request
         fetch(url, requestOptions)
-          .then((response) => {
-            return response.json().then((result) => {
-              const newToken = result._token || result.token;
-              if (newToken) {
-                localStorage.setItem("_token", newToken);
+          .then((response) => response.json().then((result) => {
+            const newToken = result._token || result.token;
+            if (newToken) {
+              localStorage.setItem("_token", newToken);
+            }
+  
+            // Handle errors in the response
+            if (!response.ok) {
+              const errorMessage = result.message || 'An error occurred';
+              if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
+                Swal.fire({
+                  title: "Session Expired",
+                  text: "Your session has expired. Please log in again.",
+                  icon: "warning",
+                  confirmButtonText: "Ok",
+                }).then(() => {
+                  window.location.href = "/admin-login"; // Redirect to login
+                });
+              } else {
+                Swal.fire('Error!', errorMessage, 'error');
               }
+              throw new Error(errorMessage);
+            }
+  
+            // Fetch updated data after successful delete
+            fetchData();
+            toggleAccordion(); // Refresh UI or reload data
 
-              // Handle errors in the response
-              if (!response.ok) {
-                if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
-                  Swal.fire({
-                    title: "Session Expired",
-                    text: "Your session has expired. Please log in again.",
-                    icon: "warning",
-                    confirmButtonText: "Ok",
-                  }).then(() => {
-                    window.location.href = "/admin-login"; // Redirect to login
-                  });
-                } else {
-                  Swal.fire('Error!', `An error occurred: ${result.message || 'Unknown error'}`, 'error');
-                }
-                throw new Error(result.message || 'Unknown error');
-              }
-
-              // Fetch updated data after successful delete
-              fetchData();
-
-              // Show success message
-              Swal.fire('Deleted!', successMessage, 'success');
-            });
-          })
+  
+            // Show success message
+            Swal.fire('Deleted!', successMessage, 'success');
+          }))
           .catch((error) => {
             console.error('Fetch error:', error);
-            Swal.fire('Error', 'An error occurred while deleting the item.', 'error');
           })
           .finally(() => {
             setIsApiLoading(false); // Reset the loading state
@@ -411,6 +409,7 @@ const ClientManagementList = () => {
       }
     });
   };
+  
 
 
 

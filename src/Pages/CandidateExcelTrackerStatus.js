@@ -458,25 +458,30 @@ const CandidateExcelTrackerStatus = () => {
             setIsApiLoading(false);
         }
     };
+
     const handleDownloadAll = async (attachments) => {
         const zip = new JSZip();
         let allUrls = [];
-    
+      
         try {
-            console.log("Starting the process to collect image URLs...");
+            // Show loading indication
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Collecting image URLs...',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
     
             // Collect all image URLs and organize by category/label
             Object.entries(attachments).forEach(([category, files]) => {
-                console.log(`Processing category: ${category}`);
                 if (Array.isArray(files)) {
                     files.forEach(attachment => {
                         const label = Object.keys(attachment)[0];
                         const fileUrls = attachment[label]?.split(",").map(url => url.trim());
     
-                        console.log(`Label: ${label}`);
-                        console.log(`URLs for label "${label}":`, fileUrls);
-    
-                        // Add to allUrls for future processing
                         allUrls.push({ category, label, urls: fileUrls });
                     });
                 } else {
@@ -484,36 +489,25 @@ const CandidateExcelTrackerStatus = () => {
                 }
             });
     
-            console.log("Finished collecting all URLs:", allUrls);
-    
             if (allUrls.length === 0) {
-                console.warn("No valid image URLs found.");
+                Swal.fire('No valid image URLs found', '', 'warning');
                 return;
             }
     
             // Fetch all images as Base64
             const allImageUrls = allUrls.flatMap(item => item.urls);
-            console.log("All image URLs to fetch:", allImageUrls);
-    
             const base64Response = await fetchImageToBase(allImageUrls);
-            const base64Images = base64Response || []; // Ensure it's an array
-    
-            console.log("Base64 images fetched:", base64Images);
+            const base64Images = base64Response || [];
     
             if (base64Images.length === 0) {
-                console.error("No images received from API.");
+                Swal.fire('No images received from API', '', 'error');
                 return;
             }
     
             // Process each image and add them to the ZIP file
             let imageIndex = 0;
-    
             for (const { category, label, urls } of allUrls) {
-                console.log(`Processing category: ${category}, label: ${label}`);
                 for (const url of urls) {
-                    console.log(`Processing URL: ${url}`);
-    
-                    // Find the corresponding base64 data
                     const imageData = base64Images.find(img => img.imageUrl === url);
     
                     if (imageData && imageData.base64.startsWith("data:image")) {
@@ -522,19 +516,12 @@ const CandidateExcelTrackerStatus = () => {
     
                         if (blob) {
                             const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
-    
-                            console.log(`Adding file to ZIP with name: ${fileName}`);
-                            // Add file to ZIP
                             zip.file(fileName, blob);
                         }
-                    } else {
-                        console.warn(`Skipping invalid Base64 data for URL: ${url}`);
                     }
                     imageIndex++;
                 }
             }
-    
-            console.log("Generating ZIP file...");
     
             // Generate ZIP file content
             const zipContent = await zip.generateAsync({ type: "blob" });
@@ -542,10 +529,18 @@ const CandidateExcelTrackerStatus = () => {
             // Use FileSaver.js to download the ZIP file
             saveAs(zipContent, "attachments.zip");
     
-            console.log("✅ ZIP file downloaded successfully!");
-    
+            Swal.fire({
+                title: 'Success!',
+                text: 'ZIP file downloaded successfully.',
+                icon: 'success'
+            });
         } catch (error) {
-            console.error("❌ Error generating ZIP:", error);
+            // Handle error and show error message to the user
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while generating the ZIP file.',
+                icon: 'error'
+            });
         }
     };
     

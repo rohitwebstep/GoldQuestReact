@@ -767,7 +767,7 @@ const CaseLog = () => {
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border '>
+                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-full md:w-auto p-3'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
