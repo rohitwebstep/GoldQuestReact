@@ -126,17 +126,13 @@ const CandidateForm = () => {
 
 
         // Employee ID validation
-        if (/\s/.test(employee_id)) {  // Check for spaces
-            NewErr.employee_id = 'Employee ID cannot contain spaces';
-        } else if (/[^a-zA-Z0-9-]/.test(employee_id)) {
+        if (/[^a-zA-Z0-9-]/.test(employee_id)) {
             NewErr.employee_id = 'Employee ID should only contain letters, numbers, and hyphens';
         }
 
         // Mobile number validation
         if (!mobile_number) {
             NewErr.mobile_number = 'Mobile number is required';
-        } else if (!/^\d{10}$/.test(mobile_number)) {
-            NewErr.mobile_number = "Please enter a valid phone number, containing 10 digits.";
         }
 
         // Email validation
@@ -322,7 +318,6 @@ const CandidateForm = () => {
                             <div className="mb-4">
                                 <label htmlFor="employee_id" className='text-sm'>Employee ID</label>
                                 <input type="text" name="employee_id" disabled={isEditCandidate} className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.employee_id.toUpperCase()} />
-                                {error.employee_id && <p className='text-red-500'>{error.employee_id}</p>}
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="mobile_number" className='text-sm'>Mobile Number<span className='text-red-500'>*</span></label>

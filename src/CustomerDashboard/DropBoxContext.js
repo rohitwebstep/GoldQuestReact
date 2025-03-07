@@ -32,7 +32,8 @@ export const DropBoxProvider = ({ children }) => {
         package: [],
         client_application_id: '',
         purpose_of_application: "",
-        customPurpose: ""
+        customPurpose: "",
+        nationality: "",
     });
     const [input, setInput] = useState({
         name: "",
@@ -49,6 +50,7 @@ export const DropBoxProvider = ({ children }) => {
 
 
     const handleEditDrop = (selectedDropBox) => {
+        console.log('selectedDropBox',selectedDropBox)
         setInputError({});
         const parsedServices = Array.isArray(selectedDropBox.services)
             ? selectedDropBox.services
@@ -64,6 +66,7 @@ export const DropBoxProvider = ({ children }) => {
             services: parsedServices, // Make sure services is always an array
             package: selectedDropBox.package || [],
             client_application_id: selectedDropBox.id || "",
+            nationality: selectedDropBox.nationality || "",
         });
         setIsEditClient(true);
 

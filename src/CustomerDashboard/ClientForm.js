@@ -60,7 +60,7 @@ const ClientForm = () => {
         });
 
         // Validate required text fields
-        ['name', 'employee_id', 'spoc',].forEach((field) => {
+        ['name', 'employee_id', 'spoc',"nationality"].forEach((field) => {
             if (!clientInput[field] || clientInput[field].trim() === "") {
                 newErrors[field] = "This Field is Required";
             }
@@ -338,6 +338,7 @@ const ClientForm = () => {
                         services: [],
                         package: "",
                         client_application_id: "",
+                        nationality:"",
                     });
 
                     setFiles({});
@@ -433,6 +434,7 @@ const ClientForm = () => {
             services: [],
             package: "",
             client_application_id: "",
+            nationality:"",
         });
         setInputError({});
         setIsEditClient(false);
@@ -528,6 +530,15 @@ const ClientForm = () => {
                                         <option value={clientInput.customPurpose} selected>{clientInput.customPurpose}</option>
                                     )}
                                 </select>
+                            </div>
+                            <div className="mb-4">
+                                <label htmlFor="email" className='text-sm'>Nationality<span className='text-red-500'>*</span></label>
+                                <select name="nationality" onChange={handleChange} value={clientInput.nationality} className="border w-full rounded-md p-2 mt-2" id="nationality">
+                                    <option value="">Select Nationality</option>
+                                    <option value="Indian">Indian</option>
+                                    <option value="Other">Other</option> {/* Correct option for "Other" */}
+                                </select>
+                                {inputError.nationality && <p className='text-red-500'>{inputError.nationality}</p>}
                             </div>
 
                             {isModalOpen && (

@@ -1909,7 +1909,7 @@ const BackgroundForm = () => {
                 declaration_date: currentDate, // Set current date
             }
         }));
-    }, []);
+    }, [activeTab]);
 
     return (
         <>
@@ -2082,7 +2082,7 @@ const BackgroundForm = () => {
                                                                 </div>
                                                             )}
                                                             < div className="form-group col-span-2" >
-                                                                <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span></label >
+                                                                <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span> (Please attach only masked aadhar card , if don't have masked aadhar card then attach pan card/passowrd/voter ID/DL)</label >
                                                                 <input
                                                                     type="file"
                                                                     accept=".jpg,.jpeg,.png" // Restrict to image files
@@ -2326,7 +2326,7 @@ const BackgroundForm = () => {
 
                                                                             <div className='form-group'>
                                                                                 <label className='text-sm'>
-                                                                                    Aadhar Card Image <span className='text-red-500 text-lg'>*</span>
+                                                                                    Aadhar Card Image <span className='text-red-500 text-lg'>*</span> (Please attach only masked aadhar card)
                                                                                 </label>
                                                                                 <input
                                                                                     type="file"

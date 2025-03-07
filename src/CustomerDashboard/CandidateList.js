@@ -16,7 +16,33 @@ import { saveAs } from 'file-saver';
 const CandidateList = () => {
     const navigate = useNavigate();
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [inputError, setInputError] = useState({});
+    const [employeeId, setEmployeeId] = useState();
+    const [clientInput, setClientInput] = useState({
+        spoc: '',
+        location: '',
+        batch_number: '',
+        sub_client: '',
+        employee_id: '',
+    });
+    // Function to open the modal
+    const OpenPopup = (report) => {
+        setIsFormModalOpen(true);
+        setEmployeeId(report);
+        setClientInput({
+            spoc: '',
+            location: '',
+            batch_number: '',
+            sub_client: '',
+            employee_id: report?.employee_id || '',
+        });
+    };
 
+    // Function to close the modal
+    const closeModal = () => {
+        setIsFormModalOpen(false);
+    }
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [modalServices, setModalServices] = React.useState([]);
     const [selectedAttachments, setSelectedAttachments] = useState([]);
@@ -27,6 +53,16 @@ const CandidateList = () => {
         setIsModalOpenDoc(true);
     };
 
+
+    const handleChange = (event) => {
+        const { name, value, checked } = event.target;
+
+
+        setClientInput((prev) => ({
+            ...prev, [name]: name === 'employee_id' ? value.replace(/\s+/g, '').toUpperCase() : value,
+        }));
+
+    };
     const handleCloseModalDoc = () => {
         setIsModalOpenDoc(false);
         setSelectedAttachments([]);
@@ -55,6 +91,8 @@ const CandidateList = () => {
         // Navigate to the Candidate BGV page with the cef_id
         navigate(`/customer-dashboard/customer-gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
     };
+
+
 
     const fetchImageToBase = async (imageUrls) => {
         setIsBranchApiLoading(true); // Set loading state to true before making the request
@@ -95,96 +133,96 @@ const CandidateList = () => {
             setIsBranchApiLoading(false);
         }
     };
-     const handleDownloadAll = async (attachments) => {
-           const zip = new JSZip();
-           let allUrls = [];
-       
-           try {
-               console.log("Starting the process to collect image URLs...");
-       
-               // Collect all image URLs and organize by category/label
-               Object.entries(attachments).forEach(([category, files]) => {
-                   console.log(`Processing category: ${category}`);
-                   if (Array.isArray(files)) {
-                       files.forEach(attachment => {
-                           const label = Object.keys(attachment)[0];
-                           const fileUrls = attachment[label]?.split(",").map(url => url.trim());
-       
-                           console.log(`Label: ${label}`);
-                           console.log(`URLs for label "${label}":`, fileUrls);
-       
-                           // Add to allUrls for future processing
-                           allUrls.push({ category, label, urls: fileUrls });
-                       });
-                   } else {
-                       console.error(`Expected an array for category "${category}", but got:`, files);
-                   }
-               });
-       
-               console.log("Finished collecting all URLs:", allUrls);
-       
-               if (allUrls.length === 0) {
-                   console.warn("No valid image URLs found.");
-                   return;
-               }
-       
-               // Fetch all images as Base64
-               const allImageUrls = allUrls.flatMap(item => item.urls);
-               console.log("All image URLs to fetch:", allImageUrls);
-       
-               const base64Response = await fetchImageToBase(allImageUrls);
-               const base64Images = base64Response || []; // Ensure it's an array
-       
-               console.log("Base64 images fetched:", base64Images);
-       
-               if (base64Images.length === 0) {
-                   console.error("No images received from API.");
-                   return;
-               }
-       
-               // Process each image and add them to the ZIP file
-               let imageIndex = 0;
-       
-               for (const { category, label, urls } of allUrls) {
-                   console.log(`Processing category: ${category}, label: ${label}`);
-                   for (const url of urls) {
-                       console.log(`Processing URL: ${url}`);
-       
-                       // Find the corresponding base64 data
-                       const imageData = base64Images.find(img => img.imageUrl === url);
-       
-                       if (imageData && imageData.base64.startsWith("data:image")) {
-                           const base64Data = imageData.base64.split(",")[1]; // Extract Base64 content
-                           const blob = base64ToBlob(base64Data, imageData.type); // Pass type dynamically
-       
-                           if (blob) {
-                               const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
-       
-                               console.log(`Adding file to ZIP with name: ${fileName}`);
-                               // Add file to ZIP
-                               zip.file(fileName, blob);
-                           }
-                       } else {
-                           console.warn(`Skipping invalid Base64 data for URL: ${url}`);
-                       }
-                       imageIndex++;
-                   }
-               }
-       
-               console.log("Generating ZIP file...");
-       
-               // Generate ZIP file content
-               const zipContent = await zip.generateAsync({ type: "blob" });
-       
-               // Use FileSaver.js to download the ZIP file
-               saveAs(zipContent, "attachments.zip");
-       
-               console.log("✅ ZIP file downloaded successfully!");
-       
-           } catch (error) {
-               console.error("❌ Error generating ZIP:", error);
-           }
-       };
+    const handleDownloadAll = async (attachments) => {
+        const zip = new JSZip();
+        let allUrls = [];
+
+        try {
+            console.log("Starting the process to collect image URLs...");
+
+            // Collect all image URLs and organize by category/label
+            Object.entries(attachments).forEach(([category, files]) => {
+                console.log(`Processing category: ${category}`);
+                if (Array.isArray(files)) {
+                    files.forEach(attachment => {
+                        const label = Object.keys(attachment)[0];
+                        const fileUrls = attachment[label]?.split(",").map(url => url.trim());
+
+                        console.log(`Label: ${label}`);
+                        console.log(`URLs for label "${label}":`, fileUrls);
+
+                        // Add to allUrls for future processing
+                        allUrls.push({ category, label, urls: fileUrls });
+                    });
+                } else {
+                    console.error(`Expected an array for category "${category}", but got:`, files);
+                }
+            });
+
+            console.log("Finished collecting all URLs:", allUrls);
+
+            if (allUrls.length === 0) {
+                console.warn("No valid image URLs found.");
+                return;
+            }
+
+            // Fetch all images as Base64
+            const allImageUrls = allUrls.flatMap(item => item.urls);
+            console.log("All image URLs to fetch:", allImageUrls);
+
+            const base64Response = await fetchImageToBase(allImageUrls);
+            const base64Images = base64Response || []; // Ensure it's an array
+
+            console.log("Base64 images fetched:", base64Images);
+
+            if (base64Images.length === 0) {
+                console.error("No images received from API.");
+                return;
+            }
+
+            // Process each image and add them to the ZIP file
+            let imageIndex = 0;
+
+            for (const { category, label, urls } of allUrls) {
+                console.log(`Processing category: ${category}, label: ${label}`);
+                for (const url of urls) {
+                    console.log(`Processing URL: ${url}`);
+
+                    // Find the corresponding base64 data
+                    const imageData = base64Images.find(img => img.imageUrl === url);
+
+                    if (imageData && imageData.base64.startsWith("data:image")) {
+                        const base64Data = imageData.base64.split(",")[1]; // Extract Base64 content
+                        const blob = base64ToBlob(base64Data, imageData.type); // Pass type dynamically
+
+                        if (blob) {
+                            const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
+
+                            console.log(`Adding file to ZIP with name: ${fileName}`);
+                            // Add file to ZIP
+                            zip.file(fileName, blob);
+                        }
+                    } else {
+                        console.warn(`Skipping invalid Base64 data for URL: ${url}`);
+                    }
+                    imageIndex++;
+                }
+            }
+
+            console.log("Generating ZIP file...");
+
+            // Generate ZIP file content
+            const zipContent = await zip.generateAsync({ type: "blob" });
+
+            // Use FileSaver.js to download the ZIP file
+            saveAs(zipContent, "attachments.zip");
+
+            console.log("✅ ZIP file downloaded successfully!");
+
+        } catch (error) {
+            console.error("❌ Error generating ZIP:", error);
+        }
+    };
 
     const base64ToBlob = (base64) => {
         try {
@@ -301,6 +339,155 @@ const CandidateList = () => {
         setItemPerPage(selectedValue)
 
     }
+    const validate = () => {
+        const newErrors = {};
+        console.log('clientInput', clientInput)
+
+        // Check if employee_id is missing or invalid
+        if (
+            ((!clientInput.employee_id || (typeof clientInput.employee_id === "string" && clientInput.employee_id.trim() === "")) &&
+                (!employeeId.employee_id || (typeof employeeId.employee_id === "string" && employeeId.employee_id.trim() === "")))
+        ) {
+            newErrors.employee_id = "Employee ID is required";  // Error if employee_id is missing or empty
+        } else if (/\s/.test(employeeId.employee_id)) {  // Check for spaces
+            newErrors.employee_id = 'Employee ID cannot contain spaces';
+        } else if (/[^a-zA-Z0-9-]/.test(employeeId.employee_id)) {
+            newErrors.employee_id = 'Employee ID should only contain letters, numbers, and hyphens';
+        }
+
+        // Check other fields like 'spoc'
+        ['spoc'].forEach((field) => {
+            if (!clientInput[field] || clientInput[field].trim() === "") {
+                newErrors[field] = "This Field is Required";
+            }
+        });
+
+        return newErrors;
+    };
+
+
+    const handleSubmitClient = async (e) => {
+        e.preventDefault();
+        const errors = validate();
+
+        if (Object.keys(errors).length === 0) {
+
+
+            const branch_id = branchData?.branch_id;
+            const customer_id = branchData?.customer_id;
+
+            // Prepare the request body
+            // Remove customPurpose from clientInput using destructuring
+            const { customPurpose, ...finalData } = clientInput;
+
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            console.log('employeeId', employeeId)
+            const raw = JSON.stringify({
+                branch_id,
+                send_mail: 0, // File uploaded, so we don't send mail initially
+                _token: branch_token,
+                ...finalData, // Spread the remaining data
+                ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                customer_id: customer_id,
+                candidate_application_id: employeeId?.main_id,
+            });
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            };
+
+            setIsBranchApiLoading(true);
+
+            const swalInstance = Swal.fire({
+                title: 'Processing...',
+                text: 'Please wait while we create the Client Application.',
+                didOpen: () => {
+                    Swal.showLoading(); // Start the loading spinner
+                },
+                allowOutsideClick: false, // Prevent closing Swal while processing
+                showConfirmButton: false, // Hide the confirm button
+            });
+
+            try {
+                // Make the API request
+                const response = await fetch(
+                    `${API_URL}/branch/candidate-application/convert-to-client`, requestOptions
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    const errorMessage = result.message || "Unknown error occurred";
+                    const apiError = result.errors || "An unexpected error occurred. Please try again later.";
+
+                    const messageToShow = result.message || `${apiError}`;
+                    Swal.fire("Error!", messageToShow, "error");
+
+                    if (
+                        errorMessage.toLowerCase().includes("invalid") &&
+                        errorMessage.toLowerCase().includes("token")
+                    ) {
+                        Swal.fire({
+                            title: "Session Expired",
+                            text: "Your session has expired. Please log in again.",
+                            icon: "warning",
+                            confirmButtonText: "Ok",
+                        }).then(() => {
+                            window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
+                        });
+                    }
+
+                    throw new Error(errorMessage);
+                }
+
+                // Handle token update
+                const newToken = result._token || result.token;
+                if (newToken) {
+                    localStorage.setItem("branch_token", newToken);
+                }
+
+                let successMessage = "Application Created Successfully";
+
+
+                Swal.fire({
+                    title: "Success",
+                    text: successMessage,
+                    icon: "success",
+                    confirmButtonText: "Ok",
+                }).then(() => {
+                    // Reset form and state after showing success message
+                    setClientInput({
+                        employee_id: "",
+                        spoc: "",
+                        location: "",
+                        batch_number: "",
+                        sub_client: "",
+                    });
+
+                    setInputError({});
+                    fetchClient(); // Fetch client dropdown data
+
+                    setIsFormModalOpen(false);
+                });
+
+            } catch (error) {
+                console.error("There was an error!", error);
+            } finally {
+                swalInstance.close(); // Close the Swal loading spinner
+                setIsBranchApiLoading(false);
+            }
+
+
+
+        } else {
+            setInputError(errors); // Set the input errors if validation fails
+        }
+    };
+
 
 
     const exportToExcel = () => {
@@ -832,10 +1019,79 @@ const CandidateList = () => {
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize text-center">
                                                 <button disabled={isBranchApiLoading} className="bg-green-600 text-white p-3 rounded-md hover:bg-green-200" onClick={() => handleEdit(report)}>Edit</button>
                                                 <button disabled={isBranchApiLoading} className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
+                                                <button disabled={isBranchApiLoading && report?.is_converted_to_client === "1"} className="border border-green-500 text-black p-3 ms-3 rounded-md hover:bg-green-200"  onClick={() => OpenPopup(report)}>Convert to Client</button>
                                             </td>
                                         </tr>
 
                                     ))}
+                                    {isFormModalOpen && (
+                                        <div className="fixed inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 z-50">
+                                            <div className="bg-white p-6 rounded-md md:w-5/12">
+                                                <h2 className="text-xl font-semibold mb-4 text-center">Convert to Client</h2>
+
+                                                <form>
+                                                    {!employeeId.employee_id && (
+                                                        <div className="mb-4">
+                                                            <label htmlFor="employee_id" className='text-sm'>
+                                                                Employee ID<span className="text-red-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                name="employee_id"
+                                                                id="EmployeeId"
+                                                                className="border w-full capitalize rounded-md p-2 mt-2"
+                                                                onChange={handleChange}
+                                                                value={(clientInput.employee_id || '').toUpperCase()}
+                                                            />
+                                                            {inputError.employee_id && <p className='text-red-500'>{inputError.employee_id}</p>}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="md:flex gap-5">
+
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="spoc" className='text-sm'>Name of the SPOC<span className="text-red-500">*</span></label>
+                                                            <input type="text" name="spoc" id="spoc" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
+                                                            {inputError.spoc && <p className='text-red-500'>{inputError.spoc}</p>}
+                                                        </div>
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="location" className='text-sm'>Location</label>
+                                                            <input type="text" name="location" id="Locations" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="md:flex gap-5">
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="batch_number" className='text-sm'>Batch number</label>
+                                                            <input type="text" name="batch_number" id="Batch-Number" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
+                                                        </div>
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="sub_client" className='text-sm'>Sub client</label>
+                                                            <input type="text" name="sub_client" id="SubClient" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-3">
+                                                        <button
+                                                            type="submit"
+                                                            onClick={handleSubmitClient}
+                                                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500"
+                                                        >
+                                                            Submit
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={closeModal}
+                                                            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500"
+                                                        >
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    )}
                                 </tbody>
 
                             </table>

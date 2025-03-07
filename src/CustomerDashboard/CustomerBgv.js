@@ -144,17 +144,11 @@ const CandidateBGV = () => {
                     // If the resume file is not an image, show a button to view the document
                     const resumeUrl = resumeFile;
 
-                    // Center the text for "No image found. Click below to view the document:"
-                    const messageText = "No image found. Click below to view the document:";
-                    const messageTextWidth = doc.getTextWidth(messageText);
-                    const messageTextX = (doc.internal.pageSize.width - messageTextWidth) / 2;
-
-                    // Display the message and center it
-                    doc.text(messageText, messageTextX, 50);
-
-                    // Create a clickable link (button style) for viewing the document
                     doc.setTextColor(255, 0, 0); // Set the text color to blue (like a link)
-                    doc.textWithLink('View Document', messageTextX, 60, { url: resumeUrl });  // Opens the document in a new tab
+                    doc.textWithLink('View Document', doc.internal.pageSize.width / 2, yPosition + 30, {
+                        url: resumeUrl,
+                        align: 'center'
+                    });
                 }
             } else {
                 // If no resume file is available, center the text for "No CV uploaded."
@@ -181,15 +175,15 @@ const CandidateBGV = () => {
         if (cefData && cefData.govt_id) {
             // Split the comma-separated string into an array of image URLs
             const govtIdUrls = cefData.govt_id.split(',').map(url => url.trim());
-
+        
             // Check if there are any URLs in the array
             if (govtIdUrls.length > 0) {
                 for (let i = 0; i < govtIdUrls.length; i++) {
                     const govtIdUrl = govtIdUrls[i];
-
+        
                     // Fetch the image as base64
                     const imageBases = await fetchImageToBase([govtIdUrl]);
-
+        
                     // Check if the image is valid
                     if (imageBases?.[0]?.base64) {
                         // Set font size and add the label for each image
@@ -197,13 +191,15 @@ const CandidateBGV = () => {
                         const labelText = "Govt ID #" + (i + 1);
                         const labelTextWidth = doc.getTextWidth(labelText);
                         const labelCenterX = (doc.internal.pageSize.width - labelTextWidth) / 2;
-
+        
                         // Add label at the center for each image
                         doc.text(labelText, labelCenterX, yPosition);
-
+        
                         // Add image to the document
-                        doc.addImage(imageBases?.[0]?.base64, 'PNG', 5, yPosition + 5, imageWidth, imageHeight);
-
+                        if (imageBases.length > 0) {  // Corrected to check for any valid base64 image
+                            doc.addImage(imageBases[0].base64, 'PNG', 5, yPosition + 5, imageWidth, imageHeight);
+                        }
+        
                         // Update yPosition after adding the image
                         yPosition += imageHeight + 30; // Adjust for image height + some margin
                     } else {
@@ -211,15 +207,15 @@ const CandidateBGV = () => {
                         const messageText = "Image #" + (i + 1) + " not found.";
                         const messageTextWidth = doc.getTextWidth(messageText);
                         const messageCenterX = (doc.internal.pageSize.width - messageTextWidth) / 2;
-
+        
                         doc.text(messageText, messageCenterX, yPosition);
-
+        
                         // Update yPosition after showing the message
                         yPosition += imageHeight + 30; // Adjust for message height + margin
                     }
-
+        
                     // If content exceeds the page size, add a new page
-                    if (yPosition > doc.internal.pageSize.height - 40) {  // If yPosition exceeds page height, add a new page
+                    if (yPosition > doc.internal.pageSize.height - 20) {  // If yPosition exceeds page height, add a new page
                         doc.addPage();
                         yPosition = 10;  // Reset yPosition for the new page
                     }
@@ -229,7 +225,7 @@ const CandidateBGV = () => {
                 const noImagesText = "No Government ID images uploaded.";
                 const noImagesTextWidth = doc.getTextWidth(noImagesText);
                 const noImagesCenterX = (doc.internal.pageSize.width - noImagesTextWidth) / 2;
-
+        
                 doc.text(noImagesText, noImagesCenterX, 40);
             }
         } else {
@@ -237,9 +233,10 @@ const CandidateBGV = () => {
             const noGovtIdText = "No Government ID uploaded.";
             const noGovtIdTextWidth = doc.getTextWidth(noGovtIdText);
             const noGovtIdCenterX = (doc.internal.pageSize.width - noGovtIdTextWidth) / 2;
-
+        
             doc.text(noGovtIdText, noGovtIdCenterX, 40);
         }
+        
 
 
 

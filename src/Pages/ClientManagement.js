@@ -273,26 +273,18 @@ const ClientManagement = () => {
     const value = event.target.value;
     const adminData = JSON.parse(localStorage.getItem("admin"))?.id;
     const token = localStorage.getItem("_token");
-
+  
     if (value) {
       fetch(`${API_URL}/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, {
         method: "GET"
       })
-        .then(response => {
-          const result = response.json();
-          const newToken = result._token || result.token;
+        .then(response => response.json()) // Make sure to resolve the JSON first
+        .then(result => {
+          const newToken = result.token || result._token; // Check both properties for the new token
           if (newToken) {
-            localStorage.setItem("_token", newToken);
+            localStorage.setItem("_token", newToken); // Store the new token
           }
-          if (!response.ok) {
-            return response.json().then(errorData => {
-              throw new Error(errorData.message || 'An error occurred while checking the email.');
-            });
-          }
-          return result;
-        })
-        .then(data => {
-          if (!data.status) {
+          if (!result.status) {
             event.target.setCustomValidity('The Provided Email is Already Used By Client, please enter a different email!');
           } else {
             event.target.setCustomValidity('');
@@ -300,12 +292,15 @@ const ClientManagement = () => {
         })
         .catch(error => {
           console.error('Error:', error);
-        }).finally(() => {
+        })
+        .finally(() => {
           setIsApiLoading(false);
         });
     }
-
+  
   }, 300), []);
+  
+  
 
   useEffect(() => {
     const inputs = document.querySelectorAll('.emailCheck');
@@ -715,7 +710,7 @@ const ClientManagement = () => {
                       </option>
                     ))}
                   </select>
-
+                  {errors.state && <p className="text-red-500">{errors.state}</p>}
                   {input.state === 'other' && (
                     <div>
                       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">

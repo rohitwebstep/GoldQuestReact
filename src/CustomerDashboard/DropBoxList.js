@@ -401,10 +401,10 @@ const DropBoxList = () => {
 
                                             {activeReportId === report.id && (
                                                 <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                                                    <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+                                                    <div className="bg-white rounded-lg p-6 max-w-lg w-full h-[500px] overflow-auto">
                                                         <h2 className="text-xl font-semibold mb-4">All Documents</h2>
 
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                                                             {report.attach_documents.split(',').map((doc, index) => (
                                                                 <div key={index} className="card border p-4 rounded-lg">
                                                                     {doc.match(/\.(jpg|jpeg|png|gif)$/i) ? (
