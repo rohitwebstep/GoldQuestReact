@@ -749,7 +749,7 @@ const ClientManagement = () => {
                 <div className="mb-4 md:w-6/12">
                   <label className="text-gray-500" htmlFor="state_code">State Code: <span className="text-red-600">*</span></label>
                   <input
-                    type="text"
+                    type="number"
                     name="state_code"
                     id="state_code"
                     className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
