@@ -476,75 +476,71 @@ const GenerateReport = () => {
             return updatedFormData;
         });
     };
-    const fetchAdminList = useCallback(() => {
-        setIsApiLoading(true);  // Start the global loading state
-        setLoading(true);  // Start specific loading state
+    // const fetchAdminList = useCallback(() => {
+    //     setIsApiLoading(true);  // Start the global loading state
+    //     setLoading(true);  // Start specific loading state
 
-        // Get admin ID and token from localStorage
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
+    //     // Get admin ID and token from localStorage
+    //     const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+    //     const storedToken = localStorage.getItem("_token");
 
-        // Check if admin_id or storedToken is missing
-        if (!admin_id || !storedToken) {
-            console.error("Admin ID or token is missing.");
-            setLoading(false);  // Stop loading state if conditions are not met
-            setIsApiLoading(false);  // Stop global loading state as well
-            return;  // Exit early if missing data
-        }
+    //     // Check if admin_id or storedToken is missing
+    //     if (!admin_id || !storedToken) {
+    //         console.error("Admin ID or token is missing.");
+    //         setLoading(false);  // Stop loading state if conditions are not met
+    //         setIsApiLoading(false);  // Stop global loading state as well
+    //         return;  // Exit early if missing data
+    //     }
 
-        // Construct the URL with query parameters
-        const url = `https://api.goldquestglobal.in/admin/list?admin_id=${admin_id}&_token=${storedToken}`;
+    //     // Construct the URL with query parameters
+    //     const url = `https://api.goldquestglobal.in/admin/list?admin_id=${admin_id}&_token=${storedToken}`;
 
-        const requestOptions = {
-            method: 'GET',  // GET request doesn't need a body
-            redirect: 'follow', // Handling redirects, if any
-        };
+    //     const requestOptions = {
+    //         method: 'GET',  // GET request doesn't need a body
+    //         redirect: 'follow', // Handling redirects, if any
+    //     };
 
-        fetch(url, requestOptions)
-            .then((response) => response.json())  // Ensure the response is parsed correctly
-            .then((result) => {
-                // Handle the case where the result is empty, null, or undefined
-                if (!result || typeof result !== 'object') {
-                    throw new Error('Invalid response format');
-                }
+    //     fetch(url, requestOptions)
+    //         .then((response) => response.json())  // Ensure the response is parsed correctly
+    //         .then((result) => {
+    //             // Handle the case where the result is empty, null, or undefined
+    //             if (!result || typeof result !== 'object') {
+    //                 throw new Error('Invalid response format');
+    //             }
 
-                // Update the token if present in the response
-                const newToken = result.token || result._token;
-                if (newToken) {
-                    localStorage.setItem("_token", newToken);  // Update the token in localStorage
-                }
+    //             // Update the token if present in the response
+    //             const newToken = result.token || result._token;
+    //             if (newToken) {
+    //                 localStorage.setItem("_token", newToken);  // Update the token in localStorage
+    //             }
 
-                // If response status is not successful, throw an error
-                if (!result.status) {
-                    throw new Error(result.message || 'Error: Unable to fetch admin list');
-                }
+    //             // If response status is not successful, throw an error
+    //             if (!result.status) {
+    //                 throw new Error(result.message || 'Error: Unable to fetch admin list');
+    //             }
 
-                // Map through the `client_spocs` array to get the names, with safety checks
-                const spocsWithIds = result.client_spocs && Array.isArray(result.client_spocs)
-                    ? result.client_spocs.map(spoc => ({
-                        id: spoc.id || null, // Handle cases where `id` might be missing or null
-                        name: spoc.name || ''  // Handle cases where `name` might be missing
-                    }))
-                    : [];
+    //             // Map through the `client_spocs` array to get the names, with safety checks
+    //             const spocsWithIds = result.client_spocs && Array.isArray(result.client_spocs)
+    //                 ? result.client_spocs.map(spoc => ({
+    //                     id: spoc.id || null, // Handle cases where `id` might be missing or null
+    //                     name: spoc.name || ''  // Handle cases where `name` might be missing
+    //                 }))
+    //                 : [];
 
-                setAdminNames(spocsWithIds || []);  // Set state with the processed list
-            })
-            .catch((error) => {
-                console.error('Fetch error:', error);
-                setLoading(false);  // Stop loading state in case of an error
-            })
-            .finally(() => {
-                setLoading(false);  // Stop specific loading state
-                setIsApiLoading(false);  // Stop global loading state once everything is done
-            });
-    }, []);
+    //             setAdminNames(spocsWithIds || []);  // Set state with the processed list
+    //         })
+    //         .catch((error) => {
+    //             console.error('Fetch error:', error);
+    //             setLoading(false);  // Stop loading state in case of an error
+    //         })
+    //         .finally(() => {
+    //             setLoading(false);  // Stop specific loading state
+    //             setIsApiLoading(false);  // Stop global loading state once everything is done
+    //         });
+    // }, []);
 
 
-    useEffect(() => {
-        if (!isApiLoading) {
-            fetchAdminList();
-        }
-    }, [fetchAdminList]);
+
 
     const uploadCustomerLogo = async (email_status) => {
         setIsApiLoading(true);
@@ -906,7 +902,6 @@ const GenerateReport = () => {
                     confirmButtonText: "Ok",
                 });
             }
-            fetchAdminList();
             fetchApplicationData();
             fetchServicesJson();
 
