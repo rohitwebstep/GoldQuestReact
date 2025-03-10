@@ -1188,23 +1188,31 @@ const AdminChekin = () => {
 
     const handleViewMore = async (index) => {
         const globalIndex = index + (currentPage - 1) * itemsPerPage; // Calculate the global index
-
+    
         setIsApiLoading(true);
-
-        setServicesLoading((prev) => ({ ...prev, [globalIndex]: true }));
-
+    
+        setServicesLoading((prev) => {
+            const newLoadingState = { ...prev, [globalIndex]: true };
+            return newLoadingState;
+        });
+    
         if (expandedRow && expandedRow.index === globalIndex) {
             setExpandedRow(null); // Collapse the row
-            setServicesLoading((prev) => ({ ...prev, [globalIndex]: false })); // Stop row loading
+            setServicesLoading((prev) => {
+                const newLoadingState = { ...prev, [globalIndex]: false };
+                return newLoadingState;
+            });
             setIsApiLoading(false); // End loading state when collapsing
             return;
         }
-
+    
         try {
             const applicationInfo = currentItems[index]; // Data for the current page
+    
             const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services);
+    
             const headingsAndStatuses = [];
-
+    
             servicesData.forEach((service) => {
                 if (service.reportFormJson && service.reportFormJson.json) {
                     const heading = JSON.parse(service.reportFormJson.json).heading;
@@ -1215,29 +1223,32 @@ const AdminChekin = () => {
                     }
                 }
             });
-
-            if (headingsAndStatuses.length > 0) {
+    
                 setExpandedRow({
                     index: globalIndex, // Use the global index
                     headingsAndStatuses: headingsAndStatuses,
                 });
-            } else {
-                setExpandedRow(null); // Collapse if no valid heading found
-            }
-
-            setServicesLoading((prev) => ({ ...prev, [globalIndex]: false })); // Stop row loading
-
+    
+            setServicesLoading((prev) => {
+                const newLoadingState = { ...prev, [globalIndex]: false };
+                return newLoadingState;
+            });
+    
             const expandedRowElement = document.getElementById(`expanded-row-${globalIndex}`);
             if (expandedRowElement) {
                 expandedRowElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         } catch (error) {
-            setServicesLoading((prev) => ({ ...prev, [globalIndex]: false })); // Stop row loading on error
+            setServicesLoading((prev) => {
+                const newLoadingState = { ...prev, [globalIndex]: false };
+                return newLoadingState;
+            });
             console.error('Error fetching service data:', error);
         } finally {
             setIsApiLoading(false); // Stop global loading state
         }
     };
+    
 
     const handleSelectChange = (e) => {
 
@@ -1581,9 +1592,9 @@ const AdminChekin = () => {
                                                                         <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.delay_reason) || 'NIL'}</td>
                                                                     </tr>
 
-                                                                    <tbody style={{ maxHeight: '200px', overflowY: 'auto', display: 'block' }}>
-                                                                        {expandedRow.headingsAndStatuses &&
-                                                                            expandedRow.headingsAndStatuses.map((item, idx) => (
+                                                                    {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
+                                                                        <tbody style={{ maxHeight: '200px', overflowY: 'auto', display: 'block' }}>
+                                                                            {expandedRow.headingsAndStatuses.map((item, idx) => (
                                                                                 <tr key={`row-${idx}`}>
                                                                                     <td className="text-left p-2 border border-black capitalize bg-gray-200">
                                                                                         {sanitizeText(item.heading)}
@@ -1592,9 +1603,10 @@ const AdminChekin = () => {
                                                                                         {sanitizeText(item.status || 'NIL')}
                                                                                     </td>
                                                                                 </tr>
-                                                                            ))
-                                                                        }
-                                                                    </tbody>
+                                                                            ))}
+                                                                        </tbody>
+                                                                    )}
+
 
                                                                 </tbody>
                                                             </table>

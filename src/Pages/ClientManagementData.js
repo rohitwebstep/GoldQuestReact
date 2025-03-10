@@ -113,14 +113,18 @@ const ClientManagementData = () => {
     
             // Making the request directly without confirmation prompt
             const res = await fetch(`${API_URL}/customer/add-customer-listings?admin_id=${admin_id}&_token=${storedToken}`);
-            const newToken = res._token || res.token;
+            console.log(res); // Log the response to check if the token is returned
+            const result = await res.json();
+    
+            const newToken = result._token || result.token; // Adjust depending on the actual structure
+            console.log('New token:', newToken); // Log the token to verify it's returned correctly
             if (newToken) {
                 localStorage.setItem("_token", newToken);
+                console.log('Token saved:', localStorage.getItem("_token")); // Log after saving
             }
     
             if (!res.ok) {
-                const errorResponse = await res.json();
-                // Check for invalid token in the error response
+                const errorResponse = result; // Use the parsed JSON result here
                 if (errorResponse.message && errorResponse.message.toLowerCase().includes("invalid") && errorResponse.message.toLowerCase().includes("token")) {
                     Swal.fire({
                         title: "Session Expired",
@@ -128,39 +132,14 @@ const ClientManagementData = () => {
                         icon: "warning",
                         confirmButtonText: "Ok",
                     }).then(() => {
-                        // Redirect to admin login page after SweetAlert is dismissed
                         setTimeout(() => {
-                            window.location.href = "/admin-login"; // Replace with your login route
-                        }, 100); // Short delay to ensure SweetAlert finishes
+                            window.location.href = "/admin-login"; // Redirect to the login page
+                        }, 100);
                     });
                     return; // Exit early after redirect
                 }
                 const errorMessage = errorResponse.message || `Network response was not ok: ${res.status}`;
                 throw new Error(errorMessage);
-            }
-    
-            // Parse the response JSON
-            const result = await res.json();
-            const newToken2 = res._token || res.token;
-
-            if (newToken2) {
-                localStorage.setItem("_token", newToken2);
-            }
-    
-    
-            // If invalid token message is in the result after parsing
-            if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
-                Swal.fire({
-                    title: "Session Expired",
-                    text: "Your session has expired. Please log in again.",
-                    icon: "warning",
-                    confirmButtonText: "Ok",
-                }).then(() => {
-                    setTimeout(() => {
-                        window.location.href = "/admin-login"; // Redirect to the login page
-                    }, 100);
-                });
-                return; // Exit early after redirect
             }
     
             // Process the services and packages
@@ -202,7 +181,7 @@ const ClientManagementData = () => {
             setError(error.message); // Set the error state with the message
         } finally {
             setLoading(false);
-            setIsApiLoading(false)
+            setIsApiLoading(false);
         }
     }, [API_URL]);
     

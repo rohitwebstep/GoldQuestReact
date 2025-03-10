@@ -1,5 +1,5 @@
-import React, { useContext, useEffect } from 'react';
-import { useNavigate} from 'react-router-dom';
+import React, { useContext, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LoaderContext } from '../LoaderContext';
 import Loader from '../Loader';
@@ -10,24 +10,26 @@ import Swal from 'sweetalert2';
 const Customer = ({ children }) => {
   const { loading, setLoading } = useContext(LoaderContext);
   const { setIsBranchApiLoading } = useApiCall();
-  
   const API_URL = useApi();
   const navigate = useNavigate();
   const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
+
+  // Memoize the navigate function
+  const memoizedNavigate = useCallback(navigate, [navigate]);
 
   useEffect(() => {
     const checkAuthentication = async () => {
       const branchData = localStorage.getItem("branch");
       const storedToken = localStorage.getItem("branch_token");
-  
+
       // If no branch or token data in localStorage, redirect to login
       if (!branchData || !storedToken) {
         redirectToLogin();
         return;
       }
-  
+
       setIsBranchApiLoading(true);
-  
+
       let adminData;
       try {
         adminData = JSON.parse(branchData);
@@ -36,24 +38,24 @@ const Customer = ({ children }) => {
         redirectToLogin();
         return;
       }
+
       const payLoad = {
         branch_id: adminData.branch_id,
         _token: storedToken,
-        ...(adminData?.type=="sub_user" && { sub_user_id: adminData.id }), // Voorkomt onnodige toewijzing
+        ...(adminData?.type === "sub_user" && { sub_user_id: adminData.id }),
       };
-      
-  
+
       try {
         const response = await axios.post(`${API_URL}/branch/verify-branch-login`, payLoad);
-  
+
         if (response.data.status) {
           // Check if there's a new token and update localStorage if it exists
           const newToken = response.data._token || response.data.token;
           if (newToken) {
             localStorage.setItem("branch_token", newToken); // Update the token in localStorage
           }
-  
-          setLoading(false);  // If session is valid, stop loading
+
+          setLoading(false); // If session is valid, stop loading
         } else {
           // Session expired or invalid token, handle accordingly
           handleSessionExpired(response.data.message);
@@ -65,13 +67,12 @@ const Customer = ({ children }) => {
         setIsBranchApiLoading(false);
       }
     };
-  
+
     const redirectToLogin = () => {
-      navigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
+      memoizedNavigate(`/customer-login?email=${encodeURIComponent(branchEmail)}`);
     };
-  
+
     const handleSessionExpired = (message) => {
-      // Check if the message contains an invalid token
       if (message && message.toLowerCase().includes("invalid") && message.toLowerCase().includes("token")) {
         Swal.fire({
           title: "Session Expired",
@@ -82,27 +83,24 @@ const Customer = ({ children }) => {
           redirectToLogin();
         });
       } else {
-        handleLoginError();  // Handle any other errors
+        handleLoginError();
       }
     };
-  
+
     const handleLoginError = () => {
-      // Remove session data from localStorage and redirect to login
       localStorage.removeItem("branch");
       localStorage.removeItem("branch_token");
       setIsBranchApiLoading(false);
       redirectToLogin();
     };
-  
+
     checkAuthentication();
-  }, [navigate, setLoading, setIsBranchApiLoading, API_URL, branchEmail]);
-  
-  // If the component is loading, show a loader
+  }, [API_URL, branchEmail, setLoading, setIsBranchApiLoading, memoizedNavigate]);
+
   if (loading) {
     return <Loader />;
   }
 
-  // Otherwise, render the children (actual component content)
   return children;
 };
 

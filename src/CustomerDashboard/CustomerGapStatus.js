@@ -36,7 +36,6 @@ const GapStatus = () => {
     const [loading, setLoading] = useState(false);
     const [serviceDataMain, setServiceDataMain] = useState([]);
     const [serviceDataImageInputNames, setServiceDataImageInputNames] = useState([]);
-    const [cefDataApp, setCefDataApp] = useState([]);
     const [serviceData, setServiceData] = useState([]);
     const [serviceValueData, setServiceValueData] = useState([]);
     const location = useLocation();
@@ -50,7 +49,8 @@ const GapStatus = () => {
 
 
     const fetchData = useCallback(() => {
-        const branchData = JSON.parse(localStorage.getItem("branch")) || {};
+        const branchData = JSON.parse(localStorage.getItem("branch"));
+
         const branchEmail = branchData?.email;
         setIsBranchApiLoading(true);
         setLoading(true);
@@ -480,8 +480,8 @@ const GapStatus = () => {
 
     return (
         <>
-            <div className="bg-gray-300">
-                <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white">
+            <div className="p-3">
+                <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white shadow-md">
                     <h2 className='font-bold text-2xl pb-3'>Employment Gap</h2>
                     <div className="overflow-x-auto ">
                         <table className="w-full border-collapse">
@@ -576,12 +576,7 @@ const GapStatus = () => {
                                             <div className="border border-black p-4 mt-4 rounded-md">
                                                 <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
                                                 <table className="w-full border-collapse">
-                                                    <thead>
-                                                        <tr>
-                                                            <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                            <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                        </tr>
-                                                    </thead>
+
                                                     <tbody>
                                                         <tr>
                                                             <td className="border border-gray-300 p-2">School Name</td>
@@ -667,12 +662,7 @@ const GapStatus = () => {
                                             <div className="border border-black mt-4 p-4 rounded-md">
                                                 <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
                                                 <table className="w-full border-collapse">
-                                                    <thead>
-                                                        <tr>
-                                                            <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                            <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                        </tr>
-                                                    </thead>
+
                                                     <tbody>
                                                         <tr>
                                                             <td className="border border-gray-300 p-2">School Name</td>
@@ -770,12 +760,7 @@ const GapStatus = () => {
                                             <div className="border border-black p-4 mt-4 rounded-md">
                                                 <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
                                                 <table className="w-full border-collapse">
-                                                    <thead>
-                                                        <tr>
-                                                            <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                            <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                        </tr>
-                                                    </thead>
+
                                                     <tbody>
                                                         <tr>
                                                             <td className="border border-gray-300 p-2">University / Institute Name</td>
@@ -884,12 +869,7 @@ const GapStatus = () => {
                                             <div className="border border-black mt-4 p-4 rounded-md">
                                                 <h3 className="text-lg font-bold py-3">Correspondence POST GRADUATION {index}</h3>
                                                 <table className="w-full border-collapse">
-                                                    <thead>
-                                                        <tr>
-                                                            <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                            <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                        </tr>
-                                                    </thead>
+
                                                     <tbody>
                                                         <tr>
                                                             <td className="border border-gray-300 p-2">University / Institute Name</td>

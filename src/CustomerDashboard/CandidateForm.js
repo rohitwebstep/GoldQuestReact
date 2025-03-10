@@ -13,7 +13,7 @@ const CandidateForm = () => {
         setIsModalOpen(false);
     };
 
-    const { services, uniquePackages, input, setInput, fetchClient, isEditCandidate, setIsEditCandidate, candidateLoading } = useContext(DropBoxContext);
+    const { services, uniquePackages, input, setInput, fetchClient, isEditCandidate, setIsEditCandidate, candidateLoading,preSelectedClient } = useContext(DropBoxContext);
     const [formLoading, setFormLoading] = useState(false);
     const API_URL = useApi();
     const branch_name = JSON.parse(localStorage.getItem("branch"));
@@ -184,7 +184,7 @@ const CandidateForm = () => {
                 ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
 
             });
-           
+
             const requestOptions = {
                 method: isEditCandidate ? "PUT" : "POST",
                 headers: {
@@ -308,7 +308,7 @@ const CandidateForm = () => {
                         <div className="col bg-white shadow-md rounded-md p-3 md:p-6">
                             <div className="mb-4">
                                 <label htmlFor="applicant_name" className='text-sm'>Name of the organisation<span className='text-red-500'>*</span></label>
-                                <input type="text" name="applicant_name" className="border w-full rounded-md p-2 mt-2" disabled value={branch_name?.name ||branch_name?.branch_name} />
+                                <input type="text" name="applicant_name" className="border w-full rounded-md p-2 mt-2" disabled value={branch_name?.name || branch_name?.branch_name} />
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="name" className='text-sm'>Full name of the applicant <span className='text-red-500'>*</span></label>
@@ -317,8 +317,16 @@ const CandidateForm = () => {
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="employee_id" className='text-sm'>Employee ID</label>
-                                <input type="text" name="employee_id" disabled={isEditCandidate} className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.employee_id.toUpperCase()} />
+                                <input
+                                    type="text"
+                                    name="employee_id"
+                                    disabled={isEditCandidate && preSelectedClient?.employee_id}
+                                    className="border w-full rounded-md p-2 mt-2"
+                                    onChange={handleChange}
+                                    value={input.employee_id ? input.employee_id.toUpperCase() : ''} // Ensure a fallback if employee_id is null
+                                />
                             </div>
+
                             <div className="mb-4">
                                 <label htmlFor="mobile_number" className='text-sm'>Mobile Number<span className='text-red-500'>*</span></label>
                                 <input type="number" name="mobile_number" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.mobile_number} />

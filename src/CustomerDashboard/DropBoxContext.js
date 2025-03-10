@@ -10,6 +10,7 @@ export const DropBoxProvider = ({ children }) => {
 
     const [inputError, setInputError] = useState({});
     const API_URL = useApi();
+    const [preSelectedClient, setPreSelectedClient] = useState([]);
     const [services, setServices] = useState([]);
     const [UniqueBgv, setUniqueBgv] = useState([]);
     const [uniquePackages, setUniquePackages] = useState([]);
@@ -49,7 +50,7 @@ export const DropBoxProvider = ({ children }) => {
 
 
     const handleEditDrop = (selectedDropBox) => {
-        console.log('selectedDropBox',selectedDropBox)
+        console.log('selectedDropBox', selectedDropBox)
         setInputError({});
         const parsedServices = Array.isArray(selectedDropBox.services)
             ? selectedDropBox.services
@@ -76,6 +77,7 @@ export const DropBoxProvider = ({ children }) => {
             const parsedServices = Array.isArray(selectedCandidate.services)
                 ? selectedCandidate.services
                 : selectedCandidate.services ? selectedCandidate.services.split(',') : [];
+            setPreSelectedClient(selectedCandidate);
 
             setInput({
                 name: selectedCandidate.name,
@@ -108,13 +110,13 @@ export const DropBoxProvider = ({ children }) => {
     const fetchServices = useCallback(async () => {
         setIsBranchApiLoading(true);
         setServicesLoading(true);
-    
+
         const branchData = JSON.parse(localStorage.getItem("branch")) || {};
         const branchId = branchData?.id;
         const customerId = branchData?.customer_id;
         const branchEmail = branchData?.email; // Ensure you extract email for session expiration redirection
         const _token = localStorage.getItem("branch_token");
-    
+
         // Check if branch_id or token is missing
         if (!branchId || !_token) {
             console.error("Branch ID or token is missing.");
@@ -123,7 +125,7 @@ export const DropBoxProvider = ({ children }) => {
             window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
             return;
         }
-    
+
         try {
             // Make the API request
             const response = await fetch(
@@ -133,19 +135,19 @@ export const DropBoxProvider = ({ children }) => {
                     redirect: "follow",
                 }
             );
-    
+
             const data = await response.json();
-    
+
             // Debug log to check API response
             console.log("API Response:", data);
-    
+
             // Store the new token if it exists
             const newToken = data?._token || data?.token;
             if (newToken) {
                 console.log("New Token:", newToken); // Debug log
                 localStorage.setItem("branch_token", newToken);
             }
-    
+
             // Check if the session has expired
             if (!response.ok || (data.message && data.message.toLowerCase().includes("invalid token"))) {
                 Swal.fire({
@@ -159,20 +161,20 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 return;  // Exit the function after redirection
             }
-    
+
             // Handle the successful response and set data
             if (data.customers && Array.isArray(data.customers)) {
                 const customer = data.customers[0];  // Assuming there is only one customer
                 const customerCode = customer.client_unique_id;
                 localStorage.setItem('customer_code', customerCode);
-    
+
                 const parsedServices = customer.services && customer.services !== '""' ? JSON.parse(customer.services) : [];
                 setServices(parsedServices);
-    
+
                 // Process unique packages from the services
                 const uniquePackagesList = [];
                 const packageSet = new Set();
-    
+
                 parsedServices.forEach((service) => {
                     if (service.packages) {
                         Object.keys(service.packages).forEach((packageId) => {
@@ -186,7 +188,7 @@ export const DropBoxProvider = ({ children }) => {
                         });
                     }
                 });
-    
+
                 setUniquePackages(uniquePackagesList);
             } else {
                 Swal.fire("Error!", `An error occurred: ${data.message}`, "error");
@@ -199,7 +201,7 @@ export const DropBoxProvider = ({ children }) => {
             setIsBranchApiLoading(false);
         }
     }, [API_URL]);
-    
+
 
     const fetchClient = useCallback(async () => {
         const branchData = JSON.parse(localStorage.getItem("branch")) || {};
@@ -209,42 +211,42 @@ export const DropBoxProvider = ({ children }) => {
         const branchId = branchData?.branch_id;
         const customerId = branchData?.customer_id;
         const token = localStorage.getItem("branch_token");
-    
+
         if (!branchId || !token) {
             setCandidateLoading(false);
             setIsBranchApiLoading(false);
             window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
             return;
         }
-    
+
         const payLoad = {
             branch_id: branchId,
             _token: token,
             customer_id: customerId,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
         };
-    
+
         // Convert the object to a query string
         const queryString = new URLSearchParams(payLoad).toString();
-    
+
         try {
             const response = await fetch(`${API_URL}/branch/candidate-application/list?${queryString}`, {
                 method: "GET",
                 redirect: "follow"
             });
-    
+
             const result = await response.json();
-    
+
             // Debug log for response
             console.log("API Response:", result);
-    
+
             // Update token if it's present in the response
             const newToken = result?._token || result?.token;
             if (newToken) {
                 console.log("New Token:", newToken);  // Debug log to verify new token
                 localStorage.setItem("branch_token", newToken);
             }
-    
+
             // Check if the session has expired (invalid token)
             if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                 Swal.fire({
@@ -258,7 +260,7 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 return;  // Exit the function after redirection
             }
-    
+
             // Handle unsuccessful response (non-OK response)
             if (!response.ok) {
                 const errorMessage = result?.message || 'Something went wrong. Please try again later.';
@@ -270,17 +272,17 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 return;  // Exit the function if the response is not OK
             }
-    
+
             // Set data on success
             setCandidateListData(result.data?.candidateApplications || []);
             if (result.data?.customerInfo) {
                 const customer = result.data.customerInfo;
                 const customerCode = customer.client_unique_id;
                 localStorage.setItem('customer_code', customerCode);
-    
+
                 const services = customer.services && customer.services !== '""' ? JSON.parse(customer.services) : [];
                 setServices(services);
-    
+
                 const uniquePackages = [];
                 const packageSet = new Set();
                 services.forEach(service => {
@@ -293,13 +295,13 @@ export const DropBoxProvider = ({ children }) => {
                         });
                     }
                 });
-    
+
                 const candidateApplications = result.data?.candidateApplications;
-    
+
                 const uniqueCefSubmitted = [...new Set(candidateApplications.map(application => application.cef_submitted))]
                     .map(cef_submitted => ({ cef_submitted }));
                 setUniqueBgv(uniqueCefSubmitted);
-    
+
                 setUniquePackages(uniquePackages);
             }
         } catch (error) {
@@ -310,7 +312,7 @@ export const DropBoxProvider = ({ children }) => {
             setIsBranchApiLoading(false);
         }
     }, [API_URL, setCandidateLoading, setCandidateListData, setServices, setUniquePackages]);
-    
+
 
 
     const fetchClientDrop = useCallback(async () => {
@@ -321,38 +323,38 @@ export const DropBoxProvider = ({ children }) => {
         const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
         const customer_id = JSON.parse(localStorage.getItem("branch"))?.customer_id;
         const _token = localStorage.getItem("branch_token");
-    
+
         if (!branch_id || !_token) {
             setLoading(false);
             setIsBranchApiLoading(false);
             window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
             return;
         }
-    
+
         const payLoad = {
             branch_id: branch_id,
             _token: _token,
             customer_id: customer_id,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
         };
-    
+
         // Create query string from the payload
         const queryString = new URLSearchParams(payLoad).toString();
-    
+
         try {
             const response = await fetch(`${API_URL}/branch/client-application/list?${queryString}`, {
                 method: "GET",
                 redirect: "follow"
             });
-    
+
             const result = await response.json();
             const newToken = result?._token || result?.branch_token || result?.token;
-    
+
             // Check if new token is present and update localStorage
             if (newToken) {
                 localStorage.setItem("branch_token", newToken);
             }
-    
+
             // Handle session expiration
             if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                 Swal.fire({
@@ -365,7 +367,7 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 return; // Stop further processing after session expiration
             }
-    
+
             if (!response.ok) {
                 const errorMessage = result?.message || 'Something went wrong. Please try again.';
                 Swal.fire({
@@ -377,7 +379,7 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 return;
             }
-    
+
             // Process and set data if response is successful
             const FinalData = result.data.clientApplications;
             setListData(FinalData || []);
@@ -385,10 +387,10 @@ export const DropBoxProvider = ({ children }) => {
                 const customer = result.data.customerInfo;
                 const customer_code = customer.client_unique_id;
                 localStorage.setItem('customer_code', customer_code);
-    
+
                 const parsedServices = customer.services && customer.services !== '""' ? JSON.parse(customer.services) : [];
                 setServices(parsedServices);
-    
+
                 const uniquePackagesList = [];
                 const packageSet = new Set();
                 parsedServices.forEach(service => {
@@ -403,7 +405,7 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 setUniquePackages(uniquePackagesList);
             }
-    
+
         } catch (error) {
             console.error('Fetch error:', error);
             Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
@@ -412,7 +414,7 @@ export const DropBoxProvider = ({ children }) => {
             setIsBranchApiLoading(false);
         }
     }, [API_URL]);
-    
+
 
     return (
         <DropBoxContext.Provider value={{
@@ -435,7 +437,7 @@ export const DropBoxProvider = ({ children }) => {
             clientInput,
             servicesLoading,
             candidateListData,
-            isEditClient, setIsEditClient, input, setInput, isEditCandidate, setIsEditCandidate, inputError, setInputError
+            isEditClient, setIsEditClient, input, setInput, isEditCandidate, setIsEditCandidate, inputError, setInputError,preSelectedClient
         }}>
             {children}
         </DropBoxContext.Provider>

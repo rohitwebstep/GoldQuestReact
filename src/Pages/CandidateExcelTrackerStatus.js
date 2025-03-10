@@ -237,17 +237,26 @@ const CandidateExcelTrackerStatus = () => {
     }
 
     const handleBGVClick = (cef_id, branch_id, applicationId) => {
-        // Navigate to the Candidate BGV page with the cef_id
-        navigate(`/candidate-bgv?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+        // Construct the URL
+        const url = `/candidate-bgv?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
+        // Open the URL in a new tab
+        window.open(url, '_blank', 'noopener,noreferrer');
     };
+    
     const handleDAVClick = (def_id, branch_id, applicationId) => {
-        // Navigate to the Candidate BGV page with the cef_id
-        navigate(`/candidate-dav?def_id=${def_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+        // Construct the URL
+        const url = `/candidate-dav?def_id=${def_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
+        // Open the URL in a new tab
+        window.open(url, '_blank', 'noopener,noreferrer');
     };
+    
     const handleCheckGap = (cef_id, branch_id, applicationId) => {
-        // Navigate to the Candidate BGV page with the cef_id
-        navigate(`/gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`);
+        // Construct the URL
+        const url = `/gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
+        // Open the URL in a new tab
+        window.open(url, '_blank', 'noopener,noreferrer');
     };
+    
 
 
 

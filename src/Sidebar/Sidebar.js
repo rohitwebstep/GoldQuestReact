@@ -18,6 +18,8 @@ import { IoCall } from "react-icons/io5";
 import { useApiCall } from '../ApiCallContext';
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { GrUserAdmin } from "react-icons/gr";
+import { BsActivity } from "react-icons/bs";
+
 const tabNames = {
   dashboard: (<><HomeIcon className="h-6 w-6 mr-3 text-gray-600" />DashBoard</>),
   profile: {
@@ -55,6 +57,7 @@ const tabNames = {
   acknowledgment: (<><MdEmail className="h-6 w-6 mr-3 text-gray-600" />Acknowledgment Email</>),
   holiday_management: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Holiday Management</>),
   callback: (<><IoCall className="h-6 w-6 mr-3 text-gray-600" />Callback Request</>),
+  activity_logs: (<><BsActivity  className="h-6 w-6 mr-3 text-gray-600" />Activity Logs</>),
   developers_tool: {
     icon: (<><FaCode className="h-6 w-6 mr-3 text-gray-600" />Developers</>),
     subItems: [
@@ -85,7 +88,7 @@ const Sidebar = () => {
   return (
     <div className="flex flex-col md:flex-row relative z-10  h-full md:w-[20%] ">
       <button
-        className="md:hidden p-3 fixed  top-0 left-0 bg-green-400 text-white w-full  focus:outline-none"
+        className="md:hidden p-3 fixed  top-0 left-0 z-40 bg-green-400 text-white w-full  focus:outline-none"
         onClick={handleToggle}
         aria-label="Toggle Sidebar"
       >

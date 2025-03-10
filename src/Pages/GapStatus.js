@@ -468,8 +468,8 @@ const GapStatus = () => {
 
     return (
         <>
-            <div className="bg-gray-300">
-                <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white">
+            <div className="p-3">
+                <div className="space-y-4 p-3 md:py-[30px] md:px-[51px] m-auto md:w-8/12 bg-white shadow-md">
                     <h2 className='font-bold text-2xl pb-3'>Employment Gap</h2>
                     <div className="overflow-x-auto ">
                         <table className="w-full border-collapse">
@@ -518,410 +518,390 @@ const GapStatus = () => {
 
 
                     {(annexureData["gap_validation"].highest_education_gap === 'secondary' || annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
-                                                                       
 
-                    <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                        <h2 className='font-bold text-xl pb-3 text-green-500'>SECONDARY:</h2>
 
-                        <table className="w-full border">
-                            <tbody>
-                                {/* Row for School Name */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">School Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_school_name_gap`] || 'NIL'}</td>
-                                </tr>
+                        <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
+                            <h2 className='font-bold text-xl pb-3 text-green-500'>SECONDARY:</h2>
 
-                                {/* Row for Start Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_start_date_gap`] || 'NIL'}</td>
-                                </tr>
+                            <table className="w-full border">
+                                <tbody>
+                                    {/* Row for School Name */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">School Name</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_school_name_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for End Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_end_date_gap`] || 'NIL'}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    {/* Row for Start Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_start_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                        {
-                            (() => {
-                                let index = 1;
-                                let elements = [];
+                                    {/* Row for End Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.secondary?.[`secondary_end_date_gap`] || 'NIL'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                                while (true) {
-                                    const key = `secondary_corespondence_${index}`;
+                            {
+                                (() => {
+                                    let index = 1;
+                                    let elements = [];
 
-                                    // Check if the key exists in education_fields
-                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                        break; // Exit loop if the key is missing
+                                    while (true) {
+                                        const key = `secondary_corespondence_${index}`;
+
+                                        // Check if the key exists in education_fields
+                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                            break; // Exit loop if the key is missing
+                                        }
+
+                                        const secondarySection = annexureData.gap_validation.education_fields[key];
+
+                                        elements.push(
+                                            <div className="border border-black p-4 mt-4 rounded-md">
+                                                <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
+                                                <table className="w-full border-collapse">
+                                                
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">School Name</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{secondarySection?.secondary_school_name_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Start Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{secondarySection?.secondary_start_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">End Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{secondarySection?.secondary_end_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        );
+
+                                        index++; // Move to the next secondary_corespondence_*
                                     }
 
-                                    const secondarySection = annexureData.gap_validation.education_fields[key];
+                                    return elements;
+                                })()
+                            }
 
-                                    elements.push(
-                                        <div className="border border-black p-4 mt-4 rounded-md">
-                                            <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
-                                            <table className="w-full border-collapse">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">School Name</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{secondarySection?.secondary_school_name_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Start Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{secondarySection?.secondary_start_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">End Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{secondarySection?.secondary_end_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    );
-
-                                    index++; // Move to the next secondary_corespondence_*
-                                }
-
-                                return elements;
-                            })()
-                        }
-
-                    </div>
+                        </div>
                     )}
                     {(annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
-                                                                     
-                    <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                        <h2 className='font-bold text-xl pb-3 text-green-500'>SENIOR SECONDARY:</h2>
 
-                        <table className="w-full border">
-                            <tbody>
-                                {/* Row for School Name */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">School Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_school_name_gap`] || 'NIL'}</td>
-                                </tr>
+                        <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
+                            <h2 className='font-bold text-xl pb-3 text-green-500'>SENIOR SECONDARY:</h2>
 
-                                {/* Row for Start Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_start_date_gap`] || 'NIL'}</td>
-                                </tr>
+                            <table className="w-full border">
+                                <tbody>
+                                    {/* Row for School Name */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">School Name</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_school_name_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for End Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_end_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for Start Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_start_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Gap Status */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapSecToSrSec)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    {/* Row for End Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.senior_secondary?.[`senior_secondary_end_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                        {
-                            (() => {
-                                let index = 1;
-                                let elements = [];
+                                    {/* Row for Gap Status */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapSecToSrSec)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                                while (true) {
-                                    const key = `senior_secondary_corespondence_${index}`;
+                            {
+                                (() => {
+                                    let index = 1;
+                                    let elements = [];
 
-                                    // Check if the key exists in education_fields
-                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                        break; // Exit loop if the key is missing
+                                    while (true) {
+                                        const key = `senior_secondary_corespondence_${index}`;
+
+                                        // Check if the key exists in education_fields
+                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                            break; // Exit loop if the key is missing
+                                        }
+
+                                        const seniorSecondarySection = annexureData.gap_validation.education_fields[key];
+
+                                        elements.push(
+                                            <div className="border border-black mt-4 p-4 rounded-md">
+                                                <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
+                                                <table className="w-full border-collapse">
+                                                   
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">School Name</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{seniorSecondarySection?.senior_secondary_school_name_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Start Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{seniorSecondarySection?.senior_secondary_start_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">End Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{seniorSecondarySection?.senior_secondary_end_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        );
+
+                                        index++; // Move to the next senior_secondary_corespondence_*
                                     }
 
-                                    const seniorSecondarySection = annexureData.gap_validation.education_fields[key];
+                                    return elements;
+                                })()
+                            }
 
-                                    elements.push(
-                                        <div className="border border-black mt-4 p-4 rounded-md">
-                                            <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
-                                            <table className="w-full border-collapse">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">School Name</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{seniorSecondarySection?.senior_secondary_school_name_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Start Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{seniorSecondarySection?.senior_secondary_start_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">End Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{seniorSecondarySection?.senior_secondary_end_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    );
-
-                                    index++; // Move to the next senior_secondary_corespondence_*
-                                }
-
-                                return elements;
-                            })()
-                        }
-
-                    </div>
+                        </div>
                     )}
                     {(annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
-                                                                       
-                    <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                        <h2 className='font-bold text-xl pb-3 text-green-500'>GRADUATION:</h2>
 
-                        <table className="w-full border">
-                            <tbody>
-                                {/* Row for Institute Name */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_course_gap`] || 'NIL'}</td>
-                                </tr>
+                        <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
+                            <h2 className='font-bold text-xl pb-3 text-green-500'>GRADUATION:</h2>
 
-                                {/* Row for School Name */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_university_institute_name_gap`] || 'NIL'}</td>
-                                </tr>
+                            <table className="w-full border">
+                                <tbody>
+                                    {/* Row for Institute Name */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Institute Name</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_course_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Specialization */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_specialization_major_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for School Name */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_university_institute_name_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Start Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_start_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for Specialization */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_specialization_major_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for End Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_end_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for Start Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_start_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Gap Status */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapSrSecToGrad)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    {/* Row for End Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.graduation_1?.[`graduation_end_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                        {
-                            (() => {
-                                let index = 1;
-                                let elements = [];
+                                    {/* Row for Gap Status */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapSrSecToGrad)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                                while (true) {
-                                    const key = `graduation_corespondence_${index}`;
+                            {
+                                (() => {
+                                    let index = 1;
+                                    let elements = [];
 
-                                    // Check if the key exists in education_fields
-                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                        break; // Exit loop if the key is missing
+                                    while (true) {
+                                        const key = `graduation_corespondence_${index}`;
+
+                                        // Check if the key exists in education_fields
+                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                            break; // Exit loop if the key is missing
+                                        }
+
+                                        const graduationSection = annexureData.gap_validation.education_fields[key];
+
+                                        elements.push(
+                                            <div className="border border-black p-4 mt-4 rounded-md">
+                                                <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
+                                                <table className="w-full border-collapse">
+                                                   
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">University / Institute Name</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{graduationSection?.graduation_university_institute_name_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Course</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{graduationSection?.graduation_course_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Specialization Major</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{graduationSection?.graduation_specialization_major_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Start Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{graduationSection?.graduation_start_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">End Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{graduationSection?.graduation_end_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        );
+
+                                        index++; // Move to the next graduation_corespondence_*
                                     }
 
-                                    const graduationSection = annexureData.gap_validation.education_fields[key];
+                                    return elements;
+                                })()
+                            }
 
-                                    elements.push(
-                                        <div className="border border-black p-4 mt-4 rounded-md">
-                                            <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
-                                            <table className="w-full border-collapse">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">University / Institute Name</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{graduationSection?.graduation_university_institute_name_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Course</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{graduationSection?.graduation_course_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Specialization Major</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{graduationSection?.graduation_specialization_major_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Start Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{graduationSection?.graduation_start_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">End Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{graduationSection?.graduation_end_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    );
-
-                                    index++; // Move to the next graduation_corespondence_*
-                                }
-
-                                return elements;
-                            })()
-                        }
-
-                    </div>
+                        </div>
                     )}
                     {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
-                                                                      
-                    <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                        <h2 className='font-bold text-xl pb-3 text-green-500'>POST GRADUATION:</h2>
-                        <table className="w-full border">
-                            <tbody>
-                                {/* Row for Course */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Course</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_course_gap`] || 'NIL'}</td>
-                                </tr>
 
-                                {/* Row for University / Institute Name */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_university_institute_name_gap`] || 'NIL'}</td>
-                                </tr>
+                        <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
+                            <h2 className='font-bold text-xl pb-3 text-green-500'>POST GRADUATION:</h2>
+                            <table className="w-full border">
+                                <tbody>
+                                    {/* Row for Course */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Course</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_course_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Specialization */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_specialization_major_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for University / Institute Name */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">University / Institute Name</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_university_institute_name_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Start Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_start_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for Specialization */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Specialization</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_specialization_major_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for End Date */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_end_date_gap`] || 'NIL'}</td>
-                                </tr>
+                                    {/* Row for Start Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Start Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_start_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                                {/* Row for Gap Status */}
-                                <tr>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
-                                    <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapGradToPostGrad)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    {/* Row for End Date */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">End Date</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{educationData.education_fields?.post_graduation_1?.[`post_graduation_end_date_gap`] || 'NIL'}</td>
+                                    </tr>
 
-                        {
-                            (() => {
-                                let index = 1;
-                                let elements = [];
+                                    {/* Row for Gap Status */}
+                                    <tr>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap font-bold">Gap Status</td>
+                                        <td className="py-3 px-4 border-b border-r-2 border-l-2 whitespace-nowrap">{renderGapMessage(gaps.gapGradToPostGrad)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                                while (true) {
-                                    const key = `post_graduation_corespondence_${index}`;
+                            {
+                                (() => {
+                                    let index = 1;
+                                    let elements = [];
 
-                                    // Check if the key exists in education_fields
-                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
-                                        break; // Exit loop if the key is missing
+                                    while (true) {
+                                        const key = `post_graduation_corespondence_${index}`;
+
+                                        // Check if the key exists in education_fields
+                                        if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                            break; // Exit loop if the key is missing
+                                        }
+
+                                        const postGraduationSection = annexureData.gap_validation.education_fields[key];
+
+                                        elements.push(
+                                            <div className="border border-black mt-4 p-4 rounded-md">
+                                                <h3 className="text-lg font-bold py-3">Correspondence POST GRADUATION {index}</h3>
+                                                <table className="w-full border-collapse">
+                                                   
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">University / Institute Name</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{postGraduationSection?.post_graduation_university_institute_name_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Course</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{postGraduationSection?.post_graduation_course_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Specialization Major</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{postGraduationSection?.post_graduation_specialization_major_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">Start Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{postGraduationSection?.post_graduation_start_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border border-gray-300 p-2">End Date</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <span>{postGraduationSection?.post_graduation_end_date_gap || ''}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        );
+
+                                        index++; // Move to the next post_graduation_corespondence_*
                                     }
 
-                                    const postGraduationSection = annexureData.gap_validation.education_fields[key];
+                                    return elements;
+                                })()
+                            }
 
-                                    elements.push(
-                                        <div className="border border-black mt-4 p-4 rounded-md">
-                                            <h3 className="text-lg font-bold py-3">Correspondence POST GRADUATION {index}</h3>
-                                            <table className="w-full border-collapse">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border border-gray-300 p-2 text-left">Field</th>
-                                                        <th className="border border-gray-300 p-2 text-left">Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">University / Institute Name</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{postGraduationSection?.post_graduation_university_institute_name_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Course</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{postGraduationSection?.post_graduation_course_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Specialization Major</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{postGraduationSection?.post_graduation_specialization_major_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">Start Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{postGraduationSection?.post_graduation_start_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border border-gray-300 p-2">End Date</td>
-                                                        <td className="border border-gray-300 p-2">
-                                                            <span>{postGraduationSection?.post_graduation_end_date_gap || ''}</span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    );
-
-                                    index++; // Move to the next post_graduation_corespondence_*
-                                }
-
-                                return elements;
-                            })()
-                        }
-
-                    </div>
+                        </div>
                     )}
                     {
                         annexureData["gap_validation"].highest_education_gap === 'phd' && (

@@ -73,7 +73,7 @@ const Sidebar = () => {
       <CustomerHeader />
       <div className="flex flex-col items-stretch md:flex-row">
         <button
-          className="md:hidden p-3 fixed top-0 left-0  bg-green-400 text-white w-full  focus:outline-none"
+          className="md:hidden p-3 fixed top-0 left-0 z-50  bg-green-400 text-white w-full  focus:outline-none"
           onClick={handleToggle}
           aria-label="Toggle Sidebar"
         >
@@ -87,7 +87,7 @@ const Sidebar = () => {
 
         {/* Sidebar */}
         <div
-          className={`w-full md:w-1/5 mt-10 md:mt-0 flex flex-col bg-white border-e fixed md:relative top-0 left-0  h-full  transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
+          className={`w-full md:w-1/5 z-50 mt-10 md:mt-0 flex flex-col h-auto bg-white border-e fixed md:relative top-0 left-0  transition-transform transform ${toggle ? 'translate-x-0' : '-translate-x-full'
             } md:translate-x-0`}
         >
           <div className="h-full">

@@ -29,11 +29,10 @@ import ServiceForms from './ServiceForms';
 import ServiceReportForm from './ServicesReportForm';
 import AdminDeletionRequest from './AdminDeletionRequest';
 import PermissionManager from './PermissionManager';
+import ActivityLogs from './ActivityLogs';
 
 
 
-
-// Mapping tab keys to their respective components
 const tabComponents = {
   dashboard: <DashBoard />,
   profile: <ClientManagement />,
@@ -49,7 +48,7 @@ const tabComponents = {
   tat_delay: <TatDelay />,
   acknowledgment: <Acknowledgement />,
   // update_password: <UpdatePassword />,
-  // invoice: <Invoice />,
+  activity_logs: <ActivityLogs />,
   tickets: <Tickets />,
   add_clients: <ClientManagement />,
   active_clients: <ClientManagementList />,
@@ -57,9 +56,8 @@ const tabComponents = {
   tracker_status: <ExelTrackerStatus />,
   deletion_certificate: <DeletionCertification />,
   Candidate_tracker_status: <CandidateExcelTrackerStatus />,
-  callback:<CallbackAdmin/>,
-  file_manager:<FolderGrid/>,
-
+  callback: <CallbackAdmin />,
+  file_manager: <FolderGrid />,
   generate_invoice: <CreateInvoice />,
   edit: <ClientEditForm />,
   holiday_management: <HolidayManagement />,

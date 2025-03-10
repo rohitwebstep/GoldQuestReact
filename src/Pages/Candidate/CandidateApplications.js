@@ -700,24 +700,26 @@ const GenerateReport = () => {
                             multiple={input.multiple}
                             onChange={(e) => handleFileChange(index, dbTable, input.name, e)} // Update this function if needed
                         />
-                        <div className="relative w-full    mt-4 max-w-full">
+                        <div className="relative mt-4">
                             {annexureImagesSplitArr.length > 0 ? (
-                                <div className="flex gap-5 overflow-scroll">
+                                <div
+                                    className="grid md:grid-cols-5 grid-cols-1 gap-5 overflow-auto max-h-64" // Add max-height for scrolling
+                                >
                                     {annexureImagesSplitArr.map((image, index) => (
                                         image.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                                             <img
                                                 src={image.trim()}
                                                 alt={`Image ${index + 1}`}
-                                                className="w-4/12"
+                                                key={index} // Ensure key is added
                                             />
                                         ) : (
                                             <a
                                                 href={image.trim()}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                key={index} // Make sure to add a key for each element in the map
+                                                key={index} // Ensure key is added for anchor tags as well
                                             >
-                                                <button type='button' className="px-4 py-2 bg-green-500 text-white rounded">
+                                                <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
                                                     View Document
                                                 </button>
                                             </a>
@@ -725,10 +727,10 @@ const GenerateReport = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <p>No Image Found</p> // Message if there are no images
+                                <p>No Image Found</p> // Message if no images are present
                             )}
-
                         </div>
+
 
 
 
@@ -754,17 +756,11 @@ const GenerateReport = () => {
     const handleSubmit = useCallback(async (e, allSortingOrder) => {
         e.preventDefault();
         setIsApiLoading(true); // Start global loading spinner
-        // setLoading(true); // Start specific loading spinner
 
-        const fileCount = Object.keys(files).length;
-
-        // Swal instance to show loading spinner while processing
+        // Initialize the SweetAlert2 instance
         const swalInstance = Swal.fire({
             title: 'Processing...',
-            text: 'Please wait while we Generate Your Report',
-            didOpen: () => {
-                Swal.showLoading(); // This starts the loading spinner
-            },
+            text: 'Please wait while we generate your report',
             allowOutsideClick: false, // Prevent closing Swal while processing
             showConfirmButton: false, // Hide the confirm button
         });
@@ -773,20 +769,27 @@ const GenerateReport = () => {
             const adminData = JSON.parse(localStorage.getItem("admin"));
             const token = localStorage.getItem("_token");
 
+            let filteredSubmissionData;
             // Prepare submission data
-            const submissionData = servicesDataInfo
-                .map((serviceData, index) => {
-                    if (serviceData.serviceStatus) {
+            if (servicesDataInfo) {
+                const submissionData = servicesDataInfo
+                    .map((serviceData, index) => {
+                        // Check if serviceData is valid
+                        if (!serviceData || !serviceData.serviceStatus) {
+                            console.warn(`Skipping invalid service data at index ${index}`);
+                            return null; // Skip invalid serviceData
+                        }
+
                         const formJson = serviceData.reportFormJson?.json
                             ? JSON.parse(serviceData.reportFormJson.json)
                             : null;
-                        let sortingOrderfinal = serviceData?.annexureData?.sorting_order || '';
 
                         if (!formJson) {
                             console.warn(`Invalid formJson for service at index ${index}`);
-                            return null;
+                            return null; // Skip if formJson is invalid
                         }
 
+                        // Extract necessary data
                         const dbTable = formJson.db_table;
                         const annexure = {};
 
@@ -813,47 +816,42 @@ const GenerateReport = () => {
                             });
                         });
 
-
                         const category = formJson.db_table || "";
-
                         const status = selectedStatuses?.[index] || "";
-
-                        const sorting_order = allSortingOrder?.[dbTable] || sortingOrderfinal || '';
+                        const sorting_order = allSortingOrder?.[dbTable] || serviceData?.annexureData?.sorting_order || '';
 
                         if (annexure[category]) {
-
                             annexure[category].status = status;
                             annexure[category].sorting_order = sorting_order;
-
                         }
 
                         return { annexure };
-                    }
-                    return null;
-                })
-                .filter(Boolean); // Remove null values
+                    })
+                    .filter(Boolean); // Remove null values
 
-            if (!submissionData.length) {
-                console.warn("No valid submission data found.");
-                Swal.fire("Error", "No data to submit. Please check your inputs.", "error");
-                setLoading(false);
-                return;
-            }
+                if (!submissionData.length) {
+                    console.warn("No valid submission data found.");
+                    Swal.fire("Error", "No data to submit. Please check your inputs.", "error");
+                    setLoading(false);
+                    return;
+                }
 
-            // Flatten and clean up annexure data
-            const filteredSubmissionData = submissionData.reduce(
-                (acc, item) => ({ ...acc, ...item.annexure }),
-                {}
-            );
+                // Flatten and clean up annexure data
+                filteredSubmissionData = submissionData.reduce(
+                    (acc, item) => ({ ...acc, ...item.annexure }),
+                    {}
+                );
 
-            Object.keys(filteredSubmissionData).forEach((key) => {
-                const data = filteredSubmissionData[key];
-                Object.keys(data).forEach((subKey) => {
-                    if (subKey.startsWith("Annexure")) {
-                        delete data[subKey]; // Remove unnecessary keys
-                    }
+                Object.keys(filteredSubmissionData).forEach((key) => {
+                    const data = filteredSubmissionData[key];
+                    Object.keys(data).forEach((subKey) => {
+                        if (subKey.startsWith("Annexure")) {
+                            delete data[subKey]; // Remove unnecessary keys
+                        }
+                    });
                 });
-            });
+
+            }
 
             // Prepare request payload
             const raw = JSON.stringify({
@@ -864,7 +862,7 @@ const GenerateReport = () => {
                 application_id: applicationId,
                 ...formData,
                 annexure: filteredSubmissionData,
-                send_mail: fileCount === 0 ? 1 : 0,
+                send_mail: Object.keys(files).length === 0 ? 1 : 0,
             });
 
             const requestOptions = {
@@ -892,15 +890,14 @@ const GenerateReport = () => {
 
             // Success Handling
             const successMessage = result.success_message || "Application updated successfully.";
-            if (fileCount == 0) {
+            if (Object.keys(files).length === 0) {
                 Swal.fire({
                     title: "Success",
                     text: successMessage,
                     icon: "success",
                     confirmButtonText: "Ok",
                 });
-            }
-            if (fileCount > 0) {
+            } else {
                 await uploadCustomerLogo(result.email_status);
                 Swal.fire({
                     title: "Success",
@@ -909,6 +906,9 @@ const GenerateReport = () => {
                     confirmButtonText: "Ok",
                 });
             }
+            fetchAdminList();
+            fetchApplicationData();
+            fetchServicesJson();
 
         } catch (error) {
             console.error("Error during submission:", error);
@@ -1308,7 +1308,7 @@ const GenerateReport = () => {
                                                         <input
                                                             type='number'
                                                             placeholder='Sorting By Order'
-                                                            className="border p-2 mt-4 md:mt-0 rounded-md"
+                                                            className="border p-2 mt-4 md:mt-0 rounded-md w-full"
                                                             id={`sorting_order_${index}`}
                                                             value={preselectedSortingOrder}
                                                             onChange={(e) => handleSortingOrderChange(e, dbTable)}  // Assuming you have a handler for sorting order
