@@ -94,6 +94,15 @@ const InactiveClients = () => {
 
     try {
       const response = await fetch(`https://api.goldquestglobal.in/customer/inactive-list?admin_id=${admin_id}&_token=${storedToken}`);
+
+      // Check if the response is OK (status 200-299)
+      if (!response.ok) {
+        const errorData = await response.json();
+        // Show error from the API response
+        Swal.fire('Error!', `An error occurred: ${errorData.message || 'Unknown error'}`, 'error');
+        return; // Exit early, since the API returned an error
+      }
+
       const result = await response.json();
       const newToken = result._token || result.token;
 
@@ -101,6 +110,7 @@ const InactiveClients = () => {
       if (newToken) {
         localStorage.setItem("_token", newToken);
       }
+
       if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
         Swal.fire({
           title: "Session Expired",
@@ -111,15 +121,10 @@ const InactiveClients = () => {
           // Redirect to admin login page
           window.location.href = "/admin-login"; // Replace with your login route
         });
+        return; // Exit if session expired
       }
 
-      // Handle response errors
-      if (!response.ok) {
-        const errorData = await response.json();
-        Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
-        return;
-      }
-
+      // Proceed with setting data if the response is valid
       const customers = result?.customers || [];
       setData(customers); // Update the customers data
 
@@ -138,13 +143,13 @@ const InactiveClients = () => {
 
     } catch (error) {
       console.error('Fetch error:', error);
+      // If network or unexpected error occurs
+      Swal.fire('Error!', 'An unexpected error occurred while fetching data.', 'error');
     } finally {
       setLoading(false);
-      setIsApiLoading(false) // Stop loading
+      setIsApiLoading(false); // Stop loading
     }
   }, []);
-
-
 
   useEffect(() => {
     if (!isApiLoading) {
@@ -285,13 +290,13 @@ const InactiveClients = () => {
               <option value="500">500 Rows</option>
             </select>
             <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                  type="button"
-                  disabled={currentItems.length === 0}
-                >
-                  Export to Excel
-                </button>
+              onClick={exportToExcel}
+              className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+              type="button"
+              disabled={currentItems.length === 0}
+            >
+              Export to Excel
+            </button>
           </div>
         </div>
         <div className="col md:flex justify-end">
