@@ -12,7 +12,7 @@ const Notification = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-green-600 flex items-end gap-4"><IoNotificationsCircleSharp className='text-4xl' />
+      <h1 className="text-2xl font-bold mb-4 text-[#3e76a5] flex items-end gap-4"><IoNotificationsCircleSharp className='text-4xl' />
       Notification Box</h1>
       {notifications.map(notification => (
         <NotificationBox

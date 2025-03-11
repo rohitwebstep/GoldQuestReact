@@ -579,7 +579,7 @@ const ClientForm = () => {
                         <div className="col bg-white shadow-md rounded-md p-3 md:p-6 md:mt-0 mt-5">
                             <div className="flex flex-wrap flex-col-reverse">
                                 <div className='mt-4 md:h-[450px] h-[200px] overflow-auto'>
-                                    <h2 className='bg-green-500 rounded-md p-4 text-white mb-4 hover:bg-green-200'>Service Names</h2>
+                                    <h2 className='bg-[#3e76a5] rounded-md p-4 text-white mb-4 hover:bg-[#3e76a5]'>Service Names</h2>
                                     {loading ? (
                                         <PulseLoader color="#36A2EB" loading={loading} size={15} />
                                     ) : services.length > 0 ? (
@@ -631,13 +631,13 @@ const ClientForm = () => {
 
                     </div>
                     <div className='flex gap-4'>
-                        <button type="submit" className={`rounded-md p-3 text-white ${isBranchApiLoading || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                        <button type="submit" className={`rounded-md p-3 text-white ${isBranchApiLoading || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                             disabled={formLoading}>
                             Send
                         </button>
                         <button type="button" onClick={emptyForm} className='bg-blue-400 hover:bg-blue-800 text-white p-3 rounded-md '>Reset Form</button>
                     </div>
-                    {/* <button type="button" className='bg-green-400 hover:bg-green-200 mt-4 text-white p-3 rounded-md w-auto ms-3'>Bulk Upload</button> */}
+                    {/* <button type="button" className='bg-[#3e76a5] hover:bg-[#3e76a5] mt-4 text-white p-3 rounded-md w-auto ms-3'>Bulk Upload</button> */}
                 </form>
             )}
 

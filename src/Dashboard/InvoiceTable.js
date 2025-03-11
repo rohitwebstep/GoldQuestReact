@@ -14,7 +14,7 @@ const InvoiceTable = () => {
   return (
     <>
       <div className="overflow-x-auto py-8 px-4">
-        <h2 className='text-green-600 font-bold text-2xl pb-6 flex gap-4'>
+        <h2 className='text-[#3e76a5] font-bold text-2xl pb-6 flex gap-4'>
           <FaFileInvoiceDollar className='text-4xl' />
           Invoices
         </h2>
@@ -30,11 +30,11 @@ const InvoiceTable = () => {
           <tbody>
             {invoices.map((invoice, index) => (
               <tr key={index}>
-                <td className="py-3 px-4 border-b text-green-600 whitespace-nowrap">{invoice.sl}</td>
+                <td className="py-3 px-4 border-b text-[#3e76a5] whitespace-nowrap">{invoice.sl}</td>
                 <td className="py-3 px-4 border-b whitespace-nowrap">{invoice.clientCode}</td>
                 <td className="py-3 px-4 border-b whitespace-nowrap">{invoice.clientCompanyName}</td>
                 <td className="py-3 px-4 border-b whitespace-nowrap">
-                  <button className="bg-green-600 p-2 text-white rounded-md hover:bg-green-200">Check in</button>
+                  <button className="bg-[#3e76a5] p-2 text-white rounded-md hover:bg-[#3e76a5]">Check in</button>
                 </td>
               </tr>
             ))}

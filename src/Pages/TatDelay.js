@@ -73,7 +73,7 @@ const TatDelay = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -230,7 +230,7 @@ const TatDelay = () => {
                 <select name="options" onChange={(e) => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1
-                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
@@ -241,7 +241,7 @@ const TatDelay = () => {
                 </select>
                 <button
                   onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  className="bg-[#3e76a5] text-white py-3 px-4 text-sm rounded-md capitalize"
                   type="button"
                   disabled={currentItems.length === 0}
                 >
@@ -257,7 +257,7 @@ const TatDelay = () => {
                 <input
                   type="search"
                   className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
-                  placeholder='Search by Client Code'
+                  placeholder='Search Here'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -278,7 +278,7 @@ const TatDelay = () => {
           ) : currentItems.length > 0 ? (
             <table className="min-w-full table-auto">
               <thead>
-                <tr className='bg-green-500'>
+                <tr className='bg-[#3e76a5]'>
                   <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap text-white border-r">SL</th>
                   <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap text-white border-r">Tat Days</th>
                   <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap text-white border-r">Initiation Date</th>

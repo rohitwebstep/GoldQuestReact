@@ -88,14 +88,14 @@ const Sidebar = () => {
   return (
     <div className="flex flex-col md:flex-row relative z-10  h-full md:w-[20%] ">
       <button
-        className="md:hidden p-3 fixed  top-0 left-0 z-40 bg-green-400 text-white w-full  focus:outline-none"
+        className="md:hidden p-3 fixed  top-0 left-0 z-40 bg-[#3e76a5] text-white w-full  focus:outline-none"
         onClick={handleToggle}
         aria-label="Toggle Sidebar"
       >
         <div className='flex justify-between items-center'>  <div><span className="block w-8 h-1 bg-white mb-1"></span>
           <span className="block w-8 h-1 bg-white mb-1"></span>
           <span className="block w-8 h-1 bg-white"></span></div>
-          <div>BGV</div></div>
+          <div><Logout/></div></div>
 
       </button>
       {/* Sidebar */}
@@ -113,8 +113,8 @@ const Sidebar = () => {
                     className={classNames(
                       'w-full flex items-center p-3 cursor-pointer rounded-md my-2 text-sm',
                       {
-                        'bg-green-200': activeTab === tab,
-                        'hover:bg-green-200': activeTab !== tab && !isApiLoading,
+                        'bg-[#3e76a5] text-white': activeTab === tab,
+                        'hover:bg-[#3e76a5] hover:text-white': activeTab !== tab && !isApiLoading,
                         'opacity-50 cursor-not-allowed': isApiLoading,
                       }
                     )}
@@ -138,8 +138,8 @@ const Sidebar = () => {
                           className={classNames(
                             'w-full flex items-center p-3 cursor-pointer rounded-md my-2 text-sm',
                             {
-                              'bg-green-100': activeTab === subItem.id,
-                              'hover:bg-green-100': activeTab !== subItem.id && !isApiLoading,
+                              'bg-[#3e76a5] text-white': activeTab === subItem.id,
+                              'hover:bg-[#3e76a5] hover:text-white': activeTab !== subItem.id && !isApiLoading,
                               'opacity-50 cursor-not-allowed': isApiLoading,
                             }
                           )}

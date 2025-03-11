@@ -474,7 +474,7 @@ const GapStatus = () => {
                     <div className="overflow-x-auto ">
                         <table className="w-full border-collapse">
                             <thead>
-                                <tr className="bg-green-500 text-white ">
+                                <tr className="bg-[#3e76a5] text-white ">
                                     <th className="border px-4 py-2">Employment</th>
                                     <th className="border px-4 py-2">Employment Type</th>
                                     <th className="border px-4 py-2">Start Date</th>
@@ -501,7 +501,7 @@ const GapStatus = () => {
 
                                                 if (item.startValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`]) {
                                                     return (
-                                                        <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
+                                                        <p key={idx} className={`${isNoGap ? 'text-[#3e76a5]' : 'text-red-500'} py-2`}>
                                                             {isNoGap ? item.difference : `GAP-${item.difference || 'No gap Found'}`}
                                                         </p>
                                                     );
@@ -521,7 +521,7 @@ const GapStatus = () => {
 
 
                         <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                            <h2 className='font-bold text-xl pb-3 text-green-500'>SECONDARY:</h2>
+                            <h2 className='font-bold text-xl pb-3 text-[#3e76a5]'>SECONDARY:</h2>
 
                             <table className="w-full border">
                                 <tbody>
@@ -601,7 +601,7 @@ const GapStatus = () => {
                     {(annexureData["gap_validation"].highest_education_gap === 'senior_secondary' || annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'phd' || annexureData["gap_validation"].highest_education_gap === 'post_graduation') && (
 
                         <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                            <h2 className='font-bold text-xl pb-3 text-green-500'>SENIOR SECONDARY:</h2>
+                            <h2 className='font-bold text-xl pb-3 text-[#3e76a5]'>SENIOR SECONDARY:</h2>
 
                             <table className="w-full border">
                                 <tbody>
@@ -687,7 +687,7 @@ const GapStatus = () => {
                     {(annexureData["gap_validation"].highest_education_gap === 'graduation' || annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
 
                         <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                            <h2 className='font-bold text-xl pb-3 text-green-500'>GRADUATION:</h2>
+                            <h2 className='font-bold text-xl pb-3 text-[#3e76a5]'>GRADUATION:</h2>
 
                             <table className="w-full border">
                                 <tbody>
@@ -797,7 +797,7 @@ const GapStatus = () => {
                     {(annexureData["gap_validation"].highest_education_gap === 'post_graduation' || annexureData["gap_validation"].highest_education_gap === 'phd') && (
 
                         <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                            <h2 className='font-bold text-xl pb-3 text-green-500'>POST GRADUATION:</h2>
+                            <h2 className='font-bold text-xl pb-3 text-[#3e76a5]'>POST GRADUATION:</h2>
                             <table className="w-full border">
                                 <tbody>
                                     {/* Row for Course */}
@@ -906,7 +906,7 @@ const GapStatus = () => {
                     {
                         annexureData["gap_validation"].highest_education_gap === 'phd' && (
                             <div className='border rounded-md p-4 overflow-x-auto  custom-gap-check'>
-                                <h2 className='font-bold text-xl pb-3 text-green-500'>PHD:</h2>
+                                <h2 className='font-bold text-xl pb-3 text-[#3e76a5]'>PHD:</h2>
 
                                 <table className="w-full border">
                                     <tbody>

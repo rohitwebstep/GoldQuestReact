@@ -129,7 +129,7 @@ const ReportForm = () => {
       </div>
       <div className="mb-4 flex items-end"> 
         <p></p> 
-        <button className="bg-green-500 text-white w-full rounded-md p-3" type='submit'>Submit</button>
+        <button className="bg-[#3e76a5] text-white w-full rounded-md p-3" type='submit'>Submit</button>
       </div>
     </form>
   );

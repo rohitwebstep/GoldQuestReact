@@ -144,7 +144,7 @@ const CustomerUpdatePassword = () => {
                     />
                     {passError.c_newpass && <p className='text-red-500'>{passError.c_newpass}</p>}
                 </div>
-                <button type="submit" className='bg-green-400 text-white p-3 rounded-md w-full mb-4 hover:bg-green-200'>Update Password</button>
+                <button type="submit" className='bg-[#3e76a5] text-white p-3 rounded-md w-full mb-4 hover:bg-[#3e76a5]'>Update Password</button>
             </form>
         </div>
     );

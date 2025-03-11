@@ -109,7 +109,7 @@ const Logout = () => {
   };
 
   return (
-    <button onClick={handleLogout} className='flex gap-1 items-center text-white ms-2 mt-3 md:mt-0'>
+    <button onClick={handleLogout} className='flex gap-1 z-50 items-center text-white ms-2 md:mt-0'>
       <RiLoginCircleFill className="h-6 w-6 mr-1 text-white-600" />
       Logout
     </button>

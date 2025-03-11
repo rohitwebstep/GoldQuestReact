@@ -76,7 +76,7 @@ const CallbackAdmin = () => {
           type="button"
           key={`page-${number}`}
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -89,25 +89,25 @@ const CallbackAdmin = () => {
     const storedToken = localStorage.getItem('_token');
     setIsApiLoading(true);
     setLoading(true);
-  
+
     try {
-  
+
       // Make the API request
       const response = await fetch(`https://api.goldquestglobal.in/admin/callback/list?admin_id=${admin_id}&_token=${storedToken}`, {
         headers: {
           'Cache-Control': 'no-cache', // Prevent caching
         },
       });
-      
+
       // Parse the response JSON
       const result = await response.json();
-        
+
       const newToken = result._token || result.token;
       if (newToken) {
         localStorage.setItem("_token", newToken); // Update the token in localStorage
         const updatedToken = localStorage.getItem("_token"); // Retrieve the updated token
       }
-  
+
       // Check for session expiration by looking for token-related issues
       if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
         Swal.fire({
@@ -121,17 +121,17 @@ const CallbackAdmin = () => {
         });
         return; // Stop further processing if the session has expired
       }
-  
+
       // Handle response errors (if status is not OK)
       if (!response.ok) {
         Swal.fire('Error!', `An error occurred: ${result.message || 'Unknown error'}`, 'error');
         return;
       }
-  
+
       // Successfully fetched data
       const customers = result.callbackRequests || [];
       setData(customers); // Update the customers data
-  
+
     } catch (error) {
       console.error('Fetch error:', error);
       Swal.fire('Error!', 'An unexpected error occurred while fetching data.', 'error');
@@ -140,7 +140,7 @@ const CallbackAdmin = () => {
       setIsApiLoading(false); // Stop loading regardless of success or error
     }
   }, []);
-  
+
 
 
 
@@ -181,29 +181,29 @@ const CallbackAdmin = () => {
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
       <h2 className='text-center text-2xl font-bold my-5'>Callback Request</h2>
 
-      <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 px-4">
+      <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-2 md:px-4">
         <div className="col">
-        <div className="flex gap-2">
-                <select name="options" onChange={(e) => {
-                  handleSelectChange(e); // Call the select change handler
-                  setCurrentPage(1); // Reset current page to 1
-                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
-                  <option value="10">10 Rows</option>
-                  <option value="20">20 Rows</option>
-                  <option value="50">50 Rows</option>
-                  <option value="200">200 Rows</option>
-                  <option value="300">300 Rows</option>
-                  <option value="400">400 Rows</option>
-                  <option value="500">500 Rows</option>
-                </select>
-                <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                  type="button"
-                  disabled={currentItems.length === 0}
-                >
-                  Export to Excel
-                </button>
+          <div className="flex gap-2">
+            <select name="options" onChange={(e) => {
+              handleSelectChange(e); // Call the select change handler
+              setCurrentPage(1); // Reset current page to 1
+            }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+              <option value="10">10 Rows</option>
+              <option value="20">20 Rows</option>
+              <option value="50">50 Rows</option>
+              <option value="200">200 Rows</option>
+              <option value="300">300 Rows</option>
+              <option value="400">400 Rows</option>
+              <option value="500">500 Rows</option>
+            </select>
+            <button
+              onClick={exportToExcel}
+              className="bg-[#3e76a5] text-white py-3 px-4 text-sm rounded-md capitalize"
+              type="button"
+              disabled={currentItems.length === 0}
+            >
+              Export to Excel
+            </button>
           </div>
         </div>
         <div className="col md:flex justify-end">
@@ -212,7 +212,7 @@ const CallbackAdmin = () => {
               <input
                 type="search"
                 className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
-                placeholder='Search by Client Code...'
+                placeholder='Search by Customer Code'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -229,7 +229,7 @@ const CallbackAdmin = () => {
         ) : currentItems && currentItems.length > 0 ? (
           <table className="min-w-full mb-4">
             <thead>
-              <tr className="bg-green-500">
+              <tr className="bg-[#3e76a5]">
                 <th className="py-3 px-4 border-b border-r border-l text-white text-left uppercase whitespace-nowrap">SL</th>
                 <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Customer Name</th>
                 <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Branch Name</th>

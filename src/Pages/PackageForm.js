@@ -265,7 +265,7 @@ const PackageForm = ({ onSuccess }) => {
                 </div>
                
                 <button
-                    className={`w-full rounded-md p-3 text-white ${isLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                    className={`w-full rounded-md p-3 text-white ${isLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                     type="submit"
                     disabled={isLoading || isApiLoading}
                 >
@@ -280,7 +280,7 @@ const PackageForm = ({ onSuccess }) => {
                     Reset Form
                 </button>
 
-                {formMessage && <p className="mt-4 text-center text-green-600">{formMessage}</p>}
+                {formMessage && <p className="mt-4 text-center text-[#3e76a5]">{formMessage}</p>}
             </form>
         </>
     );

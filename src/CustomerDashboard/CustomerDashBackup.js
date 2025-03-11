@@ -86,7 +86,7 @@ const Dashboard = () => {
                 <button
                     key={number}
                     onClick={() => handlePageChange(number, status)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -172,7 +172,7 @@ const Dashboard = () => {
                                         </select>
                                         <button
                                             onClick={() => exportToExcel(applicationGroup.applications, key)}
-                                            className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                            className="bg-[#3e76a5] text-white py-3 px-4 rounded-md capitalize"
                                             type='button'
                                         >
                                             Excel
@@ -182,13 +182,13 @@ const Dashboard = () => {
                                         <input
                                             type="search"
                                             className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
-                                            placeholder='Search by Client Code, Company Name, or Client Spoc'
+                                            placeholder='Search Here'
                                         />
                                     </div>
                                 </div>
                                 <table className="min-w-full bg-white border">
                                     <thead>
-                                        <tr className='bg-green-500'>
+                                        <tr className='bg-[#3e76a5]'>
                                             <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">No</th>
                                             <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">Application ID</th>
                                             <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">Application Name</th>
@@ -198,7 +198,7 @@ const Dashboard = () => {
                                         {paginatedApplications.length > 0 ? (
                                             paginatedApplications.map((application, appIndex) => (
                                                 <tr key={appIndex}>
-                                                    <td className="py-3 px-4 border-b text-green-600 whitespace-nowrap">{(currentPage - 1) * currentItemsPerPage + appIndex + 1}</td>
+                                                    <td className="py-3 px-4 border-b text-[#3e76a5] whitespace-nowrap">{(currentPage - 1) * currentItemsPerPage + appIndex + 1}</td>
                                                     <td className="py-3 px-4 border-b whitespace-nowrap">{application.application_id}</td>
                                                     <td className="py-3 px-4 border-b whitespace-nowrap">{application.application_name}</td>
                                                 </tr>

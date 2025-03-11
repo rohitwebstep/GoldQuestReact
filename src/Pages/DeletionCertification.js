@@ -118,7 +118,7 @@ const DeletionCertification = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -298,47 +298,48 @@ const DeletionCertification = () => {
 
 
 
-      <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-3">
-        <div className="col">
-          <form action="">
-            <div className="flex gap-2">
-              <select name="options" onChange={(e) => {
-                handleSelectChange(e); // Call the select change handler
-                setCurrentPage(1); // Reset current page to 1
-              }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
-                <option value="10">10 Rows</option>
-                <option value="20">20 Rows</option>
-                <option value="50">50 Rows</option>
-                <option value="200">200 Rows</option>
-                <option value="300">300 Rows</option>
-                <option value="400">400 Rows</option>
-                <option value="500">500 Rows</option>
-              </select>
-            <button
-                    onClick={exportToExcel}
-                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                    type="button"
-                    disabled={currentItems.length === 0}
-                  >
-               Export To Excel
-              </button>
-            </div>
-          </form>
+<div className="md:grid grid-cols-2 p-3 justify-between items-center md:my-4 border-b-2 pb-4">
+          <div className="col">
+            <form action="">
+              <div className="flex gap-2 justify-between md:justify-start">
+                <select name="options" onChange={(e) => {
+                  handleSelectChange(e); // Call the select change handler
+                  setCurrentPage(1); // Reset current page to 1
+                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+                  <option value="10">10 Rows</option>
+                  <option value="20">20 Rows</option>
+                  <option value="50">50 Rows</option>
+                  <option value="200">200 Rows</option>
+                  <option value="300">300 Rows</option>
+                  <option value="400">400 Rows</option>
+                  <option value="500">500 Rows</option>
+                </select>
+                <button
+                  onClick={exportToExcel}
+                  className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
+                  type="button"
+                  disabled={currentItems.length === 0}
+                >
+                  Export to Excel
+                </button>
+              </div>
+            </form>
+          </div>
+          <div className="col md:flex justify-end ">
+            <form action="">
+              <div className="  gap-3">
+                <input
+                  type="search"
+                  className='outline-none border p-3 text-sm rounded-md w-full my-4 md:my-0'
+                  placeholder='Search Here'
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </form>
+          </div>
+
         </div>
-        <div className="col md:flex justify-end">
-          <form action="">
-            <div className="flex md:items-stretch items-center gap-3">
-              <input
-                type="search"
-                className='outline-none border-2 p-3 rounded-md w-full my-4 md:my-0'
-                placeholder='Search by Client Code...'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </form>
-        </div>
-      </div>
       <h2 className='text-center md:text-2xl text-xl font-bold my-5'>List Of Active Clients</h2>
 
       <div className="overflow-x-auto py-6 p-3 border m-3 bg-white shadow-md rounded-md">
@@ -351,7 +352,7 @@ const DeletionCertification = () => {
         ) : currentItems.length > 0 ? (
           <table className="min-w-full mb-4" >
             <thead>
-              <tr className='bg-green-500'>
+              <tr className='bg-[#3e76a5]'>
                 <th className=" p-3 border-b border-r border-l text-white text-left uppercase whitespace-nowrap ">SL</th>
                 <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap ">Client Code</th>
                 <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap ">Company Name</th>
@@ -396,8 +397,8 @@ const DeletionCertification = () => {
                       </td>
                     </tr>
                     {showModal && (
-                      <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-20 z-50">
-                        <div className="bg-white p-5 rounded-md md:w-4/12">
+                      <div className="fixed inset-0 flex justify-center items-center p-3 bg-black bg-opacity-20 z-50">
+                        <div className="bg-white p-5 rounded-md md:w-4/12 w-full">
                           <div className='flex justify-between items-center'>
 
                             <h2 className="text-lg font-semibold mb-4">Delete Confirmation</h2>

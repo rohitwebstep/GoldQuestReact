@@ -208,7 +208,7 @@ const ReportCaseTable = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -1241,15 +1241,15 @@ the information responsible for employment decisions based on the information pr
       <h2 className="py-4 text-2xl font-bold text-center ">
         Report & Case Status
       </h2>
-      <div className="mt-8 bg-white p-4 rounded-md">
+      <div className="mt-8 bg-white mx-4 p-4 rounded-md">
         <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
           <div className="col">
             <form action="">
-              <div className="md:flex gap-2">
+              <div className="flex gap-2">
                 <select name="options" id="" onChange={(e) => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1
-                }} className='outline-none pe-14 ps-2 text-left rounded-md border'>
+                }} className='outline-none pe-14 ps-2 text-left p-3 md:w-6/12 w-7/12 rounded-md border'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
@@ -1261,7 +1261,7 @@ the information responsible for employment decisions based on the information pr
                 </select>
                 <button
                   onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
                   type="button"
                   disabled={currentItems.length === 0}
                 >
@@ -1276,7 +1276,7 @@ the information responsible for employment decisions based on the information pr
                 <input
                   type="search"
                   className="outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0"
-                  placeholder="Search by Client Code..."
+                  placeholder="Search Here..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -1297,7 +1297,7 @@ the information responsible for employment decisions based on the information pr
           ) : currentItems.length > 0 ? (
             <table className="min-w-full border-collapse border overflow-scroll rounded-lg whitespace-nowrap">
               <thead className="rounded-lg">
-                <tr className="bg-green-500 text-white">
+                <tr className="bg-[#3e76a5] text-white">
                   <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                     SL NO
                   </th>
@@ -1389,7 +1389,7 @@ the information responsible for employment decisions based on the information pr
                                     }));
                                   });
                                 }}
-                                className={`bg-green-500 uppercase border border-white hover:border-green-500 text-white px-4 py-2 rounded hover:bg-white hover:text-green-500 ${data.overall_status !== "completed" || data.is_verify !== "yes" ? "opacity-50 cursor-not-allowed" : ""}`}
+                                className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white hover:text-[#3e76a5] ${data.overall_status !== "completed" || data.is_verify !== "yes" ? "opacity-50 cursor-not-allowed" : ""}`}
                                 disabled={data.overall_status !== "completed" || data.is_verify !== "yes" || loadingStates[globalIndex] || isBranchApiLoading}
                               >
                                 {loadingStates[globalIndex] ? "Please Wait, Your PDF is Generating" : data.overall_status === "completed" ? data.is_verify === "yes" ? "DOWNLOAD" : "QC PENDING" : "NOT READY"}
@@ -1401,7 +1401,7 @@ the information responsible for employment decisions based on the information pr
                                   <img src={data.photo} alt="Image" className="md:h-20 h-10 w-20 rounded-full" />
                                 ) : (
                                   <a href={data.photo} target="_blank" rel="noopener noreferrer">
-                                    <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
+                                    <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                       View Document
                                     </button>
                                   </a>
@@ -1423,7 +1423,7 @@ the information responsible for employment decisions based on the information pr
                             <td className="border px-4  py-2">
                               <button
                                 disabled={isBranchApiLoading}
-                                className={`rounded-md p-3 text-white ${isBranchApiLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                                className={`rounded-md p-3 text-white ${isBranchApiLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                                 onClick={() => handleViewMore(index)} // Use globalIndex here
                               >
                                 {expandedRow && expandedRow.index === globalIndex ? 'Less' : 'View'}

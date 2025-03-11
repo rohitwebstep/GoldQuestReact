@@ -231,7 +231,7 @@ const CaseLog = () => {
                     });
                 } else {
                     // Refresh the conversation with updated messages
-                    replyTickets(ticket);
+                    replyTickets(ticket,conversationMsg);
 
                     // Optionally, update token if received in response
                     const newToken = result._token || result.token;
@@ -352,7 +352,7 @@ const CaseLog = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -752,7 +752,7 @@ const CaseLog = () => {
                             />
                             {passError.description && <p className='text-red-500'>{passError.description}</p>}
                         </div>
-                        <button type="submit" disabled={isBranchApiLoading} className='bg-green-400 text-white p-3 rounded-md w-full mb-4 hover:bg-green-200'>Submit Case-Logs</button>
+                        <button type="submit" disabled={isBranchApiLoading} className='bg-[#3e76a5] text-white p-3 rounded-md w-full mb-4 hover:bg-[#3e76a5]'>Submit Case-Logs</button>
                     </form>
                 </div>
             </div>
@@ -763,11 +763,11 @@ const CaseLog = () => {
                     <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-2">
+                                <div className="flex gap-2">
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-full md:w-auto p-3'>
+                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-7/12 md:w-auto p-3'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -779,7 +779,7 @@ const CaseLog = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
@@ -816,7 +816,7 @@ const CaseLog = () => {
                         ) : currentItems.length > 0 ? (
                             <table className="min-w-full">
                                 <thead>
-                                    <tr className="bg-green-500">
+                                    <tr className="bg-[#3e76a5]">
                                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">SL</th>
                                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Case Title</th>
                                         <th className="py-2 px-4 text-white border-r border-b text-center uppercase whitespace-nowrap">Ticket Number</th>
@@ -834,7 +834,7 @@ const CaseLog = () => {
                                             <td className="py-2 px-4 border-r border-b text-center whitespace-nowrap">
                                                 <button
                                                     disabled={isBranchApiLoading}
-                                                    className="bg-green-500 rounded-md hover:bg-green-200 p-2 me-3 text-white"
+                                                    className="bg-[#3e76a5] rounded-md hover:bg-[#3e76a5] p-2 me-3 text-white"
                                                     onClick={() => replyTickets(item.ticket_number, item.description)}
                                                 >
                                                     View
@@ -885,10 +885,10 @@ const CaseLog = () => {
 
             {showPopup && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="flex flex-col md:w-6/12 h-[500px] bg-white border relative border-gray-300 rounded-lg shadow-lg mx-auto mt-10">
+                    <div className="flex flex-col md:w-6/12 md:max-h-[500px] max-h-[300px] bg-white border relative border-gray-300 rounded-lg shadow-lg mx-auto mt-10">
                         {/* Close button */}
                         <button
-                            className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full hover:bg-red-600"
+                            className="absolute top-2 right-2 font-bold text-red-600 px-3 py-1 rounded-full "
                             onClick={handleClose}
                         >
                             X

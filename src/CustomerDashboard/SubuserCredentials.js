@@ -321,7 +321,7 @@ const SubUserCredentials = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -441,7 +441,7 @@ const SubUserCredentials = () => {
 
               }
               <div className="text-left">
-                <button type="submit" className={`p-6 py-3 bg-green-500 hover:scale-105   transition duration-200  text-white font-bold rounded-md hover:bg-[#0f5381] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                <button type="submit" className={`p-6 py-3 bg-[#3e76a5] hover:scale-105   transition duration-200  text-white font-bold rounded-md hover:bg-[#0f5381] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isEditEmail ? "EDIT " : "CREATE"}
                 </button>
@@ -459,7 +459,7 @@ const SubUserCredentials = () => {
                   <select name="options" onChange={(e) => {
                     handleSelectChange(e); // Call the select change handler
                     setCurrentPage(1); // Reset current page to 1
-                  }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                  }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                     <option value="10">10 Rows</option>
                     <option value="20">20 Rows</option>
                     <option value="50">50 Rows</option>
@@ -470,7 +470,7 @@ const SubUserCredentials = () => {
                   </select>
                   <button
                     onClick={exportToExcel}
-                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                    className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
                     type="button"
                     disabled={currentItems.length === 0}
                   >
@@ -503,7 +503,7 @@ const SubUserCredentials = () => {
             ) : currentItems.length > 0 ? (
               <table className="min-w-full mb-4">
                 <thead>
-                  <tr className='bg-green-500'>
+                  <tr className='bg-[#3e76a5]'>
                     <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">SL</th>
                     <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">username</th>
                     <th className="py-2 px-4 text-white border-r border-b text-center uppercase whitespace-nowrap">Action</th>
@@ -519,8 +519,8 @@ const SubUserCredentials = () => {
                       <td className="py-2 px-4 border-r border-b whitespace-nowrap text-center">
                         <button
                           disabled={loading}
-                          onClick={() => editUser(item)}
-                          className='bg-green-500 rounded-md hover:bg-green-200 p-2 text-white'
+                          onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); editUser(item) }}
+                          className='bg-[#3e76a5] rounded-md hover:bg-[#3e76a5] p-2 text-white'
                         >
                           Edit Subuser
                         </button>

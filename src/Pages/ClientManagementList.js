@@ -15,7 +15,18 @@ Modal.setAppElement('#root');
 
 const ClientManagementList = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState('');
 
+  // Handle opening and closing of modal
+  const openModal = (item) => {
+    setSelectedAddress(item.address || 'NIL');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
   const [showPopup, setShowPopup] = useState(false);
 
   const { handleTabChange } = useSidebar();
@@ -303,7 +314,7 @@ const ClientManagementList = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-white  border'}`}
         >
           {number}
         </button>
@@ -331,27 +342,27 @@ const ClientManagementList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         setIsApiLoading(true); // Indicate the loading state
-  
+
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
-  
+
         if (!admin_id || !storedToken) {
           console.error("Admin ID or token is missing.");
           Swal.fire('Error', 'Admin ID or token is missing.', 'error');
           setIsApiLoading(false);
           return;
         }
-  
+
         const requestOptions = {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
           },
         };
-  
+
         let url;
         let successMessage;
-  
+
         // Set the URL and success message based on the type of delete
         if (type === 'client') {
           url = `${API_URL}/customer/delete?id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
@@ -365,7 +376,7 @@ const ClientManagementList = () => {
           setIsApiLoading(false);
           return;
         }
-  
+
         // Send the DELETE request
         fetch(url, requestOptions)
           .then((response) => response.json().then((result) => {
@@ -373,7 +384,7 @@ const ClientManagementList = () => {
             if (newToken) {
               localStorage.setItem("_token", newToken);
             }
-  
+
             // Handle errors in the response
             if (!response.ok) {
               const errorMessage = result.message || 'An error occurred';
@@ -391,12 +402,12 @@ const ClientManagementList = () => {
               }
               throw new Error(errorMessage);
             }
-  
+
             // Fetch updated data after successful delete
             fetchData();
             toggleAccordion(); // Refresh UI or reload data
 
-  
+
             // Show success message
             Swal.fire('Deleted!', successMessage, 'success');
           }))
@@ -409,7 +420,7 @@ const ClientManagementList = () => {
       }
     });
   };
-  
+
 
 
 
@@ -648,18 +659,16 @@ const ClientManagementList = () => {
   return (
     <>
 
-
-
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-3">
         <div className="col">
-          <div className="md:flex gap-3">
+          <div className="flex gap-3">
             <select
               name="options"
               onChange={(e) => {
                 handleSelectChange(e); // Call the select change handler
                 setCurrentPage(1); // Reset current page to 1
               }}
-              className="outline-none p-3 text-left rounded-md w-full md:w-6/12"
+              className="outline-none p-3 text-left rounded-md w-7/12 md:w-6/12"
             >
 
               <option value="10">10 Rows</option>
@@ -672,13 +681,13 @@ const ClientManagementList = () => {
               <option value="500">500 Rows</option>
             </select>
             <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                  type="button"
-                  disabled={currentItems.length === 0}
-                >
-                  Export to Excel
-                </button>
+              onClick={exportToExcel}
+              className="bg-[#3e76a5] text-white py-3 text-sm px-4 rounded-md capitalize"
+              type="button"
+              disabled={currentItems.length === 0}
+            >
+              Export to Excel
+            </button>
           </div>
         </div>
         <div className="col md:flex justify-end">
@@ -687,7 +696,7 @@ const ClientManagementList = () => {
               <input
                 type="search"
                 className='outline-none border-2 p-3 rounded-md w-full my-4 md:my-0'
-                placeholder='Search by Client Code...'
+                placeholder='Search Here...'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -707,18 +716,18 @@ const ClientManagementList = () => {
         ) : currentItems.length > 0 ? (
           <table className="min-w-full mb-4" >
             <thead>
-              <tr className='bg-green-500'>
-                <th className=" p-3 border-b border-r border-l text-white text-left uppercase whitespace-nowrap text-sm">SL</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Client Code</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Company Name</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Name of Client Spoc</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Date of Service Agreement</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Contact Person</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Mobile</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Client Standard Procedure</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Services</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Address</th>
-                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap text-sm">Action</th>
+              <tr className='bg-[#3e76a5] text-white'>
+                <th className=" p-3 border-b border-r border-l text-white text-left uppercase whitespace-nowrap">SL</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Client Code</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Company Name</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Name of Client Spoc</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Date of Service Agreement</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Contact Person</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Mobile</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Client Standard Procedure</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Services</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Address</th>
+                <th className=" p-3 border-b border-r text-white text-left uppercase whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody id='clientListTableTBody'>
@@ -727,22 +736,22 @@ const ClientManagementList = () => {
                 return (
                   <>
                     <tr key={item.main_id}>
-                      <td className=" p-3 border-b border-l border-r text-left whitespace-nowrap text-sm capitalize">
+                      <td className=" p-3 border-b border-l border-r text-left whitespace-nowrap capitalize">
                         {index + 1 + (currentPage - 1) * itemsPerPage}
                       </td>
-                      <td className=" p-3 border-b border-r text-center whitespace-nowrap text-sm capitalize">{item.client_unique_id || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r whitespace-nowrap text-sm capitalize">{item.name || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-center whitespace-nowrap text-sm capitalize">{item.single_point_of_contact || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-sm text-center cursor-pointer">
+                      <td className=" p-3 border-b border-r text-center whitespace-nowrap capitalize">{item.client_unique_id || 'NIL'}</td>
+                      <td className=" p-3 border-b border-r  whitespace-nowrap  capitalize">{item.name || 'NIL'}</td>
+                      <td className=" p-3 border-b border-r text-center whitespace-nowrap capitalize">{item.single_point_of_contact || 'NIL'}</td>
+                      <td className=" p-3 border-b border-r text-center cursor-pointer">
                         {new Date(item.agreement_date).getDate()}-
                         {new Date(item.agreement_date).getMonth() + 1}-
                         {new Date(item.agreement_date).getFullYear()}
                       </td>
 
 
-                      <td className=" p-3 border-b border-r text-center text-sm cursor-pointer  whitespace-nowrap md:whitespace-normal">{item.contact_person_name || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-center text-sm cursor-pointer">{item.mobile || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-center text-sm whitespace-nowrap md:whitespace-normal cursor-pointer">{item.client_standard || 'NIL'}</td>
+                      <td className=" p-3 border-b border-r text-center cursor-pointer  whitespace-nowrap md:whitespace-normal">{item.contact_person_name || 'NIL'}</td>
+                      <td className=" p-3 border-b border-r text-center cursor-pointer">{item.mobile || 'NIL'}</td>
+                      <td className=" p-3 border-b border-r text-center whitespace-nowrap md:whitespace-normal cursor-pointer">{item.client_standard || 'NIL'}</td>
                       <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">
                         {services.find(serviceGroup => serviceGroup.customerId === item.main_id)?.services?.length > 0 ? (
                           <>
@@ -752,7 +761,7 @@ const ClientManagementList = () => {
                               ?.services?.slice(0, 1)
                               .map((service) => (
                                 <div key={service.serviceId} className=" text-start flex">
-                                  <div className="px-4 py-2 bg-green-100 border text-center border-green-500 rounded-lg text-sm">
+                                  <div className="px-4 py-2 text-sm border text-center border-[#3e76a5] rounded-lg">
                                     {service.serviceTitle}
                                   </div>
                                 </div>
@@ -763,7 +772,7 @@ const ClientManagementList = () => {
                                 .find(serviceGroup => serviceGroup.customerId === item.main_id)
                                 ?.services?.length > 1 && (
                                   <button
-                                    className="view-more-btn bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600"
+                                    className="view-more-btn  px-3 py-1 rounded-md "
                                     onClick={() => setShowPopup(item.main_id)} // Open the popup
                                   >
                                     View More
@@ -778,11 +787,11 @@ const ClientManagementList = () => {
                       {/* Popup */}
                       {showPopup === item.main_id && (
                         <div
-                          className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center p-5  justify-center z-50"
+                          className="popup-overlay fixed inset-0 w-full bg-black bg-opacity-50 flex items-center p-5  justify-center z-50"
                           onClick={() => setShowPopup(null)} // Close the popup when clicking outside
                         >
                           <div
-                            className="popup-content bg-white h-[calc(100vh-20%)] max-h-[80vh] overflow-y-auto rounded-lg shadow-lg md:w-6/12 p-6"
+                            className=" bg-white w-auto max-h-[80vh] overflow-y-auto rounded-lg shadow-lg md:w-6/12 p-6"
                             onClick={(e) => e.stopPropagation()} // Prevent popup close when clicking inside
                           >
                             <button
@@ -797,7 +806,7 @@ const ClientManagementList = () => {
                               {services.find(serviceGroup => serviceGroup.customerId === item.main_id)?.services.map((service) => (
                                 <div
                                   key={service.serviceId}
-                                  className="px-4 py-2 bg-green-100 border text-center   border-green-500 rounded-lg text-sm"
+                                  className="px-4 py-2 border text-center text-sm   border-[#3e76a5] rounded-lg"
                                 >
                                   <div>{service.serviceTitle}</div>
                                 </div>
@@ -809,12 +818,29 @@ const ClientManagementList = () => {
 
 
 
-                      <td className=" p-3 border-b border-r whitespace-wrap capitalize  text-sm  whitespace-nowrap md:whitespace-normal">{item.address || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-left whitespace-nowrap text-sm fullwidth">
+                      <td className="p-3 border-b border-r capitalize whitespace-nowrap ">
+                       
+                        <button  onClick={()=>openModal(item)} className='text-[#3e76a5]'> View Full address</button>
+                      </td>
+                      {isModalOpen && (
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                          <div className="bg-white p-6 rounded-lg max-w-lg w-full">
+                            <h2 className="text-xl font-semibold mb-4">Full Address</h2>
+                            <p className="text-sm">{selectedAddress}</p>
+                            <button
+                              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded"
+                              onClick={closeModal}
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <td className=" p-3 border-b border-r text-left whitespace-nowrap fullwidth">
                         <button className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
                           disabled={isApiLoading} onClick={() => blockClient(item.main_id)}>Block</button>
                         <button
-                          className="bg-green-600 hover:bg-green-200  text-sm rounded-md p-2 md:p-3 px-5 text-white ms-2"
+                          className="bg-[#3e76a5]  hover:bg-[#3e76a5]   rounded-md p-2 md:p-3 px-5 text-white ms-2"
                           onClick={() => handleEditForm(item)}
                         >
                           Edit
@@ -823,7 +849,7 @@ const ClientManagementList = () => {
                         {item.branch_count > 1 && (
                           <button
                             disabled={isApiLoading}
-                            className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                            className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5]  hover:bg-[#3e76a5] text-white'}`}
                             onClick={() => toggleAccordion(item.main_id)}
                           >
                             View Branches
@@ -861,19 +887,19 @@ const ClientManagementList = () => {
                                   <table key={branch.id} id="Branches" className="accordion w-4/12 m-0 bg-slate-100 p-3 rounded-md text-left mt-3">
                                     <thead>
                                       <tr>
-                                        <th className="p-3 py-2 text-left whitespace-nowrap text-sm">Name</th>
+                                        <th className="p-3 py-2 text-left whitespace-nowrap">Name</th>
                                         <th className="p-3 py-2 text-left">Email</th>
                                         <th className="p-3 py-2 text-left">Actions</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       <tr>
-                                        <td className="border p-3 py-2 whitespace-nowrap text-sm">{branch.name}</td>
-                                        <td className="border p-3 py-2 whitespace-nowrap text-sm">{branch.email}</td>
+                                        <td className="border p-3 py-2 whitespace-nowrap">{branch.name}</td>
+                                        <td className="border p-3 py-2 whitespace-nowrap">{branch.email}</td>
                                         <td className="border p-3 py-2">
                                           <div className="flex gap-3 items-center">
                                             <button
-                                              className="bg-green-600 hover:bg-green-200 rounded-md p-3 px-5 text-white"
+                                              className="bg-[#3e76a5] text-white hover:bg-[#3e76a5]  rounded-md p-3 px-5 "
                                               onClick={() => openPopup(branch)}
                                             >
                                               Edit
@@ -898,7 +924,7 @@ const ClientManagementList = () => {
                                             {isBlocked && (
                                               <button
                                                 disabled={isApiLoading}
-                                                className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                                                className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5]  hover:bg-[#3e76a5] '}`}
 
                                                 onClick={() => unblockBranch(branch.id)}
                                               >
@@ -959,7 +985,7 @@ const ClientManagementList = () => {
                   </button>
                   <button
                     type="button"
-                    className="bg-green-600 text-white rounded-md px-4 py-2"
+                    className="bg-[#3e76a5] text-white rounded-md px-4 py-2"
                     onClick={handleEditBranch}
                   >
                     Save
@@ -980,7 +1006,7 @@ const ClientManagementList = () => {
         <button
           onClick={showPrev}
           disabled={currentPage === 1}
-          className="inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 font-medium text-gray-700 hover:bg-gray-50"
           aria-label="Previous page"
         >
           <MdArrowBackIosNew />
@@ -991,7 +1017,7 @@ const ClientManagementList = () => {
         <button
           onClick={showNext}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center rounded-0 border border-gray-300 bg-white p-3 py-2 font-medium text-gray-700 hover:bg-gray-50"
           aria-label="Next page"
         >
           <MdArrowForwardIos />

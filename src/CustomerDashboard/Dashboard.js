@@ -20,7 +20,7 @@ const Dashboard = () => {
     const [itemsPerPage, setItemsPerPage] = useState({}); // Track items per page for each status
     const [paginatedData, setPaginatedData] = useState({});
 
-    const {tableData, loading } = useDashboard();
+    const { tableData, loading } = useDashboard();
 
 
     const formatKey = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
@@ -82,7 +82,7 @@ const Dashboard = () => {
                 <button
                     key={number}
                     onClick={() => handlePageChange(number, status)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -111,31 +111,30 @@ const Dashboard = () => {
 
 
     return (
-        <div className="md:p-14 p-4">
-          
+        <div className="md:p-14 p-4 px-2">
             <div className="my-10">
                 <div className="md:flex items-stretch gap-6">
                     <div className="md:w-6/12 bg-white shadow-md rounded-md">
                         <Chart />
                     </div>
-                    <div className="md:w-6/12 bg-white shadow-md rounded-md p-3 border">
+                    <div className="md:w-6/12 bg-white shadow-md rounded-md md:mt-0 mt-4 p-3 border">
                         <Chart2 />
                     </div>
                 </div>
             </div>
-           <div className='border p-2'>
+            <div className="border p-2  md:flex flex-wrap justify-center">
                 {loading ? (
-                     <div className="grid md:grid-cols-2 grid-cols-1 gap-6 border-t-2">
-                    <div className="flex justify-center items-center w-full py-10">
-                        <PulseLoader
-                            color={color}
-                            loading={loading}
-                            cssOverride={override}
-                            size={15}
-                            aria-label="Loading Spinner"
-                            data-testid="loader"
-                        />
-                    </div>
+                    <div className="grid md:grid-cols-2 grid-cols-1 gap-6 border-t-2">
+                        <div className="flex justify-center items-center w-full py-10">
+                            <PulseLoader
+                                color={color}
+                                loading={loading}
+                                cssOverride={override}
+                                size={15}
+                                aria-label="Loading Spinner"
+                                data-testid="loader"
+                            />
+                        </div>
                     </div>
                 ) : Object.keys(tableData.clientApplications).length > 0 ? (
                     Object.keys(tableData.clientApplications).map((key) => {
@@ -148,89 +147,102 @@ const Dashboard = () => {
                         );
 
                         return (
-                            <div className="overflow-x-auto p-4" key={key}>
-                                <h2 className="font-bold text-2xl pb-6 w-full text-center uppercase">
+                            <div className="overflow-x-auto  md:w-6/12 " key={key}>
+                                <div className='bg-white md:mb-0 mb-4 rounded-md p-3 mx-3'> <h2 className="font-bold text-2xl pb-6 w-full text-center uppercase">
                                     {formatKey(key) || 'NIL'}
                                 </h2>
-                                <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
-                                    <div className="col md:flex gap-3">
-                                        <select
-                                            onChange={(e) => handleSelectChange(e, key)}
-                                            className='outline-none pe-3 ps-2 text-left rounded-md w-10/12 border '
-                                            value={itemsPerPage[key] || 10}
-                                        >
-                                            <option value="10">10 Rows</option>
-                                            <option value="20">20 Rows</option>
-                                            <option value="50">50 Rows</option>
-                                            <option value="100">100 Rows</option>
-                                            <option value="200">200 Rows</option>
-                                            <option value="300">300 Rows</option>
-                                            <option value="400">400 Rows</option>
-                                            <option value="500">500 Rows</option>
-                                        </select>
+                                    <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
+                                        <div className="col flex gap-3">
+                                            <select
+                                                onChange={(e) => handleSelectChange(e, key)}
+                                                className="outline-none pe-3 ps-2 text-left py-3 rounded-md w-7/12 md:w-10/12 border"
+                                                value={itemsPerPage[key] || 10}
+                                            >
+                                                <option value="10">10 Rows</option>
+                                                <option value="20">20 Rows</option>
+                                                <option value="50">50 Rows</option>
+                                                <option value="100">100 Rows</option>
+                                                <option value="200">200 Rows</option>
+                                                <option value="300">300 Rows</option>
+                                                <option value="400">400 Rows</option>
+                                                <option value="500">500 Rows</option>
+                                            </select>
+                                            <button
+                                                onClick={() => exportToExcel(applicationGroup.applications, key)}
+                                                className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
+                                                type="button"
+                                            >
+                                                Export to Excel
+                                            </button>
+                                        </div>
+                                        <div className="col md:flex justify-end gap-3">
+                                            <input
+                                                type="search"
+                                                className="outline-none border-2 p-2 rounded-md w-full my-4 md:my-0"
+                                                placeholder="Search Here"
+                                            />
+                                        </div>
+                                    </div>
+                                    <table className="min-w-full bg-white border">
+                                        <thead>
+                                            <tr className="bg-[#3e76a5]">
+                                                <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">
+                                                    No
+                                                </th>
+                                                <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">
+                                                    Application ID
+                                                </th>
+                                                <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">
+                                                    Application Name
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedApplications.length > 0 ? (
+                                                paginatedApplications.map((application, appIndex) => (
+                                                    <tr key={appIndex}>
+                                                        <td className="py-3 px-4 border-b text-[#3e76a5] whitespace-nowrap">
+                                                            {(currentPage - 1) * currentItemsPerPage + appIndex + 1}
+                                                        </td>
+                                                        <td className="py-3 px-4 border-b whitespace-nowrap">
+                                                            {application.application_id}
+                                                        </td>
+                                                        <td className="py-3 px-4 border-b whitespace-nowrap">
+                                                            {application.application_name}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="3" className="py-3 px-4 border-b text-center text-gray-500">
+                                                        No applications available
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+
+                                    <div className="flex items-center justify-end rounded-md bg-white px-4 py-3 sm:px-6 md:m-4 mt-2">
                                         <button
-                                            onClick={() => exportToExcel(applicationGroup.applications, key)}
-                                            className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                                            type='button'
+                                            type="button"
+                                            onClick={() => showPrev(key)}
+                                            disabled={currentPage === 1}
+                                            className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                            aria-label="Previous page"
                                         >
-                                            Excel
+                                            <MdArrowBackIosNew />
+                                        </button>
+                                        <div className="flex items-center">{renderPagination(key)}</div>
+                                        <button
+                                            type="button"
+                                            onClick={() => showNext(key)}
+                                            disabled={currentPage >= calculateTotalPages(applicationGroup, currentItemsPerPage)}
+                                            className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                            aria-label="Next page"
+                                        >
+                                            <MdArrowForwardIos />
                                         </button>
                                     </div>
-                                    <div className="col md:flex justify-end gap-3">
-                                        <input
-                                            type="search"
-                                            className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
-                                            placeholder='Search by Client Code, Company Name, or Client Spoc'
-                                        />
-                                    </div>
-                                </div>
-                                <table className="min-w-full bg-white border">
-                                    <thead>
-                                        <tr className='bg-green-500'>
-                                            <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">No</th>
-                                            <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">Application ID</th>
-                                            <th className="py-3 px-4 border-b text-left border-r-2 text-white whitespace-nowrap uppercase">Application Name</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {paginatedApplications.length > 0 ? (
-                                            paginatedApplications.map((application, appIndex) => (
-                                                <tr key={appIndex}>
-                                                    <td className="py-3 px-4 border-b text-green-600 whitespace-nowrap">{(currentPage - 1) * currentItemsPerPage + appIndex + 1}</td>
-                                                    <td className="py-3 px-4 border-b whitespace-nowrap">{application.application_id}</td>
-                                                    <td className="py-3 px-4 border-b whitespace-nowrap">{application.application_name}</td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="3" className="py-3 px-4 border-b text-center text-gray-500">No applications available</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-
-                                <div className="flex items-center justify-end rounded-md bg-white px-4 py-3 sm:px-6 md:m-4 mt-2">
-                                    <button
-                                        type='button'
-                                        onClick={() => showPrev(key)}
-                                        disabled={currentPage === 1}
-                                        className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                        aria-label="Previous page"
-                                    >
-                                        <MdArrowBackIosNew />
-                                    </button>
-                                    <div className="flex items-center">
-                                        {renderPagination(key)}
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => showNext(key)}
-                                        disabled={currentPage >= calculateTotalPages(applicationGroup, currentItemsPerPage)}
-                                        className="inline-flex items-center rounded-0 border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                        aria-label="Next page"
-                                    >
-                                        <MdArrowForwardIos />
-                                    </button>
                                 </div>
                             </div>
                         );
@@ -240,11 +252,9 @@ const Dashboard = () => {
                         <p className="text-center text-lg">No applications available</p>
                     </div>
                 )}
-         
-
-
-         </div>
+            </div>
         </div>
+
     );
 };
 

@@ -18,7 +18,7 @@ const PasswordReset = () => {
                         <li className='h-14 w-14  rounded-lg border border-green-400'></li>
                     </ul>
                 </div>
-               <Link to='/newpassword'> <button type="button " className='w-full bg-green-400 rounded-md p-3 hover:bg-green-200 text-white'>Continue</button></Link>
+               <Link to='/newpassword'> <button type="button " className='w-full bg-[#3e76a5] rounded-md p-3 hover:bg-[#3e76a5] text-white'>Continue</button></Link>
                 <p className='text-center py-4'>Didn,t Recieve the email? <span className='text-blue-400'>Click to resend</span></p>
                 <span className='flex justify-center items-center gap-4 text-blue-400'>
                 <FaArrowLeft />

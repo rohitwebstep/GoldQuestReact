@@ -962,7 +962,7 @@ const DemoBgForm = () => {
                                                 style={{ width: `${progress}%` }}
                                             ></div>
                                         </div>
-                                        <div className="mt-4 text-center text-lg font-semibold text-green-600">
+                                        <div className="mt-4 text-center text-lg font-semibold text-[#3e76a5]">
                                             {Math.round(progress)}%
                                         </div>
                                     </div>
@@ -992,10 +992,10 @@ const DemoBgForm = () => {
                                 <div className="text-center flex items-end">
                                     <button
                                         onClick={() => handleTabClick(0)} // Navigate to tab 0 (Personal Information)
-                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
+                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-[#3e76a5]" : "text-gray-700"}`}
                                     >
                                         <FaUser
-                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === 0 ? "bg-[#3e76a5] text-white" : "bg-gray-300 text-gray-700"}`}
                                         />
                                         Personal Information
                                     </button>
@@ -1015,12 +1015,12 @@ const DemoBgForm = () => {
                                             <button
                                                 disabled={!isTabEnabled} // Disable tab if not filled or if it's not the current tab
                                                 className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-                    ${activeTab === index + 1 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
+                    ${activeTab === index + 1 ? "text-[#3e76a5]" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
                                                 onClick={() => handleTabClick(index + 1)} // Switch to this tab if clicked
                                             >
                                                 <FaCog
                                                     className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-                        ${activeTab === index + 1 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-400")}`}
+                        ${activeTab === index + 1 ? "bg-[#3e76a5] text-white" : (isTabEnabled ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-400")}`}
                                                 />
                                                 {service.heading}
                                             </button>
@@ -1033,11 +1033,11 @@ const DemoBgForm = () => {
                                 <div className="text-center">
                                     <button
                                         onClick={() => handleTabClick(serviceData.length + 1)} // Set tab to the last one (declaration)
-                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceData.length + 1 ? "text-green-500" : "text-gray-700"}`}
+                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === serviceData.length + 1 ? "text-[#3e76a5]" : "text-gray-700"}`}
                                         disabled={!formData[`tab${serviceData.length}`]} // Disable the tab if the last form is not filled
                                     >
                                         <FaCheckCircle
-                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceData.length + 1 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-700"}`}
+                                            className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full ${activeTab === serviceData.length + 1 ? "bg-[#3e76a5] text-white" : "bg-gray-300 text-gray-700"}`}
                                         />
                                         Declaration and Authorization
                                     </button>
@@ -1970,7 +1970,7 @@ const DemoBgForm = () => {
                             <div className="flex space-x-4 mt-6">
                                 <button
                                     onClick={(e) => handleSubmit(0, e)} // Pass 0 when Save is clicked
-                                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                                    className="px-6 py-2 bg-[#3e76a5] text-white rounded-md hover:bg-[#3e76a5]"
                                 >
                                     Save
                                 </button>

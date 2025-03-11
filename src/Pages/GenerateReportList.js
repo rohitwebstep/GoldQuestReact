@@ -214,7 +214,7 @@ const GenerateReportList = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -285,11 +285,11 @@ const GenerateReportList = () => {
         <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
           <div className="col">
             <form action="">
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-between md:justify-start">
                 <select name="options" onChange={(e) => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1
-                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
@@ -300,7 +300,7 @@ const GenerateReportList = () => {
                 </select>
                 <button
                   onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                  className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
                   type="button"
                   disabled={currentItems.length === 0}
                 >
@@ -315,7 +315,7 @@ const GenerateReportList = () => {
                 <input
                   type="search"
                   className='outline-none border p-2 text-sm rounded-md w-full my-4 md:my-0'
-                  placeholder='Search by Client Code'
+                  placeholder='Search Here'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -333,7 +333,7 @@ const GenerateReportList = () => {
           <div className='overflow-x-auto' ref={tableRef}>
             <table className="min-w-full">
               <thead>
-                <tr className="bg-green-500">
+                <tr className="bg-[#3e76a5]">
                   <th className="py-2 text-center text-white border-r px-4 border-b whitespace-nowrap uppercase">SL</th>
                   <th className="py-2 text-center text-white border-r px-4 border-b whitespace-nowrap uppercase">Application ID</th>
                   <th className="py-2 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">Name Of Applicant</th>
@@ -352,7 +352,7 @@ const GenerateReportList = () => {
 
                       <td className="py-2 px-4 text-center border-b border-r whitespace-nowrap">
                         <button
-                          className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-blue-200"
+                          className="bg-[#3e76a5] text-white py-2 px-4 rounded-md hover:bg-blue-200"
                           onClick={() => toggleRow(index)}
                         >
                           {expandedRows[index] ? "Hide Services" : "View More"}

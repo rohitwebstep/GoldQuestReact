@@ -798,7 +798,7 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
           <div className="text-left">
             <button
               type="submit"
-              className="p-6 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-blue-400 disabled:bg-gray-400"
+              className="p-6 py-3 bg-[#3e76a5] text-white font-bold rounded-md hover:bg-blue-400 disabled:bg-gray-400"
               disabled={isLoading || isApiLoading} // Button is disabled while loading
             >
               {isLoading ? "Please Wait Your PDF is Generating..." : "Submit"}

@@ -183,7 +183,7 @@ const HolidayManagementForm = () => {
                 {error.date && <p className='text-red-500'>{error.date}</p>}
             </div>
             <button
-                className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                className={`rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                 type='submit' disabled={loading || isApiLoading}>
                 {loading ? 'Processing...' : isEdit ? 'Update' : 'Add'}
             </button>

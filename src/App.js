@@ -124,7 +124,7 @@ const App = () => {
                                     </Routes>
                                     {showGoToTop && (
                                       <div
-                                        className="fixed bottom-5 right-5 bg-green-500 text-white p-3 rounded-full shadow-lg cursor-pointer hover:bg-green-600"
+                                        className="fixed bottom-5 right-5 bg-[#3e76a5] text-white p-3 rounded-full shadow-lg cursor-pointer hover:bg-[#3e76a5]"
                                         onClick={scrollToTop}
                                         aria-label="Scroll to top"
                                       >

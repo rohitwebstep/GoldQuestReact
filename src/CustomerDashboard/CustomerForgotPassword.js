@@ -118,8 +118,8 @@ const CustomerForgotPassword = () => {
 
         <button
           type="submit"
-          className={`bg-green-400 text-white hover:bg-green-200 p-3 rounded-md w-full inline-block text-center
-            ${loading || emailSent || isBlocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-400 hover:bg-green-200'}`}
+          className={`bg-[#3e76a5] text-white hover:bg-[#3e76a5] p-3 rounded-md w-full inline-block text-center
+            ${loading || emailSent || isBlocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
           disabled={loading || emailSent || isBlocked} // Disable the button if loading, email has been sent or account is blocked
         >
           {loading ? "Submitting..." : emailSent ? "Email Sent" : "Reset Password"}

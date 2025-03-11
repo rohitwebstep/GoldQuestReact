@@ -1968,7 +1968,7 @@ const CandidateBGV = () => {
                     </div >
                 ) :
                     <>
-                        <form className='py-6 bg-[#e5e7eb24]' ref={contentRef} id='bg-form'>
+                        <form className='py-6 bg-[#e5e7eb24] p-4' ref={contentRef} id='bg-form'>
                             <div className="md:w-10/12 mx-auto md:p-6" >
                                 {customBgv === 1 && (
                                     <div className='flex justify-center my-3'>
@@ -1991,10 +1991,10 @@ const CandidateBGV = () => {
                                     <div className="text-center flex items-end gap-2">
                                         <button
                                             type='button'
-                                            className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
+                                            className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-[#3e76a5]" : "text-gray-700"}`}
                                         >
                                             <FaUser
-                                                className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-green-500 text-white"
+                                                className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-[#3e76a5] text-white"
                                             />
                                             Personal Information
                                         </button>
@@ -2006,15 +2006,15 @@ const CandidateBGV = () => {
                                         <button
                                             type='button'
                                             className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} // Text color changes based on tab active customBgv
+${activeTab === 1 ? "text-[#3e76a5]" : "text-gray-700"}`} // Text color changes based on tab active customBgv
                                         >
                                             <FaUser
                                                 className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-${activeTab === 1 ? "bg-green-500 text-white" : (activeTab > 0 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
+${activeTab === 1 ? "bg-[#3e76a5] text-white" : (activeTab > 0 ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
                                             />
                                             Current/Permanent Address
                                         </button>
-                                        <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} />
+                                        <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-[#3e76a5]" : "text-gray-700"}`} />
 
 
                                     </div>
@@ -2027,11 +2027,11 @@ ${activeTab === 1 ? "bg-green-500 text-white" : (activeTab > 0 ? "bg-green-500 t
                                                 <button
                                                     type='button'
                                                     className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
+${activeTab === index + 2 ? "text-[#3e76a5]" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
                                                 >
                                                     <FaCog
                                                         className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`}
+${activeTab === index + 2 ? "bg-[#3e76a5] text-white" : (isTabEnabled ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400")}`}
                                                     />
                                                     {service.heading}
                                                 </button>
@@ -2045,11 +2045,11 @@ ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-gree
                                         <button
                                             type='button'
                                             className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-${activeTab === serviceData.length + 2 ? "text-green-500" : "text-gray-400"}`} // Text color changes based on tab active customBgv
+${activeTab === serviceData.length + 2 ? "text-[#3e76a5]" : "text-gray-400"}`} // Text color changes based on tab active customBgv
                                         >
                                             <FaCheckCircle
                                                 className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
+${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
                                             />
                                             Declaration and Authorization
                                         </button>
@@ -2086,7 +2086,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                         href={cefData.resume_file}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="flex items-center justify-center h-full w-full border bg-blue-500 text-white rounded-md"
+                                                                        className="flex items-center justify-center h-full w-auto p-3 border bg-blue-500 text-white rounded-md"
                                                                     >
                                                                         View Document
                                                                     </a>
@@ -2119,7 +2119,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                             <img src={item} alt={`Image ${index}`} className='p-3 ' />
                                                                         ) : (
                                                                             <div>
-                                                                                <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 rounded-md p-3 '>Open Link</button>
+                                                                                <button onClick={() => window.open(item, '_blank')} type='button' className='border-[#3e76a5] rounded-md p-3 '>Open Link</button>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -2161,7 +2161,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                         <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                     ) : (
                                                                                         <div>
-                                                                                            <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 p-3 rounded border'>Open Link</button>
+                                                                                            <button onClick={() => window.open(item, '_blank')} type='button' className=' p-3 rounded '>View Document</button>
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
@@ -3643,7 +3643,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
 
                                                                     if (item.startValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`]) {
                                                                         return (
-                                                                            <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
+                                                                            <p key={idx} className={`${isNoGap ? 'text-[#3e76a5]' : 'text-red-500'} py-2`}>
                                                                                 {isNoGap ? item.difference : `GAP-${item.difference || 'No gap Found'}`}
                                                                             </p>
                                                                         );
@@ -4013,12 +4013,12 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                         type="button"
                                         onClick={handleNext} // Call the handleNext function when the button is clicked
                                         disabled={activeTab === serviceData.length + 2} // Disable the button if on the last tab (e.g., tab 2)
-                                        className="bg-green-500 text-white p-3 rounded-md"
+                                        className="bg-[#3e76a5] text-white p-3 rounded-md"
                                     >
                                         Next
                                     </button>
 
-                                    <button className='bg-green-500 text-white p-3 rounded-md' type='button' onClick={generatePdf}>Download PDF</button>
+                                    <button className='bg-[#3e76a5] text-white p-3 rounded-md' type='button' onClick={generatePdf}>Download PDF</button>
 
                                 </div>
 

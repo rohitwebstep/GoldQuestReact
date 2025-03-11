@@ -292,7 +292,7 @@ const AdminChekin = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -1310,7 +1310,7 @@ const AdminChekin = () => {
         <div className="bg-[#c1dff2]">
             <div className="space-y-4 md:py-[30px] md:px-[51px] bg-white">
 
-                <div className='flex gap-4 justify-end p-4'>
+                <div className='flex gap-4 justify-end p-4 pb-0'>
                     <select id="" name='status' onChange={handleStatusChange} className='outline-none border-2 p-2 rounded-md w-full md:w-5/12 my-4 md:my-0' >
                         {options.map((item, index) => {
                             return item.status !== 'closed' ? (
@@ -1325,15 +1325,15 @@ const AdminChekin = () => {
 
                     </select>
                 </div>
-                <div className=" mx-4 bg-white ">
+                <div className="mx-4 mt-0 bg-white ">
                     <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="flex gap-5 justify-between">
+                                <div className="flex gap-5 flex-wrap justify-between">
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border'>
+                                    }} className='outline-none pe-14 ps-2 w-7/12 md:w-auto text-left rounded-md border'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -1345,13 +1345,13 @@ const AdminChekin = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
                                         Export to Excel
                                     </button>
-                                    <button onClick={goBack} className="bg-green-500 mx-2 whitespace-nowrap hover:bg-green-400 text-white rounded-md p-3">Go Back</button>
+                                    <button onClick={goBack}  className="bg-[#3e76a5] mx-2 text-sm whitespace-nowrap hover:bg-[#3e76a5] text-white rounded-md p-3">Go Back</button>
 
                                 </div>
                             </form>
@@ -1362,7 +1362,7 @@ const AdminChekin = () => {
                                     <input
                                         type="search"
                                         className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Client Code, Company Name, or Client Spoc'
+                                        placeholder='Search Here'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -1373,7 +1373,7 @@ const AdminChekin = () => {
                     </div>
 
                 </div>
-                <div ref={tableRef} className="overflow-x-auto py-6 px-4 shadow-md rounded-md bg-white">
+                <div ref={tableRef} className="overflow-x-auto m-4 py-6 px-4 shadow-md rounded-md bg-white">
                     {loading ? (
                         <div className='flex justify-center items-center py-6 h-full'>
                             <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
@@ -1381,7 +1381,7 @@ const AdminChekin = () => {
                     ) : currentItems.length > 0 ? (
                         <table className="min-w-full border-collapse border overflow-scroll rounded-lg whitespace-nowrap">
                             <thead className='rounded-lg'>
-                                <tr className="bg-green-500 text-white">
+                                <tr className="bg-[#3e76a5] text-white">
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">SL NO</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">TAT Days</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Location</th>
@@ -1423,7 +1423,7 @@ const AdminChekin = () => {
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                             >
-                                                                <button type='button' className="px-4 py-2 bg-green-500 text-white rounded">
+                                                                <button type='button' className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                                     View Document
                                                                 </button>
                                                             </a>
@@ -1452,7 +1452,7 @@ const AdminChekin = () => {
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                                                     <button
                                                         disabled={isApiLoading}
-                                                        className={`w-full rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                                                        className={`w-full rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
 
                                                         onClick={() => handleUpload(data.id, data.branch_id)}
                                                     >
@@ -1480,7 +1480,7 @@ const AdminChekin = () => {
                                                                 }));
                                                             });
                                                         }}
-                                                        className={`bg-green-500 uppercase border border-white hover:border-green-500 text-white px-4 py-2 rounded hover:bg-white hover:text-green-500 
+                                                        className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white hover:text-[#3e76a5] 
     ${data.overall_status !== 'completed' || data.is_verify !== 'yes' ? 'opacity-50 cursor-not-allowed' : ''} 
     ${loadingStates[index] ? 'cursor-wait' : ''}`} // Add cursor-wait to indicate loading
                                                         disabled={data.overall_status !== 'completed' || data.is_verify !== 'yes' || loadingStates[index] || isApiLoading} // Disable button while loading

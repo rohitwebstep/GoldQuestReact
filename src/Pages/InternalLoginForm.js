@@ -381,7 +381,7 @@ const InternalLoginForm = () => {
                     </div>
 
                 )}
-                <button type="submit" disabled={loading || isApiLoading} className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                <button type="submit" disabled={loading || isApiLoading} className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                 >Send</button>
                 <button type="button" onClick={emptyForm} className='bg-blue-400 hover:bg-blue-800 text-white p-3 mt-5 rounded-md w-full'>Reset Form</button>
             </form>

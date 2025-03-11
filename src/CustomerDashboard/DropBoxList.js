@@ -243,7 +243,7 @@ const DropBoxList = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -270,7 +270,7 @@ const DropBoxList = () => {
         }).then((result) => {
             if (result.isConfirmed) {
                 setIsBranchApiLoading(true);
-                const branchData=JSON.parse(localStorage.getItem("branch"));
+                const branchData = JSON.parse(localStorage.getItem("branch"));
                 const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
                 const _token = localStorage.getItem("branch_token");
 
@@ -397,11 +397,11 @@ const DropBoxList = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-2">
+                                <div className="flex gap-2">
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none pe-14 ps-2 text-left rounded-md border'>
+                                    }} className='outline-none pe-14 ps-2 text-left p-3 md:w-6/12 w-7/12 rounded-md border'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -413,7 +413,7 @@ const DropBoxList = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
@@ -427,15 +427,14 @@ const DropBoxList = () => {
                                 <div className="flex md:items-stretch items-center gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Client Code...'
+                                        className="outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0"
+                                        placeholder="Search Here..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
                             </form>
                         </div>
-
                     </div>
                     <div className="overflow-x-auto py-6 px-4">
                         {loading ? (
@@ -446,7 +445,7 @@ const DropBoxList = () => {
                         ) : currentItems.length > 0 ? (
                             <table className="min-w-full">
                                 <thead>
-                                    <tr className="bg-green-500">
+                                    <tr className="bg-[#3e76a5]">
                                         <th className="py-3 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">SL NO.</th>
                                         <th className="py-3 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">Photo</th>
                                         <th className="py-3 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">Application Id	</th>
@@ -480,7 +479,7 @@ const DropBoxList = () => {
                                                         />
                                                     ) : (
                                                         <a href={`${report.photo}`} target="_blank" rel="noopener noreferrer">
-                                                            <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
+                                                            <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                                 View Document
                                                             </button>
                                                         </a>
@@ -522,15 +521,15 @@ const DropBoxList = () => {
 
 
                                             {activeReportId === report.id && (
-                                                <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+                                                <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex p-4 justify-center items-center">
                                                     <div className="bg-white rounded-lg p-6 md:w-6/12 h-[400px] md:h-[500px] overflow-x-auto">
-                                                        <div className='flex justify-between items-center pb-3'> <h2 className="text-xl font-semibold mb-4">All Documents</h2>
-                                                            <div className='flex gap-2'><button className="modal-download-button bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(report.attach_documents)}>
+                                                        <div className='flex flex-wrap justify-between items-center pb-3'> <h2 className="md:text-xl font-semibold mb-4 text-sm">All Documents</h2>
+                                                            <div className='flex gap-2'><button className="modal-download-button text-sm bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(report.attach_documents)}>
                                                                 Download All
                                                             </button>
                                                                 <button
                                                                     onClick={closeModal}
-                                                                    className=" px-4 py-2 bg-red-500 text-white rounded"
+                                                                    className=" px-4 py-2 bg-red-500 text-sm text-white rounded"
                                                                 >
                                                                     Close
                                                                 </button></div></div>
@@ -545,7 +544,7 @@ const DropBoxList = () => {
                                                                         />
                                                                     ) : (
                                                                         <a href={doc} target="_blank" rel="noopener noreferrer">
-                                                                            <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
+                                                                            <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                                                 View Document {index + 1}
                                                                             </button>
                                                                         </a>
@@ -565,7 +564,7 @@ const DropBoxList = () => {
                                                     {Array.isArray(report.serviceNames) && report.serviceNames.length > 0 ? (
                                                         report.serviceNames.length === 1 ? (
 
-                                                            <span className="md:px-4 py-2  bg-green-100 border  border-green-500 rounded-lg text-sm">
+                                                            <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
                                                                 {typeof report.serviceNames[0] === "string"
                                                                     ? report.serviceNames[0]
                                                                     : report.serviceNames[0].join(", ")}
@@ -574,16 +573,16 @@ const DropBoxList = () => {
 
                                                             <>
                                                                 {typeof report.serviceNames[0] === "string" ? (
-                                                                    <span className="md:px-4 py-2 bg-green-100 p-2 border border-green-500 rounded-lg text-xs md:text-sm">
+                                                                    <span className="md:px-4 py-2  p-2 border border-[#3e76a5] rounded-lg text-xs md:text-sm">
                                                                         {report.serviceNames[0]}
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="md:px-4 py-2  bg-green-100 border  border-green-500 rounded-lg text-sm">
+                                                                    <span className="md:px-4 py-2   border  border-[#3e76a5] rounded-lg text-sm">
                                                                         {report.serviceNames[0].join(", ")}
                                                                     </span>
                                                                 )}
                                                                 <button
-                                                                    className="text-green-500 ml-2"
+                                                                    className="text-[#3e76a5] ml-2"
                                                                     onClick={() => handleViewMore(report.serviceNames)}
                                                                 >
                                                                     View More
@@ -612,7 +611,7 @@ const DropBoxList = () => {
                                                                 modalServices.map((service, idx) => (
                                                                     <span
                                                                         key={idx}
-                                                                        className="md:px-4 py-2 bg-green-100 border border-green-500 text-xs text-center p-2 rounded-lg md:text-sm"
+                                                                        className="md:px-4 py-2 border border-[#3e76a5] text-xs text-center p-2 rounded-lg md:text-sm"
                                                                     >
                                                                         {service}
                                                                     </span>
@@ -628,7 +627,7 @@ const DropBoxList = () => {
                                             <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{report.single_point_of_contact || 'NIL'}</td>
                                             <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.employee_id}</td>
                                             <td className="py-3 px-4 border-b whitespace-nowrap border-r">
-                                                <button className="bg-green-600 text-white p-3 rounded-md hover:bg-green-200" onClick={() => handleEdit(report)}>Edit</button>
+                                                <button className="bg-[#3e76a5] text-white p-3 rounded-md hover:bg-[#3e76a5]" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); handleEdit(report) }}>Edit</button>
                                                 <button disabled={loading || isBranchApiLoading}
                                                     className={`rounded-md p-3 ms-2 text-white ${isBranchApiLoading || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
 

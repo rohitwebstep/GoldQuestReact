@@ -715,7 +715,7 @@ const GenerateReport = () => {
                                                 rel="noopener noreferrer"
                                                 key={index} // Ensure key is added for anchor tags as well
                                             >
-                                                <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
+                                                <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                     View Document
                                                 </button>
                                             </a>
@@ -1349,7 +1349,7 @@ const GenerateReport = () => {
                                                         )}
                                                         <table className="md:w-full table-auto border-collapse border border-gray-300">
                                                             <thead>
-                                                                <tr className="bg-green-500 text-white">
+                                                                <tr className="bg-[#3e76a5] text-white">
                                                                     {formJson.headers.map((header, idx) => (
                                                                         <th
                                                                             key={idx}
@@ -1754,7 +1754,7 @@ const GenerateReport = () => {
                         <div className="text-right mt-4">
                             <button
                                 type="submit"
-                                className="bg-green-500 text-white rounded-md p-2.5"
+                                className="bg-[#3e76a5] text-white rounded-md p-2.5"
                             >
                                 Submit
                             </button>

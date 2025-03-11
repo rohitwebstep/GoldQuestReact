@@ -97,7 +97,7 @@ const ExelTrackerForm = () => {
                     {error.year && <p className='text-red-500'>{error.year}</p>}
 
                 </div>
-                <button type="submit" className='bg-green-500 text-center p-3 w-full rounded-md hover:bg-green-200 text-white text-lg'>Download</button>
+                <button type="submit" className='bg-[#3e76a5] text-center p-3 w-full rounded-md hover:bg-[#3e76a5] text-white text-lg'>Download</button>
             </form>
         </>
     )

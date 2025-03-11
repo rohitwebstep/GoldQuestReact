@@ -408,7 +408,7 @@ const CandidateForm = () => {
                         <div className="col bg-white shadow-md rounded-md p-3 mt-5 md:mt-0 md:p-6">
                             <div className="flex flex-wrap flex-col-reverse">
                                 <div className='mt-4 h-[300px] overflow-auto'>
-                                    <h2 className='bg-green-500 rounded-md p-4 text-white mb-4 hover:bg-green-200'>Service Names</h2>
+                                    <h2 className='bg-[#3e76a5] rounded-md p-4 text-white mb-4 hover:bg-[#3e76a5]'>Service Names</h2>
 
                                     {candidateLoading ? (
                                         <PulseLoader color="#36A2EB" loading={candidateLoading} size={15} />
@@ -463,7 +463,7 @@ const CandidateForm = () => {
                         </div>
                     </div>
                     <div className='flex gap-4'>
-                        <button type="submit" disabled={isBranchApiLoading} className='bg-green-400 hover:bg-green-200 text-white p-3 rounded-md  md:w-2/12'>{isEditCandidate ? "Edit" : "Send"}</button>
+                        <button type="submit" disabled={isBranchApiLoading} className='bg-[#3e76a5] hover:bg-[#3e76a5] text-white p-3 rounded-md  md:w-2/12'>{isEditCandidate ? "Edit" : "Send"}</button>
                         <button type="button" onClick={emptyForm} className='bg-blue-400 hover:bg-blue-800 text-white p-3 rounded-md '>Reset Form</button>
                     </div>
                 </form>

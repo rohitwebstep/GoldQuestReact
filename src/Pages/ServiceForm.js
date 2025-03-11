@@ -261,7 +261,7 @@ const ServiceForm = () => {
         {error.email_description && <p className='text-red-500'>{error.email_description}</p>}
       </div>
       <button
-        className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+        className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
         type="submit"
         disabled={loading || isApiLoading}
       >

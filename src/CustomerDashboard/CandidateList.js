@@ -83,21 +83,21 @@ const CandidateList = () => {
         const url = `/customer-dashboard/customer-bgv?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    
+
     const handleDAVClick = (def_id, branch_id, applicationId) => {
         // Construct the URL
         const url = `/customer-dashboard/customer-dav?def_id=${def_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
         // Open the URL in a new tab
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    
+
     const handleCheckGap = (cef_id, branch_id, applicationId) => {
         // Construct the URL
         const url = `/customer-dashboard/customer-gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
         // Open the URL in a new tab
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    
+
 
 
 
@@ -328,7 +328,7 @@ const CandidateList = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -645,8 +645,8 @@ const CandidateList = () => {
                     <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-3 ">
-                                    <select name="" id="" onChange={handleSelectChange} className='outline-none border p-2 md:p-3 w-full text-left rounded-md md:w-6/12'>
+                                <div className="flex gap-3 ">
+                                    <select name="" id="" onChange={handleSelectChange} className='outline-none border p-2 md:p-3 w-7/12 text-left rounded-md md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -658,7 +658,7 @@ const CandidateList = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-white py-3 text-sm px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
@@ -674,7 +674,7 @@ const CandidateList = () => {
                                     <input
                                         type="search"
                                         className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Client Code...'
+                                        placeholder='Search Here...'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -709,7 +709,7 @@ const CandidateList = () => {
                         ) : currentItems.length > 0 ? (
                             <table className="min-w-full">
                                 <thead>
-                                    <tr className='bg-green-500'>
+                                    <tr className='bg-[#3e76a5]'>
                                         <th className="md:py-3 p-2 text-left border-r border-l text-white md:px-4 border-b whitespace-nowrap uppercase">SL NO.</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Name of the applicant</th>
                                         <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Email Id</th>
@@ -738,7 +738,7 @@ const CandidateList = () => {
                                 </thead>
                                 <tbody>
                                     {currentItems.map((report, index) => (
-                                        <tr key={report.id || index} className={report?.cef_submitted === 1 ? "bg-green-100" : ""}>
+                                        <tr key={report.id || index} className={report?.cef_submitted === 1 ? "bg-[#3e76a585] " : ""}>
                                             <td className="md:py-3 p-2 md:px-4 border-l border-b border-r whitespace-nowrap capitalize">{index + 1}</td>
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.name}</td>
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.email}</td>
@@ -749,7 +749,7 @@ const CandidateList = () => {
                                                     {Array.isArray(report.serviceNames) && report.serviceNames.length > 0 ? (
                                                         report.serviceNames.length === 1 ? (
 
-                                                            <span className="md:px-4 py-2  bg-green-100 border  border-green-500 rounded-lg text-sm">
+                                                            <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
                                                                 {typeof report.serviceNames[0] === "string"
                                                                     ? report.serviceNames[0]
                                                                     : report.serviceNames[0].join(", ")}
@@ -758,16 +758,16 @@ const CandidateList = () => {
 
                                                             <>
                                                                 {typeof report.serviceNames[0] === "string" ? (
-                                                                    <span className="md:px-4 py-2 bg-green-100 p-2 border border-green-500 rounded-lg text-xs md:text-sm">
+                                                                    <span className="md:px-4 py-2 p-2 border border-[#3e76a5] rounded-lg text-xs md:text-sm">
                                                                         {report.serviceNames[0]}
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="md:px-4 py-2  bg-green-100 border  border-green-500 rounded-lg text-sm">
+                                                                    <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
                                                                         {report.serviceNames[0].join(", ")}
                                                                     </span>
                                                                 )}
                                                                 <button
-                                                                    className="text-green-500 ml-2"
+                                                                    className="text-[#3e76a5] ml-2"
                                                                     onClick={() => handleViewMore(report.serviceNames)}
                                                                 >
                                                                     View More
@@ -796,7 +796,7 @@ const CandidateList = () => {
                                                                 modalServices.map((service, idx) => (
                                                                     <span
                                                                         key={idx}
-                                                                        className="md:px-4 py-2 bg-green-100 border border-green-500 text-xs text-center p-2 rounded-lg md:text-sm"
+                                                                        className="md:px-4 py-2 border border-[#3e76a5] text-xs text-center p-2 rounded-lg md:text-sm"
                                                                     >
                                                                         {service}
                                                                     </span>
@@ -859,7 +859,7 @@ const CandidateList = () => {
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
                                                 {
                                                     report.is_bgv_form_opened === "1" ? (
-                                                        <span className="text-green-500">Open</span>  // Green text for "Open"
+                                                        <span className="text-[#3e76a5]">Open</span>  // Green text for "Open"
                                                     ) : (
                                                         <span className="text-red-500">Not Yet Opened</span>  // Red text for "Not Yet Opened"
                                                     )
@@ -867,7 +867,7 @@ const CandidateList = () => {
                                             </td>
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
-                                                    ? "text-green-500"
+                                                    ? "text-[#3e76a5]"
                                                     : report.is_employment_gap === "yes"
                                                         ? "text-red-500"
                                                         : "text-black"
@@ -879,7 +879,7 @@ const CandidateList = () => {
 
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_education_gap === "no"
-                                                    ? "text-green-500"
+                                                    ? "text-[#3e76a5]"
                                                     : report.is_education_gap === "yes"
                                                         ? "text-red-500"
                                                         : "text-black"
@@ -889,7 +889,7 @@ const CandidateList = () => {
                                             </td>
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
-                                                    ? "text-green-500"
+                                                    ? "text-[#3e76a5]"
                                                     : report.is_employment_gap === "yes"
                                                         ? "text-red-500"
                                                         : "text-black"
@@ -941,7 +941,7 @@ const CandidateList = () => {
                                             {/* {report.cef_submitted === 0 || (report.dav_exist === 1 && report.dav_submitted === 0) ? (
                                                 <td className="border px-4 py-2">
                                                     <button
-                                                        className={`bg-green-600 uppercase border border-white hover:border-green-500 text-white px-4 py-2 rounded hover:bg-white ${loadingRow === report.id ? "opacity-50 cursor-not-allowed hover:text-green-500 " : "hover:text-green-500"
+                                                        className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white ${loadingRow === report.id ? "opacity-50 cursor-not-allowed hover:text-[#3e76a5] " : "hover:text-[#3e76a5]"
                                                             }`}
                                                         onClick={() => handleSendLink(report.main_id, report.branch_id, report.customer_id, report.id)}
                                                         disabled={loadingRow} // Disable only the clicked button
@@ -954,7 +954,7 @@ const CandidateList = () => {
                                             <td className="md:py-3 p-2 md:px-4 border whitespace-nowrap">
                                                 {report.service_data?.cef ? (
                                                     <button
-                                                        className="md:px-4 py-2 p-2 bg-green-500 text-white rounded"
+                                                        className="md:px-4 py-2 p-2 bg-[#3e76a5] text-white rounded"
                                                         onClick={() => handleViewDocuments(report.service_data.cef)}
                                                     >
                                                         View Documents
@@ -972,7 +972,7 @@ const CandidateList = () => {
                                                 >
                                                     <div className="modal-container">
                                                         <h2 className="modal-title text-center my-4 text-2xl font-bold">Attachments</h2>
-                                                        <ul className="modal-list h-[400px] overflow-scroll">
+                                                        <ul className="modal-list md:max-h-[400px] max-h-[250px] overflow-scroll">
                                                             {Object.entries(selectedAttachments).map(([category, attachments], idx) => (
                                                                 <li key={idx} className="modal-list-category">
                                                                     <h3 className="modal-category-title md:text-lg font-semibold my-2">{category}</h3>
@@ -990,7 +990,7 @@ const CandidateList = () => {
                                                                                                 href={url.trim()} // Trim to remove any extra spaces
                                                                                                 target="_blank"
                                                                                                 rel="noopener noreferrer"
-                                                                                                className="modal-view-button w-auto m-0 bg-green-500 text-white p-2 rounded-md md:px-4 block mt-2 text-center"
+                                                                                                className="modal-view-button w-auto m-0 bg-[#3e76a5] text-white p-2 rounded-md md:px-4 block mt-2 text-center"
                                                                                             >
                                                                                                 View {urlIdx + 1}
                                                                                             </a>
@@ -1019,9 +1019,9 @@ const CandidateList = () => {
 
 
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize text-center">
-                                                <button disabled={isBranchApiLoading} className="bg-green-600 text-white p-3 rounded-md hover:bg-green-200" onClick={() => handleEdit(report)}>Edit</button>
+                                                <button disabled={isBranchApiLoading} className="bg-[#3e76a5] text-white p-3 rounded-md hover:bg-[#3e76a5]" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); handleEdit(report) }}>Edit</button>
                                                 <button disabled={isBranchApiLoading} className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
-                                                <button disabled={isBranchApiLoading || report?.is_converted_to_client === "1" || report?.cef_submitted === 0} className="border border-green-500 text-black p-3 ms-3 rounded-md hover:bg-green-200" onClick={() => OpenPopup(report)}>Convert to Client</button>
+                                                <button disabled={isBranchApiLoading || report?.is_converted_to_client === "1" || report?.cef_submitted === 0} className="border border-[#3e76a5] text-black p-3 ms-3 rounded-md hover:bg-[#3e76a5]" onClick={() => OpenPopup(report)}>Convert to Client</button>
                                             </td>
                                         </tr>
 

@@ -434,7 +434,7 @@ const DigitalAddressVerification = () => {
 
                             </div>
                             <div className="col-span-2">
-                                <button type="button" className="mt-3 bg-green-500 text-white font-bold py-2 px-4 rounded" onClick={getLocation}>Get Geo Coordinates <i className="fa fa-map-marker"></i></button>
+                                <button type="button" className="mt-3 bg-[#3e76a5] text-white font-bold py-2 px-4 rounded" onClick={getLocation}>Get Geo Coordinates <i className="fa fa-map-marker"></i></button>
                             </div>
                             <div className="col-span-2 mt-5 mb-2">
                                 <h4 className="text-center text-lg font-semibold">Personal Information</h4>
@@ -565,7 +565,7 @@ const DigitalAddressVerification = () => {
                                     <input type="text" value={formData.personal_information.years_staying} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md border p-2" name="years_staying" />
                                 </div>
                             </div>
-                            <button type="submit" className='bg-green-500 p-3 w-full rounded-md text-white mt-4'>Submit</button>
+                            <button type="submit" className='bg-[#3e76a5] p-3 w-full rounded-md text-white mt-4'>Submit</button>
                         </div>
                     </>
                 )}

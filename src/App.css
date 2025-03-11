@@ -164,16 +164,6 @@ div#popup-2 {
     background-color: #d5d5d5;
   }
   
-  .modal .bg-green-600 {
-    background-color: #4caf50;
-    color: #ffffff;
-  }
-  
-  .modal .bg-green-600:hover {
-    background-color: #43a047;
-  }
-  
-
   .select-search-container {
     width: 100% !important;
 }
@@ -478,4 +468,16 @@ div#menuitem ul li svg {
 }
 .swal2-container.swal2-center.custom-container.swal2-backdrop-show {
   background: #000000ed !important;
+}
+div#menuitem ul li:hover svg {
+  color: #fff;
+}
+div#sider_content ul li:hover svg {
+  color: #fff;
+}
+div#menuitem ul li.text-white svg {
+  color: #fff;
+}
+div#sider_content ul li.text-white svg {
+  color: #fff;
 }

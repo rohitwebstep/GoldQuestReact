@@ -102,7 +102,7 @@ const CustomerResetPassword = () => {
           />
         </div>
         {message && <p className="text-red-500">{message}</p>} {/* Displaying messages */}
-        <button type="submit" className='bg-green-400 text-white p-3 rounded-md w-full mb-4 hover:bg-green-200'>Reset Password</button>
+        <button type="submit" className='bg-[#3e76a5] text-white p-3 rounded-md w-full mb-4 hover:bg-[#3e76a5]'>Reset Password</button>
         <span className='flex justify-center items-center gap-4 text-blue-400'>
           <FaArrowLeft />
           <Link to='/customerlogin'>Back to Login</Link>

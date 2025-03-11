@@ -136,25 +136,34 @@ const ActivityLogs = () => {
     };
 
     return (
-        <div className="bg-green-500  border border-black">
-            <div className="bg-white p-12 w-full mx-auto">
-                <div className="flex justify-between items-center space-x-4 mb-4">
-                    <div className="w-1/3 flex gap-3">
-                        <div>  <input
+        <div className="bg-[#3e76a5]  border  m-4">
+            <div className="bg-white md:p-12 p-3 w-full mx-auto">
+                <div className="md:flex justify-between items-center md:space-x-4 mb-4">
+                    <div className="flex gap-3">
+                      
+                            <input
                             type="text"
                             placeholder="Search by Admin ID or Action"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="border p-2 rounded w-full"
+                            className="border p-2 rounded md:w-full w-7/12 "
                         />
-                        </div>
-                        <select
+                       
+                        <button
+                        onClick={exportToExcel}
+                        className="bg-[#3e76a5] hover:scale-105  w-full  transition duration-200 text-white px-4 py-3  rounded hover:bg-[#3e76a5]"
+                    >
+                        Export to Excel
+                    </button>
+                       
+                    </div>
+                    <select
                             value={itemsPerPage}
                             onChange={(e) => {
                                 setItemsPerPage(Number(e.target.value));
                                 setCurrentPage(1);
                             }}
-                            className="border rounded-lg px-3 py-1 text-gray-700 bg-white  shadow-sm focus:ring-2 focus:ring-blue-400"
+                            className="border rounded-lg px-3 py-2 mt-2 md:mt-0 text-gray-700 w-full md:w-auto bg-white  shadow-sm focus:ring-2 focus:ring-blue-400"
                         >
                             {optionsPerPage.map((option) => (
                                 <option key={option} value={option}>
@@ -162,8 +171,6 @@ const ActivityLogs = () => {
                                 </option>
                             ))}
                         </select>
-                    </div>
-
                     {/* <input
                         type="date"
                         value={startDate}
@@ -176,26 +183,21 @@ const ActivityLogs = () => {
                         onChange={(e) => setEndDate(e.target.value)}
                         className="border p-2 rounded"
                     /> */}
-                    <button
-                        onClick={exportToExcel}
-                        className="bg-green-500 hover:scale-105  transition duration-200 text-white px-4 py-2 rounded hover:bg-green-700"
-                    >
-                        Export to Excel
-                    </button>
+                   
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full border-collapse border border-black rounded-lg overflow-scroll whitespace-nowrap">
+                    <table className="min-w-full border-collapse border  rounded-lg overflow-scroll whitespace-nowrap">
                         <thead>
-                            <tr className="bg-green-500 text-white ">
-                                <th className="border border-black uppercase px-4 py-2">SL</th>
-                                <th className="border border-black uppercase px-4 py-2">Photo</th>
-                                <th className="border border-black uppercase px-4 py-2">Admin Name</th>
-                                <th className="border border-black uppercase px-4 py-2">Email</th>
-                                <th className="border border-black uppercase px-4 py-2">Mobile Number</th>
-                                <th className="border border-black uppercase px-4 py-2">Action</th>
-                                <th className="border border-black uppercase px-4 py-2">Result</th>
-                                <th className="border border-black uppercase px-4 py-2">Created At</th>
-                                {/* <th className="border border-black uppercase px-4 py-2">View</th> */}
+                            <tr className="bg-[#3e76a5] text-white ">
+                                <th className="border  uppercase px-4 py-2">SL</th>
+                                <th className="border  uppercase px-4 py-2">Photo</th>
+                                <th className="border  uppercase px-4 py-2">Admin Name</th>
+                                <th className="border  uppercase px-4 py-2">Email</th>
+                                <th className="border  uppercase px-4 py-2">Mobile Number</th>
+                                <th className="border  uppercase px-4 py-2">Action</th>
+                                <th className="border  uppercase px-4 py-2">Result</th>
+                                <th className="border  uppercase px-4 py-2">Created At</th>
+                                {/* <th className="border  uppercase px-4 py-2">View</th> */}
                             </tr>
                         </thead>
                         <tbody>
@@ -204,33 +206,33 @@ const ActivityLogs = () => {
                             ) : paginatedData.length > 0 ? (
                                 paginatedData.map((row, index) => (
                                     <tr className="text-center" key={index}>
-                                        <td className="border border-black px-4 py-2">
+                                        <td className="border  px-4 py-2">
                                             {index + 1 + (currentPage - 1) * itemsPerPage}
                                         </td>
-                                        <td className="border border-black text-center capitalize px-4 py-2">
+                                        <td className="border  text-center capitalize px-4 py-2">
                                             <div className="flex justify-center items-center">
                                                 <img src={row.profile_picture ? row.profile_picture : `${Default}`} alt={row.admin_name} className="w-10 h-10 rounded-full" />
                                             </div>
                                         </td>
-                                        <td className="border border-black capitalize px-4 py-2">{row.admin_name}</td>
-                                        <td className="border border-black  px-4 py-2">{row.admin_email}</td>
-                                        <td className="border border-black capitalize px-4 py-2">{row.admin_mobile}</td>
+                                        <td className="border  capitalize px-4 py-2">{row.admin_name}</td>
+                                        <td className="border   px-4 py-2">{row.admin_email}</td>
+                                        <td className="border  capitalize px-4 py-2">{row.admin_mobile}</td>
 
-                                        <td className="border border-black capitalize px-4 py-2">{row.action}</td>
-                                        <td className="border border-black capitalize px-4 py-2">
+                                        <td className="border  capitalize px-4 py-2">{row.action}</td>
+                                        <td className="border  capitalize px-4 py-2">
                                             {row.result === "1" ? (
-                                                <span className="text-green-500">Success</span>
+                                                <span className="text-[#3e76a5]">Success</span>
                                             ) : (
                                                 <span className="text-red-500">Failed</span>
                                             )}
                                         </td>
-                                        <td className="border border-black px-4 py-2">
+                                        <td className="border  px-4 py-2">
                                             {new Date(row.created_at).toLocaleString().replace(/\//g, '-')}
                                         </td>
-                                        {/* <td className="border border-black px-4 py-2">
+                                        {/* <td className="border  px-4 py-2">
                                             <button
                                                 onClick={() => handleView(row.admin_id, row.id)}
-                                                className="bg-green-500 text-white hover:scale-105 font-bold  transition duration-200 px-4 py-2 rounded hover:bg-green-700"
+                                                className="bg-[#3e76a5] text-white hover:scale-105 font-bold  transition duration-200 px-4 py-2 rounded hover:bg-[#3e76a5]"
                                             >
                                                 View
                                             </button>
@@ -239,7 +241,7 @@ const ActivityLogs = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td className="text-center text-red-500 border border-black px-4 py-2" colSpan="10">
+                                    <td className="text-center text-red-500 border  px-4 py-2" colSpan="10">
                                         {responseError && responseError !== "" ? responseError : "No data available in table"}
                                     </td>
                                 </tr>

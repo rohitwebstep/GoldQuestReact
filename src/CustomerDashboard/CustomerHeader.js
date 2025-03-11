@@ -7,7 +7,7 @@ const CustomerHeader = () => {
 
   return (
 
-    <header className="p-1 md:p-6 md:flex flex-wrap flex-col-reverse md:flex-row items-center justify-between bg-green-500   hidden">
+    <header className="p-1 md:p-6 md:flex flex-wrap flex-col-reverse md:flex-row items-center justify-between bg-[#3e76a5]   hidden">
       <div className="w-8/12 flex items-center justify-between">
       <Callback/>
       <p className="text-end text-white font-bold text-xl">BACKGROUND VERIFICATION TRACKING SYSTEM (BVTS)</p></div>

@@ -95,7 +95,7 @@ const ServiceList = () => {
           type="button"
           key={`page-${number}`} // Unique key for page buttons
           onClick={() => handlePageChange(number)}
-          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+          className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
         >
           {number}
         </button>
@@ -188,7 +188,7 @@ const ServiceList = () => {
     });
   };
 
- const exportToExcel = () => {
+  const exportToExcel = () => {
     // Filtered data to export
     const dataToExport = currentItems;
 
@@ -205,15 +205,15 @@ const ServiceList = () => {
 
     // Create a worksheet and workbook
 
-    
-     const ws = XLSX.utils.json_to_sheet(formattedData);
-  
-      // Create a new workbook and append the worksheet to it
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Reports");
-  
-      // Write the Excel file and trigger the download
-      XLSX.writeFile(wb, "Services-List.xlsx");
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+
+    // Create a new workbook and append the worksheet to it
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reports");
+
+    // Write the Excel file and trigger the download
+    XLSX.writeFile(wb, "Services-List.xlsx");
   };
 
 
@@ -231,7 +231,7 @@ const ServiceList = () => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1
                 }}
-                className="outline-none border p-3 text-left rounded-md w-full md:w-6/12"
+                className="outline-none border p-3 text-left rounded-md  w-7/12 md:w-6/12"
               >
 
                 <option value="10">10 Rows</option>
@@ -243,13 +243,13 @@ const ServiceList = () => {
                 <option value="400">400 Rows</option>
                 <option value="500">500 Rows</option>
               </select>
-            <button
-                    onClick={exportToExcel}
-                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                    type="button"
-                    disabled={currentItems.length === 0}
-                  >
-               Export To Excel
+              <button
+                onClick={exportToExcel}
+                className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
+                type="button"
+                disabled={currentItems.length === 0}
+              >
+                Export To Excel
               </button>
             </div>
           </form>
@@ -260,7 +260,7 @@ const ServiceList = () => {
               <input
                 type="search"
                 className='outline-none border p-2 text-sm rounded-md w-full my-4 md:my-0'
-                placeholder='Search by Client Code'
+                placeholder='Search Here'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -278,7 +278,7 @@ const ServiceList = () => {
         ) : currentItems.length > 0 ? (
           <table className="min-w-full mb-4">
             <thead>
-              <tr className='bg-green-500'>
+              <tr className='bg-[#3e76a5]'>
                 <th className="py-2 px-4 text-white border-r border-b text-left text-sm uppercase whitespace-nowrap">SL</th>
                 <th className="py-2 px-4 text-white border-r border-b text-left text-sm uppercase whitespace-nowrap">Service Name</th>
                 <th className="py-2 px-4 text-white border-r border-b text-left text-sm uppercase whitespace-nowrap">Service Description</th>
@@ -301,11 +301,18 @@ const ServiceList = () => {
                   <td className="py-2 px-4 border-r text-sm border-b whitespace-nowrap text-center">
                     <button
                       disabled={loading}
-                      className='bg-green-500 rounded-md text-sm hover:bg-green-200 p-2 text-white'
-                      onClick={() => handleEditService(item)}
+                      className="bg-[#3e76a5] rounded-md text-sm hover:bg-[#3e76a5] p-2 text-white"
+                      onClick={() => {
+                        // Scroll to the top of the page smoothly
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                        // Call the handleEditService function
+                        handleEditService(item);
+                      }}
                     >
                       Edit
                     </button>
+
                     <button
                       disabled={loading || isApiLoading}
                       className={`rounded-md p-2 text-sm text-white ms-2 ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-200'}`}

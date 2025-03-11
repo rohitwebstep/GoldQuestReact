@@ -1185,7 +1185,7 @@ const CandidateGenerateReport = () => {
                                                         )}
                                                         <table className="w-full table-auto border-collapse border border-gray-300">
                                                             <thead>
-                                                                <tr className="bg-green-500 text-white">
+                                                                <tr className="bg-[#3e76a5] text-white">
                                                                     {formJson.headers.map((header, idx) => (
                                                                         <th
                                                                             key={idx}
@@ -1572,7 +1572,7 @@ const CandidateGenerateReport = () => {
                         <div className="text-right mt-4">
                             <button
                                 type="submit"
-                                className="bg-green-500 text-white rounded-md p-2.5"
+                                className="bg-[#3e76a5] text-white rounded-md p-2.5"
                             >
                                 Submit
                             </button>

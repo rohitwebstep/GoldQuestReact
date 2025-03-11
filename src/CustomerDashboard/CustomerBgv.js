@@ -263,22 +263,22 @@ const CandidateBGV = () => {
             }
             const passport_photoHeight = 62;
             yPosition = 10;
-            
+
             if (customBgv === 1) {
                 // Center the "Passport Photo" header
                 const headerText = "Passport Photo.";
                 doc.text(headerText, doc.internal.pageSize.width / 2, yPosition, { align: 'center' });
-            
+
                 if (cefData && cefData.passport_photo) {
                     // Split the comma-separated image URLs into an array
                     const imageUrls = cefData.passport_photo.trim().split(',').map(url => url.trim());
-            
+
                     // Filter valid image URLs based on file extensions
                     const validImageUrls = imageUrls.filter(url => {
                         const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                         return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
                     });
-            
+
                     if (validImageUrls.length > 0) {
                         // Constants for grid layout
                         const cols = validImageUrls.length > 3 ? 3 : validImageUrls.length;  // Limit to 3 columns at most
@@ -286,30 +286,30 @@ const CandidateBGV = () => {
                         const xStart = 5;  // Starting x position
                         const yStart = yPosition + 10;  // Starting y position (below the header)
                         const pageWidth = doc.internal.pageSize.width; // Get the page width
-            
+
                         let xPos = xStart;
                         yPosition = yStart;
-            
+
                         // Dynamically calculate the image width based on the number of images
                         const imageWidth = validImageUrls.length === 1 ? pageWidth - 2 * margin :
-                                           validImageUrls.length === 2 ? (pageWidth / 2) - margin :
-                                           validImageUrls.length === 3 ? (pageWidth / 3) - margin :
-                                           (pageWidth / 3) - margin; // Use 3 columns for more than 3 images
-            
+                            validImageUrls.length === 2 ? (pageWidth / 2) - margin :
+                                validImageUrls.length === 3 ? (pageWidth / 3) - margin :
+                                    (pageWidth / 3) - margin; // Use 3 columns for more than 3 images
+
                         // Loop through each valid image URL and process it
                         for (let i = 0; i < validImageUrls.length; i++) {
                             const imageUrl = validImageUrls[i];
                             try {
                                 // Fetch the base64 image for each URL
                                 const imageBases = await fetchImageToBase([imageUrl]);
-            
+
                                 if (imageBases && imageBases[0]?.base64) {
                                     // Add image to the PDF at the correct xPos and yPosition (grid layout)
                                     doc.addImage(imageBases[0].base64, imageBases[0].type, xPos, yPosition, imageWidth, passport_photoHeight);
-            
+
                                     // Update xPos for the next image (move horizontally)
                                     xPos += imageWidth + margin;
-            
+
                                     // If we have reached the end of the row (3 columns), reset xPos and move to the next row
                                     if ((i + 1) % cols === 0) {
                                         xPos = xStart;
@@ -340,7 +340,7 @@ const CandidateBGV = () => {
                         doc.text(noImagesText, noImagesCenterX, yPosition + 10);
                         yPosition += 20; // Adjust for the message
                     }
-            
+
                 } else {
                     // If no passport photo is available, display a message
                     const noPhotoText = "No Passport Photo uploaded.";
@@ -350,7 +350,7 @@ const CandidateBGV = () => {
                     yPosition += 20; // Adjust position for the message
                 }
             }
-            
+
 
 
 
@@ -1986,7 +1986,7 @@ const CandidateBGV = () => {
                     </div >
                 ) :
                     <>
-                        <form className='py-6 bg-[#e5e7eb24]' ref={contentRef} id='bg-form'>
+                        <form className='py-6 bg-[#e5e7eb24] p-4' ref={contentRef} id='bg-form'>
                             <div className="md:w-10/12 mx-auto md:p-6" >
                                 {customBgv === 1 && (
                                     <div className='flex justify-center my-3'>
@@ -2009,10 +2009,10 @@ const CandidateBGV = () => {
                                     <div className="text-center flex items-end gap-2">
                                         <button
                                             type='button'
-                                            className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
+                                            className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-[#3e76a5]" : "text-gray-700"}`}
                                         >
                                             <FaUser
-                                                className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-green-500 text-white"
+                                                className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-[#3e76a5] text-white"
                                             />
                                             Personal Information
                                         </button>
@@ -2024,15 +2024,15 @@ const CandidateBGV = () => {
                                         <button
                                             type='button'
                                             className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} // Text color changes based on tab active customBgv
+${activeTab === 1 ? "text-[#3e76a5]" : "text-gray-700"}`} // Text color changes based on tab active customBgv
                                         >
                                             <FaUser
                                                 className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-${activeTab === 1 ? "bg-green-500 text-white" : (activeTab > 0 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
+${activeTab === 1 ? "bg-[#3e76a5] text-white" : (activeTab > 0 ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
                                             />
                                             Current/Permanent Address
                                         </button>
-                                        <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} />
+                                        <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-[#3e76a5]" : "text-gray-700"}`} />
 
 
                                     </div>
@@ -2045,11 +2045,11 @@ ${activeTab === 1 ? "bg-green-500 text-white" : (activeTab > 0 ? "bg-green-500 t
                                                 <button
                                                     type='button'
                                                     className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
+${activeTab === index + 2 ? "text-[#3e76a5]" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
                                                 >
                                                     <FaCog
                                                         className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`}
+${activeTab === index + 2 ? "bg-[#3e76a5] text-white" : (isTabEnabled ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400")}`}
                                                     />
                                                     {service.heading}
                                                 </button>
@@ -2063,11 +2063,11 @@ ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-gree
                                         <button
                                             type='button'
                                             className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-${activeTab === serviceData.length + 2 ? "text-green-500" : "text-gray-400"}`} // Text color changes based on tab active customBgv
+${activeTab === serviceData.length + 2 ? "text-[#3e76a5]" : "text-gray-400"}`} // Text color changes based on tab active customBgv
                                         >
                                             <FaCheckCircle
                                                 className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
+${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
                                             />
                                             Declaration and Authorization
                                         </button>
@@ -2104,7 +2104,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                         href={cefData.resume_file}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="flex items-center justify-center h-full w-full border bg-blue-500 text-white rounded-md"
+                                                                        className="flex items-center justify-center h-full w-auto p-3 border bg-blue-500 text-white rounded-md"
                                                                     >
                                                                         View Document
                                                                     </a>
@@ -2137,7 +2137,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                             <img src={item} alt={`Image ${index}`} className='p-3 ' />
                                                                         ) : (
                                                                             <div>
-                                                                                <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 rounded-md p-3 '>Open Link</button>
+                                                                                <button onClick={() => window.open(item, '_blank')} type='button' className='border-[#3e76a5] rounded-md p-3 '>Open Link</button>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -2179,7 +2179,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                                                                         <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                     ) : (
                                                                                         <div>
-                                                                                            <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 p-3 rounded border'>Open Link</button>
+                                                                                            <button onClick={() => window.open(item, '_blank')} type='button' className=' p-3 rounded '>View Document</button>
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
@@ -3661,7 +3661,7 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
 
                                                                     if (item.startValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`]) {
                                                                         return (
-                                                                            <p key={idx} className={`${isNoGap ? 'text-green-500' : 'text-red-500'} py-2`}>
+                                                                            <p key={idx} className={`${isNoGap ? 'text-[#3e76a5]' : 'text-red-500'} py-2`}>
                                                                                 {isNoGap ? item.difference : `GAP-${item.difference || 'No gap Found'}`}
                                                                             </p>
                                                                         );
@@ -4031,12 +4031,12 @@ ${activeTab === serviceData.length + 2 ? "bg-green-500 text-white" : "bg-gray-10
                                         type="button"
                                         onClick={handleNext} // Call the handleNext function when the button is clicked
                                         disabled={activeTab === serviceData.length + 2} // Disable the button if on the last tab (e.g., tab 2)
-                                        className="bg-green-500 text-white p-3 rounded-md"
+                                        className="bg-[#3e76a5] text-white p-3 rounded-md"
                                     >
                                         Next
                                     </button>
 
-                                    <button className='bg-green-500 text-white p-3 rounded-md' type='button' onClick={generatePdf}>Download PDF</button>
+                                    <button className='bg-[#3e76a5] text-white p-3 rounded-md' type='button' onClick={generatePdf}>Download PDF</button>
 
                                 </div>
 

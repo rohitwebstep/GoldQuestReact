@@ -270,7 +270,7 @@ const ClientManagement = () => {
     const value = event.target.value;
     const adminData = JSON.parse(localStorage.getItem("admin"))?.id;
     const token = localStorage.getItem("_token");
-  
+
     if (value) {
       fetch(`${API_URL}/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, {
         method: "GET"
@@ -294,10 +294,10 @@ const ClientManagement = () => {
           setIsApiLoading(false);
         });
     }
-  
+
   }, 300), []);
-  
-  
+
+
 
   useEffect(() => {
     const inputs = document.querySelectorAll('.emailCheck');
@@ -747,6 +747,7 @@ const ClientManagement = () => {
 
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
+
                   <label className="text-gray-500" htmlFor="state_code">State Code: <span className="text-red-600">*</span></label>
                   <input
                     type="number"
@@ -785,37 +786,39 @@ const ClientManagement = () => {
                 </div>
 
               </div>
-              <div className="my-8 md:grid gap-5 grid-cols-2 items-center flex-wrap">
+              <div className="my-3 md:grid gap-5 grid-cols-2 items-center flex-wrap">
                 {emails.map((email, index) => (
-                  <div key={index} className="mb-4 md:flex items-center gap-3 ">
-                    <label className="text-gray-500 whitespace-nowrap">Client Email {index + 1}: <span className="text-red-600">*</span></label>
-                    <input
-                      type="email"
-                      name={`email${index}`}
-                      value={email}
-                      onChange={(e) => handleChange(e, index)}
-                      ref={(el) => (refs.current[`email${index}`] = el)} // Corrected ref key
-                      className="border w-full rounded-md p-2 mt-2 outline-none text-sm emailCheck"
-                    />
+                  <>
+                    <div key={index} className="mb-4 md:flex justify-between items-end gap-3 ">
+                      <div className="w-full">   <label className="text-gray-500 whitespace-nowrap">Client Email {index + 1}: <span className="text-red-600">*</span></label>
+                        <input
+                          type="email"
+                          name={`email${index}`}
+                          value={email}
+                          onChange={(e) => handleChange(e, index)}
+                          ref={(el) => (refs.current[`email${index}`] = el)} // Corrected ref key
+                          className="border  rounded-md p-2 mt-2 outline-none text-sm emailCheck w-full"
+                        />
 
-                    {errors[`email${index}`] && <p className="text-red-500 text-sm whitespace-nowrap">{errors[`email${index}`]}</p>}
-                    {index > 0 && (
-                      <button
-                        className="bg-red-500 rounded-md p-3 mt-3 md:mt-0  text-white"
-                        type="button"
-                        onClick={() => deleteEmails(index)}
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
+                        {errors[`email${index}`] && <p className="text-red-500 text-sm whitespace-nowrap">{errors[`email${index}`]}</p>}</div>
+                      {index > 0 && (
+                        <button
+                          className="bg-red-500 rounded-md px-4 py-2 mt-3 md:mt-0  text-white"
+                          type="button"
+                          onClick={() => deleteEmails(index)}
+                        >
+                          Delete
+                        </button>
+                      )}
+
+                    </div>
+
+                  </>
+
                 ))}
-
-                <button className="bg-green-500 text-white rounded-3 p-2 mt-0 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
               </div>
 
-
-
+              <button className="bg-[#3e76a5] text-white rounded-3 p-2 mt-0 rounded-md px-7 mb-3" type="button" onClick={addMoreEmails}>Add More Client Email</button>
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
                   <label className="text-gray-500" htmlFor="client_spoc">Name of The Client SPOC:<span className="text-red-600">*</span></label>
@@ -1048,7 +1051,7 @@ const ClientManagement = () => {
               <div className="my-8">
                 <h3 className="text-lg font-semibold mb-4">Branch Details</h3>
                 {branchForms.map((branch, index) => (
-                  <div key={index} className="md:flex content-between items-center gap-4 mb-3">
+                  <div key={index} className="md:grid grid-cols-2 content-between items-center gap-4 mb-3">
                     <div>
                       <label className="text-gray-500" htmlFor={`branch_name_${index}`}>
                         Branch Name
@@ -1094,7 +1097,7 @@ const ClientManagement = () => {
                 ))}
 
                 <button
-                  className="bg-green-500 text-white rounded-md p-2 mt-4"
+                  className="bg-[#3e76a5] text-white rounded-md p-2 mt-4"
                   type="button"
                   onClick={addMoreFields}
                 >
@@ -1118,7 +1121,7 @@ const ClientManagement = () => {
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  className={`w-full rounded-md p-3 text-white ${isLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                  className={`w-full rounded-md p-3 text-white ${isLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
 
                   disabled={isLoading || isApiLoading}
                 >

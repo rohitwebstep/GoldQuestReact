@@ -102,7 +102,7 @@ const InternalLoginList = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -230,7 +230,7 @@ const InternalLoginList = () => {
     return (
         <>
 
-            <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-3">
+            <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-1 md:p-3">
                 <div className="col">
                     <div className="flex gap-2">
                         <select
@@ -239,7 +239,7 @@ const InternalLoginList = () => {
                                 handleSelectChange(e); // Call the select change handler
                                 setCurrentPage(1); // Reset current page to 1
                             }}
-                            className="outline-none border p-3 text-left rounded-md w-full md:w-6/12"
+                            className="outline-none border p-3 text-left rounded-md w-7/12 md:w-6/12"
                         >
 
                             <option value="10">10 Rows</option>
@@ -253,7 +253,7 @@ const InternalLoginList = () => {
                         </select>
                         <button
                             onClick={exportToExcel}
-                            className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                            className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
                             type="button"
                             disabled={currentItems.length === 0}
                         >
@@ -267,7 +267,7 @@ const InternalLoginList = () => {
                             <input
                                 type="search"
                                 className='outline-none border-2 p-3 rounded-md w-full text-sm my-4 md:my-0'
-                                placeholder='Search by Client Code...'
+                                placeholder='Search By Admin Name'
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -285,7 +285,7 @@ const InternalLoginList = () => {
                 ) : currentItems.length > 0 ? (
                     <table className="min-w-full">
                         <thead>
-                            <tr className='bg-green-500'>
+                            <tr className='bg-[#3e76a5]'>
                                 <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">SL</th>
                                 <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee ID</th>
                                 <th className="py-2 px-4 border-b text-left text-white border-r uppercase whitespace-nowrap">Employee Name</th>
@@ -326,12 +326,12 @@ const InternalLoginList = () => {
                                                                 {/* Show only the first service by default */}
                                                                 {showAllServices ? (
                                                                     servicesToShow.map((service) => (
-                                                                        <span key={service.id} className="px-4 py-2 bg-green-100 border border-green-500 rounded-lg text-sm">
+                                                                        <span key={service.id} className="px-4 py-2  border border-[#3e76a5] rounded-lg text-sm">
                                                                             {service.title || 'NIL'}
                                                                         </span>
                                                                     ))
                                                                 ) : (
-                                                                    <span key={servicesToShow[0].id} className="px-4 py-2 bg-green-100 border border-green-500 rounded-lg text-sm">
+                                                                    <span key={servicesToShow[0].id} className="px-4 py-2  border border-[#3e76a5] rounded-lg text-sm">
                                                                         {servicesToShow[0].title || 'NIL'}
                                                                     </span>
                                                                 )}
@@ -356,7 +356,7 @@ const InternalLoginList = () => {
                                         </td>
 
                                         <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">
-                                            <button className='bg-green-500 hover:bg-green-200 rounded-md me-3 p-2 text-white' onClick={() => editAdmin(item)}>Edit</button>
+                                            <button className='bg-[#3e76a5] hover:bg-[#3e76a5] rounded-md me-3 p-2 text-white' onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); editAdmin(item) }}>Edit</button>
                                             <button className={`rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
                                                 disabled={isApiLoading || loading} onClick={() => deleteAdmin(item.id)}>Delete</button>
                                         </td>
@@ -372,8 +372,8 @@ const InternalLoginList = () => {
                 )}
 
                 {isModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg shadow-lg p-4 md:w-6/12">
+                    <div className="fixed inset-0 bg-black  bg-opacity-50 p-3 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg shadow-lg p-4 md:w-6/12 max-h-[80vh] overflow-y-auto">
                             <div className="flex justify-between items-center">
                                 <h2 className="text-lg font-bold">Services Groups</h2>
                                 <button
@@ -387,7 +387,7 @@ const InternalLoginList = () => {
                                 <ul className="flex flex-wrap gap-3">
                                     {modalServices.length > 0 ? (
                                         modalServices.map((service, idx) => (
-                                            <li key={idx} className="px-4 py-2 bg-green-100 border text-center border-green-500 rounded-lg text-sm">{service.title}</li>
+                                            <li key={idx} className="px-4 py-2 border text-center border-[#3e76a5] rounded-lg text-sm">{service.title}</li>
                                         ))
                                     ) : (
                                         <li className="px-4 py-2 bg-gray-100 border text-center border-gray-500 rounded-lg text-sm">No services available</li>

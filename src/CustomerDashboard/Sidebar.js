@@ -73,14 +73,14 @@ const Sidebar = () => {
       <CustomerHeader />
       <div className="flex flex-col items-stretch md:flex-row">
         <button
-          className="md:hidden p-3 fixed top-0 left-0 z-50  bg-green-400 text-white w-full  focus:outline-none"
+          className="md:hidden p-3 fixed top-0 left-0 z-50  bg-[#3e76a5] text-white w-full  focus:outline-none"
           onClick={handleToggle}
           aria-label="Toggle Sidebar"
         >
           <div className='flex justify-between items-center'>  <div><span className="block w-8 h-1 bg-white mb-1"></span>
             <span className="block w-8 h-1 bg-white mb-1"></span>
             <span className="block w-8 h-1 bg-white"></span></div>
-            <div>BGV</div></div>
+            <div><Logout/></div></div>
 
         </button>
 
@@ -97,7 +97,7 @@ const Sidebar = () => {
                   {Object.keys(tabNames).map((tab) => (
                     <li
                       key={tab}
-                      className={`${activeTab === tab ? 'active bg-green-200' : 'togglelist hover:bg-green-200'
+                      className={`${activeTab === tab ? 'active bg-[#3e76a5] text-white' : 'togglelist hover:bg-[#3e76a5] hover:text-white'
                         } w-full flex items-center p-3 cursor-pointer rounded-md mb-2 ${isBranchApiLoading ? 'pointer-events-none opacity-50' : ''}`}
                       onClick={() => !isBranchApiLoading && onTabChange(tab)} // Prevent tab change while loading
                     >

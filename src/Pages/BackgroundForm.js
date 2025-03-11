@@ -1967,7 +1967,7 @@ const BackgroundForm = () => {
                                                                 style={{ width: `${progress}%` }}
                                                             ></div>
                                                         </div>
-                                                        <div className="mt-4 text-center text-lg font-semibold text-green-600">
+                                                        <div className="mt-4 text-center text-lg font-semibold text-[#3e76a5]">
                                                             {Math.round(progress)}%
                                                         </div>
                                                     </div>
@@ -2005,10 +2005,10 @@ const BackgroundForm = () => {
                                                         type='button'
                                                         onClick={() => handleTabClick(0)} // Navigate to tab 0 (Personal Information)
                                                         disabled={false} // Always enable the first tab
-                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-green-500" : "text-gray-700"}`}
+                                                        className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center ${activeTab === 0 ? "text-[#3e76a5]" : "text-gray-700"}`}
                                                     >
                                                         <FaUser
-                                                            className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-green-500 text-white"
+                                                            className="mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full bg-[#3e76a5] text-white"
                                                         />
                                                         Personal Information
                                                     </button>
@@ -2022,15 +2022,15 @@ const BackgroundForm = () => {
                                                         onClick={() => handleTabClick(1)} // Navigate to tab 1 (Current/Permanent Address)
                                                         disabled={activeTab == 0} // Enable only when on step 1
                                                         className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-    ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} // Text color changes based on tab active status
+    ${activeTab === 1 ? "text-[#3e76a5]" : "text-gray-700"}`} // Text color changes based on tab active status
                                                     >
                                                         <FaUser
                                                             className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-      ${activeTab === 1 ? "bg-green-500 text-white" : (activeTab > 0 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
+      ${activeTab === 1 ? "bg-[#3e76a5] text-white" : (activeTab > 0 ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400")}`} // Icon color changes based on active tab
                                                         />
                                                         Current/Permanent Address
                                                     </button>
-                                                    <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-green-500" : "text-gray-700"}`} />
+                                                    <MdOutlineArrowRightAlt className={`text-2xl ${activeTab === 1 ? "text-[#3e76a5]" : "text-gray-700"}`} />
 
 
                                                 </div>
@@ -2044,12 +2044,12 @@ const BackgroundForm = () => {
                                                                 type='button'
                                                                 disabled={!isTabEnabled} // Disable tab if it's not the current step
                                                                 className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-                                ${activeTab === index + 2 ? "text-green-500" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
+                                ${activeTab === index + 2 ? "text-[#3e76a5]" : (isTabEnabled ? "text-gray-700" : "text-gray-400")}`}
                                                                 onClick={() => handleTabClick(index + 2)} // Navigate to the tab when clicked
                                                             >
                                                                 <FaCog
                                                                     className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-                                    ${activeTab === index + 2 ? "bg-green-500 text-white" : (isTabEnabled ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400")}`}
+                                    ${activeTab === index + 2 ? "bg-[#3e76a5] text-white" : (isTabEnabled ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400")}`}
                                                                 />
                                                                 {service.heading}
                                                             </button>
@@ -2065,11 +2065,11 @@ const BackgroundForm = () => {
                                                         onClick={() => handleTabClick(serviceDataMain.length + 2)} // Set tab to the last one (declaration)
                                                         disabled={activeTab !== serviceDataMain.length + 2} // Disable until all previous steps are completed
                                                         className={`px-0 py-2 pb-0 flex flex-wrap justify-center rounded-t-md whitespace-nowrap text-sm font-semibold items-center 
-    ${activeTab === serviceDataMain.length + 2 ? "text-green-500" : "text-gray-400"}`} // Text color changes based on tab active status
+    ${activeTab === serviceDataMain.length + 2 ? "text-[#3e76a5]" : "text-gray-400"}`} // Text color changes based on tab active status
                                                     >
                                                         <FaCheckCircle
                                                             className={`mr-2 text-center w-12 h-12 flex justify-center mb-3 border p-3 rounded-full 
-      ${activeTab === serviceDataMain.length + 2 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
+      ${activeTab === serviceDataMain.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-100 text-gray-400"}`} // Icon color changes based on active tab
                                                         />
                                                         Declaration and Authorization
                                                     </button>
@@ -2174,7 +2174,7 @@ const BackgroundForm = () => {
                                                                                                     <img src={item} alt={`Image ${index}`} className='p-3' />
                                                                                                 ) : (
                                                                                                     <div>
-                                                                                                        <button onClick={() => window.open(item, '_blank')} type='button' className='border-green-500 p-3 rounded border'>Open Link</button>
+                                                                                                        <button onClick={() => window.open(item, '_blank')} type='button' className='border-[#3e76a5] p-3 rounded border'>Open Link</button>
                                                                                                     </div>
                                                                                                 )}
                                                                                             </div>
@@ -3131,7 +3131,7 @@ const BackgroundForm = () => {
                                                                                         return elements;
                                                                                     })()
                                                                                 }
-                                                                                <button type='button' className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondencePhd}>
+                                                                                <button type='button' className='bg-[#3e76a5] text-white p-3 rounded-md mt-3' onClick={addCoressPondencePhd}>
                                                                                     Add Correspondence PHD Education
                                                                                 </button>
 
@@ -3300,7 +3300,7 @@ const BackgroundForm = () => {
                                                                                     return elements;
                                                                                 })()
                                                                             }
-                                                                            <button type='button' className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondencePostGraduation}>
+                                                                            <button type='button' className='bg-[#3e76a5] text-white p-3 rounded-md mt-3' onClick={addCoressPondencePostGraduation}>
                                                                                 Add Correspondence POST GRADUATION Education
                                                                             </button>
 
@@ -3470,7 +3470,7 @@ const BackgroundForm = () => {
                                                                                     return elements;
                                                                                 })()
                                                                             }
-                                                                            <button type='button' className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceGraduation}>
+                                                                            <button type='button' className='bg-[#3e76a5] text-white p-3 rounded-md mt-3' onClick={addCoressPondenceGraduation}>
                                                                                 Add Correspondence GRADUATION Education
                                                                             </button>
 
@@ -3587,7 +3587,7 @@ const BackgroundForm = () => {
                                                                                     return elements;
                                                                                 })()
                                                                             }
-                                                                            <button type='button' className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSeniorSecondary}>
+                                                                            <button type='button' className='bg-[#3e76a5] text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSeniorSecondary}>
                                                                                 Add Correspondence Senior Secondary Education
                                                                             </button>
 
@@ -3705,7 +3705,7 @@ const BackgroundForm = () => {
                                                                                     return elements;
                                                                                 })()
                                                                             }
-                                                                            <button type='button' className='bg-green-500 text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSecondary}>
+                                                                            <button type='button' className='bg-[#3e76a5] text-white p-3 rounded-md mt-3' onClick={addCoressPondenceSecondary}>
                                                                                 Add Correspondence Secondary Education
                                                                             </button>
 
@@ -4153,7 +4153,7 @@ const BackgroundForm = () => {
                                             <div className="flex space-x-4 mt-6">
                                                 <button
                                                     onClick={(e) => handleSubmit(0, e)} // Pass 0 when Save is clicked
-                                                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                                                    className="px-6 py-2 bg-[#3e76a5] text-white rounded-md hover:bg-[#3e76a5]"
                                                 >
                                                     Save
                                                 </button>

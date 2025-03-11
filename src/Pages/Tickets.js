@@ -20,8 +20,8 @@ const Tickets = () => {
         { sender: "bot", text: "Hello! How can I assist you with your ticket today?" },
     ]);
     const [userInput, setUserInput] = useState("");
-
     const replyTickets = async (ticket_number, description) => {
+        console.log('ticket_number, description',ticket_number, description)
         try {
             setIsApiLoading(true); // Set loading state
 
@@ -195,7 +195,7 @@ const Tickets = () => {
                     });
                 } else {
                     // If no errors, refresh the chat (this could be a function to update the chat UI)
-                    replyTickets(ticket);
+                    replyTickets(ticket,conversationMsg);
                 }
             })
             .catch((error) => {
@@ -289,7 +289,7 @@ const Tickets = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -529,7 +529,7 @@ const Tickets = () => {
                                     <select name="options" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -540,7 +540,7 @@ const Tickets = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
@@ -577,7 +577,7 @@ const Tickets = () => {
                         ) : currentItems.length > 0 ? (
                             <table className="min-w-full">
                                 <thead>
-                                    <tr className="bg-green-500">
+                                    <tr className="bg-[#3e76a5]">
                                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">SL</th>
                                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Case Title</th>
                                         <th className="py-2 px-4 text-white border-r border-b text-center uppercase whitespace-nowrap">Ticket Number</th>
@@ -594,7 +594,7 @@ const Tickets = () => {
                                             <td className="py-2 px-4 border-r border-b text-center whitespace-nowrap">{item.ticket_number}</td>
                                             <td className="py-2 px-4 border-r border-b text-center whitespace-nowrap">
                                                 <button
-                                                    className="bg-green-500 rounded-md hover:bg-green-200 p-2 me-3 text-white"
+                                                    className="bg-[#3e76a5] rounded-md hover:bg-[#3e76a5] p-2 me-3 text-white"
                                                     onClick={() => replyTickets(item.ticket_number, item.description)}
                                                 >
                                                     View
@@ -644,10 +644,10 @@ const Tickets = () => {
 
             {showPopup && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="flex flex-col md:w-6/12 h-[500px] bg-white border relative border-gray-300 rounded-lg shadow-lg mx-auto mt-10">
+                    <div className="flex flex-col md:w-6/12 md:max-h-[500px] max-h-[300px] bg-white border relative border-gray-300 rounded-lg shadow-lg mx-auto mt-10">
                         {/* Close button */}
                         <button
-                            className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full hover:bg-red-600"
+                            className="absolute top-2 right-2 text-red-600 font-bold px-3 py-1 "
                             onClick={handleClose}
                         >
                             X

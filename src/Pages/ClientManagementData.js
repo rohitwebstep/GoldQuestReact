@@ -89,7 +89,7 @@ const ClientManagementData = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -264,7 +264,7 @@ const ClientManagementData = () => {
 
     return (
         <>
-            <div className="col md:flex mb-4">
+            <div className="col mb-4">
                 <form action="">
                     <div className="flex md:items-stretch items-center gap-3">
                         <input
@@ -279,7 +279,7 @@ const ClientManagementData = () => {
             </div>
 
 
-            <div className="overflow-x-auto md:py-6 p-3 px-0 bg-white md:mt-10 m-auto">
+            <div className="overflow-x-auto md:py-6 p-3 px-0 bg-white md:mt-4 m-auto">
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
                         <PulseLoader color={"#36D7B7"} loading={loading} size={15} aria-label="Loading Spinner" />
@@ -293,7 +293,7 @@ const ClientManagementData = () => {
 
                                 <table className="min-w-full">
                                     <thead>
-                                        <tr className='bg-green-500'>
+                                        <tr className='bg-[#3e76a5]'>
                                             <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
                                             <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Price</th>
                                             <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Select Package</th>

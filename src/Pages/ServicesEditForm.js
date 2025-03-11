@@ -260,7 +260,7 @@ const ServiceEditForm = () => {
 
     return (
         <>
-            <div className="col md:flex mb-4">
+            <div className="col  mb-4">
                 <form action="">
                     <div className="flex md:items-stretch items-center gap-3">
                         <input
@@ -273,11 +273,11 @@ const ServiceEditForm = () => {
                     </div>
                 </form>
             </div>
-            <div className="overflow-x-auto py-6 px-0 bg-white md:mt-10 m-auto">
+            <div className="overflow-x-auto py-6 px-0 bg-white md:mt-4 m-auto">
 
                 <table className="min-w-full">
                     <thead>
-                        <tr className='bg-green-500'>
+                        <tr className='bg-[#3e76a5]'>
                             <th className="py-2 md:py-3 px-4 text-sm text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
                             <th className="py-2 md:py-3 px-4 text-sm text-white border-r border-b text-left uppercase whitespace-nowrap">Price</th>
                             <th className="py-2 md:py-3 px-4 text-sm text-white border-r border-b text-left uppercase whitespace-nowrap">Select Package</th>
@@ -335,7 +335,7 @@ const ServiceEditForm = () => {
                             type="button"
                             key={index + 1}
                             onClick={() => handlePageChange(index + 1)}
-                            className={` px-3 py-1 rounded-0 ${currentPage === index + 1 ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                            className={` px-3 py-1 rounded-0 ${currentPage === index + 1 ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                         >
                             {index + 1}
                         </button>

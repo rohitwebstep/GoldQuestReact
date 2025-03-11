@@ -213,7 +213,7 @@ const CandidateExcelTrackerStatus = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -567,11 +567,11 @@ const CandidateExcelTrackerStatus = () => {
                     <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                     <select name="options" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-auto'>
+                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-auto'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -582,13 +582,13 @@ const CandidateExcelTrackerStatus = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
                                         Export to Excel
                                     </button>
-                                    <button onClick={goBack} className="bg-green-500 mx-2 whitespace-nowrap hover:bg-green-400 text-white rounded-md p-3">Go Back</button>
+                                    <button onClick={goBack} className="bg-[#3e76a5] text-sm mx-2 whitespace-nowrap w-full md:w-auto hover:bg-[#3e76a5] text-white rounded-md p-3">Go Back</button>
 
                                 </div>
                             </form>
@@ -599,7 +599,7 @@ const CandidateExcelTrackerStatus = () => {
                                     <input
                                         type="search"
                                         className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Client Code, Company Name, or Client Spoc'
+                                        placeholder='Search Here'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -618,7 +618,7 @@ const CandidateExcelTrackerStatus = () => {
                     ) : currentItems.length > 0 ? (
                         <table className="min-w-full border-collapse border overflow-scroll rounded-lg whitespace-nowrap">
                             <thead className='rounded-lg'>
-                                <tr className="bg-green-500 text-white">
+                                <tr className="bg-[#3e76a5] text-white">
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">SL NO</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Full name of the applicant </th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Employee ID</th>
@@ -692,7 +692,7 @@ const CandidateExcelTrackerStatus = () => {
                                             <td className="py-3 px-4 border whitespace-nowrap">
                                                 {data.service_data?.cef ? (
                                                     <button
-                                                        className="px-4 py-2 bg-green-500 text-white rounded"
+                                                        className="px-4 py-2 bg-[#3e76a5] text-white rounded"
                                                         onClick={() => handleViewDocuments(data.service_data.cef)}
                                                     >
                                                         View Documents
@@ -703,7 +703,7 @@ const CandidateExcelTrackerStatus = () => {
                                             </td>
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
-                                                    ? "text-green-500"
+                                                    ? "text-[#3e76a5]"
                                                     : data.is_employment_gap === "yes"
                                                         ? "text-red-500"
                                                         : "text-black"
@@ -715,7 +715,7 @@ const CandidateExcelTrackerStatus = () => {
 
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_education_gap === "no"
-                                                    ? "text-green-500"
+                                                    ? "text-[#3e76a5]"
                                                     : data.is_education_gap === "yes"
                                                         ? "text-red-500"
                                                         : "text-black"
@@ -725,7 +725,7 @@ const CandidateExcelTrackerStatus = () => {
                                             </td>
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
-                                                    ? "text-green-500"
+                                                    ? "text-[#3e76a5]"
                                                     : data.is_employment_gap === "yes"
                                                         ? "text-red-500"
                                                         : "text-black"
@@ -802,7 +802,7 @@ const CandidateExcelTrackerStatus = () => {
                                             {data.cef_submitted === 0 || (data.dav_exist === 1 && data.dav_submitted === 0) ? (
                                                 <td className="border px-4 py-2">
                                                     <button
-                                                        className={`bg-green-600 uppercase border border-white hover:border-green-500 text-white px-4 py-2 rounded hover:bg-white ${loadingRow === data.id ? "opacity-50 cursor-not-allowed hover:text-green-500 " : "hover:text-green-500"
+                                                        className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white ${loadingRow === data.id ? "opacity-50 cursor-not-allowed hover:text-[#3e76a5] " : "hover:text-[#3e76a5]"
                                                             }`}
                                                         onClick={() => handleSendLink(data.main_id, data.branch_id, data.customer_id, data.id)}
                                                         disabled={loadingRow} // Disable only the clicked button
@@ -822,7 +822,7 @@ const CandidateExcelTrackerStatus = () => {
                                             >
                                                 <div className="modal-container">
                                                     <h2 className="modal-title text-center my-4 text-2xl font-bold">Attachments</h2>
-                                                    <ul className="modal-list h-[400px] overflow-scroll">
+                                                    <ul className="modal-list md:max-h-[400px] max-h-[200px] overflow-scroll">
                                                         {Object.entries(selectedAttachments).map(([category, attachments], idx) => (
                                                             <li key={idx} className="modal-list-category">
                                                                 <h3 className="modal-category-title md:text-lg font-semibold my-2">{category}</h3>
@@ -840,7 +840,7 @@ const CandidateExcelTrackerStatus = () => {
                                                                                             href={url.trim()} // Trim to remove any extra spaces
                                                                                             target="_blank"
                                                                                             rel="noopener noreferrer"
-                                                                                            className="modal-view-button w-auto m-0 bg-green-500 text-white p-2 rounded-md px-4 block mt-2 text-center"
+                                                                                            className="modal-view-button w-auto m-0 bg-[#3e76a5] text-white p-2 rounded-md px-4 block mt-2 text-center"
                                                                                         >
                                                                                             View {urlIdx + 1}
                                                                                         </a>

@@ -146,7 +146,7 @@ const ServiceReportForm = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -187,7 +187,7 @@ const ServiceReportForm = () => {
                             <div className="overflow-x-auto">
                                 <table className={`min-w-full border-collapse border border-black`}>
                                     <thead>
-                                        <tr className="bg-green-500 whitespace-nowrap text-white text-left">
+                                        <tr className="bg-[#3e76a5] whitespace-nowrap text-white text-left">
                                             <th className="uppercase border border-black px-4 py-2 text-center">SI</th>
                                             <th className="uppercase border border-black px-4 py-2">Service Title</th>
                                             <th className="uppercase border border-black px-4 py-2">Short Code</th>
@@ -206,13 +206,13 @@ const ServiceReportForm = () => {
                                                 <td className="border border-black px-4 py-2">
                                                     <div className="flex justify-center ">
                                                         <button
-                                                            className="ml-2 p-2 px-4 text-green-500 border border-green-400  rounded-md"
+                                                            className="ml-2 p-2 px-4 text-[#3e76a5] border border-green-400  rounded-md"
                                                             onClick={() => handleEdit(service)}
                                                         >
                                                             Edit
                                                         </button>
                                                         <button
-                                                            className="ml-2 p-2 px-4 text-white bg-green-500 hover:bg-green-600 rounded-md"
+                                                            className="ml-2 p-2 px-4 text-white bg-[#3e76a5] hover:bg-[#3e76a5] rounded-md"
                                                             onClick={() => handlePreview(service.id)}
                                                         >
                                                             Preview
@@ -264,7 +264,7 @@ const ServiceReportForm = () => {
                         >
                             X
                         </button>
-                        <div className="bg-green-400 rounded-t-md p-4">
+                        <div className="bg-[#3e76a5] rounded-t-md p-4">
                             <h3 className="text-center text-2xl font-semibold text-white">
                                 {previewData.heading}
                             </h3>

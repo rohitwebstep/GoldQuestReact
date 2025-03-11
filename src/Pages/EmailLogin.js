@@ -136,7 +136,7 @@ const EmailLogin = () => {
             className='outline-none p-3 border mt-3 w-full rounded-md' />
           {error.password && <p className='text-red-500'>{error.password}</p>}
         </div>
-        <button type="submit" className='bg-green-400 text-white p-3 rounded-md w-full hover:bg-green-200'>Sign In</button>
+        <button type="submit" className='bg-[#3e76a5] text-white p-3 rounded-md w-full hover:bg-[#3e76a5]'>Sign In</button>
         <span className='text-center pt-4 flex justify-center text-blue-400 cursor-pointer'>
           <Link to='/forgotpassword'>Forgot Password?</Link>
         </span>

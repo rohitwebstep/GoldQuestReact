@@ -8,14 +8,14 @@ const NotificationBox = ({ message, type, dismissable = true }) => {
   if (!visible) return null;
 
   const notificationClasses = classNames('px-4 py-3 rounded shadow-md flex items-center space-x-3 transition-opacity duration-300', {
-    'bg-green-100 border-green-500 text-green-700': type === 'success',
+    'bg-[#3e76a5] border-[#3e76a5] text-[#3e76a5]': type === 'success',
     'bg-blue-100 border-blue-500 text-blue-700': type === 'info',
     'bg-yellow-100 border-yellow-500 text-yellow-700': type === 'warning',
     'bg-red-100 border-red-500 text-red-700': type === 'error',
   });
 
   const icon = {
-    success: <AiOutlineCheckCircle className="text-green-700" />,
+    success: <AiOutlineCheckCircle className="text-[#3e76a5]" />,
     info: <AiOutlineInfoCircle className="text-blue-700" />,
     warning: <AiOutlineWarning className="text-yellow-700" />,
     error: <AiOutlineCloseCircle className="text-red-700" />,

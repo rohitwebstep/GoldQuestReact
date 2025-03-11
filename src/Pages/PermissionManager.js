@@ -141,8 +141,8 @@ const PermissionManager = () => {
                 <table className="border-collapse border border-black w-full">
                     <thead>
                         <tr className="bg-gray-200 ">
-                            <th className="border border-black text-white px-4 py-2 bg-green-500 text-start">Permission</th>
-                            <th className="border border-black text-white px-4 py-2 bg-green-500 text-center">Enabled</th>
+                            <th className="border border-black text-white px-4 py-2 bg-[#3e76a5] text-start">Permission</th>
+                            <th className="border border-black text-white px-4 py-2 bg-[#3e76a5] text-center">Enabled</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -351,7 +351,7 @@ const PermissionManager = () => {
 
                     <div className="overflow-scroll">
                         <table className="min-w-full border-collapse border border-black">
-                            <thead className="bg-green-500 text-white">
+                            <thead className="bg-[#3e76a5] text-white">
                                 <td className="border border-black px-4 py-2 text-center">SI</td>
                                 <td
                                     className="border uppercase border-black px-4 py-2 text-center"
@@ -391,7 +391,7 @@ const PermissionManager = () => {
                                                             </button>
                                                         </td>
                                                         <td className="text-center border border-black px-4 py-2">
-                                                            <button className="bg-green-500 hover:scale-105 text-white rounded px-4 py-2 hover:bg-green-600 ml-2"
+                                                            <button className="bg-[#3e76a5] hover:scale-105 text-white rounded px-4 py-2 hover:bg-[#3e76a5] ml-2"
                                                                 onClick={() => openModal(role, true)}>
                                                                 Edit
                                                             </button>
@@ -469,7 +469,7 @@ const PermissionManager = () => {
                                 </button>
                                 {isEditable && modalRole?.role !== 'view' && (
                                     <button
-                                        className="bg-green-500 text-white px-4 py-2 rounded"
+                                        className="bg-[#3e76a5] text-white px-4 py-2 rounded"
                                         onClick={() => handleUpdate(selectedServices)} // Pass selectedServices to handleUpdate
                                     >
                                         Save Changes

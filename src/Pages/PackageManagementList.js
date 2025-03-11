@@ -84,7 +84,7 @@ const PackageManagementList = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -200,57 +200,55 @@ const PackageManagementList = () => {
 
     return (
         <>
-            <div className="py-4 px-4">
+            <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-1 md:p-3">
+                <div className="col">
+                    <div className="flex gap-3">
+                        <select
+                            name="options"
+                            onChange={(e) => {
+                                handleSelectChange(e); // Call the select change handler
+                                setCurrentPage(1); // Reset current page to 1
+                            }}
+                            className="outline-none p-3 border text-left rounded-md w-7/12 md:w-6/12"
+                        >
 
-                <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
-                    <div className="col">
-                        <form action="">
-                            <div className="flex gap-2">
-                                <select
-                                    name="options"
-                                    onChange={(e) => {
-                                        handleSelectChange(e); // Call the select change handler
-                                        setCurrentPage(1); // Reset current page to 1
-                                    }}
-                                    className="outline-none border p-3 text-left rounded-md w-full md:w-6/12"
-                                >
-
-                                    <option value="10">10 Rows</option>
-                                    <option value="20">20 Rows</option>
-                                    <option value="50">50 Rows</option>
-                                    <option value="100">100 Rows</option>
-                                    <option value="200">200 Rows</option>
-                                    <option value="300">300 Rows</option>
-                                    <option value="400">400 Rows</option>
-                                    <option value="500">500 Rows</option>
-                                </select>
-                                <button
-                                    onClick={exportToExcel}
-                                    className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                                    type="button"
-                                    disabled={currentItems.length === 0}
-                                >
-                                    Export to Excel
-                                </button>
-                            </div>
-                        </form>
+                            <option value="10">10 Rows</option>
+                            <option value="20">20 Rows</option>
+                            <option value="50">50 Rows</option>
+                            <option value="100">100 Rows</option>
+                            <option value="200">200 Rows</option>
+                            <option value="300">300 Rows</option>
+                            <option value="400">400 Rows</option>
+                            <option value="500">500 Rows</option>
+                        </select>
+                        <button
+                            onClick={exportToExcel}
+                            className="bg-[#3e76a5] text-white py-3 text-sm px-4 rounded-md capitalize"
+                            type="button"
+                            disabled={currentItems.length === 0}
+                        >
+                            Export to Excel
+                        </button>
                     </div>
-                    <div className="col md:flex justify-end ">
-                        <form action="">
-                            <div className="flex md:items-stretch items-center  gap-3">
-                                <input
-                                    type="search"
-                                    className='outline-none border p-2 text-sm rounded-md w-full my-4 md:my-0'
-                                    placeholder='Search by Client Code'
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </form>
-                    </div>
-
                 </div>
-                <div className="overflow-x-auto py-6 px-4">
+                <div className="col md:flex justify-end">
+                    <form action="">
+                        <div className="flex md:items-stretch items-center gap-3">
+                            <input
+                                type="search"
+                                className='outline-none border-2 p-3 rounded-md w-full my-4 md:my-0'
+                                placeholder='Search Here.'
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </form>
+                </div>
+            </div >
+            <div className="py-4 md:px-4">
+
+
+                <div className="overflow-x-auto py-6 md:px-4">
                     {loading ? (
                         <div className='flex justify-center items-center py-6 h-full'>
                             <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
@@ -259,7 +257,7 @@ const PackageManagementList = () => {
                     ) : currentItems.length > 0 ? (
                         <table className="min-w-full mb-4">
                             <thead>
-                                <tr className='bg-green-500'>
+                                <tr className='bg-[#3e76a5]'>
                                     <th className="py-2 px-4 border-b border-r text-sm text-white text-left uppercase  whitespace-nowrap">Sl</th>
                                     <th className="py-2 px-4 border-b border-r text-sm text-white text-left uppercase  whitespace-nowrap">Package Name</th>
                                     <th className="py-2 px-4 border-b border-r text-sm text-white text-left uppercase  whitespace-nowrap">Description</th>
@@ -281,8 +279,8 @@ const PackageManagementList = () => {
                                         </td>
                                         <td className="py-2 px-4 border-b capitalize border-r text-sm whitespace-nowrap">
                                             <button
-                                                className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white'
-                                                onClick={() => handleEdit(item)}
+                                                className='bg-[#3e76a5] hover:bg-[#3e76a5] rounded-md p-2 me-2 text-white'
+                                                onClick={() => {window.scrollTo({ top: 0, behavior: 'smooth' }); handleEdit(item)}}
                                             >
                                                 Edit
                                             </button>

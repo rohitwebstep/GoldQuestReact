@@ -86,7 +86,7 @@ const BulkUploadForm = () => {
                 />
                 {error.remarks && <p className="text-red-500">{error.remarks}</p>}
             </div>
-            <button className="bg-green-500 text-white rounded-md p-3" type="submit">
+            <button className="bg-[#3e76a5] text-white rounded-md p-3" type="submit">
                 Upload
             </button>
         </form>

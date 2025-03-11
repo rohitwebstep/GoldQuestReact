@@ -462,7 +462,7 @@ const ServiceForms = () => {
 
                         <div
                             onClick={handleNext}
-                            className="flex items-center justify-center w-24 space-x-3 p-2 rounded-lg bg-green-500 text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
+                            className="flex items-center justify-center w-24 space-x-3 p-2 rounded-lg bg-[#3e76a5] text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                         >
                             <span className="font-semibold text-lg">Next</span>
                             <FaChevronRight className="text-xl text-white" />
@@ -569,7 +569,7 @@ const ServiceForms = () => {
                                                         ))}
                                                         <button
                                                             onClick={() => handleAddOption(rowIndex, inputIndex)}
-                                                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 mt-4"
+                                                            className="bg-[#3e76a5] text-white px-4 py-2 rounded-lg hover:bg-[#3e76a5] focus:outline-none focus:ring-2 focus:ring-green-400 mt-4"
                                                         >
                                                             Add Option
                                                         </button>
@@ -599,7 +599,7 @@ const ServiceForms = () => {
                                 </div>
                                 <button
                                     onClick={() => handleAddInput(rowIndex)}
-                                    className={`bg-green-500 text-white px-3 py-1 rounded-lg : ""
+                                    className={`bg-[#3e76a5] text-white px-3 py-1 rounded-lg : ""
                                         }`} >
                                     Add Input
                                 </button>
@@ -618,7 +618,7 @@ const ServiceForms = () => {
                     <div className="flex justify-between mt-6">
                         <div
                             onClick={handleBack}
-                            className="flex items-center w-24 justify-center space-x-3 p-2 rounded-lg bg-green-500 text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
+                            className="flex items-center w-24 justify-center space-x-3 p-2 rounded-lg bg-[#3e76a5] text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                         >
                             <FaChevronLeft className="text-xl text-white" />
                             <span className="font-semibold text-lg">Back</span>
@@ -626,7 +626,7 @@ const ServiceForms = () => {
 
                         <div
                             onClick={handleNext}
-                            className="flex items-center justify-center w-24 space-x-3 p-2 rounded-lg bg-green-500 text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
+                            className="flex items-center justify-center w-24 space-x-3 p-2 rounded-lg bg-[#3e76a5] text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                         >
                             <span className="font-semibold text-lg">Next</span>
                             <FaChevronRight className="text-xl text-white" />
@@ -639,7 +639,7 @@ const ServiceForms = () => {
                 <div className="bg-white p-6 w-full border-t border-gray-300 mx-auto rounded-lg">
                     <h3 className="text-lg font-semibold mb-3">Step 3: Preview</h3>
                     <div className="py-3">
-                        <div className='bg-green-500 border  border-white rounded-t-md p-4'>
+                        <div className='bg-[#3e76a5] border  border-white rounded-t-md p-4'>
                             <h3 className="text-center md:text-2xl font-semibold text-white">{formData.heading}</h3>
                         </div>
                         <div className='overflow-x-auto'>
@@ -738,14 +738,14 @@ const ServiceForms = () => {
                     <div className="flex justify-between mt-6">
                         <div
                             onClick={handleBack}
-                            className="flex items-center w-24 justify-center space-x-3 p-2 rounded-lg bg-green-500 text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
+                            className="flex items-center w-24 justify-center space-x-3 p-2 rounded-lg bg-[#3e76a5] text-white hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                         >
                             <FaChevronLeft className="text-xl text-white" />
                             <span className="font-semibold text-lg">Back</span>
                         </div>
 
                         <button
-                            className={`bg-green-500 text-white px-4 py-2 rounded-lg ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+                            className={`bg-[#3e76a5] text-white px-4 py-2 rounded-lg ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
                             onClick={handleSubmit}
                         >
                             {loading ? 'Submitting...' : 'Submit'}

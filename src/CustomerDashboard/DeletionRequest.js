@@ -165,7 +165,7 @@ const DeletionRequest = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -385,14 +385,14 @@ const DeletionRequest = () => {
                 <h2 className='md:text-4xl text-2xl font-bold pb-8 md:pb-4 text-center'>Deletion Requests</h2>
 
                 <div className="overflow-x-auto py-6 px-4 bg-white shadow-md rounded-md md:m-10 m-3">
-                    <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
+                <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
-                                <div className="md:flex gap-2">
+                                <div className="flex gap-2">
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-full md:w-auto p-3'>
+                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-7/12 md:w-auto p-3'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -404,7 +404,7 @@ const DeletionRequest = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
@@ -415,11 +415,11 @@ const DeletionRequest = () => {
                         </div>
                         <div className="col md:flex justify-end ">
                             <form action="">
-                                <div className="flex md:items-stretch items-center gap-3">
+                                <div className="flex md:items-stretch items-center  gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Admin Name...'
+                                        className='outline-none border-2 p-2 text-sm rounded-md w-full my-4 md:my-0'
+                                        placeholder='Search by Case'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -437,7 +437,7 @@ const DeletionRequest = () => {
                         ) : currentItems.length > 0 ? (
                             <table className="min-w-full">
                                 <thead>
-                                    <tr className="bg-green-500">
+                                    <tr className="bg-[#3e76a5]">
                                         <th className="py-3 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">SL NO.</th>
                                         <th className="py-3 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">Admin Name	</th>
                                         <th className="py-3 text-left text-white border-r px-4 border-b whitespace-nowrap uppercase">Admin Email</th>
@@ -479,7 +479,7 @@ const DeletionRequest = () => {
                                             </td>
 
                                             <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm">{report.status || 'NIL'}</td>
-                                            <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm"><button className='bg-green-500 text-white p-3 rounded-md' onClick={() => handleDelete(report.id)}>Click</button></td>
+                                            <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm"><button className='bg-[#3e76a5] text-white p-3 rounded-md' onClick={() => handleDelete(report.id)}>Click</button></td>
 
                                         </tr>
                                     ))}

@@ -278,7 +278,7 @@ export const ClientEditForm = () => {
 
 
 
-                                <button className="bg-green-500 text-white rounded-3 p-2 mt-4 rounded-md" type="button" onClick={addNewEmailField}>ADD MORE</button>
+                                <button className="bg-[#3e76a5] text-white rounded-3 p-2 mt-4 rounded-md" type="button" onClick={addNewEmailField}>ADD MORE</button>
 
                             </div>
 
@@ -305,7 +305,7 @@ export const ClientEditForm = () => {
                                 </div>
 
                                 <div className="mb-4 md:w-6/12">
-                                    <label className="text-gray-500" htmlFor="gst_number">gst_number: <span className="text-red-600">*</span></label>
+                                    <label className="text-gray-500" htmlFor="gst_number">GSTIN <span className="text-red-600">*</span></label>
                                     <input
                                         type="text"
                                         name="gst_number"
@@ -411,7 +411,7 @@ export const ClientEditForm = () => {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
-                                                <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
+                                                <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                     View Document
                                                 </button>
                                             </a>
@@ -488,7 +488,7 @@ export const ClientEditForm = () => {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                     >
-                                                        <button type="button" className="px-4 py-2 bg-green-500 text-white rounded">
+                                                        <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                             View Document
                                                         </button>
                                                     </a>
@@ -576,7 +576,7 @@ export const ClientEditForm = () => {
                             <div className="flex justify-center">
                                 <button
                                     type="submit"
-                                    className="bg-green-500 w-full text-white p-3 mt-5 rounded-md hover:bg-green-500"
+                                    className="bg-[#3e76a5] w-full text-white p-3 mt-5 rounded-md hover:bg-[#3e76a5]"
                                     disabled={loading}
                                 >
                                     {loading ? 'Processing...' : 'Update'}

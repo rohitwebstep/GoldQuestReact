@@ -285,7 +285,7 @@ const ClientMasterTrackerList = () => {
                     type="button"
                     key={`page-${number}`} // Unique key for page buttons
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-green-500 text-white' : 'bg-green-300 text-black border'}`}
+                    className={`px-3 py-1 rounded-0 ${currentPage === number ? 'bg-[#3e76a5] text-white' : 'bg-[#3e76a5] text-black border'}`}
                 >
                     {number}
                 </button>
@@ -347,7 +347,7 @@ const ClientMasterTrackerList = () => {
                                 <select name="options" onChange={(e) => {
                                     handleSelectChange(e); // Call the select change handler
                                     setCurrentPage(1); // Reset current page to 1
-                                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-full md:w-6/12'>
+                                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                                     <option value="10">10 Rows</option>
                                     <option value="20">20 Rows</option>
                                     <option value="50">50 Rows</option>
@@ -356,14 +356,14 @@ const ClientMasterTrackerList = () => {
                                     <option value="400">400 Rows</option>
                                     <option value="500">500 Rows</option>
                                 </select>
-                               <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 text-white py-3 px-4 rounded-md capitalize"
-                  type="button"
-                  disabled={currentItems.length === 0}
-                >
-                  Export to Excel
-                </button>
+                                <button
+                                    onClick={exportToExcel}
+                                    className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
+                                    type="button"
+                                    disabled={currentItems.length === 0}
+                                >
+                                    Export to Excel
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -384,7 +384,7 @@ const ClientMasterTrackerList = () => {
                                 <input
                                     type="search"
                                     className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
-                                    placeholder='Search by Client Code..'
+                                    placeholder='Search Here..'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -403,7 +403,7 @@ const ClientMasterTrackerList = () => {
                     ) : currentItems.length > 0 ? (
                         <table className="min-w-full mb-4" ref={tableRef}>
                             <thead>
-                                <tr className='bg-green-500'>
+                                <tr className='bg-[#3e76a5]'>
                                     <th className="md:py-3 p-2 px-4 border-b border-r border-l text-white text-left uppercase whitespace-nowrap">SL</th>
                                     <th className="md:py-3 p-2 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Client Code</th>
                                     <th className="md:py-3 p-2 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Company Name</th>
@@ -427,7 +427,7 @@ const ClientMasterTrackerList = () => {
                                             <td className="md:py-3 p-2 px-4 border-b border-r text-center whitespace-nowrap">
                                                 <button
                                                     disabled={branchLoading || isApiLoading}
-                                                    className={`rounded-md p-3 text-white ${branchLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-200'}`}
+                                                    className={`rounded-md p-3 text-white ${branchLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                                                     onClick={() => handleBranches(item.main_id)}>
                                                     {expandedClient === item.main_id ? 'Hide Branches' : 'View Branches'}
                                                 </button>
@@ -456,7 +456,7 @@ const ClientMasterTrackerList = () => {
                                                         <td colSpan="6" className="py-3 md:px-4">
                                                             <table className='w-full'>
                                                                 <thead>
-                                                                    <tr className='bg-green-500 text-white'>
+                                                                    <tr className='bg-[#3e76a5] text-white'>
                                                                         <th className="w-4/12 md:py-3 p-2 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold">Branch Name</th>
                                                                         <th className="w-4/12 md:py-3 p-2 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold">Branch Application Count</th>
                                                                         <th className="w-4/12 md:py-3 p-2 px-4 border-b border-r border-l whitespace-nowrap text-center">Action</th>
@@ -468,7 +468,7 @@ const ClientMasterTrackerList = () => {
                                                                             <td className="w-4/12 md:py-3 p-2 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold">{branch.branch_name}</td>
                                                                             <td className="w-4/12 md:py-3 p-2 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold">{branch.application_count}</td>
                                                                             <td className="w-4/12 md:py-3 p-2 px-4 border-b border-r border-l whitespace-nowrap text-center">
-                                                                                <button className="bg-green-600 hover:bg-green-200 rounded-md p-2 text-white" onClick={() => handleClick(branch.branch_id)}>Check In</button>
+                                                                                <button className="bg-[#3e76a5] hover:bg-[#3e76a5] rounded-md p-2 text-white" onClick={() => handleClick(branch.branch_id)}>Check In</button>
                                                                             </td>
                                                                         </tr>
                                                                     ))}

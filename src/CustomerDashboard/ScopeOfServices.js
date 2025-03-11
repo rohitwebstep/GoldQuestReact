@@ -126,7 +126,7 @@ const ScopeOfServices = () => {
                 <div className="overflow-x-auto bg-white shadow-md rounded-md md:m-10 m-3 h-full">
                     <table className="min-w-full border bg-white overflow-auto shadow-md rounded-md p-3 ">
 
-                        <tr className='bg-green-500 text-white'>
+                        <tr className='bg-[#3e76a5] text-white'>
                             <th className="py-2 px-4 border-b border-r-2 whitespace-nowrap text-center font-bold">PARTICULARS</th>
                             <td className="py-2 px-4 border-b text-center border-r-2 whitespace-nowrap uppercase font-bold">INFORMATION</td>
                         </tr>
@@ -184,9 +184,10 @@ const ScopeOfServices = () => {
                     )}
                     {error && <p className="text-center text-red-500 p-6">{error}</p>}
                     {!loading && !error && (
-                        <table className="min-w-full">
+                        <div className='max-h-[300px] overflow-auto'>
+                        <table className="min-w-full ">
                             <thead>
-                                <tr className='bg-green-500'>
+                                <tr className='bg-[#3e76a5]'>
                                     <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">SL NO</th>
                                     <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">SERVICES</th>
                                     <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">PRICING</th>
@@ -215,6 +216,7 @@ const ScopeOfServices = () => {
                             )}
 
                         </table>
+                        </div>
                     )}
                 </div>
             </div>
