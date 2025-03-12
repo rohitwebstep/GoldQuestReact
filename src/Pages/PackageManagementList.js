@@ -152,6 +152,10 @@ const PackageManagementList = () => {
                         return response.json(); // Parse the response if it's OK
                     })
                     .then((result) => {
+                        const newToken = result._token || result.token;
+                        if (newToken) {
+                            localStorage.setItem("_token", newToken);
+                        }
                         // Handle successful deletion
                         if (result.status === false) {
                             Swal.fire('Error!', result.message, 'error');

@@ -27,23 +27,18 @@ const ServiceReportForm = () => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const admin_id = adminData?.id;
         const storedToken = localStorage.getItem("_token");
-
+    
         if (!admin_id || !storedToken) {
             console.error("Admin ID or Token is missing from localStorage");
             return;
         }
-
+    
         const url = `https://api.goldquestglobal.in/json-form/generate-report/list?admin_id=${admin_id}&_token=${storedToken}`;
         setIsApiLoading(true);
-
+    
         try {
             const response = await fetch(url);
-            const newToken = response.token || response._token;
-
-            if (newToken) {
-                localStorage.setItem("_token", newToken);
-            }
-
+        
             if (!response.ok) {
                 // Check for invalid token in response message
                 const errorMessage = await response.text(); // Get the error message from the response
@@ -59,10 +54,24 @@ const ServiceReportForm = () => {
                     });
                     return;
                 }
-                throw new Error(`HTTP error! Status: ${response.status}`);
+    
+                // Show the error message from the API response
+                Swal.fire({
+                    title: "Error",
+                    text: errorMessage || `HTTP error! Status: ${response.status}`,
+                    icon: "error",
+                    confirmButtonText: "Ok",
+                });
+    
+                throw new Error(`HTTP error! Status: ${response.status} - ${errorMessage}`);
             }
-
+    
             const result = await response.json();
+            const newToken = response.token || response._token;
+    
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
             setClientData(result.data); // Set the `data` object in state
         } catch (error) {
             console.error("Error fetching client data:", error);
@@ -71,8 +80,7 @@ const ServiceReportForm = () => {
             setIsApiLoading(false);
         }
     };
-
-
+    
     useEffect(() => {
         if (!isApiLoading) {
             fetchClientData();

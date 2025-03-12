@@ -502,8 +502,8 @@ const Tickets = () => {
         // Map the data to match the structure of the table headers
         const formattedData = dataToExport.map((ticket, index) => ({
             Index: index + 1,
-            "Case Title": ticket.tile,
-            "Ticket Number": ticket.ticket_number,
+            "Case Title": ticket.title || 'NIL',
+            "Ticket Number": ticket.ticket_number || 'NIL',
         }));
 
         // Create a worksheet and workbook
@@ -555,7 +555,7 @@ const Tickets = () => {
                                     <input
                                         type="search"
                                         className='outline-none border-2 p-2 text-sm rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Case'
+                                        placeholder='Search Here'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />

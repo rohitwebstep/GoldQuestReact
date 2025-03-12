@@ -339,24 +339,23 @@ const ReportCaseTable = () => {
 
     setIsBranchApiLoading(true);
 
-    setServicesLoading((prev) => {
-      const newLoadingState = { ...prev, [globalIndex]: true };
-      return newLoadingState;
-    });
+    setServicesLoading((prev) => ({
+      ...prev,
+      [globalIndex]: true
+    }));
 
     if (expandedRow && expandedRow.index === globalIndex) {
       setExpandedRow(null); // Collapse the row
-      setServicesLoading((prev) => {
-        const newLoadingState = { ...prev, [globalIndex]: false };
-        return newLoadingState;
-      });
+      setServicesLoading((prev) => ({
+        ...prev,
+        [globalIndex]: false
+      }));
       setIsBranchApiLoading(false); // End loading state when collapsing
       return;
     }
 
     try {
       const applicationInfo = currentItems[index]; // Data for the current page
-
       const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services);
 
       const headingsAndStatuses = [];
@@ -372,33 +371,140 @@ const ReportCaseTable = () => {
         }
       });
 
+      // ✅ Show "No Data Found" if there are no headings or statuses
+      if (headingsAndStatuses.length === 0) {
+        Swal.fire({
+          title: "No Data Found",
+          text: "No valid headings or statuses were found.",
+          icon: "info",
+          confirmButtonText: "Ok"
+        });
+        setServicesLoading(false)
+        return;
+      }
+
       setExpandedRow({
         index: globalIndex, // Use the global index
         headingsAndStatuses: headingsAndStatuses,
       });
 
-      setServicesLoading((prev) => {
-        const newLoadingState = { ...prev, [globalIndex]: false };
-        return newLoadingState;
-      });
+      setServicesLoading((prev) => ({
+        ...prev,
+        [globalIndex]: false
+      }));
 
       const expandedRowElement = document.getElementById(`expanded-row-${globalIndex}`);
       if (expandedRowElement) {
         expandedRowElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } catch (error) {
-      setServicesLoading((prev) => {
-        const newLoadingState = { ...prev, [globalIndex]: false };
-        return newLoadingState;
-      });
+      setServicesLoading((prev) => ({
+        ...prev,
+        [globalIndex]: false
+      }));
       console.error('Error fetching service data:', error);
     } finally {
       setIsBranchApiLoading(false); // Stop global loading state
     }
   };
 
+  const handleDelete = (data) => {
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsBranchApiLoading(true);
+        const branchData = JSON.parse(localStorage.getItem("branch"));
+        const branch_id = JSON.parse(localStorage.getItem("branch"))?.branch_id;
+        const _token = localStorage.getItem("branch_token");
+
+        if (!branch_id || !_token) {
+          console.error("Branch ID or token is missing.");
+          return;
+        }
+
+        const requestOptions = {
+          method: "DELETE",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
 
 
+        const payLoad = {
+          branch_id: branch_id,
+          id: data.id,
+          _token: _token,
+          customer_id: data.customer_id,
+          ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        };
+
+        // Convert the object to a query string
+        const queryString = new URLSearchParams(payLoad).toString();
+        fetch(`${API_URL}/branch/client-application/delete?${queryString}`, requestOptions)
+          .then(response => response.json()) // Parse the JSON response
+          .then(result => {
+            // Check if the result contains a message about invalid token (session expired)
+            if (
+              result.message &&
+              result.message.toLowerCase().includes("invalid") &&
+              result.message.toLowerCase().includes("token")
+            ) {
+              Swal.fire({
+                title: "Session Expired",
+                text: "Your session has expired. Please log in again.",
+                icon: "warning",
+                confirmButtonText: "Ok",
+              }).then(() => {
+                window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
+              });
+              return; // Exit after showing the session expired message
+            }
+
+            // Handle token update if provided in the response
+            const newToken = result._token || result.token;
+            if (newToken) {
+              localStorage.setItem("branch_token", newToken);
+            }
+
+            // If there is a failure message in the result, show it
+            if (result.status === false) {
+              Swal.fire({
+                title: 'Error!',
+                text: result.message || 'An error occurred during the deletion.',
+                icon: 'error',
+                confirmButtonText: 'Ok',
+              });
+              return; // Exit if an error occurs during the deletion
+            }
+
+            // Successfully deleted, now show success and refresh the data
+            fetchData();
+            Swal.fire(
+              'Deleted!',
+              'Your Application has been deleted.',
+              'success'
+            );
+          })
+          .catch(error => {
+            console.error('Fetch error:', error);
+            Swal.fire(
+              'Error!',
+              'An unexpected error occurred while deleting.',
+              'error'
+            );
+          }).finally(() => {
+            setIsBranchApiLoading(false);
+          });
+      }
+    });
+  };
 
 
   const handleSelectChange = (e) => {
@@ -543,7 +649,7 @@ const ReportCaseTable = () => {
           { content: 'Date of Birth', styles: { fontStyle: 'bold' } },
           { content: applicationInfo?.dob ? new Date(applicationInfo.dob).toLocaleDateString() : 'NIL' },
           { content: 'Application Received', styles: { fontStyle: 'bold' } },
-          { content: applicationInfo?.updated_at ? new Date(applicationInfo.updated_at).toLocaleDateString() : 'NIL' },
+          { content: applicationInfo?.deadline_date ? new Date(applicationInfo.deadline_date).toLocaleDateString() : 'NIL' },
         ],
         [
           { content: 'Candidate Employee ID', styles: { fontStyle: 'bold' } },
@@ -746,6 +852,7 @@ const ReportCaseTable = () => {
         let rows = [];
 
         // Attempt to parse the JSON string and only proceed if valid
+        console.log('service', service)
         try {
           if (!service.reportFormJson || !service.reportFormJson.json) {
             // Skip this service if reportFormJson is not found or is empty
@@ -755,6 +862,7 @@ const ReportCaseTable = () => {
 
           // Attempt to parse the JSON string
           reportFormJson = JSON.parse(service.reportFormJson.json);
+          console.log('reportFormJson', reportFormJson)
 
           // Only process if rows are present
           rows = reportFormJson && Array.isArray(reportFormJson.rows) ? reportFormJson.rows : [];
@@ -826,7 +934,8 @@ const ReportCaseTable = () => {
 
           const name = data.values.name;
 
-          if (!name || name.startsWith("annexure")) {
+          // Check if name starts with 'annexure' or 'additional_fee', and skip those entries
+          if (!name || name.startsWith("annexure") || name.startsWith("additional_fee")) {
             return null;
           }
 
@@ -1033,10 +1142,10 @@ const ReportCaseTable = () => {
       const adjustedDisclaimerButtonHeight = disclaimerButtonHeight + buttonBottomPadding;
 
       const disclaimerTextPart1 = `his report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the
-purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any
-other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the
-information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on
-the information responsible for employment decisions based on the information provided in this report.`;
+    purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any
+    other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the
+    information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on
+    the information responsible for employment decisions based on the information provided in this report.`;
       const anchorText = "";
       const disclaimerTextPart2 = "";
 
@@ -1191,43 +1300,74 @@ the information responsible for employment decisions based on the information pr
   }
 
   const Loader = () => (
-    <div className="flex w-full justify-center items-center h-20">
-      <div className="loader border-t-4 border-[#2c81ba] rounded-full w-10 h-10 animate-spin"></div>
+    <div className="flex w-full justify-center items-center max-h-20">
+      <div className="loader border-t-4 border-[#2c81ba] rounded-full w-10 max-h-10 animate-spin"></div>
     </div>
   );
 
 
-  const exportToExcel = () => {
-    const worksheetData = currentItems.map((data, index) => ({
-      "Index": index + 1,
-      "Admin TAT": data.adminTAT || "NIL",
-      "Location": data.location || "NIL",
-      "Name": data.name || "NIL",
-      "Application ID": data.application_id || "NIL",
-      "Employee ID": data.employee_id || "NIL",
-      "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
-      "Updated At": data.updated_at ? new Date(data.updated_at).toLocaleDateString() : "NIL",
-      "Report Type": data.report_type || "NIL",
-      "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
-      "Generated By": data.report_generated_by_name || "NIL",
-      "QC Done By": data.qc_done_by_name || "NIL",
-      "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
-      "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
-      "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
-      "Second Level Insuff": data.second_insufficiency_marks || 'NIL',
-      "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
-      "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
-      "Third Level Insuff Marks": data?.third_insufficiency_marks || 'NIL',
-      "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
-      "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
-      "Reason For Delay": data.delay_reason || "NIL",
-      "overall_status": data?.overall_status || "NIL",
-      "Delay Reason": data.delay_reason || "NIL",
-      "tat_days": data?.tat_days || "NIL",
+  const exportToExcel = async () => {
+    // Initialize headingsAndStatuses before using it
+    const headingsAndStatuses = [];
+
+    // First collect the worksheet data
+    const worksheetData = await Promise.all(currentItems.map(async (data, index) => {
+      // Fetch services data for each item
+      const servicesData = await fetchServicesData(data.main_id, data.services);
+
+      // Add services data to headingsAndStatuses
+      servicesData.forEach((service) => {
+        if (service.reportFormJson && service.reportFormJson.json) {
+          const heading = JSON.parse(service.reportFormJson.json).heading;
+          if (heading) {
+            let status = service.annexureData?.status || "NIL";
+            status = status.replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || 'NIL';
+            headingsAndStatuses.push({ heading, status });
+          }
+        }
+      });
+
+      console.log('headingsAndStatuses', headingsAndStatuses);
+
+      // Return the row data for the worksheet
+      // Add headingsAndStatuses data to the row
+      const row = {
+        "Index": index + 1,
+        "Admin TAT": data.adminTAT || "NIL",
+        "Location": data.location || "NIL",
+        "Name": data.name || "NIL",
+        "Application ID": data.application_id || "NIL",
+        "Employee ID": data.employee_id || "NIL",
+        "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
+        "Updated At": data.deadline_date ? new Date(data.deadline_date).toLocaleDateString() : "NIL",
+        "Report Type": data.report_type || "NIL",
+        "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
+        "Generated By": data.report_generated_by_name || "NIL",
+        "QC Done By": data.qc_done_by_name || "NIL",
+        // "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
+        // "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
+        // "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
+        // "Second Level Insuff": data.second_insufficiency_marks,
+        // "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
+        // "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
+        // "Third Level Insuff Marks": data?.third_insufficiency_marks,
+        // "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
+        // "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
+        "Reason For Delay": data || "NIL",
+        "overall_status": data?.overall_status || "NIL",
+        "Delay Reason": data.delay_reason || "NIL",
+        "tat_days": data?.tat_days || "NIL"
+      };
+
+      // Append each heading and status pair to the row
+      headingsAndStatuses.forEach(({ heading, status }) => {
+        row[heading] = status; // Dynamically adding heading-status pair as a key-value
+      });
+
+      return row; // Return the complete row with headings and statuses added
     }));
 
-
-
+    // Now, create the Excel sheet from the gathered worksheet data
     const ws = XLSX.utils.json_to_sheet(worksheetData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data");
@@ -1330,11 +1470,12 @@ the information responsible for employment decisions based on the information pr
                     Deadline Date
                   </th>
                   <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
-                    View More
-                  </th>
-                  <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                     Overall Status
                   </th>
+                  <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
+                    Actions
+                  </th>
+
                 </tr>
               </thead>
               <tbody>
@@ -1370,29 +1511,37 @@ the information responsible for employment decisions based on the information pr
                             </td>
                             <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                               <button
-
                                 onClick={() => {
-                                  const reportDownloadFlag =
-                                    data.overall_status === "completed" && data.is_verify === "yes" ? 1 : 0;
+                                  const reportDownloadFlag = (data.overall_status === 'completed' && data.is_verify === 'yes') || data.is_verify === 'no' ? 1 : 0;
 
                                   // Set the button to loading
-                                  setLoadingStates((prevState) => ({
+                                  setLoadingStates(prevState => ({
                                     ...prevState,
-                                    [globalIndex]: true,
+                                    [index]: true
                                   }));
 
                                   // Directly call generatePDF
-                                  generatePDF(globalIndex, reportDownloadFlag, data).finally(() => {
-                                    setLoadingStates((prevState) => ({
+                                  generatePDF(index, reportDownloadFlag, data).finally(() => {
+                                    // After PDF generation, reset loading state for the clicked button
+                                    setLoadingStates(prevState => ({
                                       ...prevState,
-                                      [globalIndex]: false,
+                                      [index]: false
                                     }));
                                   });
                                 }}
-                                className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white hover:text-[#3e76a5] ${data.overall_status !== "completed" || data.is_verify !== "yes" ? "opacity-50 cursor-not-allowed" : ""}`}
-                                disabled={data.overall_status !== "completed" || data.is_verify !== "yes" || loadingStates[globalIndex] || isBranchApiLoading}
+                                className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white hover:text-[#3e76a5] 
+      ${data.overall_status !== 'completed' && data.is_verify !== 'no' ? 'opacity-50 cursor-not-allowed' : ''} 
+      ${loadingStates[index] ? 'cursor-wait' : ''}`} // Add cursor-wait to indicate loading
+                                disabled={(data.overall_status !== 'completed' && data.is_verify !== 'no') || loadingStates[index] || isBranchApiLoading} // Disable button while loading
                               >
-                                {loadingStates[globalIndex] ? "Please Wait, Your PDF is Generating" : data.overall_status === "completed" ? data.is_verify === "yes" ? "DOWNLOAD" : "QC PENDING" : "NOT READY"}
+                                {loadingStates[index] ? 'Please Wait, Your PDF is Generating' :
+                                  data.overall_status === 'completed' ? (
+                                    data.is_verify === 'yes' ? 'DOWNLOAD' :
+                                      data.is_verify === 'no' ? 'QC PENDING' : 'NOT READY'
+                                  ) :
+                                    data.overall_status === 'wip' ? 'WIP' :
+                                      data.overall_status === 'insuff' ? 'INSUFF' : 'NOT READY'
+                                }
                               </button>
                             </td>
                             <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
@@ -1417,21 +1566,26 @@ the information responsible for employment decisions based on the information pr
                               {new Date(data.created_at).getDate()}-{new Date(data.created_at).getMonth() + 1}-{new Date(data.created_at).getFullYear()}
                             </td>
                             <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                              {new Date(data.updated_at).getDate()}-{new Date(data.updated_at).getMonth() + 1}-{new Date(data.updated_at).getFullYear()}
+                              {data.deadline_date
+                                ? `${new Date(data.deadline_date).getDate()}-${new Date(data.deadline_date).getMonth() + 1}-${new Date(data.deadline_date).getFullYear()}`
+                                : "NIL"}
                             </td>
 
+                            <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
+                              {data.overall_status || "WIP"}
+                            </td>
                             <td className="border px-4  py-2">
                               <button
                                 disabled={isBranchApiLoading}
                                 className={`rounded-md p-3 text-white ${isBranchApiLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                                 onClick={() => handleViewMore(index)} // Use globalIndex here
                               >
-                                {expandedRow && expandedRow.index === globalIndex ? 'Less' : 'View'}
+                                {expandedRow && expandedRow.index === globalIndex ? 'Hide Services' : 'View Services'}
                               </button>
+                              <button className='bg-red-500 text-white p-3 py-2 ms-2 rounded-md' onClick={() => handleDelete(data)}>Delete</button>
+
                             </td>
-                            <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                              {data.overall_status || "WIP"}
-                            </td>
+
                           </tr>
 
                           {servicesLoading[globalIndex] && (
@@ -1447,91 +1601,38 @@ the information responsible for employment decisions based on the information pr
                           {expandedRow && expandedRow.index === globalIndex && (
                             <tr id={`expanded-row-${globalIndex}`} className="expanded-row">
                               <td colSpan="100%" className="text-center p-4 bg-gray-100">
-                                <div ref={tableRef} className="relative w-full max-w-full overflow-hidden">
-                                  <table className="w-full table-auto">
-                                    <tbody className="min-h-[260px] overflow-y-auto block">
-                                      <tr>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Report Type</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Report Date</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Report Generated By</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">QC Done By</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">First Level Insuff</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">First Level Insuff Date</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">First Level Insuff Reopen Date</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Second Level Insuff</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Second Level Insuff Date</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Third Level Insuff Marks</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Third Level Insuff Date</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Third Level Insuff Reopen Date</th>
-                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Reason For Delay</th>
-                                      </tr>
-                                      <tr>
-                                        <td className="text-left p-2 border border-black capitalize">{data.report_type || 'NIL'}</td>
+                                {/* Render the expanded content */}
+                                <div ref={tableRef} className="relative max-w-[900px] overflow-x-auto">
+                                  <table className="w-full ">
+                                    {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
+                                      <thead>
+                                        <tr >
+                                          {expandedRow.headingsAndStatuses.map((item, idx) => (
 
-                                        <td className="text-left p-2 border border-black capitalize">
-                                          {data.report_date && !isNaN(new Date(data.report_date))
-                                            ? `${String(new Date(data.report_date).getDate()).padStart(2, '0')}-${String(new Date(data.report_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.report_date).getFullYear()}`
-                                            : 'NIL'}
-                                        </td>
+                                            <th className="text-left p-2 border capitalize ">
+                                              {sanitizeText(item.heading)}
+                                            </th>
 
-                                        <td className="text-left p-2 border border-black capitalize">{data.report_generated_by_name || 'NIL'}</td>
-                                        <td className="text-left p-2 border border-black capitalize">{data.qc_done_by_name || 'NIL'}</td>
-                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.first_insufficiency_marks) || 'NIL'}</td>
 
-                                        <td className="text-left p-2 border border-black capitalize">
-                                          {data.first_insuff_date && !isNaN(new Date(data.first_insuff_date))
-                                            ? `${String(new Date(data.first_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_date).getFullYear()}`
-                                            : 'NIL'}
-                                        </td>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                    )}
 
-                                        <td className="text-left p-2 border border-black capitalize">
-                                          {data.first_insuff_reopened_date && !isNaN(new Date(data.first_insuff_reopened_date))
-                                            ? `${String(new Date(data.first_insuff_reopened_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_reopened_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_reopened_date).getFullYear()}`
-                                            : 'NIL'}
-                                        </td>
 
-                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.second_insufficiency_marks) || 'NIL'}</td>
-
-                                        <td className="text-left p-2 border border-black capitalize">
-                                          {data.second_insuff_date && !isNaN(new Date(data.second_insuff_date))
-                                            ? `${String(new Date(data.second_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.second_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.second_insuff_date).getFullYear()}`
-                                            : 'NIL'}
-                                        </td>
-
-                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.third_insufficiency_marks) || 'NIL'}</td>
-
-                                        <td className="text-left p-2 border border-black capitalize">
-                                          {data.third_insuff_date && !isNaN(new Date(data.third_insuff_date))
-                                            ? `${String(new Date(data.third_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.third_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.third_insuff_date).getFullYear()}`
-                                            : 'NIL'}
-                                        </td>
-
-                                        <td className="text-left p-2 border border-black capitalize">
-                                          {data.third_insuff_reopened_date && !isNaN(new Date(data.third_insuff_reopened_date))
-                                            ? `${String(new Date(data.third_insuff_reopened_date).getDate()).padStart(2, '0')}-${String(new Date(data.third_insuff_reopened_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.third_insuff_reopened_date).getFullYear()}`
-                                            : 'NIL'}
-                                        </td>
-
-                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.delay_reason) || 'NIL'}</td>
-                                      </tr>
-                                      <tbody style={{ maxHeight: '200px', overflowY: 'auto', display: 'block' }}>
-                                        {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
-                                          <tbody style={{ maxHeight: '200px', overflowY: 'auto', display: 'block' }}>
-                                            {expandedRow.headingsAndStatuses.map((item, idx) => (
-                                              <tr key={`row-${idx}`}>
-                                                <td className="text-left p-2 border border-black capitalize bg-gray-200">
-                                                  {sanitizeText(item.heading)}
-                                                </td>
-                                                <td className="text-left p-2 border border-black capitalize">
-                                                  {sanitizeText(item.status || 'NIL')}
-                                                </td>
-                                              </tr>
-                                            ))}
-                                          </tbody>
-                                        )}
-
+                                    {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
+                                      <tbody>
+                                        <tr >
+                                          {expandedRow.headingsAndStatuses.map((item, idx) => (
+                                            <td className="text-left p-2 border capitalize">
+                                              {sanitizeText(item.status || 'NIL')}
+                                            </td>
+                                          ))}
+                                        </tr>
                                       </tbody>
-                                    </tbody>
+                                    )}
+
+
                                   </table>
                                 </div>
                               </td>

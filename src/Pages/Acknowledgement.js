@@ -249,8 +249,9 @@ const Acknowledgement = () => {
       // Prepare the data for Excel export
       const data = currentItems.map((item, index) => ({
         Index: index + 1 + (currentPage - 1) * itemsPerPage,
-        Title: item.title,
-        Date: new Date(item.date).toLocaleDateString(),
+        "Client Code": item.client_unique_id,
+        "Comapany Name": item.name,
+        'Application Count': item.applicationCount,
       }));
   
       // Create a new worksheet

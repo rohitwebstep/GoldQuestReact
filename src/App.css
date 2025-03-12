@@ -481,3 +481,10 @@ div#menuitem ul li.text-white svg {
 div#sider_content ul li.text-white svg {
   color: #fff;
 }
+.sliding-container {
+  transition: transform 0.5s ease-in-out;
+}
+
+.sliding-container.active {
+  transform: translateX(0);
+}

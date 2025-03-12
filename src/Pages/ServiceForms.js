@@ -308,27 +308,32 @@ const ServiceForms = () => {
 
 
     const handleSubmit = () => {
-
-        setIsApiLoading(true);
-        setLoading(true);
-
+        // Check if necessary data is available before proceeding
+        if (!formData || !selectedService || !formData.heading || !formData.json) {
+            Swal.fire('Error!', 'No data to submit. Please fill in the required fields.', 'error');
+            return; // Return early if data is not available
+        }
+    
+        setIsApiLoading(true);  // Set the loading state to true
+        setLoading(true); // Set another loading state (optional, depending on your UI)
+    
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const _token = localStorage.getItem("_token");
-
+    
         if (!admin_id || !_token) {
             console.error("Missing admin_id or _token in localStorage.");
             setLoading(false);
             setIsApiLoading(false);
             return;
         }
-
-        const db_table = formData.heading.replace(/\s+/g, '_').toLowerCase();  // Replace spaces with underscores and convert to lowercase
-
+    
+        const db_table = formData.heading.replace(/\s+/g, '_').toLowerCase(); // Replace spaces with underscores and convert to lowercase
+    
         const updatedFormData = {
             ...formData,
-            db_table: db_table, // Add the db_table property with spaces replaced by _
+            db_table: db_table, // Add the db_table property with spaces replaced by '_'
         };
-
+    
         const jsonString = JSON.stringify(updatedFormData);
         const raw = JSON.stringify({
             service_id: selectedService.id,
@@ -336,7 +341,7 @@ const ServiceForms = () => {
             admin_id: parseInt(admin_id),
             _token,
         });
-
+    
         const requestOptions = {
             method: "PUT",
             headers: {
@@ -345,17 +350,17 @@ const ServiceForms = () => {
             body: raw,
             redirect: "follow",
         };
-
-        // Show SweetAlert loading
+    
+        // Show SweetAlert loading dialog
         Swal.fire({
             title: 'Loading...',
             text: 'Please wait while we process your request.',
             allowOutsideClick: false,
             didOpen: () => {
-                Swal.showLoading();
+                Swal.showLoading();  // Show the loading animation
             },
         });
-
+    
         fetch("https://api.goldquestglobal.in/json-form/generate-report/update", requestOptions)
             .then((response) => {
                 if (!response.ok) {
@@ -379,33 +384,36 @@ const ServiceForms = () => {
                 return response.json(); // Parse the response if it's OK
             })
             .then((result) => {
-                // Handle the result if the response is valid
+                const newToken = result.token || result._token;
+    
+                if (newToken) {
+                    localStorage.setItem("_token", newToken);
+                }
                 if (result.status === false) {
                     Swal.fire('Error!', result.message, 'error');
                     return; // Exit early if status is false
                 }
-
+    
                 // Display success message
                 Swal.fire({
                     title: "Success!",
-                    text: "Service Form Edit Successfully",
+                    text: "Service Form Edited Successfully",
                     icon: "success",
                     confirmButtonText: "Ok",
                 });
-
-
+    
             })
             .catch((error) => {
                 console.error("API Error:", error.message);
-
+                // Optionally, you can show a generic error message in case of unexpected issues.
+                Swal.fire('Error!', 'Something went wrong. Please try again later.', 'error');
             })
             .finally(() => {
-                setLoading(false);
-                setIsApiLoading(false);
-                // Stop loading after submission
+                setLoading(false);  // Stop loading
+                setIsApiLoading(false);  // Stop the API loading spinner
             });
     };
-
+    
 
 
     return (

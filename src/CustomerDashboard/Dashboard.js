@@ -122,7 +122,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-            <div className="border p-2  md:flex flex-wrap justify-center">
+            <div className="border p-2  md:flex flex-wrap ">
                 {loading ? (
                     <div className="grid md:grid-cols-2 grid-cols-1 gap-6 border-t-2">
                         <div className="flex justify-center items-center w-full py-10">
@@ -147,15 +147,15 @@ const Dashboard = () => {
                         );
 
                         return (
-                            <div className="overflow-x-auto  md:w-6/12 " key={key}>
-                                <div className='bg-white md:mb-0 mb-4 rounded-md p-3 mx-3'> <h2 className="font-bold text-2xl pb-6 w-full text-center uppercase">
+                            <div className="overflow-x-auto  md:w-6/12  " key={key}>
+                                <div className='bg-white shadow-md mb-4 rounded-md p-3 mx-3'> <h2 className="font-bold text-2xl pb-6 w-full text-center uppercase">
                                     {formatKey(key) || 'NIL'}
                                 </h2>
                                     <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
-                                        <div className="col flex gap-3">
+                                        <div className="flex gap-3 md:w-7/12">
                                             <select
                                                 onChange={(e) => handleSelectChange(e, key)}
-                                                className="outline-none pe-3 ps-2 text-left py-3 rounded-md w-7/12 md:w-10/12 border"
+                                                className="outline-none pe-3 ps-2 text-left py-3 rounded-md w-7/12 md:w-6/12 border"
                                                 value={itemsPerPage[key] || 10}
                                             >
                                                 <option value="10">10 Rows</option>
@@ -169,13 +169,13 @@ const Dashboard = () => {
                                             </select>
                                             <button
                                                 onClick={() => exportToExcel(applicationGroup.applications, key)}
-                                                className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
+                                                className="bg-[#3e76a5] text-sm text-white py-3 p-2 md:px-4 rounded-md capitalize"
                                                 type="button"
                                             >
                                                 Export to Excel
                                             </button>
                                         </div>
-                                        <div className="col md:flex justify-end gap-3">
+                                        <div className="md:flex justify-end gap-3">
                                             <input
                                                 type="search"
                                                 className="outline-none border-2 p-2 rounded-md w-full my-4 md:my-0"

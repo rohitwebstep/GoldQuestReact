@@ -794,7 +794,7 @@ const CaseLog = () => {
                                     <input
                                         type="search"
                                         className='outline-none border-2 p-2 text-sm rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search by Case'
+                                        placeholder='Search Here'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />

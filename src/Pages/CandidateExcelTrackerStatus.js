@@ -242,21 +242,21 @@ const CandidateExcelTrackerStatus = () => {
         // Open the URL in a new tab
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    
+
     const handleDAVClick = (def_id, branch_id, applicationId) => {
         // Construct the URL
         const url = `/candidate-dav?def_id=${def_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
         // Open the URL in a new tab
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    
+
     const handleCheckGap = (cef_id, branch_id, applicationId) => {
         // Construct the URL
         const url = `/gap-check?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
         // Open the URL in a new tab
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    
+
 
 
 
@@ -471,7 +471,7 @@ const CandidateExcelTrackerStatus = () => {
     const handleDownloadAll = async (attachments) => {
         const zip = new JSZip();
         let allUrls = [];
-      
+
         try {
             // Show loading indication
             Swal.fire({
@@ -483,46 +483,46 @@ const CandidateExcelTrackerStatus = () => {
                     Swal.showLoading();
                 }
             });
-    
+
             // Collect all image URLs and organize by category/label
             Object.entries(attachments).forEach(([category, files]) => {
                 if (Array.isArray(files)) {
                     files.forEach(attachment => {
                         const label = Object.keys(attachment)[0];
                         const fileUrls = attachment[label]?.split(",").map(url => url.trim());
-    
+
                         allUrls.push({ category, label, urls: fileUrls });
                     });
                 } else {
                     console.error(`Expected an array for category "${category}", but got:`, files);
                 }
             });
-    
+
             if (allUrls.length === 0) {
                 Swal.fire('No valid image URLs found', '', 'warning');
                 return;
             }
-    
+
             // Fetch all images as Base64
             const allImageUrls = allUrls.flatMap(item => item.urls);
             const base64Response = await fetchImageToBase(allImageUrls);
             const base64Images = base64Response || [];
-    
+
             if (base64Images.length === 0) {
                 Swal.fire('No images received from API', '', 'error');
                 return;
             }
-    
+
             // Process each image and add them to the ZIP file
             let imageIndex = 0;
             for (const { category, label, urls } of allUrls) {
                 for (const url of urls) {
                     const imageData = base64Images.find(img => img.imageUrl === url);
-    
+
                     if (imageData && imageData.base64.startsWith("data:image")) {
                         const base64Data = imageData.base64.split(",")[1]; // Extract Base64 content
                         const blob = base64ToBlob(base64Data, imageData.type); // Pass type dynamically
-    
+
                         if (blob) {
                             const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
                             zip.file(fileName, blob);
@@ -531,13 +531,13 @@ const CandidateExcelTrackerStatus = () => {
                     imageIndex++;
                 }
             }
-    
+
             // Generate ZIP file content
             const zipContent = await zip.generateAsync({ type: "blob" });
-    
+
             // Use FileSaver.js to download the ZIP file
             saveAs(zipContent, "attachments.zip");
-    
+
             Swal.fire({
                 title: 'Success!',
                 text: 'ZIP file downloaded successfully.',
@@ -552,7 +552,7 @@ const CandidateExcelTrackerStatus = () => {
             });
         }
     };
-    
+
 
 
 
@@ -690,7 +690,7 @@ const CandidateExcelTrackerStatus = () => {
                                                     : 'NIL'}
                                             </td>
                                             <td className="py-3 px-4 border whitespace-nowrap">
-                                                {data.service_data?.cef ? (
+                                                {data.service_data?.cef && Object.keys(data.service_data.cef).length > 0 ? (
                                                     <button
                                                         className="px-4 py-2 bg-[#3e76a5] text-white rounded"
                                                         onClick={() => handleViewDocuments(data.service_data.cef)}
@@ -701,6 +701,9 @@ const CandidateExcelTrackerStatus = () => {
                                                     <span>No Attachments</span>
                                                 )}
                                             </td>
+
+
+
                                             <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
                                                     ? "text-[#3e76a5]"

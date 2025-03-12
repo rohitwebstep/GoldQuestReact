@@ -8,6 +8,7 @@ export const useDashboard = () => useContext(DashboardContext);
 
 const DashboardProvider = ({ children }) => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+  
 
     const API_URL = useApi();
     const [tableData, setTableData] = useState({ clientApplications: {} });

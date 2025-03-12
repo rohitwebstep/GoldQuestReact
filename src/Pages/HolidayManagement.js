@@ -204,22 +204,23 @@ const HolidayManagement = () => {
 
     const exportToExcel = () => {
         // Prepare the data for Excel export
-        const data = currentItems.map((email, index) => ({
+        const data = currentItems.map((holiday, index) => ({
             Index: index + 1 + (currentPage - 1) * itemsPerPage,
-            'Holiday Title': email.title,
-            'Holiday Date': email.name.trim(),
+            'Holiday Title': holiday.title,
+            'Holiday Date': new Date(holiday.date).toLocaleDateString('en-GB'), // Adjust format as needed
         }));
-
+    
         // Create a new worksheet
         const ws = XLSX.utils.json_to_sheet(data);
-
+    
         // Create a new workbook and append the worksheet
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Emails');
-
+        XLSX.utils.book_append_sheet(wb, ws, 'Holidays');
+    
         // Export the workbook to Excel
-        XLSX.writeFile(wb, 'emails.xlsx');
+        XLSX.writeFile(wb, 'holidays.xlsx');
     };
+    
 
     return (
         <>

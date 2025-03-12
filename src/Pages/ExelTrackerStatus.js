@@ -36,7 +36,6 @@ const AdminChekin = () => {
     const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
     const token = localStorage.getItem('_token');
 
-
     const fetchData = useCallback(() => {
         if (!branch_id || !adminId || !token) {
             return; // Prevent fetch if essential data is missing
@@ -55,31 +54,28 @@ const AdminChekin = () => {
         fetch(url, requestOptions)
             .then((response) => {
                 if (!response.ok) {
-                    // Handle non-OK response (e.g., 500, 400 status)
                     return response.json().then(result => {
+                        console.log("Error response:", result);
                         const newToken = result._token || result.token;
+
                         if (newToken) {
-                            localStorage.setItem("_token", newToken); // Update the token in localStorage
+                            console.log("Saving new token from error response:", newToken);
+                            localStorage.setItem("_token", newToken);
                         }
 
-                        // Check if the error message contains "Invalid token"
                         if (result.message && result.message.toLowerCase().includes("invalid token")) {
-
-                            // Show a session expired message
                             Swal.fire({
                                 title: "Session Expired",
                                 text: "Your session has expired. Please log in again.",
                                 icon: "warning",
                                 confirmButtonText: "Ok",
                             }).then(() => {
-                                // Redirect to login page after the alert
-                                window.location.href = "/admin-login"; // Redirect to login page
+                                window.location.href = "/admin-login";
                             });
 
-                            return; // Stop further processing if token is invalid
+                            return;
                         }
 
-                        // For other errors, show a general error message
                         Swal.fire({
                             title: "Error",
                             text: result.message || "An unknown error occurred.",
@@ -87,33 +83,34 @@ const AdminChekin = () => {
                             confirmButtonText: "Ok",
                         });
 
-                        throw new Error(result.message || "An unknown error occurred"); // Throw an error to stop further processing
+                        throw new Error(result.message || "An unknown error occurred");
                     });
                 }
                 return response.json(); // Parse response if OK
             })
             .then((result) => {
+                console.log("API Response:", result);
 
-                // Handle potential new token in the response and update localStorage
                 const newToken = result._token || result.token;
                 if (newToken) {
-                    localStorage.setItem("_token", newToken); // Update token in localStorage
+                    console.log("Saving new token from success response:", newToken);
+                    localStorage.setItem("_token", newToken);
+                } else {
+                    console.warn("No token found in response!");
                 }
 
-                // Set data to state only if result is valid
                 setData(result.data?.customers || []); // Set customers data
                 setOptions(result.data?.filterOptions || []); // Set filter options
-
             })
             .catch((error) => {
+                console.error("Fetch error:", error);
             })
             .finally(() => {
                 setLoading(false);
-                setIsApiLoading(false); // Stop loading after fetch is done
+                setIsApiLoading(false);
             });
 
     }, [branch_id, adminId, token, setData, setOptions]);
-
 
 
     const fetchAdminList = useCallback(() => {
@@ -213,14 +210,9 @@ const AdminChekin = () => {
             item.employee_id?.toLowerCase().includes(searchTerm.toLowerCase())
         );
     });
-    const tableRef = useRef(null); // Ref for the table container
 
     // Function to reset expanded rows
-    const handleOutsideClick = (event) => {
-        if (tableRef.current && !tableRef.current.contains(event.target)) {
-            setExpandedRow({}); // Reset to empty object instead of null
-        }
-    };
+
 
 
     // useEffect(() => {
@@ -230,7 +222,84 @@ const AdminChekin = () => {
     //     };
     // }, []);
 
+    const handleDelete = (data) => {
 
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+            showLoaderOnConfirm: true, // Show loading spinner while deleting
+            preConfirm: () => {
+                setIsApiLoading(true); // Set loading state to true when the request starts
+
+                const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+                const storedToken = localStorage.getItem("_token");
+
+                if (!admin_id || !storedToken) {
+                    console.error("Admin ID or token is missing.");
+                    Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
+                    setIsApiLoading(false); // Reset the loading state if admin ID or token is missing
+                    return false;
+                }
+
+                const requestOptions = {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                };
+
+                return fetch(`${API_URL}/client-master-tracker/delete?client_application_id=${data.id}&customer_id=${data.customer_id}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+                    .then((response) => {
+                        if (!response.ok) {
+                            return response.json().then((errorData) => {
+                                // Handle invalid token scenario
+                                if (errorData.message && errorData.message.toLowerCase().includes("invalid token")) {
+                                    Swal.fire({
+                                        title: "Session Expired",
+                                        text: "Your session has expired. Please log in again.",
+                                        icon: "warning",
+                                        confirmButtonText: "Ok",
+                                    }).then(() => {
+                                        window.location.href = "/admin-login"; // Redirect to login if session expired
+                                    });
+                                } else {
+                                    Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                                }
+                                throw new Error(errorData.message); // Propagate the error
+                            });
+                        }
+                        return response.json(); // Parse the response if it's OK
+                    })
+                    .then((result) => {
+                        const newToken = result._token || result.token;
+                        if (newToken) {
+                            localStorage.setItem("_token", newToken);
+                        }
+                        // Handle successful deletion
+                        if (result.status === false) {
+                            Swal.fire('Error!', result.message, 'error');
+                            return false; // Exit early if the status is false
+                        }
+
+                        // Show success message and fetch updated data
+                        Swal.fire('Deleted!', 'Your Application has been deleted.', 'success');
+                        fetchData(); // Fetch the latest data
+                    })
+                    .catch((error) => {
+                        console.error('Fetch error:', error);
+                        Swal.fire('Error!', `Could not delete: ${error.message}`, 'error');
+                        return false; // Return false in case of error
+                    })
+                    .finally(() => {
+                        setIsApiLoading(false); // Set loading state to false after the request completes
+                    });
+            }
+        });
+    };
 
     const filteredOptions = filteredItems.filter(item =>
         item.status.toLowerCase().includes(selectedStatus.toLowerCase())
@@ -532,7 +601,7 @@ const AdminChekin = () => {
                     { content: 'Date of Birth', styles: { fontStyle: 'bold' } },
                     { content: applicationInfo?.dob ? new Date(applicationInfo.dob).toLocaleDateString() : 'NIL' },
                     { content: 'Application Received', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.updated_at ? new Date(applicationInfo.updated_at).toLocaleDateString() : 'NIL' },
+                    { content: applicationInfo?.deadline_date ? new Date(applicationInfo.deadline_date).toLocaleDateString() : 'NIL' },
                 ],
                 [
                     { content: 'Candidate Employee ID', styles: { fontStyle: 'bold' } },
@@ -735,6 +804,7 @@ const AdminChekin = () => {
                 let rows = [];
 
                 // Attempt to parse the JSON string and only proceed if valid
+                console.log('service', service)
                 try {
                     if (!service.reportFormJson || !service.reportFormJson.json) {
                         // Skip this service if reportFormJson is not found or is empty
@@ -744,6 +814,7 @@ const AdminChekin = () => {
 
                     // Attempt to parse the JSON string
                     reportFormJson = JSON.parse(service.reportFormJson.json);
+                    console.log('reportFormJson', reportFormJson)
 
                     // Only process if rows are present
                     rows = reportFormJson && Array.isArray(reportFormJson.rows) ? reportFormJson.rows : [];
@@ -815,7 +886,8 @@ const AdminChekin = () => {
 
                     const name = data.values.name;
 
-                    if (!name || name.startsWith("annexure")) {
+                    // Check if name starts with 'annexure' or 'additional_fee', and skip those entries
+                    if (!name || name.startsWith("annexure") || name.startsWith("additional_fee")) {
                         return null;
                     }
 
@@ -1185,34 +1257,35 @@ const AdminChekin = () => {
         }
     }, [fetchAdminList]);
 
+    const rowRefs = useRef({}); // Store refs for each row
+
 
     const handleViewMore = async (index) => {
         const globalIndex = index + (currentPage - 1) * itemsPerPage; // Calculate the global index
-    
+
         setIsApiLoading(true);
-    
-        setServicesLoading((prev) => {
-            const newLoadingState = { ...prev, [globalIndex]: true };
-            return newLoadingState;
-        });
-    
+
+        setServicesLoading((prev) => ({
+            ...prev,
+            [globalIndex]: true
+        }));
+
         if (expandedRow && expandedRow.index === globalIndex) {
             setExpandedRow(null); // Collapse the row
-            setServicesLoading((prev) => {
-                const newLoadingState = { ...prev, [globalIndex]: false };
-                return newLoadingState;
-            });
+            setServicesLoading((prev) => ({
+                ...prev,
+                [globalIndex]: false
+            }));
             setIsApiLoading(false); // End loading state when collapsing
             return;
         }
-    
+
         try {
             const applicationInfo = currentItems[index]; // Data for the current page
-    
             const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services);
-    
+
             const headingsAndStatuses = [];
-    
+
             servicesData.forEach((service) => {
                 if (service.reportFormJson && service.reportFormJson.json) {
                     const heading = JSON.parse(service.reportFormJson.json).heading;
@@ -1223,32 +1296,45 @@ const AdminChekin = () => {
                     }
                 }
             });
-    
-                setExpandedRow({
-                    index: globalIndex, // Use the global index
-                    headingsAndStatuses: headingsAndStatuses,
+
+            // ✅ Show "No Data Found" if there are no headings or statuses
+            if (headingsAndStatuses.length === 0) {
+                Swal.fire({
+                    title: "No Data Found",
+                    text: "No valid headings or statuses were found.",
+                    icon: "info",
+                    confirmButtonText: "Ok"
                 });
-    
-            setServicesLoading((prev) => {
-                const newLoadingState = { ...prev, [globalIndex]: false };
-                return newLoadingState;
+                setServicesLoading(false)
+                return;
+            }
+
+            setExpandedRow({
+                index: globalIndex, // Use the global index
+                headingsAndStatuses: headingsAndStatuses,
             });
-    
+
+            setServicesLoading((prev) => ({
+                ...prev,
+                [globalIndex]: false
+            }));
+
             const expandedRowElement = document.getElementById(`expanded-row-${globalIndex}`);
             if (expandedRowElement) {
                 expandedRowElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         } catch (error) {
-            setServicesLoading((prev) => {
-                const newLoadingState = { ...prev, [globalIndex]: false };
-                return newLoadingState;
-            });
+            setServicesLoading((prev) => ({
+                ...prev,
+                [globalIndex]: false
+            }));
             console.error('Error fetching service data:', error);
         } finally {
             setIsApiLoading(false); // Stop global loading state
         }
     };
-    
+
+
 
     const handleSelectChange = (e) => {
 
@@ -1269,35 +1355,70 @@ const AdminChekin = () => {
     }
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const userRole = adminData.role;
-    const exportToExcel = () => {
-        const worksheetData = currentItems.map((data, index) => ({
-            "Index": index + 1,
-            "Admin TAT": data.adminTAT || "NIL",
-            "Location": data.location || "NIL",
-            "Name": data.name || "NIL",
-            "Application ID": data.application_id || "NIL",
-            "Employee ID": data.employee_id || "NIL",
-            "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
-            "Updated At": data.updated_at ? new Date(data.updated_at).toLocaleDateString() : "NIL",
-            "Report Type": data.report_type || "NIL",
-            "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
-            "Generated By": data.report_generated_by_name || "NIL",
-            "QC Done By": data.qc_done_by_name || "NIL",
-            "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
-            "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
-            "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
-            "Second Level Insuff": data.second_insufficiency_marks,
-            "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
-            "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
-            "Third Level Insuff Marks": data?.third_insufficiency_marks,
-            "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
-            "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
-            "Reason For Delay": data || "NIL",
-            "overall_status": data?.overall_status || "NIL",
-            "Delay Reason": data.delay_reason || "NIL",
-            "tat_days": data?.tat_days || "NIL",
+
+
+    const exportToExcel = async () => {
+        // Initialize headingsAndStatuses before using it
+        const headingsAndStatuses = [];
+
+        // First collect the worksheet data
+        const worksheetData = await Promise.all(currentItems.map(async (data, index) => {
+            // Fetch services data for each item
+            const servicesData = await fetchServicesData(data.main_id, data.services);
+
+            // Add services data to headingsAndStatuses
+            servicesData.forEach((service) => {
+                if (service.reportFormJson && service.reportFormJson.json) {
+                    const heading = JSON.parse(service.reportFormJson.json).heading;
+                    if (heading) {
+                        let status = service.annexureData?.status || "NIL";
+                        status = status.replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || 'NIL';
+                        headingsAndStatuses.push({ heading, status });
+                    }
+                }
+            });
+
+            console.log('headingsAndStatuses', headingsAndStatuses);
+
+            // Return the row data for the worksheet
+            // Add headingsAndStatuses data to the row
+            const row = {
+                "Index": index + 1,
+                "Admin TAT": data.adminTAT || "NIL",
+                "Location": data.location || "NIL",
+                "Name": data.name || "NIL",
+                "Application ID": data.application_id || "NIL",
+                "Employee ID": data.employee_id || "NIL",
+                "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
+                "Updated At": data.deadline_date ? new Date(data.deadline_date).toLocaleDateString() : "NIL",
+                "Report Type": data.report_type || "NIL",
+                "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
+                "Generated By": data.report_generated_by_name || "NIL",
+                "QC Done By": data.qc_done_by_name || "NIL",
+                // "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
+                // "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
+                // "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
+                // "Second Level Insuff": data.second_insufficiency_marks,
+                // "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
+                // "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
+                // "Third Level Insuff Marks": data?.third_insufficiency_marks,
+                // "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
+                // "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
+                "Reason For Delay": data || "NIL",
+                "overall_status": data?.overall_status || "NIL",
+                "Delay Reason": data.delay_reason || "NIL",
+                "tat_days": data?.tat_days || "NIL"
+            };
+
+            // Append each heading and status pair to the row
+            headingsAndStatuses.forEach(({ heading, status }) => {
+                row[heading] = status; // Dynamically adding heading-status pair as a key-value
+            });
+
+            return row; // Return the complete row with headings and statuses added
         }));
 
+        // Now, create the Excel sheet from the gathered worksheet data
         const ws = XLSX.utils.json_to_sheet(worksheetData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Data");
@@ -1305,6 +1426,8 @@ const AdminChekin = () => {
         // Save the workbook to a file
         XLSX.writeFile(wb, "Data.xlsx");
     };
+
+
 
     return (
         <div className="bg-[#c1dff2]">
@@ -1351,7 +1474,7 @@ const AdminChekin = () => {
                                     >
                                         Export to Excel
                                     </button>
-                                    <button onClick={goBack}  className="bg-[#3e76a5] mx-2 text-sm whitespace-nowrap hover:bg-[#3e76a5] text-white rounded-md p-3">Go Back</button>
+                                    <button onClick={goBack} className="bg-[#3e76a5] mx-2 text-sm whitespace-nowrap hover:bg-[#3e76a5] text-white rounded-md p-3">Go Back</button>
 
                                 </div>
                             </form>
@@ -1373,7 +1496,7 @@ const AdminChekin = () => {
                     </div>
 
                 </div>
-                <div ref={tableRef} className="overflow-x-auto m-4 py-6 px-4 shadow-md rounded-md bg-white">
+                <div className="overflow-x-auto m-4 py-6 px-4 shadow-md rounded-md bg-white">
                     {loading ? (
                         <div className='flex justify-center items-center py-6 h-full'>
                             <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
@@ -1393,8 +1516,22 @@ const AdminChekin = () => {
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Deadline Date</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Report Data</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Download Status</th>
-                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">View More</th>
+
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Overall Status</th>
+                                    <th className="text-left p-2 border uppercase ">Report Type</th>
+                                    <th className="text-left p-2 border uppercase ">Report Date</th>
+                                    <th className="text-left p-2 border uppercase ">Report Generated By</th>
+                                    <th className="text-left p-2 border uppercase ">QC Done By</th>
+                                    <th className="text-left p-2 border uppercase ">First Level Insuff</th>
+                                    <th className="text-left p-2 border uppercase ">First Level Insuff Date</th>
+                                    <th className="text-left p-2 border uppercase ">First Level Insuff Reopen Date</th>
+                                    <th className="text-left p-2 border uppercase ">Second Level Insuff</th>
+                                    <th className="text-left p-2 border uppercase ">Second Level Insuff Date</th>
+                                    <th className="text-left p-2 border uppercase ">Third Level Insuff Marks</th>
+                                    <th className="text-left p-2 border uppercase ">Third Level Insuff Date</th>
+                                    <th className="text-left p-2 border uppercase ">Third Level Insuff Reopen Date</th>
+                                    <th className="text-left p-2 border uppercase ">Reason For Delay</th>
+                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1403,7 +1540,7 @@ const AdminChekin = () => {
 
                                     return (
                                         <React.Fragment key={data.id}>
-                                            <tr className="text-center">
+                                            <tr className="text-center sliding-container" id={`row-${index}`} >
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize"> {index + 1 + (currentPage - 1) * itemsPerPage}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{adminTAT || 'NIL'}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.location || 'NIL'}</td>
@@ -1442,12 +1579,11 @@ const AdminChekin = () => {
                                                 </td>
 
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                    {data.updated_at && !isNaN(new Date(data.updated_at))
-                                                        ? `${String(new Date(data.updated_at).getDate()).padStart(2, '0')}- 
-                                    ${String(new Date(data.updated_at).getMonth() + 1).padStart(2, '0')}- 
-                                    ${new Date(data.updated_at).getFullYear()}`
+                                                    {data.deadline_date
+                                                        ? `${new Date(data.deadline_date).getDate()}-${new Date(data.deadline_date).getMonth() + 1}-${new Date(data.deadline_date).getFullYear()}`
                                                         : "NIL"}
                                                 </td>
+
 
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                                                     <button
@@ -1460,10 +1596,9 @@ const AdminChekin = () => {
                                                     </button>
                                                 </td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-
                                                     <button
                                                         onClick={() => {
-                                                            const reportDownloadFlag = (data.overall_status === 'completed' && data.is_verify === 'yes') ? 1 : 0;
+                                                            const reportDownloadFlag = (data.overall_status === 'completed' && data.is_verify === 'yes') || data.is_verify === 'no' ? 1 : 0;
 
                                                             // Set the button to loading
                                                             setLoadingStates(prevState => ({
@@ -1481,9 +1616,9 @@ const AdminChekin = () => {
                                                             });
                                                         }}
                                                         className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white hover:text-[#3e76a5] 
-    ${data.overall_status !== 'completed' || data.is_verify !== 'yes' ? 'opacity-50 cursor-not-allowed' : ''} 
-    ${loadingStates[index] ? 'cursor-wait' : ''}`} // Add cursor-wait to indicate loading
-                                                        disabled={data.overall_status !== 'completed' || data.is_verify !== 'yes' || loadingStates[index] || isApiLoading} // Disable button while loading
+      ${data.overall_status !== 'completed' && data.is_verify !== 'no' ? 'opacity-50 cursor-not-allowed' : ''} 
+      ${loadingStates[index] ? 'cursor-wait' : ''}`} // Add cursor-wait to indicate loading
+                                                        disabled={(data.overall_status !== 'completed' && data.is_verify !== 'no') || loadingStates[index] || isApiLoading} // Disable button while loading
                                                     >
                                                         {loadingStates[index] ? 'Please Wait, Your PDF is Generating' :
                                                             data.overall_status === 'completed' ? (
@@ -1494,25 +1629,84 @@ const AdminChekin = () => {
                                                                     data.overall_status === 'insuff' ? 'INSUFF' : 'NOT READY'
                                                         }
                                                     </button>
-
                                                 </td>
+                                                <td className="text-left p-2 border capitalize">{data.overall_status || 'WIP'}</td>
+                                                <td className="text-left p-2 border capitalize">{data.report_type || 'NIL'}</td>
+
+                                                <td className="text-left p-2 border capitalize">
+                                                    {data.report_date && !isNaN(new Date(data.report_date))
+                                                        ? `${String(new Date(data.report_date).getDate()).padStart(2, '0')}-${String(new Date(data.report_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.report_date).getFullYear()}`
+                                                        : 'NIL'}
+                                                </td>
+
+                                                <td className="text-left p-2 border capitalize">{data.report_generated_by_name || 'NIL'}</td>
+                                                <td className="text-left p-2 border capitalize">{data.qc_done_by_name || 'NIL'}</td>
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">{sanitizeText(data.first_insufficiency_marks) || 'NIL'}</td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">
+                                                    {data.first_insuff_date && !isNaN(new Date(data.first_insuff_date))
+                                                        ? `${String(new Date(data.first_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_date).getFullYear()}`
+                                                        : 'NIL'}
+                                                </td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">
+                                                    {data.first_insuff_reopened_date && !isNaN(new Date(data.first_insuff_reopened_date))
+                                                        ? `${String(new Date(data.first_insuff_reopened_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_reopened_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_reopened_date).getFullYear()}`
+                                                        : 'NIL'}
+                                                </td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">{sanitizeText(data.second_insufficiency_marks) || 'NIL'}</td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">
+                                                    {data.second_insuff_date && !isNaN(new Date(data.second_insuff_date))
+                                                        ? `${String(new Date(data.second_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.second_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.second_insuff_date).getFullYear()}`
+                                                        : 'NIL'}
+                                                </td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">{sanitizeText(data.third_insufficiency_marks) || 'NIL'}</td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">
+                                                    {data.third_insuff_date && !isNaN(new Date(data.third_insuff_date))
+                                                        ? `${String(new Date(data.third_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.third_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.third_insuff_date).getFullYear()}`
+                                                        : 'NIL'}
+                                                </td>
+
+                                                <td className="text-left p-2 border capitalize whitespace-pre-wrap">
+                                                    {data.third_insuff_reopened_date && !isNaN(new Date(data.third_insuff_reopened_date))
+                                                        ? `${String(new Date(data.third_insuff_reopened_date).getDate()).padStart(2, '0')}-${String(new Date(data.third_insuff_reopened_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.third_insuff_reopened_date).getFullYear()}`
+                                                        : 'NIL'}
+                                                </td>
+
+
+                                                <td className="py-3 px-4 border-b border-r-2  capitalize whitespace-pre-wrap">{data.delay_reason || 'NIL'}</td>
                                                 <td className="border px-4 py-2">
                                                     <button
                                                         disabled={isApiLoading}
                                                         className={`bg-orange-500 uppercase border border-white text-white px-4 py-2 rounded hover:bg-white hover:text-orange-500 
   ${isApiLoading ? 'cursor-not-allowed bg-gray-400 border-gray-400' : ''}`} // Apply styles when loading
-                                                        onClick={() => handleViewMore(index)} // Pass page-relative index here
+                                                        onClick={() => {
+                                                            handleViewMore(index);
+
+                                                            // Get the specific row by index
+                                                            const slidingRow = document.querySelectorAll('.sliding-container')[index];
+                                                            if (slidingRow) {
+                                                                slidingRow.classList.add('active');
+                                                            } else {
+                                                                console.warn(`Row at index ${index} not found`);
+                                                            }
+                                                        }}
+
                                                     >
-                                                        {expandedRow && expandedRow.index === globalIndex ? 'Less' : 'View'}
+                                                        {expandedRow && expandedRow.index === globalIndex ? 'Less' : 'View Services'}
                                                     </button>
+                                                    <button className='bg-red-500 text-white p-3 py-2 ms-2 rounded-md' onClick={() => handleDelete(data)}>Delete</button>
 
                                                 </td>
-                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.overall_status || 'WIP'}</td>
                                             </tr>
 
                                             {/* Show loading state */}
                                             {servicesLoading[globalIndex] && (
-                                                <tr>
+                                                <tr >
                                                     <td colSpan={12} className="py-4 text-center text-gray-500">
                                                         <div className='flex justify-center'>
                                                             <PulseLoader color="#36D7B7" loading={servicesLoading[globalIndex]} size={15} aria-label="Loading Spinner" />
@@ -1524,91 +1718,37 @@ const AdminChekin = () => {
                                                 <tr id={`expanded-row-${globalIndex}`} className="expanded-row">
                                                     <td colSpan="100%" className="text-center p-4 bg-gray-100">
                                                         {/* Render the expanded content */}
-                                                        <div ref={tableRef} className="relative w-full max-w-full overflow-hidden">
-                                                            <table className="w-full table-auto">
-                                                                <tbody className='min-h-[260px] overflow-y-auto block'>
-                                                                    <tr>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Report Type</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Report Date</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Report Generated By</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">QC Done By</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">First Level Insuff</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">First Level Insuff Date</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">First Level Insuff Reopen Date</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Second Level Insuff</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Second Level Insuff Date</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Third Level Insuff Marks</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Third Level Insuff Date</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Third Level Insuff Reopen Date</th>
-                                                                        <th className="text-left p-2 border border-black uppercase font-normal bg-gray-200">Reason For Delay</th>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td className="text-left p-2 border border-black capitalize">{data.report_type || 'NIL'}</td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">
-                                                                            {data.report_date && !isNaN(new Date(data.report_date))
-                                                                                ? `${String(new Date(data.report_date).getDate()).padStart(2, '0')}-${String(new Date(data.report_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.report_date).getFullYear()}`
-                                                                                : 'NIL'}
-                                                                        </td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">{data.report_generated_by_name || 'NIL'}</td>
-                                                                        <td className="text-left p-2 border border-black capitalize">{data.qc_done_by_name || 'NIL'}</td>
-                                                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.first_insufficiency_marks) || 'NIL'}</td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">
-                                                                            {data.first_insuff_date && !isNaN(new Date(data.first_insuff_date))
-                                                                                ? `${String(new Date(data.first_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_date).getFullYear()}`
-                                                                                : 'NIL'}
-                                                                        </td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">
-                                                                            {data.first_insuff_reopened_date && !isNaN(new Date(data.first_insuff_reopened_date))
-                                                                                ? `${String(new Date(data.first_insuff_reopened_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_reopened_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_reopened_date).getFullYear()}`
-                                                                                : 'NIL'}
-                                                                        </td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.second_insufficiency_marks) || 'NIL'}</td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">
-                                                                            {data.second_insuff_date && !isNaN(new Date(data.second_insuff_date))
-                                                                                ? `${String(new Date(data.second_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.second_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.second_insuff_date).getFullYear()}`
-                                                                                : 'NIL'}
-                                                                        </td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.third_insufficiency_marks) || 'NIL'}</td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">
-                                                                            {data.third_insuff_date && !isNaN(new Date(data.third_insuff_date))
-                                                                                ? `${String(new Date(data.third_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.third_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.third_insuff_date).getFullYear()}`
-                                                                                : 'NIL'}
-                                                                        </td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">
-                                                                            {data.third_insuff_reopened_date && !isNaN(new Date(data.third_insuff_reopened_date))
-                                                                                ? `${String(new Date(data.third_insuff_reopened_date).getDate()).padStart(2, '0')}-${String(new Date(data.third_insuff_reopened_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.third_insuff_reopened_date).getFullYear()}`
-                                                                                : 'NIL'}
-                                                                        </td>
-
-                                                                        <td className="text-left p-2 border border-black capitalize">{sanitizeText(data.delay_reason) || 'NIL'}</td>
-                                                                    </tr>
-
-                                                                    {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
-                                                                        <tbody style={{ maxHeight: '200px', overflowY: 'auto', display: 'block' }}>
+                                                        <div className="relative max-w-[900px] overflow-x-auto">
+                                                            <table className="w-full ">
+                                                                {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
+                                                                    <thead>
+                                                                        <tr >
                                                                             {expandedRow.headingsAndStatuses.map((item, idx) => (
-                                                                                <tr key={`row-${idx}`}>
-                                                                                    <td className="text-left p-2 border border-black capitalize bg-gray-200">
-                                                                                        {sanitizeText(item.heading)}
-                                                                                    </td>
-                                                                                    <td className="text-left p-2 border border-black capitalize">
-                                                                                        {sanitizeText(item.status || 'NIL')}
-                                                                                    </td>
-                                                                                </tr>
+
+                                                                                <th className="text-left p-2 border capitalize ">
+                                                                                    {sanitizeText(item.heading)}
+                                                                                </th>
+
+
                                                                             ))}
-                                                                        </tbody>
-                                                                    )}
+                                                                        </tr>
+                                                                    </thead>
+                                                                )}
 
 
-                                                                </tbody>
+                                                                {expandedRow.headingsAndStatuses && expandedRow.headingsAndStatuses.length > 0 && (
+                                                                    <tbody>
+                                                                        <tr >
+                                                                            {expandedRow.headingsAndStatuses.map((item, idx) => (
+                                                                                <td className="text-left p-2 border capitalize">
+                                                                                    {sanitizeText(item.status || 'NIL')}
+                                                                                </td>
+                                                                            ))}
+                                                                        </tr>
+                                                                    </tbody>
+                                                                )}
+
+
                                                             </table>
                                                         </div>
                                                     </td>

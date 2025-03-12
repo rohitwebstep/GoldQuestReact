@@ -952,7 +952,8 @@ const CandidateList = () => {
                                             ) : <td className="border px-4 py-2">NIL</td>} */}
 
                                             <td className="md:py-3 p-2 md:px-4 border whitespace-nowrap">
-                                                {report.service_data?.cef ? (
+                                                {report.service_data?.cef &&
+                                                    (Object.keys(report.service_data.cef).length > 0 || typeof report.service_data.cef === 'string') ? (
                                                     <button
                                                         className="md:px-4 py-2 p-2 bg-[#3e76a5] text-white rounded"
                                                         onClick={() => handleViewDocuments(report.service_data.cef)}
@@ -963,6 +964,7 @@ const CandidateList = () => {
                                                     <span>No Attachments</span>
                                                 )}
                                             </td>
+
                                             {isModalOpenDoc && (
                                                 <Modal
                                                     isOpen={isModalOpenDoc}
@@ -1021,7 +1023,7 @@ const CandidateList = () => {
                                             <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize text-center">
                                                 <button disabled={isBranchApiLoading} className="bg-[#3e76a5] text-white p-3 rounded-md hover:bg-[#3e76a5]" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); handleEdit(report) }}>Edit</button>
                                                 <button disabled={isBranchApiLoading} className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
-                                                <button disabled={isBranchApiLoading || report?.is_converted_to_client === "1" || report?.cef_submitted === 0} className="border border-[#3e76a5] text-black p-3 ms-3 rounded-md hover:bg-[#3e76a5]" onClick={() => OpenPopup(report)}>Convert to Client</button>
+                                                <button disabled={isBranchApiLoading || report?.is_converted_to_client === "1" || report?.cef_submitted === 0} className="border border-[#3e76a5] text-black p-3 ms-3 rounded-md hover:bg-[#3e76a5]" onClick={() => OpenPopup(report)}>{report?.is_converted_to_client==="1"?'Already Converted':"Convert to Client"}</button>
                                             </td>
                                         </tr>
 

@@ -21,7 +21,7 @@ const GenerateReport = () => {
     const [formData, setFormData] = useState({
         updated_json: {
             month_year: '',
-            initiation_date: '',
+            initiation_date: '', // Sets current date in YYYY-MM-DD format
             organization_name: '',
             verification_purpose: '',
             employee_id: '',
@@ -35,6 +35,7 @@ const GenerateReport = () => {
             marital_status: '',
             nationality: '',
             insuff: '',
+            have_not_insuff: '',
             address: {
                 address: '',
                 landmark: '',
@@ -77,6 +78,17 @@ const GenerateReport = () => {
             },
         },
     });
+
+    useEffect(() => {
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            updated_json: {
+                ...prevFormData.updated_json,
+                initiation_date: prevFormData.updated_json.initiation_date || new Date().toISOString().split('T')[0]
+            }
+        }));
+    }, []);
+
     const [selectedStatuses, setSelectedStatuses] = useState([]);
     useEffect(() => {
         if (servicesDataInfo && servicesDataInfo.length > 0) {
@@ -324,10 +336,12 @@ const GenerateReport = () => {
                 setAdminNames(result.admins); // Set admin names
 
                 // Set the form data
+                console.log('cmtData.initiation_date', cmtData.initiation_date)
                 setFormData(prevFormData => ({
                     ...prevFormData,
                     updated_json: {
                         month_year: cmtData.month_year || applicationData.month_year || prevFormData.updated_json.month_year || '',
+                        have_not_insuff: cmtData.have_not_insuff || applicationData.have_not_insuff || prevFormData.updated_json.have_not_insuff || '',
                         organization_name: applicationData.customer_name || prevFormData.updated_json.organization_name || '',
                         verification_purpose: cmtData.verification_purpose || prevFormData.updated_json.verification_purpose || '',
                         employee_id: applicationData.employee_id || prevFormData.updated_json.employee_id || '',
@@ -336,11 +350,8 @@ const GenerateReport = () => {
                         contact_number: cmtData.contact_number || prevFormData.updated_json.contact_number || '',
                         contact_number2: cmtData.contact_number2 || prevFormData.updated_json.contact_number2 || '',
                         father_name: cmtData.father_name || prevFormData.updated_json.father_name || '',
-                        initiation_date: (cmtData.initiation_date && !isNaN(new Date(cmtData.initiation_date).getTime()))
-                            ? new Date(cmtData.initiation_date).toISOString().split('T')[0] // Format as YYYY-MM-DD
-                            : (prevFormData.updated_json.insuffDetails.initiation_date
-                                ? new Date(prevFormData.updated_json.insuffDetails.initiation_date).toISOString().split('T')[0]
-                                : ''),
+                        initiation_date: cmtData.initiation_date || prevFormData.updated_json.initiation_date,
+
 
                         gender: cmtData.gender || prevFormData.updated_json.gender || '',
                         dob: (cmtData.dob && !isNaN(new Date(cmtData.dob).getTime()))
@@ -453,29 +464,48 @@ const GenerateReport = () => {
 
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;  // Destructure `type` and `checked`
 
         setFormData((prevFormData) => {
             const updatedFormData = { ...prevFormData };
 
-            // Determine where to update based on the name
-            if (name.startsWith('updated_json.address.')) {
-                const addressField = name.replace('updated_json.address.', '');
-                updatedFormData.updated_json.address[addressField] = value;
-            } else if (name.startsWith('updated_json.permanent_address.')) {
-                const permanentField = name.replace('updated_json.permanent_address.', '');
-                updatedFormData.updated_json.permanent_address[permanentField] = value;
-            } else if (name.startsWith('updated_json.insuffDetails.')) {
-                const insuffField = name.replace('updated_json.insuffDetails.', '');
-                updatedFormData.updated_json.insuffDetails[insuffField] = value;
+            // Check if the field is a checkbox
+            if (type === "checkbox") {
+                // For checkboxes, update the value with `checked`
+                if (name.startsWith('updated_json.address.')) {
+                    const addressField = name.replace('updated_json.address.', '');
+                    updatedFormData.updated_json.address[addressField] = checked;
+                } else if (name.startsWith('updated_json.permanent_address.')) {
+                    const permanentField = name.replace('updated_json.permanent_address.', '');
+                    updatedFormData.updated_json.permanent_address[permanentField] = checked;
+                } else if (name.startsWith('updated_json.insuffDetails.')) {
+                    const insuffField = name.replace('updated_json.insuffDetails.', '');
+                    updatedFormData.updated_json.insuffDetails[insuffField] = checked;
+                } else {
+                    const topLevelField = name.replace('updated_json.', '');
+                    updatedFormData.updated_json[topLevelField] = checked;
+                }
             } else {
-                const topLevelField = name.replace('updated_json.', '');
-                updatedFormData.updated_json[topLevelField] = value;
+                // For other input types (text, select, etc.), update the value normally
+                if (name.startsWith('updated_json.address.')) {
+                    const addressField = name.replace('updated_json.address.', '');
+                    updatedFormData.updated_json.address[addressField] = value;
+                } else if (name.startsWith('updated_json.permanent_address.')) {
+                    const permanentField = name.replace('updated_json.permanent_address.', '');
+                    updatedFormData.updated_json.permanent_address[permanentField] = value;
+                } else if (name.startsWith('updated_json.insuffDetails.')) {
+                    const insuffField = name.replace('updated_json.insuffDetails.', '');
+                    updatedFormData.updated_json.insuffDetails[insuffField] = value;
+                } else {
+                    const topLevelField = name.replace('updated_json.', '');
+                    updatedFormData.updated_json[topLevelField] = value;
+                }
             }
 
             return updatedFormData;
         });
     };
+
     // const fetchAdminList = useCallback(() => {
     //     setIsApiLoading(true);  // Start the global loading state
     //     setLoading(true);  // Start specific loading state
@@ -611,7 +641,7 @@ const GenerateReport = () => {
         }
     };
 
-
+    console.log('formData.updated_json.insuffDetails.have_not_insuff', formData.updated_json.insuffDetails.have_not_insuff)
 
     const handleInputChange = useCallback((e, index) => {
         const { name, value } = e.target;
@@ -922,7 +952,7 @@ const GenerateReport = () => {
     return (
         <div className="border rounded-md">
             <h2 className="text-2xl font-bold py-3 text-center px-3 ">GENERATE REPORT</h2>
-            <div className="bg-white md:p-12">
+            <div className="bg-white ">
                 {loading ? (
                     <div className='flex justify-center items-center py-6 '>
                         <PulseLoader color="#36D7B7" loading={loading} size={15} aria-label="Loading Spinner" />
@@ -1419,111 +1449,7 @@ const GenerateReport = () => {
                         </div>
 
                         <div className="form-group border rounded-md p-3">
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">First Level Insufficiency Remarks</label>
-                                <input
-                                    type="text"
-                                    name="updated_json.insuffDetails.first_insufficiency_marks"
-                                    id="first_insufficiency_marks"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                    value={formData.updated_json.insuffDetails.first_insufficiency_marks}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="first_insuff_date">First Insuff Raised Date:</label>
-                                <input
-                                    type="date"
-                                    name="updated_json.insuffDetails.first_insuff_date"
-                                    id="first_insuff_date"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                    value={formData.updated_json.insuffDetails.first_insuff_date}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="first_insuff_reopened_date">First Insuff Cleared Date / Re-Opened date</label>
-                                <input
-                                    type="date"
-                                    name="updated_json.insuffDetails.first_insuff_reopened_date"
-                                    id="first_insuff_reopened_date"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                    value={formData.updated_json.insuffDetails.first_insuff_reopened_date}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="second Level Insufficiency Remarks">Second Level Insufficiency Remarks</label>
-                                <input
-                                    type="text"
-                                    name="updated_json.insuffDetails.second_insufficiency_marks"
-                                    id="second_insufficiency_marks"
-                                    value={formData.updated_json.insuffDetails.second_insufficiency_marks}
-                                    onChange={handleChange}
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                />
 
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="second Insuff Raised Date:">Second Insuff Raised Date:</label>
-                                <input
-                                    type="date"
-                                    name="updated_json.insuffDetails.second_insuff_date"
-                                    id="second_insuff_date"
-                                    value={formData.updated_json.insuffDetails.second_insuff_date}
-                                    onChange={handleChange}
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                />
-
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="second Insuff Cleared Date / Re-Opened date">Second Insuff Cleared Date / Re-Opened date</label>
-                                <input
-                                    type="date"
-                                    name="updated_json.insuffDetails.second_insuff_reopened_date"
-                                    id="second_insuff_reopened_date"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                    value={formData.updated_json.insuffDetails.second_insuff_reopened_date}
-                                    onChange={handleChange}
-                                />
-
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="third Level Insufficiency Remarks">third Level Insufficiency Remarks</label>
-                                <input
-                                    type="text"
-                                    name="updated_json.insuffDetails.third_insufficiency_marks"
-                                    id="third_insufficiency_marks"
-                                    value={formData.updated_json.insuffDetails.third_insufficiency_marks}
-                                    onChange={handleChange}
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                />
-
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="third Insuff Raised Date:">third Insuff Raised Date:</label>
-                                <input
-                                    type="date"
-                                    name="updated_json.insuffDetails.third_insuff_date"
-                                    id="third_insuff_date"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                    value={formData.updated_json.insuffDetails.third_insuff_date}
-                                    onChange={handleChange}
-                                />
-
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="third Insuff Cleared Date / Re-Opened date">third Insuff Cleared Date / Re-Opened date</label>
-                                <input
-                                    type="date"
-                                    name="updated_json.insuffDetails.third_insuff_reopened_date"
-                                    id="third_insuff_reopened_date"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                    value={formData.updated_json.insuffDetails.third_insuff_reopened_date}
-                                    onChange={handleChange}
-                                />
-
-                            </div>
                             <div className="mb-4 ">
                                 <label className='capitalize text-gray-500' htmlFor="overall status">overall status</label>
                                 <select
@@ -1587,10 +1513,8 @@ const GenerateReport = () => {
                                         onChange={handleChange}
                                         className="border rounded-md p-2 mt-2 uppercase w-full">
                                         <option value="">Selet Report Type</option>
-                                        <option value="insuff">insuff</option>
-                                        <option value="inititated">inititated</option>
-                                        <option value="wip" >wip</option>
-                                        <option value="hold">hold</option>
+                                        <option value="interim-report">Interim Report</option>
+                                        <option value="final-report">Final Report</option>
                                     </select>
 
                                 </div>
@@ -1748,7 +1672,129 @@ const GenerateReport = () => {
                                     className="border w-full rounded-md p-2 mt-2 capitalize"
                                 />
 
+
                             </div>
+                            <div className='flex gap-3 items-center my-2'> <input
+                                type="checkbox"
+                                value={formData.updated_json.insuffDetails.have_not_insuff}
+                                onChange={handleChange}
+                                name="updated_json.insuffDetails.have_not_insuff"
+                                id="have_not_insuff"
+                                className="border rounded-md p-2  capitalize"
+                            />
+                                <label className='font-bold uppercase text-lg'>have not insuff</label></div>
+
+                            {!formData.updated_json.insuffDetails.have_not_insuff && (
+                                <div className='have-not-insufff'>
+
+
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">First Level Insufficiency Remarks</label>
+                                        <input
+                                            type="text"
+                                            name="updated_json.insuffDetails.first_insufficiency_marks"
+                                            id="first_insufficiency_marks"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            value={formData.updated_json.insuffDetails.first_insufficiency_marks}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="first_insuff_date">First Insuff Raised Date:</label>
+                                        <input
+                                            type="date"
+                                            name="updated_json.insuffDetails.first_insuff_date"
+                                            id="first_insuff_date"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            value={formData.updated_json.insuffDetails.first_insuff_date}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="first_insuff_reopened_date">First Insuff Cleared Date / Re-Opened date</label>
+                                        <input
+                                            type="date"
+                                            name="updated_json.insuffDetails.first_insuff_reopened_date"
+                                            id="first_insuff_reopened_date"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            value={formData.updated_json.insuffDetails.first_insuff_reopened_date}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="second Level Insufficiency Remarks">Second Level Insufficiency Remarks</label>
+                                        <input
+                                            type="text"
+                                            name="updated_json.insuffDetails.second_insufficiency_marks"
+                                            id="second_insufficiency_marks"
+                                            value={formData.updated_json.insuffDetails.second_insufficiency_marks}
+                                            onChange={handleChange}
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                        />
+
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="second Insuff Raised Date:">Second Insuff Raised Date:</label>
+                                        <input
+                                            type="date"
+                                            name="updated_json.insuffDetails.second_insuff_date"
+                                            id="second_insuff_date"
+                                            value={formData.updated_json.insuffDetails.second_insuff_date}
+                                            onChange={handleChange}
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                        />
+
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="second Insuff Cleared Date / Re-Opened date">Second Insuff Cleared Date / Re-Opened date</label>
+                                        <input
+                                            type="date"
+                                            name="updated_json.insuffDetails.second_insuff_reopened_date"
+                                            id="second_insuff_reopened_date"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            value={formData.updated_json.insuffDetails.second_insuff_reopened_date}
+                                            onChange={handleChange}
+                                        />
+
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="third Level Insufficiency Remarks">third Level Insufficiency Remarks</label>
+                                        <input
+                                            type="text"
+                                            name="updated_json.insuffDetails.third_insufficiency_marks"
+                                            id="third_insufficiency_marks"
+                                            value={formData.updated_json.insuffDetails.third_insufficiency_marks}
+                                            onChange={handleChange}
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                        />
+
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="third Insuff Raised Date:">third Insuff Raised Date:</label>
+                                        <input
+                                            type="date"
+                                            name="updated_json.insuffDetails.third_insuff_date"
+                                            id="third_insuff_date"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            value={formData.updated_json.insuffDetails.third_insuff_date}
+                                            onChange={handleChange}
+                                        />
+
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="third Insuff Cleared Date / Re-Opened date">third Insuff Cleared Date / Re-Opened date</label>
+                                        <input
+                                            type="date"
+                                            name="updated_json.insuffDetails.third_insuff_reopened_date"
+                                            id="third_insuff_reopened_date"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            value={formData.updated_json.insuffDetails.third_insuff_reopened_date}
+                                            onChange={handleChange}
+                                        />
+
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="text-right mt-4">

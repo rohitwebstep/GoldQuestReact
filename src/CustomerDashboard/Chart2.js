@@ -1,103 +1,183 @@
-import { React, useEffect, useState } from 'react';
-import CanvasJSReact from '@canvasjs/react-charts';
-import { useDashboard } from './DashboardContext';
-import { PulseLoader } from 'react-spinners';  // Import PulseLoader
+import React, { useState, useEffect } from "react";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { useDashboard } from "./DashboardContext";
+import { PulseLoader } from "react-spinners"; // Import PulseLoader
 
-const CanvasJSChart = CanvasJSReact.CanvasJSChart;
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Chart2 = () => {
-  const {tableData } = useDashboard();
-  const [chartData, setChartData] = useState([]);
-  const [loading, setLoading] = useState(false);  // Add loading state
+  const { tableData, loading } = useDashboard();
 
- 
+  console.log("Raw tableData:", tableData); // Debugging
 
-  useEffect(() => {
-    if (tableData && tableData.clientApplications) {
-      const dateMap = {};
+  const data = tableData.clientApplications;
 
-      // Aggregate by day
-      Object.values(tableData.clientApplications).forEach((statusData) => {
-        statusData.applications.forEach((app) => {
-          const date = new Date(app.created_at);
-          if (isNaN(date.getTime())) {
-            console.error("Invalid date encountered:", app.created_at);
-            return;
-          }
+  if (!data) {
+    console.error("clientApplications is undefined or null");
+    return null; // Avoid further processing if data is missing
+  }
 
-          const day = date.toISOString().split('T')[0];
+  const processData = () => {
+    console.log("Raw Data:", data);
 
-          if (!dateMap[day]) {
-            dateMap[day] = 0;
-          }
-          dateMap[day] += 1;
-        });
+    const groupedByDateCategory = {};
+    let hasApplications = false; // Track if there are any valid applications
+
+    // Group applications by category and date
+    Object.keys(data).forEach((category) => {
+      groupedByDateCategory[category] = {};
+
+      data[category].applications?.forEach((app) => {
+        if (!app.created_at || app.created_at.trim() === "") {
+          console.warn(`Skipping application due to invalid date:`, app);
+          return; // Skip this application if created_at is null, undefined, or empty
+        }
+
+        hasApplications = true; // Found at least one valid application
+
+        const date = new Date(app.created_at).toISOString().split("T")[0];
+
+        if (!groupedByDateCategory[category][date]) {
+          groupedByDateCategory[category][date] = 0;
+        }
+        groupedByDateCategory[category][date] += 1;
       });
+    });
 
-      const dataPoints = Object.entries(dateMap).map(([day, count]) => {
-        const parsedDate = new Date(day);
-        return {
-          x: parsedDate,
-          y: count,
-        };
-      });
-
-      setChartData([
-        {
-          type: "splineArea",
-          showInLegend: true,
-          legendText: "Applications",
-          dataPoints,
-          color: "#2196F3",
-          name: "Applications",
-        },
-      ]);
+    if (!hasApplications) {
+      return null; // Return null if there are no applications
     }
-  }, [tableData]);
+
+    console.log("Grouped by Date & Category:", groupedByDateCategory);
+
+    // Collect all unique dates across all categories
+    const labels = new Set();
+    Object.keys(groupedByDateCategory).forEach((category) => {
+      Object.keys(groupedByDateCategory[category]).forEach((date) =>
+        labels.add(date)
+      );
+    });
+
+    const sortedLabels = Array.from(labels).sort();
+    console.log("Sorted Labels (Dates):", sortedLabels);
+
+    let datasets = Object.keys(groupedByDateCategory).map((category) => {
+      const dataPoints = sortedLabels.map(
+        (date) => groupedByDateCategory[category][date] || 0
+      );
+
+      return {
+        label: `${category.charAt(0).toUpperCase() + category.slice(1)} Applications`,
+        data: dataPoints,
+        borderColor: getRandomColor(),
+        tension: 0.1,
+        borderWidth: 1,
+      };
+    });
+
+    // ✅ Ensure categories with ONLY zero values are fully removed
+    datasets = datasets.filter((dataset) => dataset.data.some((value) => value > 0));
+
+    console.log("Filtered Datasets (Non-Zero Only):", datasets);
+
+    return { labels: sortedLabels, datasets };
+  };
+
+  const getRandomColor = () => {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
+  const chartData = processData();
 
   const options = {
-    animationEnabled: true,
-    title: {
-      text: "Client Applications Over Time",
-      fontSize: 20,
-      fontColor: "#333",
-    },
-    axisX: {
-      title: "Date",
-      valueFormatString: "DD MMM YYYY",
-      labelAngle: -45,
-    },
-    axisY: {
-      title: "Application Count",
-      includeZero: true,
-      gridThickness: 1,
-      labelFormatter: function (e) {
-        return e.value.toLocaleString();
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      tooltip: {
+        callbacks: {
+          label: function (tooltipItem) {
+            return `${tooltipItem.dataset.label}: ${tooltipItem.raw} Applications`;
+          },
+        },
       },
     },
-    toolTip: {
-      shared: true,
-      content: "Applications: {y} on {x}",
-    },
-    data: chartData,
-    legend: {
-      verticalAlign: "top",
-      horizontalAlign: "center",
-    },
-    backgroundColor: "#f4f4f9",
-    subTitle: {
-      text: "Total applications created over time",
-      fontSize: 14,
-      fontColor: "#666",
+    scales: {
+      x: {
+        ticks: {
+          font: {
+            size: 10,
+          },
+        },
+      },
+      y: {
+        ticks: {
+          font: {
+            size: 10,
+          },
+        },
+      },
     },
   };
 
   return (
-    <div className="chart-container flex items-center justify-center h-full rounded-md p-5">
+    <div style={{ textAlign: "center", padding: "20px" }}>
       {loading ? (
-        <PulseLoader color="#36A2EB" loading={loading} size={15} />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "300px",
+          }}
+        >
+          <PulseLoader color="#36d7b7" size={15} />
+        </div>
+      ) : chartData ? (
+        <>
+          <h2 className="text-center font-bold py-4 text-lg">
+            Application Count by Category
+          </h2>
+          <div
+            style={{
+              width: "100%",
+              height: "400px",
+              maxWidth: "100%",
+              margin: "0 auto",
+            }}
+          >
+            <Line data={chartData} options={options} />
+          </div>
+        </>
       ) : (
-        <CanvasJSChart options={options} />
+        <h2 className="text-center font-bold py-4 text-lg text-gray-500">
+          No Applications Found
+        </h2>
       )}
     </div>
   );
