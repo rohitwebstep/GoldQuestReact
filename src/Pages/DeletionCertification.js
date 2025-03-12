@@ -14,7 +14,15 @@ import { useApiCall } from '../ApiCallContext';
 Modal.setAppElement('#root');
 
 const DeletionCertification = () => {
+  const [selectedClient, setSelectedClient] = useState(null);
 
+  const handleDeleteClick = (client) => {
+    setSelectedClient(client);
+  };
+  
+  const closeModal = () => {
+    setSelectedClient(null);
+  };
   const [error, setError] = useState({});
 
   const [formData, setFormData] = useState({
@@ -23,7 +31,6 @@ const DeletionCertification = () => {
     isClientApplication: false,
     isCandidateApplication: false,
   });
-  const [showModal, setShowModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -130,8 +137,6 @@ const DeletionCertification = () => {
     const errors = {};
     if (!formData.fromDate) { errors.fromDate = 'This field is required'; }
     if (!formData.toDate) errors.toDate = 'This field is required';
-    if (!formData.isCandidateApplication) errors.isCandidateApplication = 'This field is required';
-    if (!formData.isClientApplication) errors.isClientApplication = 'This field is required';
     return errors;
   };
 
@@ -141,12 +146,13 @@ const DeletionCertification = () => {
     }
   }, [fetchData]);
 
-  const handleDelete = (id, type) => {
+  const handleDelete = (mainId, type) => {
+
+    console.log('id', mainId)
     const validateError = Validate(); // Perform validation only if not editing
 
     if (Object.keys(validateError).length === 0) {
       setError({}); // Clear any previous errors before proceeding
-      setShowModal(false);
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -190,7 +196,7 @@ const DeletionCertification = () => {
           let queryParams;
 
           queryParams = new URLSearchParams({
-            id: id,
+            id: mainId,
             admin_id: admin_id || '',
             _token: storedToken || '',
             from: formData.fromDate || '',
@@ -243,7 +249,7 @@ const DeletionCertification = () => {
                 successMessage,
                 'success'
               );
-
+              setSelectedClient(null);
               setFormData({
                 fromDate: '',
                 toDate: '',
@@ -298,48 +304,48 @@ const DeletionCertification = () => {
 
 
 
-<div className="md:grid grid-cols-2 p-3 justify-between items-center md:my-4 border-b-2 pb-4">
-          <div className="col">
-            <form action="">
-              <div className="flex gap-2 justify-between md:justify-start">
-                <select name="options" onChange={(e) => {
-                  handleSelectChange(e); // Call the select change handler
-                  setCurrentPage(1); // Reset current page to 1
-                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
-                  <option value="10">10 Rows</option>
-                  <option value="20">20 Rows</option>
-                  <option value="50">50 Rows</option>
-                  <option value="200">200 Rows</option>
-                  <option value="300">300 Rows</option>
-                  <option value="400">400 Rows</option>
-                  <option value="500">500 Rows</option>
-                </select>
-                <button
-                  onClick={exportToExcel}
-                  className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
-                  type="button"
-                  disabled={currentItems.length === 0}
-                >
-                  Export to Excel
-                </button>
-              </div>
-            </form>
-          </div>
-          <div className="col md:flex justify-end ">
-            <form action="">
-              <div className="  gap-3">
-                <input
-                  type="search"
-                  className='outline-none border p-3 text-sm rounded-md w-full my-4 md:my-0'
-                  placeholder='Search Here'
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </form>
-          </div>
-
+      <div className="md:grid grid-cols-2 p-3 justify-between items-center md:my-4 border-b-2 pb-4">
+        <div className="col">
+          <form action="">
+            <div className="flex gap-2 justify-between md:justify-start">
+              <select name="options" onChange={(e) => {
+                handleSelectChange(e); // Call the select change handler
+                setCurrentPage(1); // Reset current page to 1
+              }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+                <option value="10">10 Rows</option>
+                <option value="20">20 Rows</option>
+                <option value="50">50 Rows</option>
+                <option value="200">200 Rows</option>
+                <option value="300">300 Rows</option>
+                <option value="400">400 Rows</option>
+                <option value="500">500 Rows</option>
+              </select>
+              <button
+                onClick={exportToExcel}
+                className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
+                type="button"
+                disabled={currentItems.length === 0}
+              >
+                Export to Excel
+              </button>
+            </div>
+          </form>
         </div>
+        <div className="col md:flex justify-end ">
+          <form action="">
+            <div className="  gap-3">
+              <input
+                type="search"
+                className='outline-none border p-3 text-sm rounded-md w-full my-4 md:my-0'
+                placeholder='Search Here'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </form>
+        </div>
+
+      </div>
       <h2 className='text-center md:text-2xl text-xl font-bold my-5'>List Of Active Clients</h2>
 
       <div className="overflow-x-auto py-6 p-3 border m-3 bg-white shadow-md rounded-md">
@@ -370,40 +376,55 @@ const DeletionCertification = () => {
                 return (
                   <>
                     <tr key={item.main_id}>
-                      <td className=" p-3 border-b border-l border-r text-left whitespace-nowrap  capitalize">
+                      <td className="p-3 border-b border-l border-r text-left whitespace-nowrap capitalize">
                         {index + 1 + (currentPage - 1) * itemsPerPage}
                       </td>
-                      <td className=" p-3 border-b border-r text-center whitespace-nowrap  capitalize">{item.client_unique_id || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r whitespace-nowrap  capitalize">{item.name || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-center whitespace-nowrap  capitalize">{item.single_point_of_contact || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r  text-center cursor-pointer">
-                        {new Date(item.agreement_date).getDate()}-
-                        {new Date(item.agreement_date).getMonth() + 1}-
-                        {new Date(item.agreement_date).getFullYear()}
+                      <td className="p-3 border-b border-r text-center whitespace-nowrap capitalize">
+                        {item.client_unique_id || 'NIL'}
                       </td>
-
-
-                      <td className=" p-3 border-b border-r text-center  cursor-pointer">{item.contact_person_name || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-center  cursor-pointer">{item.mobile || 'NIL'}</td>
-                      <td className=" p-3 border-b border-r text-center  cursor-pointer">{item.client_standard || 'NIL'}</td>
-
-                      <td className=" p-3 border-b border-r text-left whitespace-nowrap  fullwidth">
-
-                        <button disabled={isApiLoading || loading}
-                          className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
-                          onClick={() => setShowModal(true)} // Open the modal on button click
-                        >Delete</button>
-
+                      <td className="p-3 border-b border-r whitespace-nowrap capitalize">
+                        {item.name || 'NIL'}
+                      </td>
+                      <td className="p-3 border-b border-r text-center whitespace-nowrap capitalize">
+                        {item.single_point_of_contact || 'NIL'}
+                      </td>
+                      <td className="p-3 border-b border-r text-center cursor-pointer">
+                        {item.agreement_date
+                          ? `${new Date(item.agreement_date).getDate()}-${new Date(item.agreement_date).getMonth() + 1}-${new Date(item.agreement_date).getFullYear()}`
+                          : "NIL"}
+                      </td>
+                      <td className="p-3 border-b border-r text-center cursor-pointer">
+                        {item.contact_person_name || 'NIL'}
+                      </td>
+                      <td className="p-3 border-b border-r text-center cursor-pointer">
+                        {item.mobile || 'NIL'}
+                      </td>
+                      <td className="p-3 border-b border-r text-center cursor-pointer">
+                        {item.client_standard || 'NIL'}
+                      </td>
+                      <td className="p-3 border-b border-r text-left whitespace-nowrap fullwidth">
+                        <button
+                          disabled={isApiLoading || loading}
+                          className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'
+                            }`}
+                          onClick={() => handleDeleteClick(item)} // Pass the selected client
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
-                    {showModal && (
+
+                    {/* Delete Confirmation Modal */}
+                    {selectedClient && (
                       <div className="fixed inset-0 flex justify-center items-center p-3 bg-black bg-opacity-20 z-50">
                         <div className="bg-white p-5 rounded-md md:w-4/12 w-full">
                           <div className='flex justify-between items-center'>
-
                             <h2 className="text-lg font-semibold mb-4">Delete Confirmation</h2>
-                            <button className='bg-red-500 text-white  rounded-md ' onClick={() => setShowModal(false)}><MdCancel /></button>
+                            <button className='bg-red-500 text-white rounded-md' onClick={closeModal}>
+                              <MdCancel />
+                            </button>
                           </div>
+
                           <div className="mb-4">
                             <label className="block mb-2">From Date<span className='text-red-600'>*</span></label>
                             <input
@@ -426,7 +447,6 @@ const DeletionCertification = () => {
                               className="w-full p-2 border border-gray-300 rounded-md"
                             />
                             {error.toDate && <p className='text-red-500'>{error.toDate}</p>}
-
                           </div>
 
                           <div className="mb-4 flex">
@@ -437,10 +457,7 @@ const DeletionCertification = () => {
                               onChange={handleChange}
                               className="mr-2"
                             />
-
-                            Client Application<span className='text-red-600'>*</span>
-                            {error.isClientApplication && <p className='text-red-500'>{error.isClientApplication}</p>}
-
+                            Client Application
                           </div>
 
                           <div className="mb-4 flex">
@@ -451,15 +468,13 @@ const DeletionCertification = () => {
                               onChange={handleChange}
                               className="mr-2"
                             />
-
-                            Candidate Application<span className='text-red-600'>*</span>
-                            {error.isCandidateApplication && <p className='text-red-500'>{error.isCandidateApplication}</p>}
-
+                            Candidate Application
                           </div>
 
                           <div className="flex justify-end">
                             <button
-                              onClick={() => handleDelete(item.main_id, 'client')} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                              onClick={() => handleDelete(selectedClient.main_id, 'client')}
+                              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                             >
                               Submit
                             </button>
@@ -467,6 +482,7 @@ const DeletionCertification = () => {
                         </div>
                       </div>
                     )}
+
 
                   </>
                 );
