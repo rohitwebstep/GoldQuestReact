@@ -20,6 +20,7 @@ const ServiceForm = () => {
     sac_code: "",
     group: "",
     email_description:"",
+    excel_sorting:"",
   });
   const [error, setError] = useState({});
 
@@ -36,6 +37,7 @@ const ServiceForm = () => {
         group: selectedService.group || '',
         short_code: selectedService.short_code || '',
         email_description: selectedService.email_description || '',
+        excel_sorting: selectedService.excel_sorting || '',
       });
       setIsEdit(true);
     } else {
@@ -45,7 +47,8 @@ const ServiceForm = () => {
         short_code: "",
         sac_code: "",
         group: "",
-        email_description:""
+        email_description:"",
+        excel_sorting:""
 
       });
       setIsEdit(false);
@@ -68,6 +71,9 @@ const ServiceForm = () => {
     }
     if (!serviceInput.group) {
       newErrors.group = 'This Field is Required!';
+    }
+    if (!serviceInput.excel_sorting) {
+      newErrors.excel_sorting = 'This Field is Required!';
     }
     
     return newErrors;
@@ -101,6 +107,7 @@ const ServiceForm = () => {
           short_code: serviceInput.short_code,
           group: serviceInput.group,
           sac_code: serviceInput.sac_code,
+          excel_sorting: serviceInput.excel_sorting,
           email_description: serviceInput.email_description,
           admin_id: adminId,
           _token: storedToken,
@@ -147,6 +154,10 @@ const ServiceForm = () => {
         })
         .then((result) => {
           // Success: Handle the response data
+          const newToken = result.token || result._token || "";
+          if (newToken) {
+              localStorage.setItem("_token", newToken);
+          }
           const successMessage = result?.message || (isEdit ? "Service updated successfully" : "Service added successfully");
           Swal.fire({
             title: "Success!",
@@ -166,8 +177,8 @@ const ServiceForm = () => {
             updateServiceList((prevList) => [...prevList, result]);
           }
 
-          fetchData(); // Refresh data
-          setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "",email_description:"" });
+          fetchData(); // Refresh data:
+          setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "",email_description:"",excel_sorting:"" });
           setIsEdit(false);
         })
         .catch((error) => {
@@ -186,7 +197,7 @@ const ServiceForm = () => {
 
 
   const resetForm = () => {
-    setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "" });
+    setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "",excel_sorting:"" });
     setError({});
     setIsEdit(null)
 
@@ -237,6 +248,17 @@ const ServiceForm = () => {
           onChange={handleChange}
           className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.short_code && <p className='text-red-500'>{error.short_code}</p>}
+      </div>
+      <div className="mb-4">
+        <label htmlFor="excel_sorting" className="block">Excel Sorting<span className='text-red-500'>*</span></label>
+        <input
+          type="number"
+          name="excel_sorting"
+          id="excel_sorting"
+          value={serviceInput.excel_sorting}
+          onChange={handleChange}
+          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+        {error.excel_sorting && <p className='text-red-500'>{error.excel_sorting}</p>}
       </div>
       <div className="mb-4">
         <label htmlFor="group" className="block">Service Group<span className='text-red-500'>*</span></label>

@@ -17,6 +17,7 @@ const AdminChekin = () => {
 
     const { handleTabChange } = useSidebar();
     const [options, setOptions] = useState([]);
+    const [branchData, setBranchData] = useState([]);
     const [expandedRow, setExpandedRow] = useState(null); // Initializing as null
     const navigate = useNavigate();
     const location = useLocation();
@@ -55,11 +56,9 @@ const AdminChekin = () => {
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then(result => {
-                        console.log("Error response:", result);
                         const newToken = result._token || result.token;
 
                         if (newToken) {
-                            console.log("Saving new token from error response:", newToken);
                             localStorage.setItem("_token", newToken);
                         }
 
@@ -89,17 +88,16 @@ const AdminChekin = () => {
                 return response.json(); // Parse response if OK
             })
             .then((result) => {
-                console.log("API Response:", result);
 
                 const newToken = result._token || result.token;
                 if (newToken) {
-                    console.log("Saving new token from success response:", newToken);
                     localStorage.setItem("_token", newToken);
                 } else {
                     console.warn("No token found in response!");
                 }
 
                 setData(result.data?.customers || []); // Set customers data
+                setBranchData(result.data?.customerName || []); // Set customers data
                 setOptions(result.data?.filterOptions || []); // Set filter options
             })
             .catch((error) => {
@@ -113,90 +111,88 @@ const AdminChekin = () => {
     }, [branch_id, adminId, token, setData, setOptions]);
 
 
-    const fetchAdminList = useCallback(() => {
-        setIsApiLoading(true);
-        setLoading(true); // Start loading before fetching data
-        const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
-        const token = localStorage.getItem('_token');
+    // const fetchAdminList = useCallback(() => {
+    //     setIsApiLoading(true);
+    //     setLoading(true); // Start loading before fetching data
+    //     const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
+    //     const token = localStorage.getItem('_token');
 
-        if (!adminId || !token) {
-            // If there's no adminId or token, stop execution and alert
-            Swal.fire({
-                title: "Session Expired",
-                text: "No valid session found. Please log in again.",
-                icon: "warning",
-                confirmButtonText: "Ok",
-            }).then(() => {
-                window.location.href = "/admin-login"; // Force redirect to login page
-            });
-            setLoading(false); // Stop loading
-            return;
-        }
+    //     if (!adminId || !token) {
+    //         // If there's no adminId or token, stop execution and alert
+    //         Swal.fire({
+    //             title: "Session Expired",
+    //             text: "No valid session found. Please log in again.",
+    //             icon: "warning",
+    //             confirmButtonText: "Ok",
+    //         }).then(() => {
+    //             window.location.href = "/admin-login"; // Force redirect to login page
+    //         });
+    //         setLoading(false); // Stop loading
+    //         return;
+    //     }
 
-        const requestOptions = {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            redirect: "follow"
-        };
+    //     const requestOptions = {
+    //         method: "GET",
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         redirect: "follow"
+    //     };
 
 
-        fetch(`${API_URL}/client-master-tracker/list?admin_id=${adminId}&_token=${token}`, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(result => {
-                        throw new Error(result.message || 'Failed to load data'); // Throw error if response is not OK
-                    });
-                }
-                return response.json(); // Parse the response JSON if the status is OK
-            })
-            .then((result) => {
+    //     fetch(`${API_URL}/client-master-tracker/list?admin_id=${adminId}&_token=${token}`, requestOptions)
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 return response.json().then(result => {
+    //                     throw new Error(result.message || 'Failed to load data'); // Throw error if response is not OK
+    //                 });
+    //             }
+    //             return response.json(); // Parse the response JSON if the status is OK
+    //         })
+    //         .then((result) => {
 
-                // Check for invalid or expired token in the response message
-                if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
-                    Swal.fire({
-                        title: "Session Expired",
-                        text: "Your session has expired. Please log in again.",
-                        icon: "warning",
-                        confirmButtonText: "Ok",
-                    }).then(() => {
-                        setTimeout(() => {
-                            window.location.href = "/admin-login"; // Force redirect after a short delay to ensure Swal completes
-                        }, 500); // Delay to allow Swal to process
-                    });
-                    throw new Error("Session expired"); // Stop further processing if token is invalid
-                }
+    //             // Check for invalid or expired token in the response message
+    //             if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
+    //                 Swal.fire({
+    //                     title: "Session Expired",
+    //                     text: "Your session has expired. Please log in again.",
+    //                     icon: "warning",
+    //                     confirmButtonText: "Ok",
+    //                 }).then(() => {
+    //                     setTimeout(() => {
+    //                         window.location.href = "/admin-login"; // Force redirect after a short delay to ensure Swal completes
+    //                     }, 500); // Delay to allow Swal to process
+    //                 });
+    //                 throw new Error("Session expired"); // Stop further processing if token is invalid
+    //             }
 
-                // If a new token is received, update it in localStorage
-                const newToken = result._token || result.token;
-                if (newToken) {
-                    localStorage.setItem("_token", newToken);
-                }
+    //             // If a new token is received, update it in localStorage
+    //             const newToken = result._token || result.token;
+    //             if (newToken) {
+    //                 localStorage.setItem("_token", newToken);
+    //             }
 
-                // Process the list of customers and extract `tat_days`
-                const tat_days = result.customers.map(spoc => spoc.tat_days);
+    //             // Process the list of customers and extract `tat_days`
+    //             const tat_days = result.customers.map(spoc => spoc.tat_days);
 
-                setAdminTAT(tat_days); // Store the `tat_days` in state
-            })
-            .catch((error) => {
-                console.error("Error fetching data:", error);
+    //             setAdminTAT(tat_days); // Store the `tat_days` in state
+    //         })
+    //         .catch((error) => {
+    //             console.error("Error fetching data:", error);
 
-            })
-            .finally(() => {
-                setLoading(false);
-                setIsApiLoading(false); // Stop loading once the fetch is complete
-            });
+    //         })
+    //         .finally(() => {
+    //             setLoading(false);
+    //             setIsApiLoading(false); // Stop loading once the fetch is complete
+    //         });
 
-    }, []); // Empty dependency array to run on mount
+    // }, []); // Empty dependency array to run on mount
 
     const goBack = () => {
         handleTabChange('client_master');
     }
 
-    useEffect(() => {
-        if (!isApiLoading) { fetchAdminList(); }
-    }, [fetchAdminList]);
+
 
     const handleStatusChange = (event) => {
         setSelectedStatus(event.target.value);
@@ -557,7 +553,7 @@ const AdminChekin = () => {
             }
         });
         try {
-            const applicationInfo = data[index];
+            const applicationInfo = data.find(item => item.main_id === reportInfo.main_id);
             const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services, reportDownloadFlag);
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
@@ -567,83 +563,146 @@ const AdminChekin = () => {
             doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
             const rightImageX = pageWidth - 10 - 70; // Page width minus margin (10) and image width (50)
-            doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX, yPosition, 50, 30);
+            doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX + 40, yPosition, 50, 30);
+
             if (applicationInfo?.photo) {
                 const imageBases = await fetchImageToBase([applicationInfo?.photo.trim()]);
-                doc.addImage(imageBases?.[0]?.base64 || "https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 40, yPosition, 30, 30);
+                doc.addImage(imageBases?.[0]?.base64 || "https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX, yPosition, 30, 30);
 
             } else {
-                doc.addImage("https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 45, yPosition, 30, 30);
+                doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX, yPosition, 50, 30);
 
             }
+
 
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
 
             doc.text("CONFIDENTIAL BACKGROUND VERIFICATION REPORT", 105, 40, { align: 'center' });
+            console.log('applicationInfo', applicationInfo)
+
+            const getStatusColor = (status) => {
+                let statusColor;
+                let statusText = status;  // Remove 'completed_' and convert to uppercase
+                console.log(`statusText - `, statusText);
+                switch (statusText.toLowerCase()) {
+                    case 'green':
+                        statusColor = { textColor: 'green' }; // Green text
+                        break;
+                    case 'red':
+                        statusColor = { textColor: 'red' }; // Red text
+                        break;
+                    case 'orange':
+                        statusColor = { textColor: 'orange' }; // Orange text
+                        break;
+                    case 'yellow':
+                        statusColor = { textColor: 'yellow' }; // Yellow text
+                        break;
+                    case 'pink':
+                        statusColor = { textColor: 'pink' }; // Pink text
+                        break;
+                    default:
+                        statusColor = { textColor: '#000000' }; // Default black text if no match
+                        break;
+                }
+                return statusColor;
+            };
 
             // First Table
             const firstTableData = [
                 [
                     { content: 'Name of the Candidate', styles: { cellWidth: 'auto', fontStyle: 'bold' } },
-                    { content: applicationInfo?.name || 'NIL' },
+                    { content: applicationInfo?.name || 'NA' },
                     { content: 'Client Name', styles: { cellWidth: 'auto', fontStyle: 'bold' } },
-                    { content: applicationInfo[0]?.client_name || 'NIL' },
+                    { content: branchData || 'NA' },
                 ],
                 [
                     { content: 'Application ID', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.application_id || 'NIL' },
+                    { content: applicationInfo?.application_id || 'NA' },
                     { content: 'Report Status', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.report_status || 'NIL' },
+                    { content: applicationInfo?.report_status || 'NA' },
                 ],
                 [
                     { content: 'Date of Birth', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.dob ? new Date(applicationInfo.dob).toLocaleDateString() : 'NIL' },
+                    {
+                        content: applicationInfo?.dob
+                            ? new Date(applicationInfo.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                            : "NA"
+                    },
+
                     { content: 'Application Received', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.deadline_date ? new Date(applicationInfo.deadline_date).toLocaleDateString() : 'NIL' },
+                    {
+                        content: applicationInfo?.created_at
+                            ? new Date(applicationInfo.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")
+                            : "NA"
+                    }
+
+
                 ],
                 [
                     { content: 'Candidate Employee ID', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.employee_id || 'NIL' },
+                    { content: applicationInfo?.employee_id || 'NA' },
                     { content: 'Insuff Cleared/Reopened', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.application_id || 'NIL' },
+                    {
+                        content: applicationInfo?.first_insuff_reopened_date
+                            ? new Date(applicationInfo.first_insuff_reopened_date).toLocaleDateString("en-GB").replace(/\//g, "-")
+                            : 'NA'
+                    }
+
                 ],
                 [
                     { content: 'Report Type', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.report_type || 'NIL' },
+                    { content: applicationInfo?.report_type || 'NA' },
                     { content: 'Final Report Date', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.report_date ? new Date(applicationInfo.report_date).toLocaleDateString() : 'NIL' },
+                    {
+                        content: applicationInfo?.report_date
+                            ? new Date(applicationInfo.report_date).toLocaleDateString("en-GB").replace(/\//g, "-")
+                            : 'NA'
+                    }
                 ],
                 [
                     { content: 'Verification Purpose', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.overall_status || 'NIL' },
+                    { content: applicationInfo?.purpose_of_application?.toLowerCase() || 'NA' },
                     { content: 'Overall Report Status', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.status || 'NIL' },
+                    {
+                        content: applicationInfo?.final_verification_status.toUpperCase() || 'NA', // Show only the color name (e.g., GREEN, RED, etc.)
+                        styles: { fontStyle: 'bold', ...getStatusColor(applicationInfo?.final_verification_status) } // Apply dynamic text color
+                    },
                 ],
             ];
 
-
             doc.autoTable({
-                head: [], // Remove the header by setting it to an empty array
+                head: [],  // Remove the header by setting it to an empty array
                 body: firstTableData,
                 styles: {
-                    cellPadding: 3,
+                    cellPadding: 2,
                     fontSize: 10,
                     valign: 'middle',
                     lineColor: [62, 118, 165],
-                    lineWidth: 0.4,     // Reduced border width (you can adjust this value further)
-                    textColor: '#000',  // Set text color to black (#000)
+                    lineWidth: 0.4,  // Border width for the table
+                    textColor: '#000',  // Default text color
                 },
                 headStyles: {
-                    fillColor: [255, 255, 255], // Ensure no background color for header
-                    textColor: 0,               // Optional: Ensure header text color is reset (not needed if header is removed)
+                    fillColor: [255, 255, 255],  // Ensure no background color for the header
+                    textColor: 0,                // Optional: Reset header text color
                     lineColor: [62, 118, 165],
-                    lineWidth: 0.2,             // Reduced border width for header (if header is re-enabled)
+                    lineWidth: 0.2,  // Reduced border width for header
                 },
                 theme: 'grid',
                 margin: { top: 50 },
+                // Customize the overall status text color
+                willDrawCell: (data) => {
+                    const statusCell = data.cell.raw && data.cell.raw.content;
+                    const statusRow = firstTableData[5];  // We assume the status row is in index 5
+
+                    if (statusCell === statusRow[3].content) {
+                        const { textColor } = getStatusColor(statusCell);
+                        data.cell.styles.textColor = textColor;  // Apply dynamic text color
+                    }
+                },
             });
+
 
             addFooter(doc);
             const secondTableData = servicesData.map(item => {
@@ -656,9 +715,10 @@ const AdminChekin = () => {
                     component: item.heading || 'NIL',
                     source: sourceKey ? item.annexureData[sourceKey] : 'NIL',
                     completedDate: dateKey && item.annexureData[dateKey] && !isNaN(new Date(item.annexureData[dateKey]).getTime())
-                        ? new Date(item.annexureData[dateKey]).toLocaleDateString()
-                        : 'NIL',
-                    status: item.annexureData && item.annexureData.status ? item.annexureData.status.replace(/[_-]/g, ' ') : 'NIL',
+                        ? new Date(item.annexureData[dateKey]).toLocaleDateString('en-GB').replace(/\//g, "-") // Use 'en-GB' for DD-MM-YYYY format
+                        : 'NIL'
+                    ,
+                    status: item.annexureData && item.annexureData.status ? item.annexureData.status : 'NIL',
                 };
             });
 
@@ -667,41 +727,104 @@ const AdminChekin = () => {
                 row.component !== 'NIL' && row.source !== 'NIL' && row.completedDate !== 'NIL' && row.status !== 'NIL'
             );
 
+
+            // Generate the Second Table
+
+
             // Generate the Second Table
             doc.autoTable({
                 head: [
                     [
-                        { content: 'REPORT COMPONENT', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
-                        { content: 'INFORMATION SOURCE', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
-                        { content: 'COMPLETED DATE', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
-                        { content: 'COMPONENT STATUS', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
+                        {
+                            content: 'REPORT COMPONENT',
+                            styles: {
+                                halign: 'center',
+                                fillColor: "#6495ed",
+                                textColor: [0, 0, 0],
+                                lineWidth: 0.4,
+                                fontStyle: 'bold',
+                                lineWidth: 0.5, // Border width
+                                cellPadding: 3, // Padding inside the cell
+                                lineColor: [100, 149, 237], // Border color
+                            },
+
+                        },
+
+                        {
+                            content: 'INFORMATION SOURCE',
+                            styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineWidth: 0.2, fontStyle: 'bold', },
+
+                        },
+                        {
+                            content: 'COMPONENT STATUS', colSpan: 2,
+                            styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' },
+                        },
+                    ],
+                    [
+                        { content: '', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [100, 149, 237], textColor: [0, 0, 0], fontStyle: 'bold' } },
+                        { content: '', styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineColor: [255, 255, 255], fontStyle: 'bold' } },
+                        { content: 'Completed Date', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' } },
+                        { content: 'Verification Status', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' } },
                     ]
                 ],
-                body: filteredSecondTableData.map(row => [
-                    row.component,
-                    row.source,
-                    row.completedDate, // Show completedDate in its own column
-                    row.status, // Show status in its own column
-                ]),
+                body: filteredSecondTableData.map(row => {
+                    // Set text color based on verification status
+                    let statusColor;
+                    let statusText = row.status.replace(/^completed_/, '').toUpperCase();  // Remove 'completed_' and convert to uppercase
+
+                    switch (statusText.toLowerCase()) {
+                        case 'green':
+                            statusColor = { textColor: 'green' }; // Green text
+                            break;
+                        case 'red':
+                            statusColor = { textColor: 'red' }; // Red text
+                            break;
+                        case 'orange':
+                            statusColor = { textColor: 'orange' }; // Orange text
+                            break;
+                        case 'yellow':
+                            statusColor = { textColor: 'yellow' }; // Yellow text
+                            break;
+                        case 'pink':
+                            statusColor = { textColor: 'pink' }; // Pink text
+                            break;
+                        default:
+                            statusColor = { textColor: '#000000' }; // Default black text if no match
+                            break;
+                    }
+
+                    // Return the row with dynamic styles for 'verification status'
+                    return [
+                        row.component,
+                        row.source,
+                        row.completedDate, // Show completedDate in its own column
+                        {
+                            content: statusText, // Show only the color name (e.g., GREEN, RED, etc.)
+                            styles: { halign: 'center', fontStyle: 'bold', ...statusColor } // Apply dynamic text color
+                        },
+                    ];
+                }),
+
                 styles: {
-                    cellPadding: 3,
+                    cellPadding: 2,
                     fontSize: 10,
                     valign: 'middle',
                     lineWidth: 0.3,
                     lineColor: "#6495ed",
+                    textColor: [0, 0, 0],
+                    tableLineColor: [100, 149, 237],
                 },
                 theme: 'grid',
                 headStyles: {
-                    lineWidth: 0.4, // No border for the header
-                    fillColor: [61, 117, 166], // Color for the header background
-                    textColor: [0, 0, 0], // Text color for the header
+                    fillColor: [61, 117, 166],
+                    textColor: [0, 0, 0],
+                    lineWidth: 0.4,
                     fontStyle: 'bold',
-                    lineColor: [61, 117, 166], // Border color for the body
-
+                    lineColor: [255, 255, 255],
                 },
                 bodyStyles: {
-                    lineWidth: 0.5, // Border for the body rows
-                    lineColor: [61, 117, 166], // Border color for the body
+                    lineColor: [61, 117, 166],
+                    lineWidth: 0.4,
                 },
                 columnStyles: {
                     0: { halign: 'left' },
@@ -711,12 +834,26 @@ const AdminChekin = () => {
                 },
             });
 
-
-
             addFooter(doc);
-            doc.addPage();
+            const pageHeight = doc.internal.pageSize.height;
+            yPosition = doc.lastAutoTable.finalY || 0; // Current Y position
+            console.log('page-height', pageHeight);
+            console.log('page-yPosition', yPosition);
+
+            // Check if adding the space will exceed the page height
+            if (yPosition + 70 > pageHeight) {
+                addFooter(doc);  // Add the footer before adding a new page
+                doc.addPage();   // Add a new page
+                yPosition = 20;    // Reset currentY to start from the top of the new page
+            }
+
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.text("End of summary report", pageWidth / 2, yPosition + 10, { align: "center" });
+
             const tableStartX = 15; // Adjusted X position for full-width table
-            const tableStartY = 40; // Y position of the table
+            const tableStartY = yPosition + 20; // Y position of the table
             const totalTableWidth = pageWidth - 2 * tableStartX; // Total table width
             const legendColumnWidth = 15; // Smaller width for the "Legend" column
             const remainingTableWidth = totalTableWidth - legendColumnWidth; // Remaining space for other columns
@@ -790,21 +927,18 @@ const AdminChekin = () => {
             });
 
 
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("End of summary report", pageWidth / 2, 20 + 10, { align: "center" });
 
             addFooter(doc);
 
 
             yPosition = 20;
             let annexureIndex = 1;
+            let pageLoopCount = 0;
             for (const service of servicesData) {
+                pageLoopCount += 1;
                 let reportFormJson;
                 let rows = [];
 
-                // Attempt to parse the JSON string and only proceed if valid
-                console.log('service', service)
                 try {
                     if (!service.reportFormJson || !service.reportFormJson.json) {
                         // Skip this service if reportFormJson is not found or is empty
@@ -814,7 +948,6 @@ const AdminChekin = () => {
 
                     // Attempt to parse the JSON string
                     reportFormJson = JSON.parse(service.reportFormJson.json);
-                    console.log('reportFormJson', reportFormJson)
 
                     // Only process if rows are present
                     rows = reportFormJson && Array.isArray(reportFormJson.rows) ? reportFormJson.rows : [];
@@ -829,8 +962,8 @@ const AdminChekin = () => {
                 }
 
                 // Start adding content for the page if data is valid
-                doc.addPage();
-                addFooter(doc);
+                // doc.addPage();
+                // addFooter(doc);
 
                 let yPosition = 20;
                 const serviceData = [];
@@ -908,6 +1041,7 @@ const AdminChekin = () => {
 
                 // Skip table rendering if no valid tableData
                 if (tableData.length > 0) {
+                    doc.addPage();
                     const pageWidth = doc.internal.pageSize.width;
 
                     let headingText = '';
@@ -1005,56 +1139,87 @@ const AdminChekin = () => {
                         key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
                     );
 
+
                     if (annexureImagesKey) {
+                        console.log("✅ Annexure images key found:", annexureImagesKey);
+
+                        doc.addPage();
+                        console.log("📄 New page added to the document");
+
+                        yPosition = 20;
                         const annexureImagesStr = annexureData[annexureImagesKey];
+                        console.log("📸 Extracted annexure image string:", annexureImagesStr);
+
                         const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
+                        console.log("🔍 Split annexure image array:", annexureImagesSplitArr);
 
                         if (annexureImagesSplitArr.length === 0) {
+                            console.warn("⚠️ No annexure images available.");
                             doc.setFont("helvetica", "italic");
                             doc.setFontSize(10);
                             doc.setTextColor(150, 150, 150);
                             doc.text("No annexure images available.", 10, yPosition);
                             yPosition += 10;
                         } else {
+                            console.log("⏳ Fetching image base64 data...");
                             const imageBases = await fetchImageToBase(annexureImagesStr.trim());
-                            if (imageBases) {
-                                imageBases.forEach((image, index) => {
+                            console.log("✅ Fetched images:", imageBases);
 
-                                    if (!image.base64 || !image.base64.startsWith('data:image/')) {
-                                        console.error(`Invalid base64 data for image ${index + 1}`);
+                            if (imageBases && imageBases.length > 0) {
+                                imageBases.forEach((image, index) => {
+                                    console.log(`🔄 Processing image ${index + 1}/${imageBases.length}`);
+
+                                    if (!image.base64 || !image.base64.startsWith("data:image/")) {
+                                        console.error(`❌ Invalid base64 data for image ${index + 1}`);
                                         return;
                                     }
 
-                                    const { width, height } = scaleImageForPDF(image.width, image.height, doc.internal.pageSize.width - 20, 80);
-                                    if (yPosition + height > doc.internal.pageSize.height - 20) {
+                                    // **Add a new page ONLY if there are multiple images and it's not the first one**
+                                    if (index > 0 && imageBases.length > 1) {
                                         doc.addPage();
-                                        yPosition = 10;
+                                        console.log(`📄 New page added for image ${index + 1}`);
                                     }
 
+                                    const pageWidth = doc.internal.pageSize.width - 20; // Keeping margins
+                                    const pageHeight = doc.internal.pageSize.height - 40; // Keeping margins
+                                    console.log(`📏 Page width: ${pageWidth}, Page height: ${pageHeight}`);
+
+                                    // **Scale Image to Fit the Page**
+                                    let { width, height } = scaleImageForPDF(image.width, image.height, pageWidth, pageHeight);
+                                    console.log(`📐 Scaled image dimensions: Width = ${width}, Height = ${height}`);
+
+                                    // **Center Image**
+                                    const centerX = (doc.internal.pageSize.width - width) / 2;
+                                    const centerY = (doc.internal.pageSize.height - height) / 2;
+                                    console.log(`📌 Image position: X = ${centerX}, Y = ${centerY}`);
+
+                                    // **Add Annexure Title**
                                     const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
-                                    const textWidth = doc.getTextWidth(annexureText);
-                                    const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+                                    console.log("📝 Adding annexure title:", annexureText);
 
                                     doc.setFont("helvetica", "bold");
-                                    doc.setFontSize(10);
+                                    doc.setFontSize(12);
                                     doc.setTextColor(0, 0, 0);
-                                    doc.text(annexureText, centerX, yPosition + 10);
-                                    yPosition += 15;
+                                    doc.text(annexureText, doc.internal.pageSize.width / 2, 15, { align: "center" });
 
-                                    const centerXImage = (doc.internal.pageSize.width - width) / 2;
+                                    // **Add Image to the Center of the Page**
                                     try {
-                                        // Ensure that the base64 data and type are correctly passed
-                                        doc.addImage(image.base64, image.type, centerXImage, yPosition, width, height);
-                                        yPosition += height + 15;
+                                        console.log(`🖼️ Adding image ${index + 1} to the document...`);
+                                        doc.addImage(image.base64, image.type, centerX, centerY, width, height);
+                                        console.log(`✅ Successfully added image ${index + 1}`);
                                     } catch (error) {
-                                        console.error(`Error adding image ${index + 1}:`, error);
+                                        console.error(`❌ Error adding image ${index + 1}:`, error);
                                     }
+
+                                    addFooter(doc);
+                                    console.log(`📌 Footer added for image ${index + 1}`);
                                 });
+                            } else {
+                                console.warn("⚠️ No valid images found after fetching.");
                             }
-
-
                         }
                     } else {
+                        console.warn("⚠️ No annexure images key found.");
                         doc.setFont("helvetica", "italic");
                         doc.setFontSize(10);
                         doc.setTextColor(150, 150, 150);
@@ -1062,16 +1227,33 @@ const AdminChekin = () => {
                         yPosition += 15;
                     }
 
+
+                    /**
+                     * Function to scale image properly within the page
+                     */
+                    function scaleImageForPDF(imageWidth, imageHeight, maxWidth, maxHeight) {
+                        let width = imageWidth;
+                        let height = imageHeight;
+
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+
+                        return { width, height };
+                    }
+
+
+
+
                 }
 
 
-                function scaleImageForPDF(pageWidth, imageHeight, availableWidth, availableHeight) {
-                    // Scale to full width (stretch the image)
-                    const width = availableWidth;  // Stretch the image to full available width
-                    const height = (imageHeight * availableWidth) / pageWidth;  // Calculate the height proportionally to the new width
 
-                    return { width, height };  // Return the stretched width and height
-                }
 
 
 
@@ -1080,7 +1262,6 @@ const AdminChekin = () => {
                 annexureIndex++;
                 yPosition += 20;
             }
-
 
             addFooter(doc);
             doc.addPage();
@@ -1093,11 +1274,7 @@ const AdminChekin = () => {
 
             const adjustedDisclaimerButtonHeight = disclaimerButtonHeight + buttonBottomPadding;
 
-            const disclaimerTextPart1 = `his report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the
-    purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any
-    other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the
-    information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on
-    the information responsible for employment decisions based on the information provided in this report.`;
+            const disclaimerTextPart1 = `This report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information responsible for employment decisions based on the information provided in this report.`;
             const anchorText = "";
             const disclaimerTextPart2 = "";
 
@@ -1141,8 +1318,7 @@ const AdminChekin = () => {
             doc.setTextColor(0, 0, 0);
             doc.setFont("helvetica", "bold");
 
-
-            const disclaimerButtonTextWidth = doc.getTextWidth('DISCLAIMER');
+            const disclaimerButtonTextWidth = doc.getTextWidth('Disclaimer');
             const buttonTextHeight = doc.getFontSize();
 
 
@@ -1150,7 +1326,7 @@ const AdminChekin = () => {
                 disclaimerButtonXPosition + disclaimerButtonWidth / 2 - disclaimerButtonTextWidth / 2 - 1;
             const disclaimerTextYPosition = disclaimerY + disclaimerButtonHeight / 2 + buttonTextHeight / 4 - 1;
 
-            doc.text('DISCLAIMER', disclaimerTextXPosition, disclaimerTextYPosition);
+            doc.text('Disclaimer', disclaimerTextXPosition, disclaimerTextYPosition);
 
             let currentY = disclaimerY + adjustedDisclaimerButtonHeight + disclaimerTextTopMargin;
 
@@ -1192,14 +1368,14 @@ const AdminChekin = () => {
             doc.setTextColor(0, 0, 0);
             doc.setFont("helvetica", "bold");
 
-            const endButtonTextWidth = doc.getTextWidth('END OF DETAIL REPORT');
+            const endButtonTextWidth = doc.getTextWidth('End of detail report');
             const endButtonTextHeight = doc.getFontSize();
 
             const endButtonTextXPosition =
                 endButtonXPosition + disclaimerButtonWidth / 2 - endButtonTextWidth / 2 - 1;
             const endButtonTextYPosition = endOfDetailY + disclaimerButtonHeight / 2 + endButtonTextHeight / 4 - 1;
 
-            doc.text('END OF DETAIL REPORT', endButtonTextXPosition, endButtonTextYPosition);
+            doc.text('End of detail report', endButtonTextXPosition, endButtonTextYPosition);
 
 
             // Calculate the width and height of the image dynamically using jsPDF's getImageProperties
@@ -1251,11 +1427,11 @@ const AdminChekin = () => {
     }, [clientId, branch_id]);
 
 
-    useEffect(() => {
-        if (!isApiLoading) {
-            fetchAdminList();
-        }
-    }, [fetchAdminList]);
+    // useEffect(() => {
+    //     if (!isApiLoading) {
+    //         fetchAdminList();
+    //     }
+    // }, [fetchAdminList]);
 
     const rowRefs = useRef({}); // Store refs for each row
 
@@ -1334,15 +1510,11 @@ const AdminChekin = () => {
         }
     };
 
-
-
     const handleSelectChange = (e) => {
 
         const selectedValue = e.target.value;
         setItemPerPage(selectedValue)
     }
-
-
 
     const handleUpload = (applicationId, branchid) => {
         navigate(`/client?applicationId=${applicationId}&branchid=${branchid}`);
@@ -1351,8 +1523,8 @@ const AdminChekin = () => {
     function sanitizeText(text) {
         if (!text) return text;
         return text.replace(/_[^\w\s]/gi, '');
-
     }
+
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const userRole = adminData.role;
 
@@ -1378,48 +1550,66 @@ const AdminChekin = () => {
                 }
             });
 
-            console.log('headingsAndStatuses', headingsAndStatuses);
-
             // Return the row data for the worksheet
-            // Add headingsAndStatuses data to the row
             const row = {
-                "Index": index + 1,
-                "Admin TAT": data.adminTAT || "NIL",
-                "Location": data.location || "NIL",
-                "Name": data.name || "NIL",
-                "Application ID": data.application_id || "NIL",
-                "Employee ID": data.employee_id || "NIL",
-                "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
-                "Updated At": data.deadline_date ? new Date(data.deadline_date).toLocaleDateString() : "NIL",
-                "Report Type": data.report_type || "NIL",
-                "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
-                "Generated By": data.report_generated_by_name || "NIL",
-                "QC Done By": data.qc_done_by_name || "NIL",
-                // "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
-                // "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
-                // "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
-                // "Second Level Insuff": data.second_insufficiency_marks,
-                // "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
-                // "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
-                // "Third Level Insuff Marks": data?.third_insufficiency_marks,
-                // "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
-                // "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
-                "Reason For Delay": data || "NIL",
-                "overall_status": data?.overall_status || "NIL",
-                "Delay Reason": data.delay_reason || "NIL",
-                "tat_days": data?.tat_days || "NIL"
+                "INDEX": index + 1,
+                "TAT DAYS": data?.tat_days || "NIL",
+                "LOCATION NAME": data.location || "NIL",
+                "BATCH NUMBER": data.batch_number || "NIL",
+                "APPLICATION ID": data.application_id || "NIL",
+                "NAME OF THE APPLICANT": data.name || "NIL",
+                "APPLICANT EMPLOYEE ID": data.employee_id || "NIL",
+                "INITIATION DATE": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
+                "DOWNLOAD REPORT STATUS": data.is_report_downloaded ? "Downloaded" : "Not Downloaded",
+                "REPORT TYPE": data.report_type || "NIL",
+                "REPORT DATE": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
+                "OVERALL STATUS": data.overall_status || "NIL",
+                // Add headingsAndStatuses after OVERALL STATUS
+                ...headingsAndStatuses.reduce((acc, { heading, status }) => {
+                    acc[heading] = status; // Dynamically adding heading-status pair as a key-value
+                    return acc;
+                }, {}),
+                "FIRST LEVEL INSUFF REMARKS": data.first_insufficiency_marks || "NIL",
+                "FIRST INSUFF DATE": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
+                "FIRST INSUFF CLEARED": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
+                "SECOND LEVEL INSUFF REMARKS": data.second_insufficiency_marks || "NIL",
+                "SECOND INSUFF DATE": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
+                "SECOND INSUFF CLEARED": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
+                "THIRD LEVEL INSUFF REMARKS": data.third_insufficiency_marks || "NIL",
+                "THIRD INSUFF DATE": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
+                "THIRD INSUFF CLEARED": data.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
+                "REMARKS & REASON FOR DELAY": data.delay_reason || "NIL",
+                "ADDRESS": data.address || "NIL",
+                "EDUCATION": data.education || "NIL",
+                "BASIC ENTRY": data.basic_entry || "NIL",
+                "CASE UPLOADED": data.case_upload || "NIL",
+                "EMPLOYEMENT SPOC": data.single_point_of_contact || "NIL",
+                "REPORT GENERATED BY": data.report_generated_by_name || "NIL",
+                "QC DONE BY": data.qc_done_by_name || "NIL",
             };
-
-            // Append each heading and status pair to the row
-            headingsAndStatuses.forEach(({ heading, status }) => {
-                row[heading] = status; // Dynamically adding heading-status pair as a key-value
-            });
 
             return row; // Return the complete row with headings and statuses added
         }));
 
-        // Now, create the Excel sheet from the gathered worksheet data
+        // Create worksheet
         const ws = XLSX.utils.json_to_sheet(worksheetData);
+
+        // Style header cells (bold text and custom font family)
+        const headerStyle = {
+            font: { bold: true, name: "poppins" }, // Font style for headers
+            alignment: { horizontal: "center" }, // Center align header cells
+        };
+
+        // Get the first row (headers)
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let col = range.s.c; col <= range.e.c; col++) {
+            const cell = ws[XLSX.utils.encode_cell({ r: range.s.r, c: col })];
+            if (cell) {
+                cell.s = headerStyle; // Apply style to each header cell
+            }
+        }
+
+        // Create a workbook and append the worksheet
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Data");
 
@@ -1542,7 +1732,7 @@ const AdminChekin = () => {
                                         <React.Fragment key={data.id}>
                                             <tr className="text-center sliding-container" id={`row-${index}`} >
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize"> {index + 1 + (currentPage - 1) * itemsPerPage}</td>
-                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{adminTAT || 'NIL'}</td>
+                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.tat_days || 'NIL'}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.location || 'NIL'}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.name || 'NIL'}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.application_id || 'NIL'}</td>

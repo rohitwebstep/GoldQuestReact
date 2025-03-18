@@ -3,7 +3,8 @@ import Swal from 'sweetalert2'
 import axios from 'axios';
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useApiCall } from '../../ApiCallContext';
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 const GenerateReport = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
     const [files, setFiles] = useState([]);
@@ -85,6 +86,18 @@ const GenerateReport = () => {
             updated_json: {
                 ...prevFormData.updated_json,
                 initiation_date: prevFormData.updated_json.initiation_date || new Date().toISOString().split('T')[0]
+            }
+        }));
+    }, []);
+    useEffect(() => {
+        const currentDate = new Date();
+        const monthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            updated_json: {
+                ...prevFormData.updated_json,
+                month_year: prevFormData.updated_json.month_year || monthYear,
             }
         }));
     }, []);
@@ -337,115 +350,159 @@ const GenerateReport = () => {
 
                 // Set the form data
                 console.log('cmtData.initiation_date', cmtData.initiation_date)
-                setFormData(prevFormData => ({
-                    ...prevFormData,
-                    updated_json: {
-                        month_year: cmtData.month_year || applicationData.month_year || prevFormData.updated_json.month_year || '',
-                        organization_name: applicationData.customer_name || prevFormData.updated_json.organization_name || '',
-                        verification_purpose: cmtData.verification_purpose || prevFormData.updated_json.verification_purpose || '',
-                        employee_id: applicationData.employee_id || prevFormData.updated_json.employee_id || '',
-                        client_code: applicationData.application_id || prevFormData.updated_json.client_code || '',
-                        applicant_name: applicationData.name || prevFormData.updated_json.applicant_name || '',
-                        contact_number: cmtData.contact_number || prevFormData.updated_json.contact_number || '',
-                        contact_number2: cmtData.contact_number2 || prevFormData.updated_json.contact_number2 || '',
-                        father_name: cmtData.father_name || prevFormData.updated_json.father_name || '',
-                        initiation_date: cmtData.initiation_date || prevFormData.updated_json.initiation_date,
+                // Helper function to validate and format dates
+                const getValidDate = (dateStr) => {
+                    const date = new Date(dateStr);
+                    if (!isNaN(date.getTime())) {
+                        return date; // If the date is valid, return the Date object
+                    }
+                    return null; // Return null if the date is invalid
+                };
+
+                const isValidMonthYear = (monthYear) => {
+                    // Check if monthYear is a valid month (1 to 12)
+                    const month = parseInt(monthYear, 10);
+
+                    // Return false if month is invalid (not between 1 and 12)
+                    if (isNaN(month) || month < 1 || month > 12) {
+                        return false;
+                    }
+                    return true;
+                };
+
+                const formatMonthYear = (monthStr, year = 2025) => {
+                    const month = parseInt(monthStr, 10);
+
+                    if (month < 1 || month > 12) {
+                        return ''; // Invalid month
+                    }
+
+                    const date = new Date(year, month - 1); // Month is 0-indexed in JavaScript
+                    const options = { year: 'numeric', month: 'long' };
+
+                    return date.toLocaleString('en-US', options); // "Month Year"
+                };
+
+                // If the monthYear is valid, format it; otherwise, skip updating
+                setFormData(prevFormData => {
+                    // Check if cmtData.month_year is valid, otherwise use applicationData or fallback
+                    const monthYear = cmtData.month_year || applicationData.month_year || prevFormData.updated_json.month_year || '';
+
+                    // If the monthYear is valid, format it; otherwise, skip updating
+                    const formattedMonthYear = isValidMonthYear(monthYear) ? formatMonthYear(monthYear, 2025) : prevFormData.updated_json.month_year;
+
+                    return {
+                        updated_json: {
+                            month_year: formattedMonthYear || prevFormData.updated_json.month_year || '',
+
+                            organization_name: applicationData.customer_name || prevFormData.updated_json.organization_name || '',
+                            verification_purpose: cmtData.verification_purpose || prevFormData.updated_json.verification_purpose || '',
+                            employee_id: applicationData.employee_id || prevFormData.updated_json.employee_id || '',
+                            client_code: applicationData.application_id || prevFormData.updated_json.client_code || '',
+                            applicant_name: applicationData.name || prevFormData.updated_json.applicant_name || '',
+                            contact_number: cmtData.contact_number || prevFormData.updated_json.contact_number || '',
+                            contact_number2: cmtData.contact_number2 || prevFormData.updated_json.contact_number2 || '',
+                            father_name: cmtData.father_name || prevFormData.updated_json.father_name || '',
+                            initiation_date: cmtData.initiation_date || prevFormData.updated_json.initiation_date,
 
 
-                        gender: cmtData.gender || prevFormData.updated_json.gender || '',
-                        dob: (cmtData.dob && !isNaN(new Date(cmtData.dob).getTime()))
-                            ? new Date(cmtData.dob).toISOString().split('T')[0] // Format as YYYY-MM-DD
-                            : (prevFormData.updated_json.insuffDetails.dob
-                                ? new Date(prevFormData.updated_json.insuffDetails.dob).toISOString().split('T')[0]
-                                : ''),
-
-                        marital_status: cmtData.marital_status || prevFormData.updated_json.marital_status || '',
-                        nationality: cmtData.nationality || prevFormData.updated_json.nationality || '',
-                        insuff: cmtData.insuff || prevFormData.updated_json.insuff || '',
-                        address: {
-                            address: cmtData.address || prevFormData.updated_json.address.address || '',
-                            landmark: cmtData.landmark || prevFormData.updated_json.address.landmark || '',
-                            residence_mobile_number: cmtData.residence_mobile_number || prevFormData.updated_json.address.residence_mobile_number || '',
-                            state: cmtData.state || prevFormData.updated_json.address.state || '',
-                        },
-                        permanent_address: {
-                            permanent_address: cmtData.permanent_address || prevFormData.updated_json.permanent_address.permanent_address || '',
-                            permanent_sender_name: cmtData.permanent_sender_name || prevFormData.updated_json.permanent_address.permanent_sender_name || '',
-                            permanent_receiver_name: cmtData.permanent_receiver_name || prevFormData.updated_json.permanent_address.permanent_receiver_name || '',
-                            permanent_landmark: cmtData.permanent_landmark || prevFormData.updated_json.permanent_address.permanent_landmark || '',
-                            permanent_pin_code: cmtData.permanent_pin_code || prevFormData.updated_json.permanent_address.permanent_pin_code || '',
-                            permanent_state: cmtData.permanent_state || prevFormData.updated_json.permanent_address.permanent_state || '',
-                        },
-                        insuffDetails: {
-                            have_not_insuff: cmtData.have_not_insuff || applicationData.have_not_insuff || prevFormData.updated_json.have_not_insuff || '',
-
-                            first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails.first_insufficiency_marks || '',
-                            first_insuff_date: (cmtData.first_insuff_date && !isNaN(new Date(cmtData.first_insuff_date).getTime()))
-                                ? new Date(cmtData.first_insuff_date).toISOString().split('T')[0] // Format as YYYY-MM-DD
-                                : (prevFormData.updated_json.insuffDetails.first_insuff_date
-                                    ? new Date(prevFormData.updated_json.insuffDetails.first_insuff_date).toISOString().split('T')[0]
+                            gender: cmtData.gender || prevFormData.updated_json.gender || '',
+                            dob: (cmtData.dob && !isNaN(new Date(cmtData.dob).getTime()))
+                                ? new Date(cmtData.dob).toISOString().split('T')[0] // Format as YYYY-MM-DD
+                                : (prevFormData.updated_json.insuffDetails.dob
+                                    ? new Date(prevFormData.updated_json.insuffDetails.dob).toISOString().split('T')[0]
                                     : ''),
 
-                            first_insuff_reopened_date: (cmtData.first_insuff_reopened_date && !isNaN(new Date(cmtData.first_insuff_reopened_date).getTime()))
-                                ? parseAndConvertDate(cmtData.first_insuff_reopened_date)
-                                : (prevFormData.updated_json.insuffDetails.first_insuff_reopened_date
-                                    ? parseAndConvertDate(prevFormData.updated_json.insuffDetails.first_insuff_reopened_date)
-                                    : ''),
+                            marital_status: cmtData.marital_status || prevFormData.updated_json.marital_status || '',
+                            nationality: cmtData.nationality || prevFormData.updated_json.nationality || '',
+                            insuff: cmtData.insuff || prevFormData.updated_json.insuff || '',
+                            address: {
+                                address: cmtData.address || prevFormData.updated_json.address.address || '',
+                                landmark: cmtData.landmark || prevFormData.updated_json.address.landmark || '',
+                                residence_mobile_number: cmtData.residence_mobile_number || prevFormData.updated_json.address.residence_mobile_number || '',
+                                state: cmtData.state || prevFormData.updated_json.address.state || '',
+                            },
+                            permanent_address: {
+                                permanent_address: cmtData.permanent_address || prevFormData.updated_json.permanent_address.permanent_address || '',
+                                permanent_sender_name: cmtData.permanent_sender_name || prevFormData.updated_json.permanent_address.permanent_sender_name || '',
+                                permanent_receiver_name: cmtData.permanent_receiver_name || prevFormData.updated_json.permanent_address.permanent_receiver_name || '',
+                                permanent_landmark: cmtData.permanent_landmark || prevFormData.updated_json.permanent_address.permanent_landmark || '',
+                                permanent_pin_code: cmtData.permanent_pin_code || prevFormData.updated_json.permanent_address.permanent_pin_code || '',
+                                permanent_state: cmtData.permanent_state || prevFormData.updated_json.permanent_address.permanent_state || '',
+                            },
+                            insuffDetails: {
+                                have_not_insuff: cmtData.have_not_insuff || applicationData.have_not_insuff || prevFormData.updated_json.have_not_insuff || '',
 
-                            second_insufficiency_marks: cmtData.second_insufficiency_marks || prevFormData.updated_json.insuffDetails.second_insufficiency_marks || '',
-                            second_insuff_date: (cmtData.second_insuff_date && !isNaN(new Date(cmtData.second_insuff_date).getTime()))
-                                ? parseAndConvertDate(cmtData.second_insuff_date)
-                                : (prevFormData.updated_json.insuffDetails.second_insuff_date
-                                    ? parseAndConvertDate(prevFormData.updated_json.insuffDetails.second_insuff_date)
-                                    : ''),
-                            second_insuff_reopened_date: (cmtData.second_insuff_reopened_date && !isNaN(new Date(cmtData.second_insuff_reopened_date).getTime()))
-                                ? new Date(cmtData.second_insuff_reopened_date).toISOString().split('T')[0]
-                                : (prevFormData.updated_json.insuffDetails.second_insuff_reopened_date
-                                    ? new Date(prevFormData.updated_json.insuffDetails.second_insuff_reopened_date).toISOString().split('T')[0]
-                                    : ''),
+                                first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails.first_insufficiency_marks || '',
+                                first_insuff_date: (cmtData.first_insuff_date && !isNaN(new Date(cmtData.first_insuff_date).getTime()))
+                                    ? new Date(cmtData.first_insuff_date).toISOString().split('T')[0] // Format as YYYY-MM-DD
+                                    : (prevFormData.updated_json.insuffDetails.first_insuff_date
+                                        ? new Date(prevFormData.updated_json.insuffDetails.first_insuff_date).toISOString().split('T')[0]
+                                        : ''),
 
-                            third_insufficiency_marks: cmtData.third_insufficiency_marks || prevFormData.updated_json.insuffDetails.third_insufficiency_marks || '',
-                            third_insuff_date: (cmtData.third_insuff_date && !isNaN(new Date(cmtData.third_insuff_date).getTime()))
-                                ? new Date(cmtData.third_insuff_date).toISOString().split('T')[0]
-                                : (prevFormData.updated_json.insuffDetails.third_insuff_date
-                                    ? new Date(prevFormData.updated_json.insuffDetails.third_insuff_date).toISOString().split('T')[0]
-                                    : ''),
+                                first_insuff_reopened_date: (cmtData.first_insuff_reopened_date && !isNaN(new Date(cmtData.first_insuff_reopened_date).getTime()))
+                                    ? parseAndConvertDate(cmtData.first_insuff_reopened_date)
+                                    : (prevFormData.updated_json.insuffDetails.first_insuff_reopened_date
+                                        ? parseAndConvertDate(prevFormData.updated_json.insuffDetails.first_insuff_reopened_date)
+                                        : ''),
 
-                            third_insuff_reopened_date: (cmtData.third_insuff_reopened_date && !isNaN(new Date(cmtData.third_insuff_reopened_date).getTime()))
-                                ? new Date(cmtData.third_insuff_reopened_date).toISOString().split('T')[0]
-                                : (prevFormData.updated_json.insuffDetails.third_insuff_reopened_date
-                                    ? new Date(prevFormData.updated_json.insuffDetails.third_insuff_reopened_date).toISOString().split('T')[0]
-                                    : ''),
+                                second_insufficiency_marks: cmtData.second_insufficiency_marks || prevFormData.updated_json.insuffDetails.second_insufficiency_marks || '',
+                                second_insuff_date: (cmtData.second_insuff_date && !isNaN(new Date(cmtData.second_insuff_date).getTime()))
+                                    ? parseAndConvertDate(cmtData.second_insuff_date)
+                                    : (prevFormData.updated_json.insuffDetails.second_insuff_date
+                                        ? parseAndConvertDate(prevFormData.updated_json.insuffDetails.second_insuff_date)
+                                        : ''),
+                                second_insuff_reopened_date: (cmtData.second_insuff_reopened_date && !isNaN(new Date(cmtData.second_insuff_reopened_date).getTime()))
+                                    ? new Date(cmtData.second_insuff_reopened_date).toISOString().split('T')[0]
+                                    : (prevFormData.updated_json.insuffDetails.second_insuff_reopened_date
+                                        ? new Date(prevFormData.updated_json.insuffDetails.second_insuff_reopened_date).toISOString().split('T')[0]
+                                        : ''),
 
-                            overall_status: cmtData.overall_status || prevFormData.updated_json.insuffDetails.overall_status || '',
-                            report_date: (cmtData.report_date && !isNaN(new Date(cmtData.report_date).getTime()))
-                                ? new Date(cmtData.report_date).toISOString().split('T')[0]
-                                : (prevFormData.updated_json.insuffDetails.report_date
-                                    ? new Date(prevFormData.updated_json.insuffDetails.report_date).toISOString().split('T')[0]
-                                    : ''),
+                                third_insufficiency_marks: cmtData.third_insufficiency_marks || prevFormData.updated_json.insuffDetails.third_insufficiency_marks || '',
+                                third_insuff_date: (cmtData.third_insuff_date && !isNaN(new Date(cmtData.third_insuff_date).getTime()))
+                                    ? new Date(cmtData.third_insuff_date).toISOString().split('T')[0]
+                                    : (prevFormData.updated_json.insuffDetails.third_insuff_date
+                                        ? new Date(prevFormData.updated_json.insuffDetails.third_insuff_date).toISOString().split('T')[0]
+                                        : ''),
 
-                            report_status: cmtData.report_status || prevFormData.updated_json.insuffDetails.report_status || '',
-                            report_type: cmtData.report_type || prevFormData.updated_json.insuffDetails.report_type || '',
-                            final_verification_status: cmtData.final_verification_status || prevFormData.updated_json.insuffDetails.final_verification_status || '',
-                            is_verify: cmtData.is_verify || prevFormData.updated_json.insuffDetails.is_verify || '',
+                                third_insuff_reopened_date: (cmtData.third_insuff_reopened_date && !isNaN(new Date(cmtData.third_insuff_reopened_date).getTime()))
+                                    ? new Date(cmtData.third_insuff_reopened_date).toISOString().split('T')[0]
+                                    : (prevFormData.updated_json.insuffDetails.third_insuff_reopened_date
+                                        ? new Date(prevFormData.updated_json.insuffDetails.third_insuff_reopened_date).toISOString().split('T')[0]
+                                        : ''),
 
-                            deadline_date: (cmtData.deadline_date && !isNaN(new Date(cmtData.deadline_date).getTime()))
-                                ? new Date(cmtData.deadline_date).toISOString().split('T')[0]
-                                : (prevFormData.updated_json.insuffDetails.deadline_date
-                                    ? new Date(prevFormData.updated_json.insuffDetails.deadline_date).toISOString().split('T')[0]
-                                    : ''),
+                                overall_status: cmtData.overall_status || prevFormData.updated_json.insuffDetails.overall_status || '',
+                                report_date: (cmtData.report_date && !isNaN(new Date(cmtData.report_date).getTime()))
+                                    ? new Date(cmtData.report_date).toISOString().split('T')[0]
+                                    : (prevFormData.updated_json.insuffDetails.report_date
+                                        ? new Date(prevFormData.updated_json.insuffDetails.report_date).toISOString().split('T')[0]
+                                        : ''),
 
-                            insuff_address: cmtData.insuff_address || prevFormData.updated_json.insuffDetails.insuff_address || '',
-                            basic_entry: cmtData.basic_entry || prevFormData.updated_json.insuffDetails.basic_entry || '',
-                            education: cmtData.education || prevFormData.updated_json.insuffDetails.education || '',
-                            case_upload: cmtData.case_upload || prevFormData.updated_json.insuffDetails.case_upload || '',
-                            emp_spoc: cmtData.emp_spoc || prevFormData.updated_json.insuffDetails.emp_spoc || '',
-                            report_generate_by: cmtData.report_generate_by || prevFormData.updated_json.insuffDetails.report_generate_by || '',
-                            qc_done_by: cmtData.qc_done_by || prevFormData.updated_json.insuffDetails.qc_done_by || '',
-                            delay_reason: cmtData.delay_reason || prevFormData.updated_json.insuffDetails.delay_reason || '',
+                                report_status: cmtData.report_status || prevFormData.updated_json.insuffDetails.report_status || '',
+                                report_type: cmtData.report_type || prevFormData.updated_json.insuffDetails.report_type || '',
+                                final_verification_status: cmtData.final_verification_status || prevFormData.updated_json.insuffDetails.final_verification_status || '',
+                                is_verify: cmtData.is_verify || prevFormData.updated_json.insuffDetails.is_verify || '',
+
+                                deadline_date: (cmtData.deadline_date && !isNaN(new Date(cmtData.deadline_date).getTime()))
+                                    ? new Date(cmtData.deadline_date).toISOString().split('T')[0]
+                                    : (prevFormData.updated_json.insuffDetails.deadline_date
+                                        ? new Date(prevFormData.updated_json.insuffDetails.deadline_date).toISOString().split('T')[0]
+                                        : ''),
+
+                                insuff_address: cmtData.insuff_address || prevFormData.updated_json.insuffDetails.insuff_address || '',
+                                basic_entry: cmtData.basic_entry || prevFormData.updated_json.insuffDetails.basic_entry || '',
+                                education: cmtData.education || prevFormData.updated_json.insuffDetails.education || '',
+                                case_upload: cmtData.case_upload || prevFormData.updated_json.insuffDetails.case_upload || '',
+                                emp_spoc: cmtData.emp_spoc || prevFormData.updated_json.insuffDetails.emp_spoc || '',
+                                report_generate_by: cmtData.report_generate_by || prevFormData.updated_json.insuffDetails.report_generate_by || '',
+                                qc_done_by: cmtData.qc_done_by || prevFormData.updated_json.insuffDetails.qc_done_by || '',
+                                delay_reason: cmtData.delay_reason || prevFormData.updated_json.insuffDetails.delay_reason || '',
+                            }
+
                         },
                     }
-                }));
+                });
+
             })
             .catch((error) => {
             }).finally(() => {
@@ -642,7 +699,6 @@ const GenerateReport = () => {
         }
     };
 
-    console.log('formData.updated_json.insuffDetails.have_not_insuff', formData.updated_json.insuffDetails.have_not_insuff)
 
     const handleInputChange = useCallback((e, index) => {
         const { name, value } = e.target;
@@ -948,8 +1004,20 @@ const GenerateReport = () => {
         }
     }, [servicesDataInfo, branchid, branchInfo, applicationId, formData, selectedStatuses, files]);
 
+    const handleDateChange = (date) => {
+        // Format the date to display month and year like "March 2025"
+        const formattedDate = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            updated_json: {
+                ...prevFormData.updated_json,
+                month_year: formattedDate,
+            },
+        }));
+    };
 
 
+    console.log('formData---final', formData)
     return (
         <div className="border rounded-md">
             <h2 className="text-2xl font-bold py-3 text-center px-3 ">GENERATE REPORT</h2>
@@ -967,13 +1035,14 @@ const GenerateReport = () => {
                                 <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                     <div className="mb-4">
                                         <label htmlFor="month_year">Month - Year*</label>
-                                        <input
-                                            type="text"
+                                        <DatePicker
+                                            selected={formData.updated_json.month_year}  // Convert month_year string to Date
+                                            onChange={handleDateChange}
+                                            dateFormat="MMM yyyy"  // Format to display abbreviated Month and Year (e.g., "Jan 2025")
+                                            showMonthYearPicker
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
                                             name="month_year"
                                             id="month_year"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.month_year || ''}
-                                            onChange={handleChange}
                                         />
                                     </div>
 
@@ -1498,10 +1567,8 @@ const GenerateReport = () => {
                                         onChange={handleChange}
                                         className="border rounded-md p-2 mt-2 uppercase w-full">
                                         <option value="">Selet Report Status</option>
-                                        <option value="insuff">insuff</option>
-                                        <option value="inititated">inititated</option>
-                                        <option value="wip" >wip</option>
-                                        <option value="hold">hold</option>
+                                        <option value="Open">Open</option>
+                                        <option value="Closed">Closed</option>
                                     </select>
 
                                 </div>
@@ -1514,8 +1581,8 @@ const GenerateReport = () => {
                                         onChange={handleChange}
                                         className="border rounded-md p-2 mt-2 uppercase w-full">
                                         <option value="">Selet Report Type</option>
-                                        <option value="interim-report">Interim Report</option>
-                                        <option value="final-report">Final Report</option>
+                                        <option value="Interim Report">Interim Report</option>
+                                        <option value="Final Report">Final Report</option>
                                     </select>
 
                                 </div>
