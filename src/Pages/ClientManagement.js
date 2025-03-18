@@ -856,7 +856,7 @@ const ClientManagement = () => {
                 <div className="mb-4 md:w-6/12">
                   <label className="text-gray-500" htmlFor="tat">TAT: <span className="text-red-600">*</span></label>
                   <input
-                    type="number"
+                    type="text"
                     name="tat"
                     id="tat"
                     className="border w-full rounded-md p-2 mt-2 outline-none text-sm"

@@ -22,14 +22,12 @@ const ReportCaseTable = () => {
   const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
   const [loadingStates, setLoadingStates] = useState({}); // To track loading state for each button
   const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
-  const [options, setOptions] = useState([]);
 
   const [expandedRow, setExpandedRow] = useState({
     index: "",
     headingsAndStatuses: [],
   });
   const navigate = useNavigate();
-  const [branchData, setBranchData] = useState([]);
   const location = useLocation();
   const [itemsPerPage, setItemPerPage] = useState(10);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -119,9 +117,7 @@ const ReportCaseTable = () => {
         }
 
         // Handle other data (customers, etc.)
-        setData(result.data.customers || []); // Assuming 'customers' is in the response body
-        setBranchData(result.data?.customerName || []);
-        setOptions(result.data?.filterOptions || []);
+        setData(result.customers || []); // Assuming 'customers' is in the response body
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -609,7 +605,7 @@ const ReportCaseTable = () => {
       }
     });
     try {
-      const applicationInfo = data.find(item => item.main_id === reportInfo.main_id);
+      const applicationInfo = data[index];
       const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services, reportDownloadFlag);
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -619,146 +615,83 @@ const ReportCaseTable = () => {
       doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
       const rightImageX = pageWidth - 10 - 70; // Page width minus margin (10) and image width (50)
-      doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX + 40, yPosition, 50, 30);
-
+      doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX, yPosition, 50, 30);
       if (applicationInfo?.photo) {
         const imageBases = await fetchImageToBase([applicationInfo?.photo.trim()]);
-        doc.addImage(imageBases?.[0]?.base64 || "https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX, yPosition, 30, 30);
+        doc.addImage(imageBases?.[0]?.base64 || "https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 40, yPosition, 30, 30);
 
       } else {
-        doc.addImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjDtQL92lFVchI1eVL0Gpb7xrNnkqW1J7c1A&s", 'PNG', rightImageX, yPosition, 50, 30);
+        doc.addImage("https://static-00.iconduck.com/assets.00/profile-circle-icon-512x512-zxne30hp.png", 'PNG', rightImageX + 45, yPosition, 30, 30);
 
       }
-
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
 
       doc.text("CONFIDENTIAL BACKGROUND VERIFICATION REPORT", 105, 40, { align: 'center' });
-      console.log('applicationInfo', applicationInfo)
-
-      const getStatusColor = (status) => {
-        let statusColor;
-        let statusText = status;  // Remove 'completed_' and convert to uppercase
-        console.log(`statusText - `, statusText);
-        switch (statusText.toLowerCase()) {
-          case 'green':
-            statusColor = { textColor: 'green' }; // Green text
-            break;
-          case 'red':
-            statusColor = { textColor: 'red' }; // Red text
-            break;
-          case 'orange':
-            statusColor = { textColor: 'orange' }; // Orange text
-            break;
-          case 'yellow':
-            statusColor = { textColor: 'yellow' }; // Yellow text
-            break;
-          case 'pink':
-            statusColor = { textColor: 'pink' }; // Pink text
-            break;
-          default:
-            statusColor = { textColor: '#000000' }; // Default black text if no match
-            break;
-        }
-        return statusColor;
-      };
 
       // First Table
       const firstTableData = [
         [
           { content: 'Name of the Candidate', styles: { cellWidth: 'auto', fontStyle: 'bold' } },
-          { content: applicationInfo?.name || 'NA' },
+          { content: applicationInfo?.name || 'NIL' },
           { content: 'Client Name', styles: { cellWidth: 'auto', fontStyle: 'bold' } },
-          { content: branchData || 'NA' },
+          { content: applicationInfo[0]?.client_name || 'NIL' },
         ],
         [
           { content: 'Application ID', styles: { fontStyle: 'bold' } },
-          { content: applicationInfo?.application_id || 'NA' },
+          { content: applicationInfo?.application_id || 'NIL' },
           { content: 'Report Status', styles: { fontStyle: 'bold' } },
-          { content: applicationInfo?.report_status || 'NA' },
+          { content: applicationInfo?.report_status || 'NIL' },
         ],
         [
           { content: 'Date of Birth', styles: { fontStyle: 'bold' } },
-          {
-            content: applicationInfo?.dob
-              ? new Date(applicationInfo.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-              : "NA"
-          },
-
+          { content: applicationInfo?.dob ? new Date(applicationInfo.dob).toLocaleDateString() : 'NIL' },
           { content: 'Application Received', styles: { fontStyle: 'bold' } },
-          {
-            content: applicationInfo?.created_at
-              ? new Date(applicationInfo.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")
-              : "NA"
-          }
-
-
+          { content: applicationInfo?.deadline_date ? new Date(applicationInfo.deadline_date).toLocaleDateString() : 'NIL' },
         ],
         [
           { content: 'Candidate Employee ID', styles: { fontStyle: 'bold' } },
-          { content: applicationInfo?.employee_id || 'NA' },
+          { content: applicationInfo?.employee_id || 'NIL' },
           { content: 'Insuff Cleared/Reopened', styles: { fontStyle: 'bold' } },
-          {
-            content: applicationInfo?.first_insuff_reopened_date
-              ? new Date(applicationInfo.first_insuff_reopened_date).toLocaleDateString("en-GB").replace(/\//g, "-")
-              : 'NA'
-          }
-
+          { content: applicationInfo?.application_id || 'NIL' },
         ],
         [
           { content: 'Report Type', styles: { fontStyle: 'bold' } },
-          { content: applicationInfo?.report_type || 'NA' },
+          { content: applicationInfo?.report_type || 'NIL' },
           { content: 'Final Report Date', styles: { fontStyle: 'bold' } },
-          {
-            content: applicationInfo?.report_date
-              ? new Date(applicationInfo.report_date).toLocaleDateString("en-GB").replace(/\//g, "-")
-              : 'NA'
-          }
+          { content: applicationInfo?.report_date ? new Date(applicationInfo.report_date).toLocaleDateString() : 'NIL' },
         ],
         [
           { content: 'Verification Purpose', styles: { fontStyle: 'bold' } },
-          { content: applicationInfo?.purpose_of_application?.toLowerCase() || 'NA' },
+          { content: applicationInfo?.overall_status || 'NIL' },
           { content: 'Overall Report Status', styles: { fontStyle: 'bold' } },
-          {
-            content: applicationInfo?.final_verification_status.toUpperCase() || 'NA', // Show only the color name (e.g., GREEN, RED, etc.)
-            styles: { fontStyle: 'bold', ...getStatusColor(applicationInfo?.final_verification_status) } // Apply dynamic text color
-          },
+          { content: applicationInfo?.status || 'NIL' },
         ],
       ];
 
+
       doc.autoTable({
-        head: [],  // Remove the header by setting it to an empty array
+        head: [], // Remove the header by setting it to an empty array
         body: firstTableData,
         styles: {
-          cellPadding: 2,
+          cellPadding: 3,
           fontSize: 10,
           valign: 'middle',
           lineColor: [62, 118, 165],
-          lineWidth: 0.4,  // Border width for the table
-          textColor: '#000',  // Default text color
+          lineWidth: 0.4,     // Reduced border width (you can adjust this value further)
+          textColor: '#000',  // Set text color to black (#000)
         },
         headStyles: {
-          fillColor: [255, 255, 255],  // Ensure no background color for the header
-          textColor: 0,                // Optional: Reset header text color
+          fillColor: [255, 255, 255], // Ensure no background color for header
+          textColor: 0,               // Optional: Ensure header text color is reset (not needed if header is removed)
           lineColor: [62, 118, 165],
-          lineWidth: 0.2,  // Reduced border width for header
+          lineWidth: 0.2,             // Reduced border width for header (if header is re-enabled)
         },
         theme: 'grid',
         margin: { top: 50 },
-        // Customize the overall status text color
-        willDrawCell: (data) => {
-          const statusCell = data.cell.raw && data.cell.raw.content;
-          const statusRow = firstTableData[5];  // We assume the status row is in index 5
-
-          if (statusCell === statusRow[3].content) {
-            const { textColor } = getStatusColor(statusCell);
-            data.cell.styles.textColor = textColor;  // Apply dynamic text color
-          }
-        },
       });
-
 
       addFooter(doc);
       const secondTableData = servicesData.map(item => {
@@ -771,10 +704,9 @@ const ReportCaseTable = () => {
           component: item.heading || 'NIL',
           source: sourceKey ? item.annexureData[sourceKey] : 'NIL',
           completedDate: dateKey && item.annexureData[dateKey] && !isNaN(new Date(item.annexureData[dateKey]).getTime())
-            ? new Date(item.annexureData[dateKey]).toLocaleDateString('en-GB').replace(/\//g, "-") // Use 'en-GB' for DD-MM-YYYY format
-            : 'NIL'
-          ,
-          status: item.annexureData && item.annexureData.status ? item.annexureData.status : 'NIL',
+            ? new Date(item.annexureData[dateKey]).toLocaleDateString()
+            : 'NIL',
+          status: item.annexureData && item.annexureData.status ? item.annexureData.status.replace(/[_-]/g, ' ') : 'NIL',
         };
       });
 
@@ -783,104 +715,41 @@ const ReportCaseTable = () => {
         row.component !== 'NIL' && row.source !== 'NIL' && row.completedDate !== 'NIL' && row.status !== 'NIL'
       );
 
-
-      // Generate the Second Table
-
-
       // Generate the Second Table
       doc.autoTable({
         head: [
           [
-            {
-              content: 'REPORT COMPONENT',
-              styles: {
-                halign: 'center',
-                fillColor: "#6495ed",
-                textColor: [0, 0, 0],
-                lineWidth: 0.4,
-                fontStyle: 'bold',
-                lineWidth: 0.5, // Border width
-                cellPadding: 3, // Padding inside the cell
-                lineColor: [100, 149, 237], // Border color
-              },
-
-            },
-
-            {
-              content: 'INFORMATION SOURCE',
-              styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineWidth: 0.2, fontStyle: 'bold', },
-
-            },
-            {
-              content: 'COMPONENT STATUS', colSpan: 2,
-              styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' },
-            },
-          ],
-          [
-            { content: '', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [100, 149, 237], textColor: [0, 0, 0], fontStyle: 'bold' } },
-            { content: '', styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineColor: [255, 255, 255], fontStyle: 'bold' } },
-            { content: 'Completed Date', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' } },
-            { content: 'Verification Status', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' } },
+            { content: 'REPORT COMPONENT', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
+            { content: 'INFORMATION SOURCE', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
+            { content: 'COMPLETED DATE', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
+            { content: 'COMPONENT STATUS', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [61, 117, 166], textColor: [0, 0, 0], fontStyle: 'bold' } },
           ]
         ],
-        body: filteredSecondTableData.map(row => {
-          // Set text color based on verification status
-          let statusColor;
-          let statusText = row.status.replace(/^completed_/, '').toUpperCase();  // Remove 'completed_' and convert to uppercase
-
-          switch (statusText.toLowerCase()) {
-            case 'green':
-              statusColor = { textColor: 'green' }; // Green text
-              break;
-            case 'red':
-              statusColor = { textColor: 'red' }; // Red text
-              break;
-            case 'orange':
-              statusColor = { textColor: 'orange' }; // Orange text
-              break;
-            case 'yellow':
-              statusColor = { textColor: 'yellow' }; // Yellow text
-              break;
-            case 'pink':
-              statusColor = { textColor: 'pink' }; // Pink text
-              break;
-            default:
-              statusColor = { textColor: '#000000' }; // Default black text if no match
-              break;
-          }
-
-          // Return the row with dynamic styles for 'verification status'
-          return [
-            row.component,
-            row.source,
-            row.completedDate, // Show completedDate in its own column
-            {
-              content: statusText, // Show only the color name (e.g., GREEN, RED, etc.)
-              styles: { halign: 'center', fontStyle: 'bold', ...statusColor } // Apply dynamic text color
-            },
-          ];
-        }),
-
+        body: filteredSecondTableData.map(row => [
+          row.component,
+          row.source,
+          row.completedDate, // Show completedDate in its own column
+          row.status, // Show status in its own column
+        ]),
         styles: {
-          cellPadding: 2,
+          cellPadding: 3,
           fontSize: 10,
           valign: 'middle',
           lineWidth: 0.3,
           lineColor: "#6495ed",
-          textColor: [0, 0, 0],
-          tableLineColor: [100, 149, 237],
         },
         theme: 'grid',
         headStyles: {
-          fillColor: [61, 117, 166],
-          textColor: [0, 0, 0],
-          lineWidth: 0.4,
+          lineWidth: 0.4, // No border for the header
+          fillColor: [61, 117, 166], // Color for the header background
+          textColor: [0, 0, 0], // Text color for the header
           fontStyle: 'bold',
-          lineColor: [255, 255, 255],
+          lineColor: [61, 117, 166], // Border color for the body
+
         },
         bodyStyles: {
-          lineColor: [61, 117, 166],
-          lineWidth: 0.4,
+          lineWidth: 0.5, // Border for the body rows
+          lineColor: [61, 117, 166], // Border color for the body
         },
         columnStyles: {
           0: { halign: 'left' },
@@ -890,26 +759,12 @@ const ReportCaseTable = () => {
         },
       });
 
+
+
       addFooter(doc);
-      const pageHeight = doc.internal.pageSize.height;
-      yPosition = doc.lastAutoTable.finalY || 0; // Current Y position
-      console.log('page-height', pageHeight);
-      console.log('page-yPosition', yPosition);
-
-      // Check if adding the space will exceed the page height
-      if (yPosition + 70 > pageHeight) {
-        addFooter(doc);  // Add the footer before adding a new page
-        doc.addPage();   // Add a new page
-        yPosition = 20;    // Reset currentY to start from the top of the new page
-      }
-
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text("End of summary report", pageWidth / 2, yPosition + 10, { align: "center" });
-
+      doc.addPage();
       const tableStartX = 15; // Adjusted X position for full-width table
-      const tableStartY = yPosition + 20; // Y position of the table
+      const tableStartY = 40; // Y position of the table
       const totalTableWidth = pageWidth - 2 * tableStartX; // Total table width
       const legendColumnWidth = 15; // Smaller width for the "Legend" column
       const remainingTableWidth = totalTableWidth - legendColumnWidth; // Remaining space for other columns
@@ -983,18 +838,21 @@ const ReportCaseTable = () => {
       });
 
 
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("End of summary report", pageWidth / 2, 20 + 10, { align: "center" });
 
       addFooter(doc);
 
 
       yPosition = 20;
       let annexureIndex = 1;
-      let pageLoopCount = 0;
       for (const service of servicesData) {
-        pageLoopCount += 1;
         let reportFormJson;
         let rows = [];
 
+        // Attempt to parse the JSON string and only proceed if valid
+        console.log('service', service)
         try {
           if (!service.reportFormJson || !service.reportFormJson.json) {
             // Skip this service if reportFormJson is not found or is empty
@@ -1004,6 +862,7 @@ const ReportCaseTable = () => {
 
           // Attempt to parse the JSON string
           reportFormJson = JSON.parse(service.reportFormJson.json);
+          console.log('reportFormJson', reportFormJson)
 
           // Only process if rows are present
           rows = reportFormJson && Array.isArray(reportFormJson.rows) ? reportFormJson.rows : [];
@@ -1018,8 +877,8 @@ const ReportCaseTable = () => {
         }
 
         // Start adding content for the page if data is valid
-        // doc.addPage();
-        // addFooter(doc);
+        doc.addPage();
+        addFooter(doc);
 
         let yPosition = 20;
         const serviceData = [];
@@ -1097,7 +956,6 @@ const ReportCaseTable = () => {
 
         // Skip table rendering if no valid tableData
         if (tableData.length > 0) {
-          doc.addPage();
           const pageWidth = doc.internal.pageSize.width;
 
           let headingText = '';
@@ -1195,87 +1053,56 @@ const ReportCaseTable = () => {
             key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
           );
 
-
           if (annexureImagesKey) {
-            console.log("✅ Annexure images key found:", annexureImagesKey);
-
-            doc.addPage();
-            console.log("📄 New page added to the document");
-
-            yPosition = 20;
             const annexureImagesStr = annexureData[annexureImagesKey];
-            console.log("📸 Extracted annexure image string:", annexureImagesStr);
-
             const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
-            console.log("🔍 Split annexure image array:", annexureImagesSplitArr);
 
             if (annexureImagesSplitArr.length === 0) {
-              console.warn("⚠️ No annexure images available.");
               doc.setFont("helvetica", "italic");
               doc.setFontSize(10);
               doc.setTextColor(150, 150, 150);
               doc.text("No annexure images available.", 10, yPosition);
               yPosition += 10;
             } else {
-              console.log("⏳ Fetching image base64 data...");
               const imageBases = await fetchImageToBase(annexureImagesStr.trim());
-              console.log("✅ Fetched images:", imageBases);
-
-              if (imageBases && imageBases.length > 0) {
+              if (imageBases) {
                 imageBases.forEach((image, index) => {
-                  console.log(`🔄 Processing image ${index + 1}/${imageBases.length}`);
 
-                  if (!image.base64 || !image.base64.startsWith("data:image/")) {
-                    console.error(`❌ Invalid base64 data for image ${index + 1}`);
+                  if (!image.base64 || !image.base64.startsWith('data:image/')) {
+                    console.error(`Invalid base64 data for image ${index + 1}`);
                     return;
                   }
 
-                  // **Add a new page ONLY if there are multiple images and it's not the first one**
-                  if (index > 0 && imageBases.length > 1) {
+                  const { width, height } = scaleImageForPDF(image.width, image.height, doc.internal.pageSize.width - 20, 80);
+                  if (yPosition + height > doc.internal.pageSize.height - 20) {
                     doc.addPage();
-                    console.log(`📄 New page added for image ${index + 1}`);
+                    yPosition = 10;
                   }
 
-                  const pageWidth = doc.internal.pageSize.width - 20; // Keeping margins
-                  const pageHeight = doc.internal.pageSize.height - 40; // Keeping margins
-                  console.log(`📏 Page width: ${pageWidth}, Page height: ${pageHeight}`);
-
-                  // **Scale Image to Fit the Page**
-                  let { width, height } = scaleImageForPDF(image.width, image.height, pageWidth, pageHeight);
-                  console.log(`📐 Scaled image dimensions: Width = ${width}, Height = ${height}`);
-
-                  // **Center Image**
-                  const centerX = (doc.internal.pageSize.width - width) / 2;
-                  const centerY = (doc.internal.pageSize.height - height) / 2;
-                  console.log(`📌 Image position: X = ${centerX}, Y = ${centerY}`);
-
-                  // **Add Annexure Title**
                   const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
-                  console.log("📝 Adding annexure title:", annexureText);
+                  const textWidth = doc.getTextWidth(annexureText);
+                  const centerX = (doc.internal.pageSize.width - textWidth) / 2;
 
                   doc.setFont("helvetica", "bold");
-                  doc.setFontSize(12);
+                  doc.setFontSize(10);
                   doc.setTextColor(0, 0, 0);
-                  doc.text(annexureText, doc.internal.pageSize.width / 2, 15, { align: "center" });
+                  doc.text(annexureText, centerX, yPosition + 10);
+                  yPosition += 15;
 
-                  // **Add Image to the Center of the Page**
+                  const centerXImage = (doc.internal.pageSize.width - width) / 2;
                   try {
-                    console.log(`🖼️ Adding image ${index + 1} to the document...`);
-                    doc.addImage(image.base64, image.type, centerX, centerY, width, height);
-                    console.log(`✅ Successfully added image ${index + 1}`);
+                    // Ensure that the base64 data and type are correctly passed
+                    doc.addImage(image.base64, image.type, centerXImage, yPosition, width, height);
+                    yPosition += height + 15;
                   } catch (error) {
-                    console.error(`❌ Error adding image ${index + 1}:`, error);
+                    console.error(`Error adding image ${index + 1}:`, error);
                   }
-
-                  addFooter(doc);
-                  console.log(`📌 Footer added for image ${index + 1}`);
                 });
-              } else {
-                console.warn("⚠️ No valid images found after fetching.");
               }
+
+
             }
           } else {
-            console.warn("⚠️ No annexure images key found.");
             doc.setFont("helvetica", "italic");
             doc.setFontSize(10);
             doc.setTextColor(150, 150, 150);
@@ -1283,33 +1110,16 @@ const ReportCaseTable = () => {
             yPosition += 15;
           }
 
-
-          /**
-           * Function to scale image properly within the page
-           */
-          function scaleImageForPDF(imageWidth, imageHeight, maxWidth, maxHeight) {
-            let width = imageWidth;
-            let height = imageHeight;
-
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-
-            return { width, height };
-          }
-
-
-
-
         }
 
 
+        function scaleImageForPDF(pageWidth, imageHeight, availableWidth, availableHeight) {
+          // Scale to full width (stretch the image)
+          const width = availableWidth;  // Stretch the image to full available width
+          const height = (imageHeight * availableWidth) / pageWidth;  // Calculate the height proportionally to the new width
 
+          return { width, height };  // Return the stretched width and height
+        }
 
 
 
@@ -1318,6 +1128,7 @@ const ReportCaseTable = () => {
         annexureIndex++;
         yPosition += 20;
       }
+
 
       addFooter(doc);
       doc.addPage();
@@ -1330,7 +1141,11 @@ const ReportCaseTable = () => {
 
       const adjustedDisclaimerButtonHeight = disclaimerButtonHeight + buttonBottomPadding;
 
-      const disclaimerTextPart1 = `This report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the information responsible for employment decisions based on the information provided in this report.`;
+      const disclaimerTextPart1 = `his report is confidential and is meant for the exclusive use of the Client. This report has been prepared solely for the
+    purpose set out pursuant to our letter of engagement (LoE)/Agreement signed with you and is not to be used for any
+    other purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on the
+    information purpose. The Client recognizes that we are not the source of the data gathered and our reports are based on
+    the information responsible for employment decisions based on the information provided in this report.`;
       const anchorText = "";
       const disclaimerTextPart2 = "";
 
@@ -1374,7 +1189,8 @@ const ReportCaseTable = () => {
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "bold");
 
-      const disclaimerButtonTextWidth = doc.getTextWidth('Disclaimer');
+
+      const disclaimerButtonTextWidth = doc.getTextWidth('DISCLAIMER');
       const buttonTextHeight = doc.getFontSize();
 
 
@@ -1382,7 +1198,7 @@ const ReportCaseTable = () => {
         disclaimerButtonXPosition + disclaimerButtonWidth / 2 - disclaimerButtonTextWidth / 2 - 1;
       const disclaimerTextYPosition = disclaimerY + disclaimerButtonHeight / 2 + buttonTextHeight / 4 - 1;
 
-      doc.text('Disclaimer', disclaimerTextXPosition, disclaimerTextYPosition);
+      doc.text('DISCLAIMER', disclaimerTextXPosition, disclaimerTextYPosition);
 
       let currentY = disclaimerY + adjustedDisclaimerButtonHeight + disclaimerTextTopMargin;
 
@@ -1424,14 +1240,14 @@ const ReportCaseTable = () => {
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "bold");
 
-      const endButtonTextWidth = doc.getTextWidth('End of detail report');
+      const endButtonTextWidth = doc.getTextWidth('END OF DETAIL REPORT');
       const endButtonTextHeight = doc.getFontSize();
 
       const endButtonTextXPosition =
         endButtonXPosition + disclaimerButtonWidth / 2 - endButtonTextWidth / 2 - 1;
       const endButtonTextYPosition = endOfDetailY + disclaimerButtonHeight / 2 + endButtonTextHeight / 4 - 1;
 
-      doc.text('End of detail report', endButtonTextXPosition, endButtonTextYPosition);
+      doc.text('END OF DETAIL REPORT', endButtonTextXPosition, endButtonTextYPosition);
 
 
       // Calculate the width and height of the image dynamically using jsPDF's getImageProperties
@@ -1489,90 +1305,76 @@ const ReportCaseTable = () => {
     </div>
   );
 
+
   const exportToExcel = async () => {
-    const worksheetData = await Promise.all(
-      currentItems.map(async (data, index) => {
-        const servicesData = await fetchServicesData(data.main_id, data.services);
-        const headingsAndStatuses = [];
+    // Initialize headingsAndStatuses before using it
+    const headingsAndStatuses = [];
 
-        // Process servicesData
-        servicesData.forEach((service) => {
-          if (service.reportFormJson && service.reportFormJson.json) {
-            const reportJson = JSON.parse(service.reportFormJson.json);
-            const heading = reportJson?.heading || "NIL";
-            const excelsorting = service.reportFormJson.excel_sorting
-              ? JSON.parse(service.reportFormJson.excel_sorting)
-              : []; // Default to an empty array if sorting is missing
+    // First collect the worksheet data
+    const worksheetData = await Promise.all(currentItems.map(async (data, index) => {
+      // Fetch services data for each item
+      const servicesData = await fetchServicesData(data.main_id, data.services);
 
-            if (heading) {
-              let status = service.annexureData?.status || "NIL";
-              status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "NIL";
-              headingsAndStatuses.push({ heading, status, sortOrder: excelsorting.indexOf(heading) });
-            }
+      // Add services data to headingsAndStatuses
+      servicesData.forEach((service) => {
+        if (service.reportFormJson && service.reportFormJson.json) {
+          const heading = JSON.parse(service.reportFormJson.json).heading;
+          if (heading) {
+            let status = service.annexureData?.status || "NIL";
+            status = status.replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || 'NIL';
+            headingsAndStatuses.push({ heading, status });
           }
-        });
+        }
+      });
 
-        // Sort by excelsorting order (headings not in the array go to the end)
-        headingsAndStatuses.sort((a, b) => (a.sortOrder - b.sortOrder || 0));
+      console.log('headingsAndStatuses', headingsAndStatuses);
 
-        // Construct Excel row data
-        const row = {
-          INDEX: index + 1,
-          "TAT DAYS": data?.tat_days || "NIL",
-          "LOCATION NAME": data?.location || "NIL",
-          "BATCH NUMBER": data?.batch_number || "NIL",
-          "APPLICATION ID": data?.application_id || "NIL",
-          "NAME OF THE APPLICANT": data?.name || "NIL",
-          "APPLICANT EMPLOYEE ID": data?.employee_id || "NIL",
-          "INITIATION DATE": data?.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
-          "DOWNLOAD REPORT STATUS": data?.is_report_downloaded ? "Downloaded" : "Not Downloaded",
-          "REPORT TYPE": data?.report_type || "NIL",
-          "REPORT DATE": data?.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
-          "OVERALL STATUS": data?.overall_status || "NIL",
-          ...headingsAndStatuses.reduce((acc, { heading, status }) => {
-            acc[heading] = status;
-            return acc;
-          }, {}),
-          "FIRST LEVEL INSUFF REMARKS": data?.first_insufficiency_marks || "NIL",
-          "FIRST INSUFF DATE": data?.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
-          "FIRST INSUFF CLEARED": data?.first_insuff_reopened_date
-            ? new Date(data.first_insuff_reopened_date).toLocaleDateString()
-            : "NIL",
-          "SECOND LEVEL INSUFF REMARKS": data?.second_insufficiency_marks || "NIL",
-          "SECOND INSUFF DATE": data?.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
-          "SECOND INSUFF CLEARED": data?.second_insuff_reopened_date
-            ? new Date(data.second_insuff_reopened_date).toLocaleDateString()
-            : "NIL",
-          "THIRD LEVEL INSUFF REMARKS": data?.third_insufficiency_marks || "NIL",
-          "THIRD INSUFF DATE": data?.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
-          "THIRD INSUFF CLEARED": data?.third_insuff_reopened_date
-            ? new Date(data.third_insuff_reopened_date).toLocaleDateString()
-            : "NIL",
-          "REMARKS & REASON FOR DELAY": data?.delay_reason || "NIL",
-          ADDRESS: data?.address || "NIL",
-          EDUCATION: data?.education || "NIL",
-          "BASIC ENTRY": data?.basic_entry || "NIL",
-          "CASE UPLOADED": data?.case_upload || "NIL",
-          "EMPLOYEMENT SPOC": data?.single_point_of_contact || "NIL",
-          "REPORT GENERATED BY": data?.report_generated_by_name || "NIL",
-          "QC DONE BY": data?.qc_done_by_name || "NIL",
-        };
+      // Return the row data for the worksheet
+      // Add headingsAndStatuses data to the row
+      const row = {
+        "Index": index + 1,
+        "Admin TAT": data.adminTAT || "NIL",
+        "Location": data.location || "NIL",
+        "Name": data.name || "NIL",
+        "Application ID": data.application_id || "NIL",
+        "Employee ID": data.employee_id || "NIL",
+        "Created At": data.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
+        "Updated At": data.deadline_date ? new Date(data.deadline_date).toLocaleDateString() : "NIL",
+        "Report Type": data.report_type || "NIL",
+        "Report Date": data.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
+        "Generated By": data.report_generated_by_name || "NIL",
+        "QC Done By": data.qc_done_by_name || "NIL",
+        // "First Level Insufficiency": data.first_insufficiency_marks || "NIL",
+        // "First Level Insuff Date": data.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
+        // "First Level Insuff Reopen Date": data.first_insuff_reopened_date ? new Date(data.first_insuff_reopened_date).toLocaleDateString() : "NIL",
+        // "Second Level Insuff": data.second_insufficiency_marks,
+        // "Second Level Insuff Date": data.second_insuff_date ? new Date(data.second_insuff_date).toLocaleDateString() : "NIL",
+        // "Second Level Insuff Reopen Date": data.second_insuff_reopened_date ? new Date(data.second_insuff_reopened_date).toLocaleDateString() : "NIL",
+        // "Third Level Insuff Marks": data?.third_insufficiency_marks,
+        // "Third Level Insuff Date": data.third_insuff_date ? new Date(data.third_insuff_date).toLocaleDateString() : "NIL",
+        // "Third Level Insuff Reopen Date": data?.third_insuff_reopened_date ? new Date(data.third_insuff_reopened_date).toLocaleDateString() : "NIL",
+        "Reason For Delay": data || "NIL",
+        "overall_status": data?.overall_status || "NIL",
+        "Delay Reason": data.delay_reason || "NIL",
+        "tat_days": data?.tat_days || "NIL"
+      };
 
-        return row;
-      })
-    );
+      // Append each heading and status pair to the row
+      headingsAndStatuses.forEach(({ heading, status }) => {
+        row[heading] = status; // Dynamically adding heading-status pair as a key-value
+      });
 
-    // Generate the Excel sheet
+      return row; // Return the complete row with headings and statuses added
+    }));
+
+    // Now, create the Excel sheet from the gathered worksheet data
     const ws = XLSX.utils.json_to_sheet(worksheetData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data");
 
-    // Save the workbook
+    // Save the workbook to a file
     XLSX.writeFile(wb, "Data.xlsx");
   };
-
-
-
 
   return (
     <div className="">
@@ -1584,19 +1386,6 @@ const ReportCaseTable = () => {
           <div className="col">
             <form action="">
               <div className="flex gap-2">
-
-                <select id="" name='status' onChange={handleStatusChange} className='outline-none border-2 p-2 rounded-md w-full md:w-5/12 my-4 md:my-0' >
-                  {options.map((item, index) => {
-                    return item.status !== 'closed' ? (
-                      <option key={index} value={item.status}>
-                        {item.status.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()) + ' ' + item.count}
-
-
-                      </option>
-                    ) : null;
-                  })}
-
-                </select>
                 <select name="options" id="" onChange={(e) => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1

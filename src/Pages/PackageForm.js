@@ -171,10 +171,6 @@ const PackageForm = ({ onSuccess }) => {
                         return; // Exit early if status is false
                     }
 
-                    const newToken = result.token || result._token || "";
-                    if (newToken) {
-                        localStorage.setItem("_token", newToken);
-                    }
                     // Display success message
                     Swal.fire({
                         title: "Success!",

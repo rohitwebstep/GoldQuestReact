@@ -275,18 +275,6 @@ const CandidateList = () => {
         setCurrentPage(pageNumber);
     };
 
-    const counts = candidateListData.reduce(
-        (acc, application) => {
-            if (application.cef_submitted === 1) {
-                acc.filled += 1; // Increment filled count
-            } else if (application.cef_submitted === 0) {
-                acc.notFilled += 1; // Increment not filled count
-            }
-            return acc;
-        },
-        { filled: 0, notFilled: 0 }
-    );
-
     const showPrev = () => {
         if (currentPage > 1) handlePageChange(currentPage - 1);
     };
@@ -712,14 +700,6 @@ const CandidateList = () => {
 
                         </select>
                     </div>
-                    <div className='bg-blue-600 p-4 text-white min-w-full'>
-                        <marquee scrollamount="15">
-                            <span className='text-xl font-bold uppercase tracking-[1px]'>
-                                Filled BGV Applications: {counts.filled} || Not Filled BGV Applications: {counts.notFilled}
-                            </span>
-                        </marquee>
-
-                    </div>
                     <div className="overflow-x-auto py-6 md:px-4">
                         {candidateLoading ? (
                             <div className='flex justify-center items-center py-6 h-full'>
@@ -727,239 +707,238 @@ const CandidateList = () => {
 
                             </div>
                         ) : currentItems.length > 0 ? (
-                            <>
-                                <table className="min-w-full">
-                                    <thead>
-                                        <tr className='bg-[#3e76a5]'>
-                                            <th className="md:py-3 p-2 text-left border-r border-l text-white md:px-4 border-b whitespace-nowrap uppercase">SL NO.</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Name of the applicant</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Email Id</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Mobile Number</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Services</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Date/Time</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">BGV Filled Date</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">DAV Filled Date</th>
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Is Form Opened</th>
-                                            <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Employment Gap</th>
-                                            <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Education Gap</th>
-                                            <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Gap Check</th>
+                            <table className="min-w-full">
+                                <thead>
+                                    <tr className='bg-[#3e76a5]'>
+                                        <th className="md:py-3 p-2 text-left border-r border-l text-white md:px-4 border-b whitespace-nowrap uppercase">SL NO.</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Name of the applicant</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Email Id</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Mobile Number</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Services</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Date/Time</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">BGV Filled Date</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">DAV Filled Date</th>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Is Form Opened</th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Employment Gap</th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Education Gap</th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Gap Check</th>
 
-                                            <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
-                                                BGV
-                                            </th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
+                                            BGV
+                                        </th>
 
-                                            <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
-                                                DAV
-                                            </th>
+                                        <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
+                                            DAV
+                                        </th>
 
 
-                                            <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">View Docs</th>
-                                            <th className="md:py-3 p-2 text-center md:px-4 text-white border-r border-b whitespace-nowrap uppercase">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {currentItems.map((report, index) => (
-                                            <tr key={report.id || index} className={report?.cef_submitted === 1 ? "bg-[#3e76a585] " : ""}>
-                                                <td className="md:py-3 p-2 md:px-4 border-l border-b border-r whitespace-nowrap capitalize">{index + 1}</td>
-                                                <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.name}</td>
-                                                <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.email}</td>
+                                        <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">View Docs</th>
+                                        <th className="md:py-3 p-2 text-center md:px-4 text-white border-r border-b whitespace-nowrap uppercase">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentItems.map((report, index) => (
+                                        <tr key={report.id || index} className={report?.cef_submitted === 1 ? "bg-[#3e76a585] " : ""}>
+                                            <td className="md:py-3 p-2 md:px-4 border-l border-b border-r whitespace-nowrap capitalize">{index + 1}</td>
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.name}</td>
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.email}</td>
 
-                                                <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.mobile_number}</td>
-                                                <td className="border p-2  md:px-4 py-2 text-left">
-                                                    <div className='flex whitespace-nowrap'>
-                                                        {Array.isArray(report.serviceNames) && report.serviceNames.length > 0 ? (
-                                                            report.serviceNames.length === 1 ? (
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.mobile_number}</td>
+                                            <td className="border p-2  md:px-4 py-2 text-left">
+                                                <div className='flex whitespace-nowrap'>
+                                                    {Array.isArray(report.serviceNames) && report.serviceNames.length > 0 ? (
+                                                        report.serviceNames.length === 1 ? (
 
-                                                                <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
-                                                                    {typeof report.serviceNames[0] === "string"
-                                                                        ? report.serviceNames[0]
-                                                                        : report.serviceNames[0].join(", ")}
-                                                                </span>
-                                                            ) : (
-
-                                                                <>
-                                                                    {typeof report.serviceNames[0] === "string" ? (
-                                                                        <span className="md:px-4 py-2 p-2 border border-[#3e76a5] rounded-lg text-xs md:text-sm">
-                                                                            {report.serviceNames[0]}
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
-                                                                            {report.serviceNames[0].join(", ")}
-                                                                        </span>
-                                                                    )}
-                                                                    <button
-                                                                        className="text-[#3e76a5] ml-2"
-                                                                        onClick={() => handleViewMore(report.serviceNames)}
-                                                                    >
-                                                                        View More
-                                                                    </button>
-                                                                </>
-                                                            )
-                                                        ) : (
-                                                            // No services or serviceNames is not an array
-                                                            <span className="md:px-4 py-2 bg-red-100 border border-red-500 rounded-lg">
-                                                                You have no services
+                                                            <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
+                                                                {typeof report.serviceNames[0] === "string"
+                                                                    ? report.serviceNames[0]
+                                                                    : report.serviceNames[0].join(", ")}
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                {isModalOpen && (
-                                                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                                                        <div className="bg-white rounded-lg shadow-lg md:p-4 p-2 w-11/12 md:w-1/3 h-[calc(100vh-20%)] max-h-[80vh] overflow-y-auto">
-                                                            <div className="flex justify-between items-center">
-                                                                <h2 className="text-lg font-bold">Services</h2>
-                                                                <button className="text-red-500 text-2xl" onClick={handleCloseModal}>
-                                                                    &times;
-                                                                </button>
-                                                            </div>
-                                                            <div className="mt-4 flex flex-wrap gap-2 w-full m-auto h-auto">
-                                                                {modalServices.length > 0 ? (
-                                                                    modalServices.map((service, idx) => (
-                                                                        <span
-                                                                            key={idx}
-                                                                            className="md:px-4 py-2 border border-[#3e76a5] text-xs text-center p-2 rounded-lg md:text-sm"
-                                                                        >
-                                                                            {service}
-                                                                        </span>
-                                                                    ))
+                                                        ) : (
+
+                                                            <>
+                                                                {typeof report.serviceNames[0] === "string" ? (
+                                                                    <span className="md:px-4 py-2 p-2 border border-[#3e76a5] rounded-lg text-xs md:text-sm">
+                                                                        {report.serviceNames[0]}
+                                                                    </span>
                                                                 ) : (
-                                                                    <span className="text-gray-500">No service available</span>
+                                                                    <span className="md:px-4 py-2  border  border-[#3e76a5] rounded-lg text-sm">
+                                                                        {report.serviceNames[0].join(", ")}
+                                                                    </span>
                                                                 )}
-                                                            </div>
+                                                                <button
+                                                                    className="text-[#3e76a5] ml-2"
+                                                                    onClick={() => handleViewMore(report.serviceNames)}
+                                                                >
+                                                                    View More
+                                                                </button>
+                                                            </>
+                                                        )
+                                                    ) : (
+                                                        // No services or serviceNames is not an array
+                                                        <span className="md:px-4 py-2 bg-red-100 border border-red-500 rounded-lg">
+                                                            You have no services
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            {isModalOpen && (
+                                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                                    <div className="bg-white rounded-lg shadow-lg md:p-4 p-2 w-11/12 md:w-1/3 h-[calc(100vh-20%)] max-h-[80vh] overflow-y-auto">
+                                                        <div className="flex justify-between items-center">
+                                                            <h2 className="text-lg font-bold">Services</h2>
+                                                            <button className="text-red-500 text-2xl" onClick={handleCloseModal}>
+                                                                &times;
+                                                            </button>
+                                                        </div>
+                                                        <div className="mt-4 flex flex-wrap gap-2 w-full m-auto h-auto">
+                                                            {modalServices.length > 0 ? (
+                                                                modalServices.map((service, idx) => (
+                                                                    <span
+                                                                        key={idx}
+                                                                        className="md:px-4 py-2 border border-[#3e76a5] text-xs text-center p-2 rounded-lg md:text-sm"
+                                                                    >
+                                                                        {service}
+                                                                    </span>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-gray-500">No service available</span>
+                                                            )}
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                )}
+                                            )}
 
 
 
-                                                <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
-                                                    {report.created_at ? (
-                                                        (() => {
-                                                            const date = new Date(report.created_at);
-                                                            const day = String(date.getDate()).padStart(2, '0');
-                                                            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-                                                            const year = date.getFullYear();
-                                                            return `${day}-${month}-${year}`;
-                                                        })()
-                                                    ) : 'NIL'}
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
+                                                {report.created_at ? (
+                                                    (() => {
+                                                        const date = new Date(report.created_at);
+                                                        const day = String(date.getDate()).padStart(2, '0');
+                                                        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+                                                        const year = date.getFullYear();
+                                                        return `${day}-${month}-${year}`;
+                                                    })()
+                                                ) : 'NIL'}
+                                            </td>
+
+
+
+                                            {currentItems.some(item => item.cef_filled_date) ? (
+                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
+                                                    {report.cef_filled_date
+                                                        ? (new Date(report.cef_filled_date))
+                                                            .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                                                            .split('/')
+                                                            .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                                                            .join('-')
+                                                        : 'NIL'}
                                                 </td>
 
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
 
 
-                                                {currentItems.some(item => item.cef_filled_date) ? (
-                                                    <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                        {report.cef_filled_date
-                                                            ? (new Date(report.cef_filled_date))
-                                                                .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
-                                                                .split('/')
-                                                                .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
-                                                                .join('-')
-                                                            : 'NIL'}
-                                                    </td>
-
-                                                ) : (
-                                                    <td className="border px-4 py-2">NIL</td>
-                                                )}
-
-
-                                                {currentItems.some(item => item.dav_filled_date) ? (
-                                                    <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                        {report.dav_filled_date
-                                                            ? (new Date(report.dav_filled_date))
-                                                                .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
-                                                                .split('/')
-                                                                .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
-                                                                .join('-')
-                                                            : 'NIL'}
-                                                    </td>
-                                                ) : (
-                                                    <td className="border px-4 py-2">NIL</td>
-                                                )}
-
-                                                <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
-                                                    {
-                                                        report.is_bgv_form_opened === "1" ? (
-                                                            <span className="text-[#3e76a5]">Open</span>  // Green text for "Open"
-                                                        ) : (
-                                                            <span className="text-red-500">Not Yet Opened</span>  // Red text for "Not Yet Opened"
-                                                        )
-                                                    }
+                                            {currentItems.some(item => item.dav_filled_date) ? (
+                                                <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
+                                                    {report.dav_filled_date
+                                                        ? (new Date(report.dav_filled_date))
+                                                            .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                                                            .split('/')
+                                                            .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                                                            .join('-')
+                                                        : 'NIL'}
                                                 </td>
-                                                <td
-                                                    className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
-                                                        ? "text-[#3e76a5]"
-                                                        : report.is_employment_gap === "yes"
-                                                            ? "text-red-500"
-                                                            : "text-black"
-                                                        }`}
-                                                >
-                                                    {report.is_employment_gap || "NIL"}
-                                                </td>
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
 
-
-                                                <td
-                                                    className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_education_gap === "no"
-                                                        ? "text-[#3e76a5]"
-                                                        : report.is_education_gap === "yes"
-                                                            ? "text-red-500"
-                                                            : "text-black"
-                                                        }`}
-                                                >
-                                                    {report.is_education_gap || "NIL"}
-                                                </td>
-                                                <td
-                                                    className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
-                                                        ? "text-[#3e76a5]"
-                                                        : report.is_employment_gap === "yes"
-                                                            ? "text-red-500"
-                                                            : "text-black"
-                                                        }`}
-                                                >
-                                                    {report.is_employment_gap === "yes" || report.is_employment_gap === "no" ? (
-                                                        <button
-                                                            className=""
-                                                            onClick={() =>
-                                                                handleCheckGap(report.cef_id, report.branch_id, report.main_id)
-                                                            }
-                                                        >
-                                                            Check GAP STATUS
-                                                        </button>
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">
+                                                {
+                                                    report.is_bgv_form_opened === "1" ? (
+                                                        <span className="text-[#3e76a5]">Open</span>  // Green text for "Open"
                                                     ) : (
-                                                        "NIL"
-                                                    )}
+                                                        <span className="text-red-500">Not Yet Opened</span>  // Red text for "Not Yet Opened"
+                                                    )
+                                                }
+                                            </td>
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
+                                                    ? "text-[#3e76a5]"
+                                                    : report.is_employment_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {report.is_employment_gap || "NIL"}
+                                            </td>
+
+
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_education_gap === "no"
+                                                    ? "text-[#3e76a5]"
+                                                    : report.is_education_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {report.is_education_gap || "NIL"}
+                                            </td>
+                                            <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
+                                                    ? "text-[#3e76a5]"
+                                                    : report.is_employment_gap === "yes"
+                                                        ? "text-red-500"
+                                                        : "text-black"
+                                                    }`}
+                                            >
+                                                {report.is_employment_gap === "yes" || report.is_employment_gap === "no" ? (
+                                                    <button
+                                                        className=""
+                                                        onClick={() =>
+                                                            handleCheckGap(report.cef_id, report.branch_id, report.main_id)
+                                                        }
+                                                    >
+                                                        Check GAP STATUS
+                                                    </button>
+                                                ) : (
+                                                    "NIL"
+                                                )}
+                                            </td>
+
+
+                                            {report.cef_id ? (
+                                                <td className="border px-4 py-2">
+                                                    <button
+                                                        className="bg-blue-500 uppercase border border-white hover:border-blue-500 text-white px-4 py-2 rounded hover:bg-white hover:text-blue-500"
+                                                        onClick={() => handleBGVClick(report.cef_id, report.branch_id, report.main_id)}
+                                                    >
+                                                        BGV
+                                                    </button>
                                                 </td>
-
-
-                                                {report.cef_id ? (
-                                                    <td className="border px-4 py-2">
-                                                        <button
-                                                            className="bg-blue-500 uppercase border border-white hover:border-blue-500 text-white px-4 py-2 rounded hover:bg-white hover:text-blue-500"
-                                                            onClick={() => handleBGVClick(report.cef_id, report.branch_id, report.main_id)}
-                                                        >
-                                                            BGV
-                                                        </button>
-                                                    </td>
-                                                ) : (
-                                                    <td className="border px-4 py-2">NIL</td>
-                                                )}
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
 
 
 
-                                                {report.dav_id ? (
-                                                    <td className="border px-4 py-2">
-                                                        <button
-                                                            className="bg-purple-500 uppercase border border-white hover:border-purple-500 text-white px-4 py-2 rounded hover:bg-white hover:text-purple-500"
-                                                            onClick={() => handleDAVClick(report.dav_id, report.branch_id, report.main_id)}
-                                                        >
-                                                            DAV
-                                                        </button>
-                                                    </td>
-                                                ) : (
-                                                    <td className="border px-4 py-2">NIL</td>
-                                                )}
+                                            {report.dav_id ? (
+                                                <td className="border px-4 py-2">
+                                                    <button
+                                                        className="bg-purple-500 uppercase border border-white hover:border-purple-500 text-white px-4 py-2 rounded hover:bg-white hover:text-purple-500"
+                                                        onClick={() => handleDAVClick(report.dav_id, report.branch_id, report.main_id)}
+                                                    >
+                                                        DAV
+                                                    </button>
+                                                </td>
+                                            ) : (
+                                                <td className="border px-4 py-2">NIL</td>
+                                            )}
 
-                                                {/* {report.cef_submitted === 0 || (report.dav_exist === 1 && report.dav_submitted === 0) ? (
+                                            {/* {report.cef_submitted === 0 || (report.dav_exist === 1 && report.dav_submitted === 0) ? (
                                                 <td className="border px-4 py-2">
                                                     <button
                                                         className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white ${loadingRow === report.id ? "opacity-50 cursor-not-allowed hover:text-[#3e76a5] " : "hover:text-[#3e76a5]"
@@ -972,158 +951,154 @@ const CandidateList = () => {
                                                 </td>
                                             ) : <td className="border px-4 py-2">NIL</td>} */}
 
-                                                <td className="md:py-3 p-2 md:px-4 border whitespace-nowrap">
-                                                    {report.service_data?.cef &&
-                                                        (Object.keys(report.service_data.cef).length > 0 || typeof report.service_data.cef === 'string') ? (
-                                                        <button
-                                                            className="md:px-4 py-2 p-2 bg-[#3e76a5] text-white rounded"
-                                                            onClick={() => handleViewDocuments(report.service_data.cef)}
-                                                        >
-                                                            View Documents
-                                                        </button>
-                                                    ) : (
-                                                        <span>No Attachments</span>
-                                                    )}
-                                                </td>
-
-                                                {isModalOpenDoc && (
-                                                    <Modal
-                                                        isOpen={isModalOpenDoc}
-                                                        onRequestClose={handleCloseModalDoc}
-                                                        className="custom-modal-content"
-                                                        overlayClassName="custom-modal-overlay"
+                                            <td className="md:py-3 p-2 md:px-4 border whitespace-nowrap">
+                                                {report.service_data?.cef &&
+                                                    (Object.keys(report.service_data.cef).length > 0 || typeof report.service_data.cef === 'string') ? (
+                                                    <button
+                                                        className="md:px-4 py-2 p-2 bg-[#3e76a5] text-white rounded"
+                                                        onClick={() => handleViewDocuments(report.service_data.cef)}
                                                     >
-                                                        <div className="modal-container">
-                                                            <h2 className="modal-title text-center my-4 text-2xl font-bold">Attachments</h2>
-                                                            <ul className="modal-list md:max-h-[400px] max-h-[250px] overflow-scroll">
-                                                                {Object.entries(selectedAttachments).map(([category, attachments], idx) => (
-                                                                    <li key={idx} className="modal-list-category">
-                                                                        <h3 className="modal-category-title md:text-lg font-semibold my-2">{category}</h3>
-                                                                        <ul>
-                                                                            {attachments.map((attachment, subIdx) => {
-                                                                                const label = Object.keys(attachment)[0];
-                                                                                const fileUrls = attachment[label]?.split(','); // Split URLs by comma
-                                                                                return (
-                                                                                    <li key={subIdx} className="grid items-center grid-cols-2 border-b py-2">
-                                                                                        <span className="modal-list-text">{subIdx + 1}: {label}</span>
-                                                                                        <div className="modal-url-list grid md:me-7 gap-2 justify-end">
-                                                                                            {fileUrls.map((url, urlIdx) => (
-                                                                                                <a
-                                                                                                    key={urlIdx}
-                                                                                                    href={url.trim()} // Trim to remove any extra spaces
-                                                                                                    target="_blank"
-                                                                                                    rel="noopener noreferrer"
-                                                                                                    className="modal-view-button w-auto m-0 bg-[#3e76a5] text-white p-2 rounded-md md:px-4 block mt-2 text-center"
-                                                                                                >
-                                                                                                    View {urlIdx + 1}
-                                                                                                </a>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    </li>
-                                                                                );
-                                                                            })}
-
-                                                                        </ul>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                            <div className="modal-footer">
-                                                                <button className="modal-close-button" onClick={handleCloseModalDoc}>
-                                                                    Close
-                                                                </button>
-                                                                <button className="modal-download-button bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(selectedAttachments)}>
-                                                                    Download All
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </Modal>
+                                                        View Documents
+                                                    </button>
+                                                ) : (
+                                                    <span>No Attachments</span>
                                                 )}
+                                            </td>
 
+                                            {isModalOpenDoc && (
+                                                <Modal
+                                                    isOpen={isModalOpenDoc}
+                                                    onRequestClose={handleCloseModalDoc}
+                                                    className="custom-modal-content"
+                                                    overlayClassName="custom-modal-overlay"
+                                                >
+                                                    <div className="modal-container">
+                                                        <h2 className="modal-title text-center my-4 text-2xl font-bold">Attachments</h2>
+                                                        <ul className="modal-list md:max-h-[400px] max-h-[250px] overflow-scroll">
+                                                            {Object.entries(selectedAttachments).map(([category, attachments], idx) => (
+                                                                <li key={idx} className="modal-list-category">
+                                                                    <h3 className="modal-category-title md:text-lg font-semibold my-2">{category}</h3>
+                                                                    <ul>
+                                                                        {attachments.map((attachment, subIdx) => {
+                                                                            const label = Object.keys(attachment)[0];
+                                                                            const fileUrls = attachment[label]?.split(','); // Split URLs by comma
+                                                                            return (
+                                                                                <li key={subIdx} className="grid items-center grid-cols-2 border-b py-2">
+                                                                                    <span className="modal-list-text">{subIdx + 1}: {label}</span>
+                                                                                    <div className="modal-url-list grid md:me-7 gap-2 justify-end">
+                                                                                        {fileUrls.map((url, urlIdx) => (
+                                                                                            <a
+                                                                                                key={urlIdx}
+                                                                                                href={url.trim()} // Trim to remove any extra spaces
+                                                                                                target="_blank"
+                                                                                                rel="noopener noreferrer"
+                                                                                                className="modal-view-button w-auto m-0 bg-[#3e76a5] text-white p-2 rounded-md md:px-4 block mt-2 text-center"
+                                                                                            >
+                                                                                                View {urlIdx + 1}
+                                                                                            </a>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </li>
+                                                                            );
+                                                                        })}
 
-
-                                                <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize text-center">
-                                                    <button disabled={isBranchApiLoading} className="bg-[#3e76a5] text-white p-3 rounded-md hover:bg-[#3e76a5]" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); handleEdit(report) }}>Edit</button>
-                                                    <button disabled={isBranchApiLoading} className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
-                                                    <button disabled={isBranchApiLoading || report?.is_converted_to_client === "1" || report?.cef_submitted === 0} className="border border-[#3e76a5] text-black p-3 ms-3 rounded-md hover:bg-[#3e76a5]" onClick={() => OpenPopup(report)}>{report?.is_converted_to_client === "1" ? 'Already Converted' : "Convert to Client"}</button>
-                                                </td>
-                                            </tr>
-
-                                        ))}
-
-                                        {isFormModalOpen && (
-                                            <div className="fixed inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 z-50">
-                                                <div className="bg-white p-6 rounded-md md:w-5/12">
-                                                    <h2 className="text-xl font-semibold mb-4 text-center">Convert to Client</h2>
-
-                                                    <form>
-                                                        {!employeeId.employee_id && (
-                                                            <div className="mb-4">
-                                                                <label htmlFor="employee_id" className='text-sm'>
-                                                                    Employee ID<span className="text-red-500">*</span>
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    name="employee_id"
-                                                                    id="EmployeeId"
-                                                                    className="border w-full capitalize rounded-md p-2 mt-2"
-                                                                    onChange={handleChange}
-                                                                    value={(clientInput.employee_id || '').toUpperCase()}
-                                                                />
-                                                                {inputError.employee_id && <p className='text-red-500'>{inputError.employee_id}</p>}
-                                                            </div>
-                                                        )}
-
-                                                        <div className="md:flex gap-5">
-
-                                                            <div className="mb-4 md:w-6/12">
-                                                                <label htmlFor="spoc" className='text-sm'>Name of the SPOC<span className="text-red-500">*</span></label>
-                                                                <input type="text" name="spoc" id="spoc" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
-                                                                {inputError.spoc && <p className='text-red-500'>{inputError.spoc}</p>}
-                                                            </div>
-                                                            <div className="mb-4 md:w-6/12">
-                                                                <label htmlFor="location" className='text-sm'>Location</label>
-                                                                <input type="text" name="location" id="Locations" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="md:flex gap-5">
-                                                            <div className="mb-4 md:w-6/12">
-                                                                <label htmlFor="batch_number" className='text-sm'>Batch number</label>
-                                                                <input type="text" name="batch_number" id="Batch-Number" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
-                                                            </div>
-                                                            <div className="mb-4 md:w-6/12">
-                                                                <label htmlFor="sub_client" className='text-sm'>Sub client</label>
-                                                                <input type="text" name="sub_client" id="SubClient" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex gap-3">
-                                                            <button
-                                                                type="submit"
-                                                                onClick={handleSubmitClient}
-                                                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500"
-                                                            >
-                                                                Submit
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={closeModal}
-                                                                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500"
-                                                            >
+                                                                    </ul>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                        <div className="modal-footer">
+                                                            <button className="modal-close-button" onClick={handleCloseModalDoc}>
                                                                 Close
                                                             </button>
+                                                            <button className="modal-download-button bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(selectedAttachments)}>
+                                                                Download All
+                                                            </button>
                                                         </div>
-                                                    </form>
-                                                </div>
+                                                    </div>
+                                                </Modal>
+                                            )}
+
+
+
+                                            <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize text-center">
+                                                <button disabled={isBranchApiLoading} className="bg-[#3e76a5] text-white p-3 rounded-md hover:bg-[#3e76a5]" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); handleEdit(report) }}>Edit</button>
+                                                <button disabled={isBranchApiLoading} className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
+                                                <button disabled={isBranchApiLoading || report?.is_converted_to_client === "1" || report?.cef_submitted === 0} className="border border-[#3e76a5] text-black p-3 ms-3 rounded-md hover:bg-[#3e76a5]" onClick={() => OpenPopup(report)}>{report?.is_converted_to_client==="1"?'Already Converted':"Convert to Client"}</button>
+                                            </td>
+                                        </tr>
+
+                                    ))}
+                                    {isFormModalOpen && (
+                                        <div className="fixed inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 z-50">
+                                            <div className="bg-white p-6 rounded-md md:w-5/12">
+                                                <h2 className="text-xl font-semibold mb-4 text-center">Convert to Client</h2>
+
+                                                <form>
+                                                    {!employeeId.employee_id && (
+                                                        <div className="mb-4">
+                                                            <label htmlFor="employee_id" className='text-sm'>
+                                                                Employee ID<span className="text-red-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                name="employee_id"
+                                                                id="EmployeeId"
+                                                                className="border w-full capitalize rounded-md p-2 mt-2"
+                                                                onChange={handleChange}
+                                                                value={(clientInput.employee_id || '').toUpperCase()}
+                                                            />
+                                                            {inputError.employee_id && <p className='text-red-500'>{inputError.employee_id}</p>}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="md:flex gap-5">
+
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="spoc" className='text-sm'>Name of the SPOC<span className="text-red-500">*</span></label>
+                                                            <input type="text" name="spoc" id="spoc" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
+                                                            {inputError.spoc && <p className='text-red-500'>{inputError.spoc}</p>}
+                                                        </div>
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="location" className='text-sm'>Location</label>
+                                                            <input type="text" name="location" id="Locations" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="md:flex gap-5">
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="batch_number" className='text-sm'>Batch number</label>
+                                                            <input type="text" name="batch_number" id="Batch-Number" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
+                                                        </div>
+                                                        <div className="mb-4 md:w-6/12">
+                                                            <label htmlFor="sub_client" className='text-sm'>Sub client</label>
+                                                            <input type="text" name="sub_client" id="SubClient" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-3">
+                                                        <button
+                                                            type="submit"
+                                                            onClick={handleSubmitClient}
+                                                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500"
+                                                        >
+                                                            Submit
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={closeModal}
+                                                            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500"
+                                                        >
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                </form>
                                             </div>
-                                        )}
-                                    </tbody>
+                                        </div>
+                                    )}
+                                </tbody>
 
-                                </table>
-
-
-                            </>
+                            </table>
                         ) : (
                             <div className="text-center py-6">
                                 <p>No Data Found</p>
@@ -1132,7 +1107,6 @@ const CandidateList = () => {
 
 
                     </div>
-
                     <div className="flex items-center justify-end  rounded-md bg-white md:px-4 md:py-3 p-2 sm:px-6 md:m-4 mt-2">
                         <button
                             onClick={showPrev}
@@ -1156,7 +1130,7 @@ const CandidateList = () => {
                     </div>
                 </div>
 
-            </div >
+            </div>
 
         </>
     );

@@ -488,6 +488,3 @@ div#sider_content ul li.text-white svg {
 .sliding-container.active {
   transform: translateX(0);
 }
-.SelectedServices {
-  max-height: 300px;
-}

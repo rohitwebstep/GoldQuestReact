@@ -56,7 +56,6 @@ export const ServiceProvider = ({ children }) => {
 
             // Check if response is OK and if result status is truthy
             if (!res.ok || !result.status) {
-                
                 const errorMessage = result.message || 'An error occurred';
                 if (result.message && result.message.toLowerCase().includes("invalid token")) {
                     // Handle invalid token
