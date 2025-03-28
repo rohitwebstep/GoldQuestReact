@@ -1,0 +1,62 @@
+api.goldquestglobal.in
+
+<VirtualHost *:80>
+    ServerName api.goldquestglobal.in
+    DocumentRoot /root/goldquestnode
+
+    # Reverse Proxy to Node.js API
+    ProxyPass / http://localhost:5000/
+    ProxyPassReverse / http://localhost:5000/
+
+    ErrorLog ${APACHE_LOG_DIR}/node-error.log
+    CustomLog ${APACHE_LOG_DIR}/node-access.log combined
+RewriteEngine on
+RewriteCond %{SERVER_NAME} =api.goldquestglobal.in
+RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+
+---------------------------------------------------------
+
+bgvadmin.goldquestglobal.in
+
+<VirtualHost *:80>
+    ServerName bgvadmin.goldquestglobal.in
+    DocumentRoot /root/GoldquestReact
+
+    <Directory /root/GoldquestReact>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # Reverse Proxy for React App
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+
+    ErrorLog ${APACHE_LOG_DIR}/react-error.log
+    CustomLog ${APACHE_LOG_DIR}/react-access.log combined
+RewriteEngine on
+RewriteCond %{SERVER_NAME} =bgvadmin.goldquestglobal.in
+RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+
+----------------------------------------------------------
+
+phpmyadmin.goldquestglobal.in
+
+<VirtualHost *:80>
+    ServerName phpmyadmin.goldquestglobal.in
+    DocumentRoot /usr/share/phpmyadmin
+
+    <Directory /usr/share/phpmyadmin>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/phpmyadmin_error.log
+    CustomLog ${APACHE_LOG_DIR}/phpmyadmin_access.log combined
+RewriteEngine on
+RewriteCond %{SERVER_NAME} =phpmyadmin.goldquestglobal.in
+RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
