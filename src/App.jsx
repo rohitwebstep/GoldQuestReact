@@ -12,9 +12,7 @@ import Login from './Dashboard/Login.jsx';
 import CustomerDashboard from './CustomerDashboard/CustomerDashboard.jsx';
 import CustomerForgotPassword from './CustomerDashboard/CustomerForgotPassword.jsx';
 import CustomerResetPassword from './CustomerDashboard/CustomerResetPassword.jsx';
-import ExelTrackerData from './Pages/ExelTrackerData.jsx';
 import Admin from './Middleware/Admin.jsx';
-import Customer from './Middleware/Customer.jsx';
 import { PackageProvider } from './Pages/PackageContext.jsx';
 import { ServiceProvider } from './Pages/ServiceContext.jsx';
 import { ClientProvider } from './Pages/ClientManagementContext.jsx';
@@ -29,7 +27,6 @@ import { BranchProviderExel } from './Pages/BranchContextExel.jsx';
 import CandidateMain from './Pages/Candidate/CandidateMain.jsx';
 import CandidateBGV from './Pages/CandidateBGV.jsx';
 import DemoBgForm from './Pages/DemoBgForm.jsx';
-import CandidateGenerateReport from './Pages/Candidate/CandidateGenerateReport.jsx';
 import BackgroundForm from './Pages/BackgroundForm.jsx';
 import DigitalAddressVerification from './Pages/DigitalAddressVerification.jsx';
 import 'react-select-search/style.css'
@@ -95,22 +92,20 @@ const App = () => {
 
                                       {/* Customer Routes */}
                                       <Route path="/customer-login" element={<CustomerLogin />} />
-                                      <Route path="/customer-dashboard" element={<Customer><CustomerDashboard /></Customer>} />
-                                      <Route path="/customer-dashboard/customer-bgv" element={<Customer><CustomerBgv /></Customer>} />
-                                      <Route path="/customer-dashboard/customer-dav" element={<Customer><CustomerDav /></Customer>} />
-                                      <Route path="/customer-dashboard/customer-gap-check" element={<Customer><CustomerGapStatus /></Customer>} />
+                                      <Route path="/customer-dashboard" element={<CustomerDashboard />} />
+                                      <Route path="/customer-dashboard/customer-bgv" element={<CustomerBgv />} />
+                                      <Route path="/customer-dashboard/customer-dav" element={<CustomerDav />} />
+                                      <Route path="/customer-dashboard/customer-gap-check" element={<CustomerGapStatus />} />
                                       <Route path='customer-login/customer-reset-password' element={<CustomerResetPassword />} />
                                       <Route path='customer-login/customer-forgotpassword' element={<CustomerForgotPassword />} />
                                       {/* Admin Routes */}
                                       <Route path="/admin-login" element={<Login />} />
                                       <Route path="/forgotpassword" element={<ForgotPassword />} />
                                       <Route path="/reset-password" element={<SetNewPassword />} />
-                                      <Route path="/update-password" element={<Admin><UpdatePassword /></Admin>} />
-                                      <Route path="/trackerstatus" element={<Admin><ExelTrackerData /></Admin>} />
-                                      <Route path="/client" element={<Admin><CandidateMain /></Admin>} />
-                                      <Route path="/candidate-bgv" element={<Admin><CandidateBGV /></Admin>} />
-                                      <Route path="/candidate_genrate_Report" element={<Admin><CandidateGenerateReport /></Admin>} />
-                                      <Route path="/candidate-dav" element={<Admin><CandidiateDav /></Admin>} />
+                                      <Route path="/update-password" element={<UpdatePassword />} />
+                                      <Route path="/client" element={<CandidateMain />} />
+                                      <Route path="/candidate-bgv" element={<CandidateBGV />} />
+                                      <Route path="/candidate-dav" element={<CandidiateDav />} />
 
                                       {/* Other Routes */}
                                       <Route path="/background-form" element={<BackgroundForm />} />

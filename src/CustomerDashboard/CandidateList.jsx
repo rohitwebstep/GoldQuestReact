@@ -14,8 +14,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 ;
 const CandidateList = () => {
-    const navigate = useNavigate();
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [inputError, setInputError] = useState({});
     const [employeeId, setEmployeeId] = useState();
@@ -64,11 +63,19 @@ const CandidateList = () => {
     const { handleEditCandidate, candidateListData, fetchClient, candidateLoading, setUniqueBgv, UniqueBgv, } = useContext(DropBoxContext);
     const API_URL = useApi();
 
+
     useEffect(() => {
-        if (!isBranchApiLoading) {
-            fetchClient();
-        }
+        const fetchDataMain = async () => {
+            if (!isBranchApiLoading) {
+                await checkBranchAuthentication();
+                await fetchClient();
+            }
+        };
+
+        fetchDataMain();
     }, [fetchClient]);
+
+
     const handleBGVClick = (cef_id, branch_id, applicationId) => {
         const url = `/customer-dashboard/customer-bgv?cef_id=${cef_id}&branch_id=${branch_id}&applicationId=${applicationId}`;
         window.open(url, '_blank', 'noopener,noreferrer');
@@ -250,8 +257,9 @@ const CandidateList = () => {
         setStatusChange(event.target.value);
     };
     const filteredOptions = filteredItems.filter(item =>
-        item.cef_submitted.toString().includes(statusChange.toLowerCase())
+        item?.cef_submitted?.toString().toLowerCase().includes(statusChange?.toString().toLowerCase() || "")
     );
+    
 
     const totalPages = Math.ceil(filteredOptions.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -261,18 +269,20 @@ const CandidateList = () => {
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
-
     const counts = candidateListData.reduce(
         (acc, application) => {
-            if (application.cef_submitted === 1) {
+            if (application.cef_submitted === 0 && application.is_expired === 1) {
+                acc.expired += 1; // Increment expired count first
+            } else if (application.cef_submitted === 1) {
                 acc.filled += 1; // Increment filled count
             } else if (application.cef_submitted === 0) {
                 acc.notFilled += 1; // Increment not filled count
             }
             return acc;
         },
-        { filled: 0, notFilled: 0 }
+        { filled: 0, notFilled: 0, expired: 0 }
     );
+
 
     const showPrev = () => {
         if (currentPage > 1) handlePageChange(currentPage - 1);
@@ -340,36 +350,11 @@ const CandidateList = () => {
         setItemPerPage(selectedValue)
 
     }
-    const validate = () => {
-        const newErrors = {};
-        console.log('clientInput', clientInput)
 
-        // Check if employee_id is missing or invalid
-        if (
-            ((!clientInput.employee_id || (typeof clientInput.employee_id === "string" && clientInput.employee_id.trim() === "")) &&
-                (!employeeId.employee_id || (typeof employeeId.employee_id === "string" && employeeId.employee_id.trim() === "")))
-        ) {
-            newErrors.employee_id = "Employee ID is required";  // Error if employee_id is missing or empty
-        } else if (/\s/.test(employeeId.employee_id)) {  // Check for spaces
-            newErrors.employee_id = 'Employee ID cannot contain spaces';
-        } else if (/[^a-zA-Z0-9-]/.test(employeeId.employee_id)) {
-            newErrors.employee_id = 'Employee ID should only contain letters, numbers, and hyphens';
-        }
-
-        // Check other fields like 'spoc'
-        ['spoc'].forEach((field) => {
-            if (!clientInput[field] || clientInput[field].trim() === "") {
-                newErrors[field] = "This Field is Required";
-            }
-        });
-
-        return newErrors;
-    };
 
 
     const handleSubmitClient = async (e, report) => {
         e.preventDefault();
-        console.log('report', report);
         const branch_id = branchData?.branch_id;
         const customer_id = branchData?.customer_id;
 
@@ -379,7 +364,7 @@ const CandidateList = () => {
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
-      
+
         const raw = JSON.stringify({
             branch_id,
             send_mail: 1, // File uploaded, so we don't send mail initially
@@ -388,7 +373,7 @@ const CandidateList = () => {
             customer_id: customer_id,
             candidate_application_id: report?.main_id,
         });
-       
+
 
 
         const requestOptions = {
@@ -700,7 +685,7 @@ const CandidateList = () => {
                     <div className='bg-blue-600 p-4 text-white min-w-full'>
                         <marquee scrollamount="10">
                             <span className='text-xl font-bold uppercase tracking-[1px]'>
-                                Filled BGV Applications: {counts.filled} || Not Filled BGV Applications: {counts.notFilled}
+                                Filled BGV Applications: {counts.filled} || Not Filled BGV Applications: {counts.notFilled} || Expired Applications:{counts.expired}
                             </span>
                         </marquee>
 
@@ -744,7 +729,17 @@ const CandidateList = () => {
                                     </thead>
                                     <tbody>
                                         {currentItems.map((report, index) => (
-                                            <tr key={report.id || index} className={report?.cef_submitted === 1 ? "bg-[#3e76a585] " : ""}>
+                                            <tr
+                                                key={report.id || index}
+                                                className={
+                                                    report?.cef_submitted === 1
+                                                        ? "bg-[#3e76a585] "
+                                                        : report?.is_expired === 1
+                                                            ? "bg-red-400 text-white"
+                                                            : ""
+                                                }
+                                            >
+
                                                 <td className="md:py-3 p-2 md:px-4 border-l border-b border-r whitespace-nowrap capitalize"> {index + 1 + (currentPage - 1) * itemsPerPage}</td>
                                                 <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.name}</td>
                                                 <td className="md:py-3 p-2 md:px-4 border-b border-r whitespace-nowrap capitalize">{report.email}</td>

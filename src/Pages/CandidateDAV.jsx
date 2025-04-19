@@ -4,7 +4,7 @@ import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 
 const CandidiateDav = () => {
-    const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { isApiLoading, setIsApiLoading,checkAuthentication } = useApiCall();
 
     const [davData, setDAVData] = useState([]);
 
@@ -16,7 +16,6 @@ const CandidiateDav = () => {
 
 
 
-    const [isValidApplication, setIsValidApplication] = useState(true);
 
     const FileViewer = ({ fileUrl }) => {
         if (!fileUrl) {
@@ -80,7 +79,6 @@ const CandidiateDav = () => {
                 setLoading(false);  // Stop loading spinner when the request is complete.
     
                 if (!result.status) {
-                    setIsValidApplication(false);
     
                     Swal.fire({
                         title: 'Error',
@@ -128,12 +126,17 @@ const CandidiateDav = () => {
             });
     }, []);
     
-
-    useEffect(() => {
-        if (!isApiLoading) {
-            isApplicationExists();
-        }
-    }, []);
+        useEffect(() => {
+            const fetchMainData = async () => {
+                if (!isApiLoading) {
+                    await checkAuthentication();
+                    await isApplicationExists();  // Correct function call
+                }
+            };
+        
+            fetchMainData();  // Call the async function inside useEffect
+        
+        }, [isApplicationExists]);  // Correct dependencies
 
 
 

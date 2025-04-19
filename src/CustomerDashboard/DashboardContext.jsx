@@ -47,13 +47,10 @@ const DashboardProvider = ({ children }) => {
             }
     
             const result = await response.json();
-            console.log(result);  // Log the result to inspect the structure
     
             const newToken = result._token || result.token;
             if (newToken) {
-                console.log("New Token:", newToken);  // Log the new token to ensure it's being received correctly
                 localStorage.setItem("branch_token", newToken);
-                console.log("Token saved in localStorage:", localStorage.getItem("branch_token"));
             } else {
                 console.error("No token received in the response.");
             }

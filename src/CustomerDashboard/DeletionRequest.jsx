@@ -7,7 +7,7 @@ import { useApiCall } from '../ApiCallContext';
 import * as XLSX from 'xlsx';
 
 const DeletionRequest = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall(); // Access isBranchApiLoading from ApiCallContext
+    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall(); // Access isBranchApiLoading from ApiCallContext
     const branchData = JSON.parse(localStorage.getItem("branch"));
 
     const [listData, setListData] = useState([])
@@ -97,11 +97,16 @@ const DeletionRequest = () => {
     }, []);
 
 
-    useEffect(() => {
-        if (!isBranchApiLoading) {
-            fetchClientDrop();
-        }
-    }, [fetchClientDrop]);
+      useEffect(() => {
+             const fetchDataMain = async () => {
+               if (!isBranchApiLoading) {
+                 await checkBranchAuthentication();
+                 await fetchClientDrop();
+               }
+             };
+         
+             fetchDataMain();
+           }, [fetchClientDrop]);
 
 
     const filteredItems = listData.filter(item => {

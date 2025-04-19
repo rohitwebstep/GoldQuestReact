@@ -78,7 +78,6 @@ const GenerateReport = () => {
             },
         },
     });
-    console.log('formData', formData)
     useEffect(() => {
         setFormData(prevFormData => ({
             ...prevFormData,
@@ -120,8 +119,7 @@ const GenerateReport = () => {
         updatedStatuses[index] = e.target.value;
         setSelectedStatuses(updatedStatuses);
         setFormData(prevFormData => {
-            console.log("Previous overall_status:", prevFormData.updated_json.insuffDetails.overall_status);
-            console.log("allCompleted:", allCompleted);
+     
 
             const updatedFormData = {
                 ...prevFormData,
@@ -136,7 +134,6 @@ const GenerateReport = () => {
                 }
             };
 
-            console.log("Updated overall_status:", updatedFormData.updated_json.insuffDetails.overall_status);
 
             return updatedFormData;
         });
@@ -375,7 +372,6 @@ const GenerateReport = () => {
                 setAdminNames(result.admins); // Set admin names
 
                 // Set the form data
-                console.log('cmtData.initiation_date', cmtData.initiation_date)
                 // Helper function to validate and format dates
                 const getValidDate = (dateStr) => {
                     const date = new Date(dateStr);
@@ -522,9 +518,7 @@ const GenerateReport = () => {
     const handleCustomInputChange = (e) => {
         const { name, value } = e.target;
 
-        console.log("Event Triggered:");
-        console.log("Name:", name);
-        console.log("Value:", value);
+     
 
         setFormData(prevFormData => ({
             ...prevFormData,
@@ -715,13 +709,11 @@ const GenerateReport = () => {
                 );
 
                 // Log the response to check where the token is
-                console.log("Upload Response:", response.data);
 
                 // Now check if the token is available and save it to localStorage
                 const newToken = response?.data?.token || response?.data?._token;
                 if (newToken) {
                     localStorage.setItem("_token", newToken);  // Save the new token in localStorage
-                    console.log("New token saved:", newToken);
                 }
 
             } catch (err) {
@@ -1052,7 +1044,6 @@ const GenerateReport = () => {
     };
 
 
-    console.log('formData---final', formData)
     return (
         <div className="border rounded-md">
             <h2 className="text-2xl font-bold py-3 text-center px-3 ">GENERATE REPORT</h2>

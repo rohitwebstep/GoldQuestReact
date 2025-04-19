@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 const SubUserCredentials = () => {
-  const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+  const { isBranchApiLoading, setIsBranchApiLoading ,checkBranchAuthentication} = useApiCall();
   const [data, setData] = useState([]);
   const API_URL = useApi();
   const [isEditEmail, setIsEditEmail] = useState(false);
@@ -245,12 +245,16 @@ const SubUserCredentials = () => {
 
 
   const [itemsPerPage, setItemPerPage] = useState(10);
-  useEffect(() => {
-    if (!isBranchApiLoading) {
-      fetchData();
-    }
-
-  }, [fetchData]);
+ useEffect(() => {
+     const fetchDataMain = async () => {
+       if (!isBranchApiLoading) {
+         await checkBranchAuthentication();
+         await fetchData();
+       }
+     };
+ 
+     fetchDataMain();
+   }, [fetchData]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');

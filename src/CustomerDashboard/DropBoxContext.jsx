@@ -50,7 +50,6 @@ export const DropBoxProvider = ({ children }) => {
 
 
     const handleEditDrop = (selectedDropBox) => {
-        console.log('selectedDropBox', selectedDropBox)
         setInputError({});
         const parsedServices = Array.isArray(selectedDropBox.services)
             ? selectedDropBox.services
@@ -139,12 +138,10 @@ export const DropBoxProvider = ({ children }) => {
             const data = await response.json();
 
             // Debug log to check API response
-            console.log("API Response:", data);
 
             // Store the new token if it exists
             const newToken = data?._token || data?.token;
             if (newToken) {
-                console.log("New Token:", newToken); // Debug log
                 localStorage.setItem("branch_token", newToken);
             }
 
@@ -238,12 +235,10 @@ export const DropBoxProvider = ({ children }) => {
             const result = await response.json();
 
             // Debug log for response
-            console.log("API Response:", result);
 
             // Update token if it's present in the response
             const newToken = result?._token || result?.token;
             if (newToken) {
-                console.log("New Token:", newToken);  // Debug log to verify new token
                 localStorage.setItem("branch_token", newToken);
             }
 

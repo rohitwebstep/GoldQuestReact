@@ -7,7 +7,7 @@ import { useApiCall } from '../ApiCallContext';
 import Swal from 'sweetalert2';
 const CaseLog = () => {
     const [conversationMsg, setConversationMsg] = useState([]);
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
 
     const [showPopup, setShowPopup] = useState(false);
     const [data, setData] = useState([]);
@@ -451,12 +451,17 @@ const CaseLog = () => {
 
 
 
-    useEffect(() => {
-        if (!isBranchApiLoading) {
-            fetchTickets();
-        }
-    }, []); // Make sure branch_id and branch_token are available
-
+    // Make sure branch_id and branch_token are available
+   useEffect(() => {
+         const fetchDataMain = async () => {
+           if (!isBranchApiLoading) {
+             await checkBranchAuthentication();
+             await fetchTickets();
+           }
+         };
+     
+         fetchDataMain();
+       }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent form submission from reloading the page

@@ -360,7 +360,6 @@ const ClientMasterTrackerList = () => {
         count: item.count
     }));
 
-    console.log(formattedStatuses);
 
 
     return (

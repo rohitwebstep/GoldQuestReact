@@ -21,7 +21,6 @@ const Tickets = () => {
     ]);
     const [userInput, setUserInput] = useState("");
     const replyTickets = async (ticket_number, description) => {
-        console.log('ticket_number, description', ticket_number, description)
         try {
             setIsApiLoading(true); // Set loading state
 

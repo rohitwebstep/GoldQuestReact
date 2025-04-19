@@ -106,13 +106,11 @@ const CandidateBulkUpload = () => {
             });
 
             const result = await response.json();
-            console.log("API Response:", result);
 
             // Check if a new token is present
 
             if (result.token) {
                 localStorage.setItem("branch_token", result.token);
-                console.log("Token successfully saved to localStorage:", result.token);
             } else {
                 console.warn("No token found in API response.");
             }
@@ -222,7 +220,6 @@ const CandidateBulkUpload = () => {
                 ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
             };
 
-            console.log("Submitting requestBody:", requestBody);
 
             const response = await fetch(
                 "https://api.goldquestglobal.in/branch/candidate-application/bulk-create",
@@ -350,39 +347,32 @@ const CandidateBulkUpload = () => {
     };
 
     const processFileData = (parsedData, csvHeaders) => {
-        console.log("Raw Parsed Data:", parsedData);
 
         // Convert CSV headers: lowercase + replace spaces with underscores
         const formattedHeaders = csvHeaders.map(header =>
             header.toLowerCase().replace(/\s+/g, '_') // Replace spaces with underscores
         );
 
-        console.log("Formatted CSV Headers:", formattedHeaders);
 
         const newData = [];
         let hasError = false;
 
         parsedData.forEach((row, index) => {
-            console.log(`Processing Row ${index + 1}:`, row);
 
             const values = Object.values(row).map(value => (value ? value.toString().trim() : ''));
-            console.log(`Row ${index + 1} Values:`, values);
 
             const allEmpty = values.every(val => val === '');
             const someEmpty = values.some(val => val === '') && !allEmpty;
 
             if (allEmpty) {
-                console.log(`Row ${index + 1} is completely empty, skipping.`);
                 return;
             } else if (someEmpty) {
-                console.log(`Row ${index + 1} has missing fields.`);
 
                 setFileName('');
                 setIsFileValid(false);
                 hasError = true;
 
                 const missingFields = formattedHeaders.filter((header, i) => !values[i] || values[i] === '');
-                console.log(`Missing Fields in Row ${index + 1}:`, missingFields);
 
                 Swal.fire({
                     icon: 'error',
@@ -390,7 +380,6 @@ const CandidateBulkUpload = () => {
                     text: `Row ${index + 1} is incomplete. Missing fields: ${missingFields.join(', ')}`,
                 });
             } else {
-                console.log(`Row ${index + 1} is valid, cleaning field names and adding to newData.`);
 
                 // Ensure keys in the row match formatted headers
                 const formattedRow = {};
@@ -403,10 +392,8 @@ const CandidateBulkUpload = () => {
         });
 
         if (!hasError) {
-            console.log("Final Processed Data:", newData);
             setData(newData);
         } else {
-            console.log("Errors were found, data not set.");
         }
     };
 

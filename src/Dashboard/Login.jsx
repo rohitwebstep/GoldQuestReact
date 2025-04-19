@@ -7,22 +7,12 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(() => {
+    const adminData = JSON.parse(localStorage.getItem("shippingData"));
+    const admin_token = adminData?.security?.token;
+    if (admin_token) {
 
+      router.push("/admin/auth/login");        // Redirect to login
 
-    const storedAdminData = localStorage.getItem("admin");
-    const storedToken = localStorage.getItem("_token");
-    let preAdminData;
-
-    try {
-      preAdminData = JSON.parse(storedAdminData);
-    } catch (e) {
-      console.error('Error parsing JSON from localStorage:', e);
-      preAdminData = null;
-    }
-
-    if (preAdminData || storedToken) {
-
-      navigate('/', { state: { from: location }, replace: true });
       return;
     }
   }, [location, navigate])

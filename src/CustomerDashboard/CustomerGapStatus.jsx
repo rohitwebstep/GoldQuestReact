@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'; import { useApi
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 const GapStatus = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading ,checkBranchAuthentication} = useApiCall();
     const [initialAnnexureData, setInitialAnnexureData] = useState({
         gap_validation: {
             phd_institute_name_gap: '',
@@ -39,7 +39,6 @@ const GapStatus = () => {
     const [serviceData, setServiceData] = useState([]);
     const [serviceValueData, setServiceValueData] = useState([]);
     const location = useLocation();
-    const currentURL = location.pathname + location.search;
     const [annexureImageData, setAnnexureImageData] = useState([]);
     const [gaps, setGaps] = useState({});
     const [employGaps, setEmployGaps] = useState({});
@@ -223,9 +222,14 @@ const GapStatus = () => {
     }, [applicationId]);
 
     useEffect(() => {
-        if (!isBranchApiLoading) {
-            fetchData();
-        }
+        const fetchDataMain = async () => {
+            if (!isBranchApiLoading) {
+                await checkBranchAuthentication();
+                await fetchData();
+            }
+        };
+
+        fetchDataMain();
     }, [fetchData]);
 
 

@@ -4,7 +4,7 @@ import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 
 const CandidiateDav = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
 
     const [davData, setDAVData] = useState([]);
 
@@ -134,10 +134,15 @@ const CandidiateDav = () => {
 
 
     useEffect(() => {
-        if (!isBranchApiLoading) {
-            isApplicationExists();
-        }
-    }, []);
+             const fetchDataMain = async () => {
+                 if (!isBranchApiLoading) {
+                     await checkBranchAuthentication();
+                     await isApplicationExists();
+                 }
+             };
+     
+             fetchDataMain();
+         }, [isApplicationExists]);
 
 
 

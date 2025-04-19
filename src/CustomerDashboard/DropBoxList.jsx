@@ -13,7 +13,7 @@ import { saveAs } from 'file-saver';
 
 
 const DropBoxList = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading ,checkBranchAuthentication} = useApiCall();
 
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [modalServices, setModalServices] = React.useState([]);
@@ -33,11 +33,17 @@ const DropBoxList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const { handleEditDrop, fetchClientDrop, listData, loading } = useContext(DropBoxContext);
 
-    useEffect(() => {
-        if (!isBranchApiLoading) {
-            fetchClientDrop();
-        }
-    }, [fetchClientDrop]);
+  
+     useEffect(() => {
+         const fetchDataMain = async () => {
+           if (!isBranchApiLoading) {
+             await checkBranchAuthentication();
+             await fetchClientDrop();
+           }
+         };
+     
+         fetchDataMain();
+       }, [fetchClientDrop]);
     const handleViewMore = (services) => {
         setModalServices(services);
         setIsModalOpen(true);
@@ -100,7 +106,6 @@ const DropBoxList = () => {
     const handleDownloadAll = async (attachments) => {
         const zip = new JSZip();
         let allUrls = [];
-        console.log('attachments', attachments);
 
         try {
             // Show loading indication

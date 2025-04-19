@@ -6,7 +6,7 @@ import { useApiCall } from '../ApiCallContext';
 
 const ScopeOfServices = () => {
     const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
-    const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
 
     const storedBranchData = JSON.parse(localStorage.getItem("branch"));
     const branch_token = localStorage.getItem("branch_token");
@@ -113,11 +113,17 @@ const ScopeOfServices = () => {
         }
     }, [API_URL, customer_id, branch?.id, branch_token]);
 
-    useEffect(() => {
-        if (!isBranchApiLoading) {
-            fetchServicePackage();
-        }
-    }, [fetchServicePackage]);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!isBranchApiLoading) {
+        await checkBranchAuthentication();
+        await fetchServicePackage();
+      }
+    };
+
+    fetchData();
+  }, [fetchServicePackage]);
+
 
     return (
         <>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Swal from 'sweetalert2'
 import axios from 'axios';
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
@@ -6,7 +6,7 @@ import { useApiCall } from '../../ApiCallContext';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 const GenerateReport = () => {
-    const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { isApiLoading, setIsApiLoading, checkAuthentication } = useApiCall();
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [servicesDataInfo, setServicesDataInfo] = useState('');
@@ -15,6 +15,11 @@ const GenerateReport = () => {
     const [sortingOrder, setSortingOrder] = useState([]);
     const [applications, setApplications] = useState([]);
     const [adminNames, setAdminNames] = useState([]);
+    const [reportGeneratorAdminNames, setReportGeneratorAdminNames] = useState([]);
+    const [qCVerifierAdminNames, setQCVerifierAdminNames] = useState([]);
+    const [selectedHour, setSelectedHour] = useState("");
+    const [selectedMinute, setSelectedMinute] = useState("");
+    const [selectedPeriod, setSelectedPeriod] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleCloseModal = () => {
@@ -22,8 +27,10 @@ const GenerateReport = () => {
     };
     const [formData, setFormData] = useState({
         updated_json: {
+            application_id: '',
+            insta_drug_test: false,
             month_year: '',
-            initiation_date: '', // Sets current date in YYYY-MM-DD format
+            initiation_date: '', // Sets current date in dd-MM-yyyy format
             organization_name: '',
             verification_purpose: '',
             employee_id: '',
@@ -75,6 +82,8 @@ const GenerateReport = () => {
             },
         },
     });
+    const [selectedStatuses, setSelectedStatuses] = useState([]);
+
     useEffect(() => {
         setFormData(prevFormData => ({
             ...prevFormData,
@@ -97,52 +106,6 @@ const GenerateReport = () => {
         }));
     }, []);
 
-    const [selectedStatuses, setSelectedStatuses] = useState([]);
-
-    useEffect(() => {
-        if (servicesDataInfo.length > 0) {
-            setSelectedStatuses(selectedStatuses.map(() => "initiated"));
-        }
-    }, []);
-
-    useEffect(() => {
-        if (servicesDataInfo && servicesDataInfo.length > 0) {
-
-            if (selectedStatuses.length === 0 || selectedStatuses.length !== servicesDataInfo.length) {
-                const initialStatuses = servicesDataInfo.map((serviceData) => {
-
-                    return serviceData?.annexureData?.status || '';
-                });
-                setSelectedStatuses(initialStatuses);
-            }
-        }
-    }, [servicesDataInfo]); // Only trigger when `servicesDataInfo` changes
-
-    const handleStatusChange = (e, index) => {
-        const updatedStatuses = [...selectedStatuses];
-        updatedStatuses[index] = e.target.value;
-        setSelectedStatuses(updatedStatuses);
-        setFormData(prevFormData => {
-
-
-            const updatedFormData = {
-                ...prevFormData,
-                updated_json: {
-                    ...prevFormData.updated_json,
-                    insuffDetails: {
-                        ...prevFormData.updated_json.insuffDetails,
-                        overall_status: allCompleted
-                            ? prevFormData.updated_json.insuffDetails.overall_status // Keep existing value if allCompleted is true
-                            : "" // Reset to empty if allCompleted is false
-                    }
-                }
-            };
-
-
-            return updatedFormData;
-        });
-
-    };
 
     const handleSortingOrderChange = (e, index) => {
         const newSortingOrder = e.target.value;
@@ -155,17 +118,122 @@ const GenerateReport = () => {
             return updatedState;
         });
     };
+    // Compute `showInstaDrugTest` OUTSIDE useEffect to avoid multiple triggers
+    const showInstaDrugTest = useMemo(() => {
+        return (
+            formData?.updated_json?.insta_drug_test &&
+            Array.isArray(servicesDataInfo) &&
+            servicesDataInfo.some(
+                (service) =>
+                    service?.reportFormJson &&
+                    JSON.parse(service.reportFormJson.json)?.heading === "INSTA DRUG TEST"
+            )
+        );
+    }, [servicesDataInfo, formData?.updated_json?.insta_drug_test]);
+
+
+    useEffect(() => {
+        if (Array.isArray(servicesDataInfo) && servicesDataInfo.length > 0) {
+
+            setSelectedStatuses(prevStatuses => {
+                let rawServiceData = showInstaDrugTest
+                    ? servicesDataInfo
+                        .map((service, index) => ({
+                            index, // Preserve the original index
+                            service
+                        }))
+                        .filter(({ service }) =>
+                            service?.reportFormJson &&
+                            JSON.parse(service.reportFormJson.json)?.heading === "INSTA DRUG TEST"
+                        )
+                    : servicesDataInfo;
+
+                let filteredServices = [];
+                if (showInstaDrugTest) {
+                    filteredServices = [];
+                    rawServiceData.forEach(item => {
+                        filteredServices[item.index] = item.service; // Assign service at the correct index
+                    });
+                } else {
+                    filteredServices = rawServiceData;
+                }
+
+                return filteredServices.map((serviceData, index) => {
+                    const originalIndex = servicesDataInfo.findIndex(s => s === serviceData); // Keep proper index
+
+                    if (!serviceData?.reportFormJson) {
+                        return prevStatuses[originalIndex] ?? undefined;
+                    }
+
+                    return prevStatuses[originalIndex] !== undefined
+                        ? prevStatuses[originalIndex] // Preserve manually changed value
+                        : serviceData?.annexureData?.status || (selectedStatuses[index] || "initiated");
+                });
+            });
+        }
+    }, [showInstaDrugTest, servicesDataInfo]); // Correct dependencies
+
+    const handleStatusChange = (e, filteredIndex) => {
+        const newValue = e.target.value;
+
+        setSelectedStatuses(prevStatuses => {
+
+            const updatedStatuses = [...prevStatuses];
+
+            if (showInstaDrugTest) {
+                // Find the original index of "INSTA DRUG TEST"
+                const originalIndex = servicesDataInfo.findIndex(service =>
+                    service?.reportFormJson &&
+                    JSON.parse(service.reportFormJson.json)?.heading === "INSTA DRUG TEST"
+                );
+
+                if (originalIndex !== -1) {
+                    updatedStatuses[originalIndex] = newValue; // Correctly update the mapped index
+                }
+            } else {
+                updatedStatuses[filteredIndex] = newValue; // Normal update
+            }
+
+            // Update formData
+            setFormData(prevFormData => {
+
+                const updatedFormData = {
+                    ...prevFormData,
+                    updated_json: {
+                        ...prevFormData.updated_json,
+                        insuffDetails: {
+                            ...prevFormData.updated_json.insuffDetails,
+                            overall_status: updatedStatuses.every(status =>
+                                typeof status === "string" &&
+                                (status.startsWith("completed") || status.toLowerCase() === "nil")
+                            ) ? prevFormData.updated_json.insuffDetails.overall_status : ""
+                        }
+                    }
+                };
+
+                return updatedFormData;
+            });
+            return updatedStatuses;
+        });
+    };
+
+
+
+
 
     let allCompleted = false;
 
-    // Ensure we're looking for any statuses that are truly "completed" (e.g., "completed_*" or just "completed")
-    allCompleted = selectedStatuses
-        .filter(status => status !== "") // Remove empty statuses
-        .every(status =>
-            status.startsWith("completed") ||
-            status.toLowerCase() === "nil"
-        );
-    // Only consider "completed" prefixes
+    if (selectedStatuses.length > 0) {
+        const validStatuses = selectedStatuses.filter(status => status); // Removes null, undefined, and empty strings
+        if (validStatuses.length > 0) {
+            allCompleted = validStatuses.every(status =>
+                typeof status === "string" &&
+                (status.startsWith("completed") || status.toLowerCase() === "nil")
+            );
+        }
+    }
+
+
 
 
 
@@ -185,9 +253,6 @@ const GenerateReport = () => {
 
 
 
-
-
-
     function parseAndConvertDate(inputDate) {
         let parsedDate = new Date(inputDate);
 
@@ -204,14 +269,14 @@ const GenerateReport = () => {
             }
         }
 
-        // Format the date to 'YYYY-MM-DD' format
+        // Format the date to 'dd-MM-yyyy' format
         const formattedDate = parsedDate.toISOString().split('T')[0]; // Extracts only the date portion
         return formattedDate;
     }
 
     let applicationData;
     const fetchApplicationData = useCallback(() => {
-        setIsApiLoading(true)
+        setIsApiLoading(true);
 
         setLoading(true);
         const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
@@ -258,13 +323,15 @@ const GenerateReport = () => {
                 }
                 // If no token expired error, proceed with data
                 applicationData = result.application;
+                const customerData = result.customerInfo;
                 setApplications(result.application)
                 const cmtData = result.CMTData || [];
                 const services = applicationData.services;
-                fetchServicesJson(services, applicationData.id); // Fetch services JSON
+                fetchServicesJson(services, applicationData); // Fetch services JSON
                 setBranchInfo(result.branchInfo); // Set branch info
                 setCustomerInfo(result.customerInfo); // Set customer info
-                setAdminNames(result.admins); // Set admin names
+                setReportGeneratorAdminNames(result.reportGenerationTeam); // Set admin names
+                setQCVerifierAdminNames(result.qcVerificationTeam); // Set admin names
 
                 // Set the form data
                 // Helper function to validate and format dates
@@ -300,7 +367,6 @@ const GenerateReport = () => {
                     return date.toLocaleString('en-US', options); // "Month Year"
                 };
 
-                // If the monthYear is valid, format it; otherwise, skip updating
                 setFormData(prevFormData => {
                     // Check if cmtData.month_year is valid, otherwise use applicationData or fallback
                     const monthYear = cmtData.month_year || applicationData.month_year || prevFormData.updated_json.month_year || '';
@@ -310,12 +376,13 @@ const GenerateReport = () => {
 
                     return {
                         updated_json: {
+                            application_id: applicationData.application_id || prevFormData.updated_json.application_id || '',
                             month_year: formattedMonthYear || prevFormData.updated_json.month_year || '',
-
+                            insta_drug_test: cmtData.insta_drug_test || applicationData.insta_drug_test || prevFormData.updated_json.insta_drug_test || '',
                             organization_name: applicationData.customer_name || prevFormData.updated_json.organization_name || '',
                             verification_purpose: applicationData.purpose_of_application || prevFormData.updated_json.verification_purpose || '',
                             employee_id: applicationData.employee_id || prevFormData.updated_json.employee_id || '',
-                            client_code: applicationData.application_id || prevFormData.updated_json.client_code || '',
+                            client_code: customerData.client_unique_id || prevFormData.updated_json.client_code || '',
                             applicant_name: applicationData.name || prevFormData.updated_json.applicant_name || '',
                             contact_number: cmtData.contact_number || prevFormData.updated_json.contact_number || '',
                             contact_number2: cmtData.contact_number2 || prevFormData.updated_json.contact_number2 || '',
@@ -325,7 +392,7 @@ const GenerateReport = () => {
 
                             gender: cmtData.gender || prevFormData.updated_json.gender || '',
                             dob: (cmtData.dob && !isNaN(new Date(cmtData.dob).getTime()))
-                                ? new Date(cmtData.dob).toISOString().split('T')[0] // Format as YYYY-MM-DD
+                                ? new Date(cmtData.dob).toISOString().split('T')[0] // Format as dd-MM-yyyy
                                 : (prevFormData.updated_json.insuffDetails.dob
                                     ? new Date(prevFormData.updated_json.insuffDetails.dob).toISOString().split('T')[0]
                                     : ''),
@@ -352,7 +419,7 @@ const GenerateReport = () => {
 
                                 first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails.first_insufficiency_marks || '',
                                 first_insuff_date: (cmtData.first_insuff_date && !isNaN(new Date(cmtData.first_insuff_date).getTime()))
-                                    ? new Date(cmtData.first_insuff_date).toISOString().split('T')[0] // Format as YYYY-MM-DD
+                                    ? new Date(cmtData.first_insuff_date).toISOString().split('T')[0] // Format as dd-MM-yyyy
                                     : (prevFormData.updated_json.insuffDetails.first_insuff_date
                                         ? new Date(prevFormData.updated_json.insuffDetails.first_insuff_date).toISOString().split('T')[0]
                                         : ''),
@@ -398,7 +465,7 @@ const GenerateReport = () => {
             .catch((error) => {
             }).finally(() => {
                 setLoading(false); // End loading
-                setIsApiLoading(false)
+                setIsApiLoading(false);
 
             });
 
@@ -407,11 +474,16 @@ const GenerateReport = () => {
 
 
     useEffect(() => {
-        if (!isApiLoading) {
-            fetchApplicationData();
-        }
+        const fetchData = async () => {
+            if (!isApiLoading) {
+                await checkAuthentication();
+                await fetchApplicationData();
+            }
+        };
 
+        fetchData();
     }, [fetchApplicationData]);
+
     const handleCustomInputChange = (e) => {
         const { name, value } = e.target;
 
@@ -444,7 +516,11 @@ const GenerateReport = () => {
         }
     };
 
-    const fetchServicesJson = useCallback(async (servicesList, app_id) => {
+
+    const fetchServicesJson = useCallback(async (servicesList, rawApplicationData) => {
+        // console.log("rawApplicationData", rawApplicationData);
+        const app_id = rawApplicationData.id;
+        // console.log("app_id", app_id);
         setIsApiLoading(true);  // Start global loading
         setLoading(true);       // Set specific loading state
 
@@ -524,7 +600,92 @@ const GenerateReport = () => {
                 return orderA - orderB;
             });
 
-            setServicesDataInfo(sortedFilteredResults); // Set service data
+            const rawSortedFilteredResults = Array.isArray(sortedFilteredResults)
+                ? sortedFilteredResults.map((serviceData) => {
+                    if (!serviceData.serviceStatus) return serviceData;
+
+                    try {
+                        const formJson = JSON.parse(serviceData?.reportFormJson?.json || '{}');
+
+                        formJson.rows?.forEach((row) => {
+                            row.inputs?.forEach((input) => {
+                                let inputValue = '';
+
+                                // Ensure `annexureData` exists
+                                if (!serviceData.annexureData) {
+                                    serviceData.annexureData = {};
+                                }
+
+                                // Initialize if input name is not present
+                                if (!Object.prototype.hasOwnProperty.call(serviceData.annexureData, input.name)) {
+                                    serviceData.annexureData[input.name] = '';
+                                }
+
+                                // Use annexureData value
+                                inputValue = serviceData.annexureData[input.name];
+
+                                // Fallback to application data if empty
+                                if (!inputValue) {
+                                    const label = input?.label?.toLowerCase() || '';
+
+                                    if (label.includes('name') && (label.includes('candidate') || label.includes('applicant'))) {
+                                        inputValue = rawApplicationData?.name || '';
+                                    } else if ((label.includes('employee') && label.includes('id')) || (label.includes('emp') && label.includes('code'))) {
+                                        inputValue = rawApplicationData?.employee_id || '';
+                                    } else if ((label.includes('application') && label.includes('id')) || (label.includes('emp') && label.includes('id'))) {
+                                        inputValue = rawApplicationData?.application_id || '';
+                                    }
+                                }
+
+                                // Handle dropdown default value
+                                if (input.type === "dropdown") {
+                                    inputValue = inputValue || input.options?.find((option) => option.selected)?.value || '';
+                                }
+                                if (input.type === "datepicker" && formJson.db_table == "insta_drug_test") {
+                                    const currentDate = new Date().toISOString().split("T")[0];
+                                    inputValue = inputValue || (input.value === "currentData" ? currentDate : '');
+                                }
+
+                                // Assign the final value back
+                                serviceData.annexureData[input.name] = inputValue;
+                            });
+                        });
+
+                    } catch (error) {
+                        console.error('Error parsing reportFormJson:', error);
+                    }
+
+                    return serviceData;
+                })
+                : [];
+
+
+
+            setServicesDataInfo(rawSortedFilteredResults); // Set service data
+
+            const servicesLength = sortedFilteredResults?.length || 0;
+
+            const isDrugExist = Array.isArray(sortedFilteredResults) && sortedFilteredResults.some(service => {
+                try {
+                    const serviceJson = JSON.parse(service?.reportFormJson?.json || '{}');
+                    return serviceJson.db_table === "insta_drug_test";
+                } catch (error) {
+                    console.error("Error parsing service JSON:", error);
+                    return false;
+                }
+            });
+
+            if (servicesLength === 1 && isDrugExist) {
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    updated_json: {
+                        ...prevFormData.updated_json,
+                        insta_drug_test: true,
+                    },
+                }));
+            }
+
+
             return sortedFilteredResults;
 
 
@@ -538,7 +699,9 @@ const GenerateReport = () => {
             setLoading(false); // Stop loading for this operation
             setIsApiLoading(false); // Stop global loading
         }
-    }, [setServicesDataInfo]); // Add dependencies where necessary
+    }, [setServicesDataInfo]);
+
+
 
 
     const handleChange = (e) => {
@@ -691,12 +854,21 @@ const GenerateReport = () => {
 
             return updatedServicesDataInfo;
         });
+
+
     }, []);
 
-
-    const handleInputChange = useCallback((e, index) => {
+    const handleInputChange = useCallback((e, input, index) => {
         const { name, value } = e.target;
+        let newValue = value;
+        if (newValue.toLowerCase() === 'custom') {
+            const customValue = prompt("Enter custom value:");
 
+            if (!customValue) {
+                return; // If empty or cancel is pressed, exit without updating
+            }
+            newValue = customValue;
+        }
         setServicesDataInfo((prev) => {
             const updatedServicesDataInfo = [...prev];
 
@@ -704,22 +876,125 @@ const GenerateReport = () => {
                 ...updatedServicesDataInfo[index],
                 annexureData: {
                     ...updatedServicesDataInfo[index].annexureData,
-                    [name]: value || '',
+                    [name]: newValue || '',
                 },
             };
 
             return updatedServicesDataInfo;
         });
+
+        setServicesDataInfo((prev) => {
+            const updatedServicesDataInfo = [...prev];
+            // Parse the JSON structure stored in reportFormJson
+            const reportFormJson = JSON.parse(updatedServicesDataInfo[index].reportFormJson.json);
+
+            // Check if the service heading is "INSTA DRUG TEST"
+            if (reportFormJson.heading === "INSTA DRUG TEST") {
+                // console.log("===> INSTA DRUG TEST block entered");
+
+                const annexureData = updatedServicesDataInfo[index]?.annexureData || {};
+                // console.log("Annexure Data:", annexureData);
+
+                const drugPanel = annexureData["information_source_name_insta_drug_test"];
+                const outcome = annexureData["out_come_insta_drug_test"];
+
+                // console.log("Drug Panel:", drugPanel);
+                // console.log("Outcome:", outcome);
+
+                if (input.type === 'dropdown') {
+                    // console.log("Input type is dropdown");
+
+                    if (drugPanel === "5 panel" && outcome === "NEGATIVE") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "The submitted urine specimen was tested and did not test positive for any of the drugs mentioned in the 5 Panel Drug Test, Hence closing the check as GREEN and the same is furnished as annexure";
+                        // console.log("5 panel NEGATIVE matched");
+
+                    } else if (drugPanel === "9 panel" && outcome === "NEGATIVE") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "The submitted urine specimen was tested and did not test positive for any of the drugs mentioned in the 9 Panel Drug Test, Hence closing the check as GREEN and the same is furnished as annexure";
+                        // console.log("9 panel NEGATIVE matched");
+
+                    } else if (drugPanel === "10 panel" && outcome === "NEGATIVE") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "The submitted urine specimen was tested and did not test positive for any of the drugs mentioned in the 10 Panel Drug Test, Hence closing the check as GREEN and the same is furnished as annexure.";
+                        // console.log("10 panel NEGATIVE matched");
+
+                    } else if (drugPanel === "5 panel" && outcome === "POSITIVE") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "The submitted urine specimen was tested positive for (1. Marijuana – THC/  2. Cocaine/Benzoylecgonine-COC/ 3. Phencyclidine – PCP/ 4. Amphetamines – AMP/ 5. Opiates / Morphine – MOR/OPI) of the drugs mentioned in the 5 Panel Drug Test, Hence closing the check as RED and the same is furnished as annexure.";
+                        // console.log("5 panel POSITIVE matched");
+
+                    } else if (drugPanel === "9 panel" && outcome === "POSITIVE") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "The submitted urine specimen was tested positive for (1. Marijuana – THC/  2. Cocaine/Benzoylecgonine-COC/ 3. Phencyclidine – PCP/ 4. Amphetamines – AMP/ 5. Opiates / Morphine – MOR/OPI / 6. Barbiturates /Secobarbital – BAR/ 7. Benzodiazepines / Oxazepam – BZO / 8. Methamphetamine – MET / 9. Methadone – MTD) of the drugs mentioned in the 9 Panel Drug Test, Hence closing the check as RED and the same is furnished as annexure.";
+                        // console.log("9 panel POSITIVE matched");
+
+                    } else if (drugPanel === "10 panel" && outcome === "POSITIVE") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "The submitted urine specimen was tested positive for (1. Marijuana – THC/  2. Cocaine/Benzoylecgonine-COC/ 3. Phencyclidine – PCP/ 4. Amphetamines – AMP/ 5. Opiates / Morphine – MOR/OPI / 6. Barbiturates /Secobarbital – BAR/ 7. Benzodiazepines / Oxazepam – BZO / 8. Methamphetamine – MET / 9. Methadone – MTD / 10. Oxycodone - OXY) of the drugs mentioned in the 10 Panel Drug Test, Hence closing the check as RED and the same is furnished as annexure.";
+                        // console.log("10 panel POSITIVE matched");
+
+                    } else if (outcome === "ABSENT") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "THE CANDIDATE WAS NOT PRESENT FOR DRUG TEST";
+                        // console.log("Candidate ABSENT for drug test");
+
+                    } else if (outcome === "DENIED") {
+                        annexureData["test_result_insta_drug_test"] =
+                            "THE CANDIDATE DENIED FOR TAKING THE DRUG TEST";
+                        // console.log("Candidate DENIED the drug test");
+
+                    } else {
+                        annexureData[name] = newValue || '';
+                        annexureData["test_result_insta_drug_test"] = "";
+                        // console.log("No matching panel/outcome - reset value");
+                    }
+
+                } else {
+                    annexureData[name] = newValue || '';
+                    // console.log("Input type is not dropdown. Value set directly.");
+                }
+
+                updatedServicesDataInfo[index] = {
+                    ...updatedServicesDataInfo[index],
+                    annexureData: { ...annexureData },
+                };
+
+                // console.log("Updated annexureData:", annexureData);
+                // console.log("Updated updatedServicesDataInfo:", updatedServicesDataInfo[index]);
+            }
+
+            return updatedServicesDataInfo;
+        });
     }, []);
 
-
+    const handleTimeChange = useCallback((e, input, type, index, preSelectedTime) => {
+        const { name, value } = e.target;
+        let rawSelectedHour = selectedHour || preSelectedTime.hour;
+        let rawSelectedMinute = selectedMinute || preSelectedTime.minutes;
+        let rawSelectedPeriod = selectedPeriod || preSelectedTime.period;
+        if (type == 'hour') {
+            setSelectedHour(value);
+            rawSelectedHour = value;
+        } else if (type == 'minute') {
+            setSelectedMinute(value);
+            rawSelectedMinute = value;
+        } else if (type == 'period') {
+            setSelectedPeriod(value);
+            rawSelectedPeriod = value;
+        }
+        const formattedTime = `${rawSelectedHour}:${rawSelectedMinute} ${rawSelectedPeriod}`;
+        handleInputChange({ target: { name: input.name, value: formattedTime } }, input, index);
+    }, [selectedHour, selectedMinute, selectedPeriod, handleInputChange]);
 
     const renderInput = (index, dbTable, input, annexureImagesSplitArr) => {
         let inputValue = '';
+        // Check if value exists in servicesDataInfo first
         if (servicesDataInfo[index]?.annexureData?.hasOwnProperty(input.name)) {
             inputValue = servicesDataInfo[index].annexureData[input.name] || '';
         }
 
+        // Render input elements
         switch (input.type) {
             case "text":
             case "email":
@@ -732,11 +1007,12 @@ const GenerateReport = () => {
                             name={input.name}
                             value={inputValue}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, index)} // Pass the index
+                            onChange={(e) => handleInputChange(e, input, index)}
                             onBlur={(e) => handleFocusOut(e, index)}
                         />
                     </>
                 );
+
             case "datepicker":
                 return (
                     <>
@@ -746,25 +1022,78 @@ const GenerateReport = () => {
                             name={input.name}
                             value={inputValue}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, index)}
+                            onChange={(e) => handleInputChange(e, input, index)}
                             onBlur={(e) => handleFocusOut(e, index)}
-                            onFocus={(e) => e.target.showPicker && e.target.showPicker()} // Open calendar on focus
+                            onFocus={(e) => e.target.showPicker && e.target.showPicker()}
                         />
-
                     </>
                 );
-            case "dropdown":
+
+            case "timepicker":
+                let hour = "00", minutes = "00", period = "AM";
+                if (inputValue) {
+                    const [time, timePeriod] = inputValue.trim().split(" ") || ["00:00", "AM"];
+                    [hour, minutes] = time.split(":") || ["00", "00"];
+                    period = timePeriod || "AM";
+                }
+                let preSelectedTime = { hour, minutes, period };
+
                 return (
                     <>
-                        <label className='text-sm'>{input.label}</label>
+                        <label className="text-sm">{input.label}</label>
+                        <div className="flex space-x-2 border border-gray-300 rounded-lg p-2 shadow-sm bg-white">
+                            <select
+                                value={hour}
+                                onChange={(e) => handleTimeChange(e, input, 'hour', index, preSelectedTime)}
+                                className="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
+                            >
+                                {Array.from({ length: 13 }, (_, i) => i.toString().padStart(2, "0")).map((hour) => (
+                                    <option key={hour} value={hour}>{hour}</option>
+                                ))}
+                            </select>
+
+                            <select
+                                value={minutes}
+                                onChange={(e) => handleTimeChange(e, input, 'minute', index, preSelectedTime)}
+                                className="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
+                            >
+                                {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
+                                    <option key={minute} value={minute}>{minute}</option>
+                                ))}
+                            </select>
+
+                            <select
+                                value={period}
+                                onChange={(e) => handleTimeChange(e, input, 'period', index, preSelectedTime)}
+                                className="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
+                            >
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </>
+                );
+
+            case "dropdown":
+                // Check if the current value exists in the options
+                const isValueInOptions = input.options?.some(option => option.value === inputValue);
+
+                // Create a new array of options including the current value if it's missing
+                const updatedOptions = isValueInOptions
+                    ? input.options
+                    : [...(input.options || []), { value: inputValue, showText: inputValue }];
+
+                return (
+                    <>
+                        <label className="text-sm">{input.label}</label>
                         <select
                             name={input.name}
-                            value={inputValue}
+                            value={inputValue || ""}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, index)} // Pass the index
+                            onChange={(e) => handleInputChange(e, input, index)}
                             onBlur={(e) => handleFocusOut(e, index)}
                         >
-                            {input.options.map((option) => (
+                            {updatedOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.showText}
                                 </option>
@@ -772,6 +1101,7 @@ const GenerateReport = () => {
                         </select>
                     </>
                 );
+
             case "file":
                 return (
                     <>
@@ -781,27 +1111,25 @@ const GenerateReport = () => {
                             name={input.name}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             multiple={input.multiple}
-                            onChange={(e) => handleFileChange(index, dbTable, input.name, e)} // Update this function if needed
-                            onBlur={(e) => handleFocusOut(index, dbTable, input.name, e)} // Update this function if needed
+                            onChange={(e) => handleFileChange(index, dbTable, input.name, e)}
+                            onBlur={(e) => handleFocusOut(index, dbTable, input.name, e)}
                         />
                         <div className="relative mt-4">
                             {annexureImagesSplitArr.length > 0 ? (
-                                <div
-                                    className="grid md:grid-cols-5 grid-cols-1 gap-5 overflow-auto max-h-64" // Add max-height for scrolling
-                                >
-                                    {annexureImagesSplitArr.map((image, index) => (
+                                <div className="grid md:grid-cols-5 grid-cols-1 gap-5 overflow-auto max-h-64">
+                                    {annexureImagesSplitArr.map((image, idx) => (
                                         image.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                                             <img
                                                 src={image.trim()}
-                                                alt={`Image ${index + 1}`}
-                                                key={index} // Ensure key is added
+                                                alt={`Image ${idx + 1}`}
+                                                key={idx}
                                             />
                                         ) : (
                                             <a
                                                 href={image.trim()}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                key={index} // Ensure key is added for anchor tags as well
+                                                key={idx}
                                             >
                                                 <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
                                                     View Document
@@ -811,31 +1139,31 @@ const GenerateReport = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <p>No Image Found</p> // Message if no images are present
+                                <p>No Image Found</p>
                             )}
                         </div>
-
-
-
-
-
                     </>
                 );
+
             default:
                 return (
-                    <><label className='text-sm'>{input.label}</label>
+                    <>
+                        <label className='text-sm'>{input.label}</label>
                         <input
                             type="text"
                             name={input.name}
                             value={inputValue}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, index)} // Pass the index
-                            onBlur={(e) => handleFocusOut(e, index)} // Pass the index
+                            onChange={(e) => handleInputChange(e, input, index)}
+                            onBlur={(e) => handleFocusOut(e, index)}
                         />
                     </>
                 );
         }
     };
+
+
+
 
     const handleSubmit = useCallback(async (e, allSortingOrder) => {
         e.preventDefault();
@@ -905,7 +1233,7 @@ const GenerateReport = () => {
                         const sorting_order = allSortingOrder?.[dbTable] || serviceData?.annexureData?.sorting_order || '';
 
                         if (annexure[category]) {
-                            annexure[category].status = status;
+                            annexure[category].status = status || 'initiated';
                             annexure[category].sorting_order = sorting_order;
                         }
 
@@ -990,8 +1318,11 @@ const GenerateReport = () => {
                     confirmButtonText: "Ok",
                 });
             }
-            fetchApplicationData();
-            fetchServicesJson();
+
+            // Reload the current page
+            window.location.reload();
+            // fetchApplicationData();
+            // fetchServicesJson();
 
         } catch (error) {
             console.error("Error during submission:", error);
@@ -1021,11 +1352,11 @@ const GenerateReport = () => {
     const handleDatesChange = (date, fieldName) => {
 
         if (!date) {
-            console.log("No date selected.");
+            //// console.log("No date selected.");
             return;
         }
 
-        const formattedDate = date.toISOString().split("T")[0]; // Convert to "YYYY-MM-DD"
+        const formattedDate = date.toISOString().split("T")[0]; // Convert to "dd-MM-yyyy"
 
         setFormData((prevFormData) => {
             const updatedFormData = {
@@ -1071,6 +1402,32 @@ const GenerateReport = () => {
                     <form className="space-y-4 p-2" autoComplete="off" onSubmit={(e) => handleSubmit(e, sortingOrder)}>
 
                         <div className=" form start space-y-4 py-[30px] md:px-[51px] bg-white rounded-md" id="client-spoc">
+                            <input
+                                type="checkbox"
+                                name="updated_json.insta_drug_test"
+                                id="insta_drug_test"
+                                checked={
+                                    ([true, "1", 1].includes(formData.updated_json.insta_drug_test)
+                                    )
+                                }
+                                onChange={handleChange}
+                                value={formData.updated_json.insta_drug_test}
+                            />
+
+                            <label htmlFor="insta_drug_test" className='font-bold capitalize text-lg ms-2'>Only Drug Test</label>
+
+                            <div className="mb-4">
+                                <label htmlFor="application_id">Application ID</label>
+                                <input
+                                    type="text"
+                                    name="application_id"
+                                    id="application_id"
+                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                    value={formData.updated_json.application_id}
+                                    disabled={formData.updated_json.application_id}
+                                    onChange={handleChange}
+                                />
+                            </div>
                             <div>
                                 <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                     <div className="mb-4">
@@ -1091,7 +1448,7 @@ const GenerateReport = () => {
                                         <DatePicker
                                             selected={formData.updated_json.initiation_date ? new Date(formData.updated_json.initiation_date) : null}
                                             onChange={(date) => handleDatesChange(date, "updated_json.initiation_date")}
-                                            dateFormat="yyyy-MM-dd"
+                                            dateFormat="dd-MM-yyyy"
                                             className="w-full border p-2 outline-none rounded-md mt-2"
                                         />
 
@@ -1199,7 +1556,7 @@ const GenerateReport = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
+                                <div className="grid  grid-cols-1 gap-3">
                                     <div className="mb-4">
                                         <label htmlFor="applicant_name">Name of the Applicant*</label>
                                         <input
@@ -1212,232 +1569,247 @@ const GenerateReport = () => {
                                             onChange={handleChange}
                                         />
                                     </div>
-
-                                    <div className="mb-4">
-                                        <label htmlFor="contact_number">Contact Number</label>
-                                        <input
-                                            type="tel"
-                                            name="contact_number"
-                                            id="contact_number"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.contact_number}
-
-                                            onChange={handleChange}
-                                        />
-                                    </div>
                                 </div>
-
-                                <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
-                                    <div className="mb-4">
-                                        <label htmlFor="contact_number2">Contact Number 2:</label>
-                                        <input
-                                            type="tel"
-                                            name="contact_number2"
-                                            id="contact_number2"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.contact_number2}
-
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label htmlFor="father_name">Father's Name:</label>
-                                        <input
-                                            type="text"
-                                            name="father_name"
-                                            id="father_name"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.father_name}
-
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid md:grid-cols-3 grid-cols-1 gap-3">
-                                    <div className="mb-4">
-                                        <label htmlFor="gender">Gender</label>
-                                        <select
-                                            name="gender"
-                                            id="gender"
-                                            className="border w-full rounded-md p-2 mt-2"
-                                            value={formData.updated_json.gender}
-
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">Select Gender</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                        </select>
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="dob">Date Of Birth</label>
-
-                                        <DatePicker
-                                            selected={formData.updated_json.dob ? new Date(formData.updated_json.dob) : null}
-                                            onChange={(date) => handleDatesChange(date, "updated_json.dob")}
-                                            dateFormat="yyyy-MM-dd"
-                                            className="w-full border p-2 outline-none rounded-md mt-2"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="marital_status">Marital Status</label>
-                                        <select
-                                            name="marital_status"
-                                            id="marital_status"
-                                            className="border w-full rounded-md p-2 mt-2"
-                                            value={formData.updated_json.marital_status}
-
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">Select Marital Status</option>
-                                            <option value="Single">Single</option>
-                                            <option value="Married">Married</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-
-                            </div>
-
-                            <div className='permanentaddress '>
-                                <div className='my-4 text-center md:text-2xl text-lg font-semibold mb-4'>Permanent Address</div>
-                                <div className="form-group border p-3 rounded-md">
-                                    <div className="mb-4">
-                                        <label htmlFor="full_address">Full Address:</label>
-                                        <input
-                                            type="text"
-                                            name="updated_json.permanent_address.permanent_address"
-                                            id="full_address"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.permanent_address.permanent_address || ''}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <h3 className="font-semibold text-xl mb-3">Period of Stay</h3>
-                                        <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
-                                            <div className="mb-4">
-                                                <label htmlFor="permanent_sender_name">From:</label>
-                                                <input
-                                                    type="text"
-                                                    name="updated_json.permanent_address.permanent_sender_name"
-                                                    id="permanent_sender_name"
-                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                                    value={formData.updated_json.permanent_address.permanent_sender_name}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-
-                                            <div className="mb-4">
-                                                <label htmlFor="permanent_reciever_name">To:</label>
-                                                <input
-                                                    type="text"
-                                                    name="updated_json.permanent_address.permanent_reciever_name"
-                                                    id="permanent_reciever_name"
-                                                    className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
-                                                    value={formData.updated_json.permanent_address.permanent_reciever_name}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
-                                            <div className="mb-4">
-                                                <label htmlFor="permanent_landmark">Landmark:</label>
-                                                <input
-                                                    type="text"
-                                                    name="updated_json.permanent_address.permanent_landmark"
-                                                    id="permanent_landmark"
-                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                                    value={formData.updated_json.permanent_address.permanent_landmark}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-
-                                            <div className="mb-4">
-                                                <label htmlFor="permanent_pin_code">Pin Code:</label>
-                                                <input
-                                                    type="text" // Keep as text to handle leading zeros
-                                                    name="updated_json.permanent_address.permanent_pin_code"
-                                                    id="permanent_pin_code"
-                                                    className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
-                                                    value={formData.updated_json.permanent_address.permanent_pin_code}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-                                        </div>
+                                {![true, "1", 1].includes(formData.updated_json.insta_drug_test) && (
+                                    <>
 
                                         <div className="mb-4">
-                                            <label htmlFor="permanent_state">State:</label>
+                                            <label htmlFor="contact_number">Contact Number</label>
                                             <input
-                                                type="text"
-                                                name="updated_json.permanent_address.permanent_state"
-                                                id="permanent_state"
-                                                className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
-                                                value={formData.updated_json.permanent_address.permanent_state}
+                                                type="tel"
+                                                name="contact_number"
+                                                id="contact_number"
+                                                className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                value={formData.updated_json.contact_number}
+
                                                 onChange={handleChange}
                                             />
                                         </div>
-                                    </div>
-                                </div>
+
+
+                                        <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
+                                            <div className="mb-4">
+                                                <label htmlFor="contact_number2">Contact Number 2:</label>
+                                                <input
+                                                    type="tel"
+                                                    name="contact_number2"
+                                                    id="contact_number2"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.contact_number2}
+
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <label htmlFor="father_name">Father's Name:</label>
+                                                <input
+                                                    type="text"
+                                                    name="father_name"
+                                                    id="father_name"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.father_name}
+
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid md:grid-cols-3 grid-cols-1 gap-3">
+                                            <div className="mb-4">
+                                                <label htmlFor="gender">Gender</label>
+                                                <select
+                                                    name="gender"
+                                                    id="gender"
+                                                    className="border w-full rounded-md p-2 mt-2"
+                                                    value={formData.updated_json.gender
+                                                        ? formData.updated_json.gender.charAt(0).toUpperCase() + formData.updated_json.gender.slice(1).toLowerCase()
+                                                        : ""}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="">Select Gender</option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                </select>
+
+                                            </div>
+                                            <div className="mb-4">
+                                                <label htmlFor="dob">Date Of Birth</label>
+
+                                                <DatePicker
+                                                    selected={formData.updated_json.dob ? new Date(formData.updated_json.dob) : null}
+                                                    onChange={(date) => handleDatesChange(date, "updated_json.dob")}
+                                                    dateFormat="dd-MM-yyyy"
+                                                    className="w-full border p-2 outline-none rounded-md mt-2"
+                                                />
+                                            </div>
+                                            <div className="mb-4">
+                                                <label htmlFor="marital_status">Marital Status</label>
+                                                <select
+                                                    name="marital_status"
+                                                    id="marital_status"
+                                                    className="border w-full rounded-md p-2 mt-2"
+                                                    value={formData.updated_json.marital_status}
+
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="">Select Marital Status</option>
+                                                    < option value="Don't wish to disclose"> Don't wish to disclose</option>
+                                                    < option value="Single"> Single </option>
+                                                    < option value="Married"> Married </option>
+                                                    < option value="Widowed"> Widowed </option>
+                                                    < option value="Divorced"> Divorced </option>
+                                                    < option value="Separated"> Separated </option>
+                                                </select>
+                                            </div>
+                                        </div></>
+                                )}
+
                             </div>
-                            <div className='currentaddress '>
-                                <div className='my-4 text-center md:text-2xl text-lg font-semibold mb-4'>Current Address </div>
-                                <div className="form-group border rounded-md p-3">
-                                    <div className="mb-4">
-                                        <label htmlFor="full_address">Full Address:</label>
-                                        <input
-                                            type="text"
-                                            name="updated_json.address.address"
-                                            id="address"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.address.address}
-                                            onChange={handleChange}
-                                        />
+                            {![true, "1", 1].includes(formData.updated_json.insta_drug_test) && (
+
+                                <>
+                                    <div className='permanentaddress '>
+                                        <div className='my-4 text-center md:text-2xl text-lg font-semibold mb-4'>Permanent Address</div>
+                                        <div className="form-group border p-3 rounded-md">
+                                            <div className="mb-4">
+                                                <label htmlFor="full_address">Full Address:</label>
+                                                <input
+                                                    type="text"
+                                                    name="updated_json.permanent_address.permanent_address"
+                                                    id="full_address"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.permanent_address.permanent_address || ''}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <h3 className="font-semibold text-xl mb-3">Period of Stay</h3>
+                                                <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
+                                                    <div className="mb-4">
+                                                        <label htmlFor="permanent_sender_name">From:</label>
+                                                        <input
+                                                            type="text"
+                                                            name="updated_json.permanent_address.permanent_sender_name"
+                                                            id="permanent_sender_name"
+                                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                            value={formData.updated_json.permanent_address.permanent_sender_name}
+                                                            onChange={handleChange}
+                                                        />
+                                                    </div>
+
+                                                    <div className="mb-4">
+                                                        <label htmlFor="permanent_reciever_name">To:</label>
+                                                        <input
+                                                            type="text"
+                                                            name="updated_json.permanent_address.permanent_reciever_name"
+                                                            id="permanent_reciever_name"
+                                                            className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
+                                                            value={formData.updated_json.permanent_address.permanent_reciever_name}
+                                                            onChange={handleChange}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
+                                                    <div className="mb-4">
+                                                        <label htmlFor="permanent_landmark">Landmark:</label>
+                                                        <input
+                                                            type="text"
+                                                            name="updated_json.permanent_address.permanent_landmark"
+                                                            id="permanent_landmark"
+                                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                            value={formData.updated_json.permanent_address.permanent_landmark}
+                                                            onChange={handleChange}
+                                                        />
+                                                    </div>
+
+                                                    <div className="mb-4">
+                                                        <label htmlFor="permanent_pin_code">Pin Code:</label>
+                                                        <input
+                                                            type="text" // Keep as text to handle leading zeros
+                                                            name="updated_json.permanent_address.permanent_pin_code"
+                                                            id="permanent_pin_code"
+                                                            className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
+                                                            value={formData.updated_json.permanent_address.permanent_pin_code}
+                                                            onChange={handleChange}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="mb-4">
+                                                    <label htmlFor="permanent_state">State:</label>
+                                                    <input
+                                                        type="text"
+                                                        name="updated_json.permanent_address.permanent_state"
+                                                        id="permanent_state"
+                                                        className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
+                                                        value={formData.updated_json.permanent_address.permanent_state}
+                                                        onChange={handleChange}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="Landmark">Landmark:</label>
-                                        <input
-                                            type="text"
-                                            name="updated_json.address.landmark"
-                                            id="landmark"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.address.landmark}
-                                            onChange={handleChange}
-                                        />
+                                    <div className='currentaddress '>
+                                        <div className='my-4 text-center md:text-2xl text-lg font-semibold mb-4'>Current Address </div>
+                                        <div className="form-group border rounded-md p-3">
+                                            <div className="mb-4">
+                                                <label htmlFor="full_address">Full Address:</label>
+                                                <input
+                                                    type="text"
+                                                    name="updated_json.address.address"
+                                                    id="address"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.address.address}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            <div className="mb-4">
+                                                <label htmlFor="Landmark">Landmark:</label>
+                                                <input
+                                                    type="text"
+                                                    name="updated_json.address.landmark"
+                                                    id="landmark"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.address.landmark}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            <div className="mb-4">
+                                                <label htmlFor="residence_mobile_number">Residence Mobile No:</label>
+                                                <input
+                                                    type="text"
+                                                    name="updated_json.address.residence_mobile_number"
+                                                    id="residence_mobile_number"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.address.residence_mobile_number}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            <div className="mb-4">
+                                                <label htmlFor="state">State</label>
+                                                <input
+                                                    type="text"
+                                                    name="updated_json.address.state"
+                                                    id="state"
+                                                    className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
+                                                    value={formData.updated_json.address.state}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="residence_mobile_number">Residence Mobile No:</label>
-                                        <input
-                                            type="text"
-                                            name="updated_json.address.residence_mobile_number"
-                                            id="residence_mobile_number"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            value={formData.updated_json.address.residence_mobile_number}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="state">State</label>
-                                        <input
-                                            type="text"
-                                            name="updated_json.address.state"
-                                            id="state"
-                                            className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
-                                            value={formData.updated_json.address.state}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                                </>
+                            )}
                         </div>
 
                         <div>
-                            <div className="SelectedServices border md:p-5 p-2 overflow-auto  rounded-md md:mx-12">
+
+                            <div className="SelectedServices border md:p-5 p-2 overflow-auto rounded-md md:mx-12">
                                 <h1 className="text-center md:text-2xl text-lg">SELECTED SERVICES</h1>
+
                                 {servicesDataInfo && servicesDataInfo.map((serviceData, index) => {
                                     if (serviceData.serviceStatus) {
                                         const formJson = JSON.parse(serviceData.reportFormJson.json);
@@ -1446,56 +1818,68 @@ const GenerateReport = () => {
                                         let sortingOrderfinal = serviceData?.annexureData?.sorting_order || "";
                                         let preselectedStatus = selectedStatuses[index] ?? status ?? 'initiated';
                                         let preselectedSortingOrder = sortingOrder[dbTable] ?? sortingOrderfinal;
-
-                                        return (
-                                            <div key={index} className="mb-6 md:grid grid-cols-3 gap-3 justify-between mt-5">
-                                                {formJson.heading && (
-                                                    <>
-                                                        <span className="text-sm block">{formJson.heading}</span>
-
-                                                        {/* Status Selector */}
-                                                        <select
-                                                            className="border p-2 mt-4 md:mt-0 w-full rounded-md"
-                                                            value={preselectedStatus} // Controlled component ensures default selection
-                                                            onChange={(e) => handleStatusChange(e, index)}
-                                                        >
-                                                            <option value="">--Select status--</option>
-                                                            <option value="nil">NIL</option>
-                                                            <option value="initiated">INITIATED</option>
-                                                            <option value="hold">HOLD</option>
-                                                            <option value="closure_advice">CLOSURE ADVICE</option>
-                                                            <option value="wip">WIP</option>
-                                                            <option value="insuff">INSUFF</option>
-                                                            <option value="completed">COMPLETED</option>
-                                                            <option value="completed_green">COMPLETED GREEN</option>
-                                                            <option value="completed_orange">COMPLETED ORANGE</option>
-                                                            <option value="completed_red">COMPLETED RED</option>
-                                                            <option value="completed_yellow">COMPLETED YELLOW</option>
-                                                            <option value="completed_pink">COMPLETED PINK</option>
-                                                            <option value="stopcheck">STOPCHECK</option>
-                                                            <option value="active_employment">ACTIVE EMPLOYMENT</option>
-                                                            <option value="not_doable">NOT DOABLE</option>
-                                                            <option value="candidate_denied">CANDIDATE DENIED</option>
-                                                        </select>
-
-                                                        {/* Sorting Order Input */}
-                                                        <input
-                                                            type='number'
-                                                            placeholder='Sorting By Order'
-                                                            className="border p-2 mt-4 md:mt-0 rounded-md w-full"
-                                                            id={`sorting_order_${index}`}
-                                                            value={preselectedSortingOrder}
-                                                            onChange={(e) => handleSortingOrderChange(e, dbTable)}  // Assuming you have a handler for sorting order
-                                                        />
-                                                    </>
-                                                )}
-                                            </div>
+                                        let isInstaDrugTestEnabled = !(
+                                            formData.updated_json.insta_drug_test === 0 ||
+                                            formData.updated_json.insta_drug_test === '0' ||
+                                            formData.updated_json.insta_drug_test === false ||
+                                            formData.updated_json.insta_drug_test === 'false' ||
+                                            formData.updated_json.insta_drug_test === null ||
+                                            formData.updated_json.insta_drug_test === undefined ||
+                                            formData.updated_json.insta_drug_test === ''
                                         );
+
+                                        if ((isInstaDrugTestEnabled && formJson.heading === "INSTA DRUG TEST") || !isInstaDrugTestEnabled) {
+                                            return (
+                                                <div key={index} className="mb-6 md:grid grid-cols-3 gap-3 justify-between mt-5">
+                                                    {formJson.heading && (
+                                                        <>
+                                                            <span className="text-sm block">{formJson.heading}</span>
+
+                                                            {/* Status Selector */}
+                                                            <select
+                                                                className="border p-2 mt-4 md:mt-0 w-full rounded-md"
+                                                                value={preselectedStatus} // Controlled component ensures default selection
+                                                                onChange={(e) => handleStatusChange(e, index)}
+                                                            >
+                                                                <option value="">--Select status--</option>
+                                                                <option value="nil">NIL</option>
+                                                                <option value="initiated">INITIATED</option>
+                                                                <option value="hold">HOLD</option>
+                                                                <option value="closure_advice">CLOSURE ADVICE</option>
+                                                                <option value="wip">WIP</option>
+                                                                <option value="insuff">INSUFF</option>
+                                                                <option value="completed">COMPLETED</option>
+                                                                <option value="completed_green">COMPLETED GREEN</option>
+                                                                <option value="completed_orange">COMPLETED ORANGE</option>
+                                                                <option value="completed_red">COMPLETED RED</option>
+                                                                <option value="completed_yellow">COMPLETED YELLOW</option>
+                                                                <option value="completed_pink">COMPLETED PINK</option>
+                                                                <option value="stopcheck">STOPCHECK</option>
+                                                                <option value="active_employment">ACTIVE EMPLOYMENT</option>
+                                                                <option value="not_doable">NOT DOABLE</option>
+                                                                <option value="candidate_denied">CANDIDATE DENIED</option>
+                                                            </select>
+
+                                                            {/* Sorting Order Input */}
+                                                            <input
+                                                                type='number'
+                                                                placeholder='Sorting By Order'
+                                                                className="border p-2 mt-4 md:mt-0 rounded-md w-full"
+                                                                id={`sorting_order_${index}`}
+                                                                value={preselectedSortingOrder}
+                                                                onChange={(e) => handleSortingOrderChange(e, dbTable)}  // Assuming you have a handler for sorting order
+                                                            />
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
                                     }
                                     return null;
                                 })}
-
                             </div>
+
+
 
                             <div className="container mx-auto mt-5 md:px-8">
                                 {servicesDataInfo && servicesDataInfo.map((serviceData, index) => {
@@ -1505,94 +1889,101 @@ const GenerateReport = () => {
                                         const dbTable = formJson.db_table;
                                         let annexureData = serviceData?.annexureData || {};
                                         let annexureImagesSplitArr = [];
+                                        let isInstaDrugTestEnabled = !(
+                                            formData.updated_json.insta_drug_test === 0 ||
+                                            formData.updated_json.insta_drug_test === '0' ||
+                                            formData.updated_json.insta_drug_test === false ||
+                                            formData.updated_json.insta_drug_test === 'false' ||
+                                            formData.updated_json.insta_drug_test === null ||
+                                            formData.updated_json.insta_drug_test === undefined ||
+                                            formData.updated_json.insta_drug_test === ''
+                                        );
 
-                                        if (annexureData) {
-                                            const annexureImagesKey = Object.keys(annexureData).find(key =>
-                                                key.toLowerCase().startsWith('annexure') &&
-                                                !key.includes('[') &&
-                                                !key.includes(']')
-                                            );
-                                            if (annexureImagesKey) {
-                                                const annexureImagesStr = annexureData[annexureImagesKey];
-                                                annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(',') : [];
+                                        if ((isInstaDrugTestEnabled && formJson.heading === "INSTA DRUG TEST") || !isInstaDrugTestEnabled) {
+                                            if (annexureData) {
+                                                const annexureImagesKey = Object.keys(annexureData).find(key =>
+                                                    key.toLowerCase().startsWith('annexure') &&
+                                                    !key.includes('[') &&
+                                                    !key.includes(']')
+                                                );
+                                                if (annexureImagesKey) {
+                                                    const annexureImagesStr = annexureData[annexureImagesKey];
+                                                    annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(',') : [];
+                                                }
                                             }
-                                        }
 
-                                        return (
-                                            <div key={index} className="mb-6 overflow-x-auto">
-                                                {/* Only render form if the selected status is not "nil" */}
-                                                {selectedStatuses[index] !== "nil" && (
-                                                    <>
-                                                        {dbTableHeading && (
-                                                            <h3 className="text-center text-lg md:text-2xl font-semibold mb-4">{dbTableHeading}</h3>
-                                                        )}
-                                                        <table className="md:w-full table-auto border-collapse border border-gray-300">
-                                                            <thead>
-                                                                <tr className="bg-[#3e76a5] text-white">
-                                                                    {formJson.headers.map((header, idx) => (
-                                                                        <th
-                                                                            key={idx}
-                                                                            className={`py-2 px-4 border p-4 text-lg border-gray-300 ${idx === 0 ? "text-left" : idx === 1 ? "text-right" : ""}`}
-                                                                        >
-                                                                            {header}
-                                                                        </th>
-                                                                    ))}
-                                                                </tr>
-                                                            </thead>
+                                            return (
+                                                <div key={index} className="mb-6 overflow-x-auto">
+                                                    {/* Only render form if the selected status is not "nil" */}
+                                                    {((isInstaDrugTestEnabled && formJson.heading === "INSTA DRUG TEST") || !isInstaDrugTestEnabled) && selectedStatuses[index] !== "nil" && (
+                                                        <>
+                                                            {dbTableHeading && (
+                                                                <h3 className="text-center text-lg md:text-2xl font-semibold mb-4">{dbTableHeading}</h3>
+                                                            )}
+                                                            <table className="md:w-full table-auto border-collapse border border-gray-300">
+                                                                <thead>
+                                                                    <tr className="bg-[#3e76a5] text-white">
+                                                                        {formJson.headers.map((header, idx) => (
+                                                                            <th
+                                                                                key={idx}
+                                                                                className={`py-2 px-4 border p-4 text-lg border-gray-300 ${idx === 0 ? "text-left" : idx === 1 ? "text-right" : ""}`}
+                                                                            >
+                                                                                {header}
+                                                                            </th>
+                                                                        ))}
+                                                                    </tr>
+                                                                </thead>
 
-                                                            <tbody>
-                                                                {formJson.rows.map((row, idx) => {
-                                                                    const hasSingleInput = row.inputs.length === 1; // Check if only one input exists
+                                                                <tbody>
+                                                                    {formJson.rows.map((row, idx) => {
+                                                                        const hasSingleInput = row.inputs.length === 1; // Check if only one input exists
 
-                                                                    return (
-                                                                        <tr key={idx} className="">
-                                                                            {hasSingleInput ? (
-                                                                                // If there's only one input, span the full width of the table
-                                                                                <td
-                                                                                    colSpan={formJson.headers.length}
-                                                                                    className="py-2 px-4 border border-gray-300 w-full"
-                                                                                >
-                                                                                    {renderInput(
-                                                                                        index,
-                                                                                        dbTable,
-                                                                                        row.inputs[0], // Pass the only input available
-                                                                                        annexureImagesSplitArr
-                                                                                    )}
-                                                                                </td>
-                                                                            ) : (
-                                                                                // Else, distribute inputs across columns equally with responsive classes
-                                                                                row.inputs.map((input, i) => (
+                                                                        return (
+                                                                            <tr key={idx}>
+                                                                                {hasSingleInput ? (
+                                                                                    // If there's only one input, span the full width of the table
                                                                                     <td
-                                                                                        key={i}
-                                                                                        className="py-2 px-4 border border-gray-300 w-full md:w-1/2"
+                                                                                        colSpan={formJson.headers.length}
+                                                                                        className="py-2 px-4 border border-gray-300 w-full"
                                                                                     >
                                                                                         {renderInput(
                                                                                             index,
                                                                                             dbTable,
-                                                                                            input,
+                                                                                            row.inputs[0], // Pass the only input available
                                                                                             annexureImagesSplitArr
                                                                                         )}
                                                                                     </td>
-                                                                                ))
-                                                                            )}
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                            </tbody>
-
-                                                        </table>
-                                                    </>
-                                                )}
-                                            </div>
-                                        );
+                                                                                ) : (
+                                                                                    // Else, distribute inputs across columns equally with responsive classes
+                                                                                    row.inputs.map((input, i) => (
+                                                                                        <td
+                                                                                            key={i}
+                                                                                            className="py-2 px-4 border border-gray-300 w-full md:w-1/2"
+                                                                                        >
+                                                                                            {renderInput(
+                                                                                                index,
+                                                                                                dbTable,
+                                                                                                input,
+                                                                                                annexureImagesSplitArr
+                                                                                            )}
+                                                                                        </td>
+                                                                                    ))
+                                                                                )}
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
                                     }
                                     return null;
                                 })}
+
                             </div>
-
-
-
-
 
 
                         </div>
@@ -1636,7 +2027,7 @@ const GenerateReport = () => {
                                                 : null
                                         }
                                         onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.report_date")}
-                                        dateFormat="yyyy-MM-dd"
+                                        dateFormat="dd-MM-yyyy"
                                         className="border rounded-md p-2 w-full mt-2 capitalize"
                                     />
 
@@ -1686,7 +2077,7 @@ const GenerateReport = () => {
 
                                 </div>
                             </div>
-                            <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
+                            <div className="grid md:grid-cols-1 grid-cols-1 gap-3">
                                 <div className="mb-4">
                                     <label className='capitalize text-gray-500  ' htmlFor="Is verified by quality team">Is verified by quality team</label>
                                     <select name="updated_json.insuffDetails.is_verify"
@@ -1699,206 +2090,213 @@ const GenerateReport = () => {
                                     </select>
 
                                 </div>
+                            </div>
+                            <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500 ' htmlFor="deadline date">deadline date</label>
-                                    <DatePicker
-                                        selected={
-                                            formData.updated_json.insuffDetails.deadline_date
-                                                ? new Date(formData.updated_json.insuffDetails.deadline_date)
-                                                : null
-                                        }
-                                        onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.deadline_date")}
-                                        dateFormat="yyyy-MM-dd"
+                                    <label className='capitalize text-gray-500' htmlFor="report_generate_by">Report Generated By:</label>
+                                    <select
+                                        name="updated_json.insuffDetails.report_generate_by"
+                                        value={formData?.updated_json?.insuffDetails?.report_generate_by ?? ""}
+                                        onChange={handleChange}
+                                        id="report_generate_by"
                                         className="border w-full rounded-md p-2 mt-2 capitalize"
-                                        placeholderText='deadline date'
-                                    />
-
-
-                                </div>
-                            </div>
-                            <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
-                                <div className="mb-4">
-                                    <label className='capitalize text-gray-500 ' htmlFor="Address">Address</label>
-                                    <select name="updated_json.insuffDetails.insuff_address"
-                                        value={formData.updated_json.insuffDetails.insuff_address}
-                                        onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
-                                        <option value="">Selet Address</option>
-                                        {adminNames.map((spoc, index) => (
-                                            <option key={index} value={spoc.id}>{spoc.name}</option>
-                                        ))}
-                                    </select>
-
-                                </div>
-                                <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500' htmlFor="basic entry">basic entry</label>
-                                    <select name="updated_json.insuffDetails.basic_entry"
-                                        value={formData.updated_json.insuffDetails.basic_entry}
-                                        onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
-                                        <option value="">Selet basic entry</option>
-                                        {adminNames.map((spoc, index) => (
-                                            <option key={index} value={spoc.id}>{spoc.name}</option>
-                                        ))}                                    </select>
-
-                                </div>
-                            </div>
-                            <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
-                                <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500 ' htmlFor="education">education</label>
-                                    <select name="updated_json.insuffDetails.education" id=""
-                                        value={formData.updated_json.insuffDetails.education}
-                                        onChange={handleChange}
-                                        className="border w-full rounded-md p-2 mt-2 capitalize">
-                                        <option value="">Selet Education</option>
-                                        {adminNames.map((spoc, index) => (
-                                            <option key={index} value={spoc.id}>{spoc.name}</option>
-                                        ))}                                    </select>
-
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="case upload">case upload</label>
-                                    <input
-                                        type="text"
-                                        name="updated_json.insuffDetails.case_upload"
-                                        id="case_upload"
-                                        className="border w-full rounded-md p-2 mt-2 capitalize"
-                                        value={formData.updated_json.insuffDetails.case_upload}
-                                        onChange={handleChange}
-                                    />
-
-                                </div>
-                            </div>
-                            <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
-                                <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500 block' htmlFor="Employment Spoc:">Employment Spoc:</label>
-                                    <select name="updated_json.insuffDetails.emp_spoc" id=""
-                                        value={formData.updated_json.insuffDetails.emp_spoc}
-                                        onChange={handleChange}
-                                        className="border w-full rounded-md p-2 mt-2 capitalize">
-                                        <option value="">Selet Employment Spoc</option>
-                                        <option value="yes">yes</option>
-                                        <option value="no">no</option>
-                                    </select>
-
-                                </div>
-                                <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500' htmlFor="Report Generated By:">Report Generated By:</label>
-                                    <select name="updated_json.insuffDetails.report_generate_by"
-                                        value={formData.updated_json.insuffDetails.report_generate_by}
-                                        onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                    >
                                         <option value="">Select Admin</option>
-                                        {adminNames.map((spoc, index) => (
+                                        {reportGeneratorAdminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
                                         ))}
-
-
                                     </select>
-
                                 </div>
-                            </div>
-                            <div className="mb-4 ">
-                                <label className='capitalize block text-gray-500' htmlFor="QC Done By:">QC Done By:</label>
 
-                                <select name="updated_json.insuffDetails.qc_done_by"
-                                    value={formData.updated_json.insuffDetails.qc_done_by}
-                                    onChange={handleChange}
-                                    id="" className="border w-full rounded-md p-2 mt-2 capitalize">
-                                    <option value="">Select Admin</option>
-                                    {adminNames.map((spoc, index) => (
-                                        <option key={index} value={spoc.id}>{spoc.name}</option>
-                                    ))}
-
-                                </select>
-
-                            </div>
-                            <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="Remarks & reason for Delay:">Remarks & reason for Delay:</label>
-                                <input
-                                    type="text"
-                                    value={formData.updated_json.insuffDetails.delay_reason}
-                                    onChange={handleChange}
-                                    name="updated_json.insuffDetails.delay_reason"
-                                    id="delay_reason"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
-                                />
-
+                                <div className="mb-4">
+                                    <label className='capitalize block text-gray-500' htmlFor="qc_done_by">QC Done By:</label>
+                                    <select
+                                        name="updated_json.insuffDetails.qc_done_by"
+                                        value={formData?.updated_json?.insuffDetails?.qc_done_by ?? ""}
+                                        onChange={handleChange}
+                                        id="qc_done_by"
+                                        className="border w-full rounded-md p-2 mt-2 capitalize"
+                                    >
+                                        <option value="">Select Admin</option>
+                                        {qCVerifierAdminNames.map((spoc, index) => (
+                                            <option key={index} value={spoc.id}>{spoc.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
 
                             </div>
-                            <div className='flex gap-3 items-center my-2'>
-                                <input
-                                    type="checkbox"
-                                    value={formData.updated_json.insuffDetails.have_not_insuff}
-                                    onChange={handleChange}
-                                    name="updated_json.insuffDetails.have_not_insuff"
-                                    id="have_not_insuff"
-                                    checked={
-                                        formData.updated_json.insuffDetails.have_not_insuff === true ||
-                                        formData.updated_json.insuffDetails.have_not_insuff === "1" ||
-                                        formData.updated_json.insuffDetails.have_not_insuff === 1
-                                    }
-                                    className="border rounded-md p-2 capitalize"
-                                />
-                                <label htmlFor="have_not_insuff" className='font-bold capitalize text-lg'>Have Not Insuff</label>
-                            </div>
-
-                            {!(
-                                formData.updated_json.insuffDetails.have_not_insuff === true ||
-                                formData.updated_json.insuffDetails.have_not_insuff === "1" ||
-                                formData.updated_json.insuffDetails.have_not_insuff === 1
-                            ) && (
-                                    <div className='have-not-insufff'>
-
-
-                                        <div className="mb-4">
-                                            <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">Insufficiency Remarks</label>
-                                            <input
-                                                type="text"
-                                                name="updated_json.insuffDetails.first_insufficiency_marks"
-                                                id="first_insufficiency_marks"
-                                                className="border w-full rounded-md p-2 mt-2 capitalize"
-                                                value={formData.updated_json.insuffDetails.first_insufficiency_marks}
-                                                onChange={handleChange}
-                                            />
-                                        </div>
-                                        <div className="mb-4">
-                                            <label className="capitalize text-gray-500" htmlFor="first_insuff_date">
-                                                Insuff Raised Date:
-                                            </label>
-                                            <DatePicker
-                                                selected={
-                                                    formData.updated_json.insuffDetails.first_insuff_date
-                                                        ? new Date(formData.updated_json.insuffDetails.first_insuff_date)
-                                                        : null
-                                                }
-                                                onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.first_insuff_date")}
-                                                dateFormat="yyyy-MM-dd"
-                                                className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            />
-                                        </div>
-
-                                        <div className="mb-4">
-                                            <label className="capitalize text-gray-500" htmlFor="first_insuff_reopened_date">
-                                                Insuff Cleared Date / Re-Opened Date
-                                            </label>
-                                            <DatePicker
-                                                selected={
-                                                    formData.updated_json.insuffDetails.first_insuff_reopened_date
-                                                        ? new Date(formData.updated_json.insuffDetails.first_insuff_reopened_date)
-                                                        : null
-                                                }
-                                                onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.first_insuff_reopened_date")}
-                                                dateFormat="yyyy-MM-dd"
-                                                className="border w-full rounded-md p-2 mt-2 capitalize"
-                                            />
-                                        </div>
+                            {![true, "1", 1].includes(formData.updated_json.insta_drug_test) && (
+                                <>
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500 ' htmlFor="deadline date">deadline date</label>
+                                        <DatePicker
+                                            selected={
+                                                formData.updated_json.insuffDetails.deadline_date
+                                                    ? new Date(formData.updated_json.insuffDetails.deadline_date)
+                                                    : null
+                                            }
+                                            onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.deadline_date")}
+                                            dateFormat="dd-MM-yyyy"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            placeholderText='deadline date'
+                                        />
 
 
                                     </div>
-                                )}
+
+                                    <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
+                                        <div className="mb-4">
+                                            <label className='capitalize text-gray-500 ' htmlFor="Address">Address</label>
+                                            <select name="updated_json.insuffDetails.insuff_address"
+                                                value={formData.updated_json.insuffDetails.insuff_address}
+                                                onChange={handleChange}
+                                                id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                                <option value="">Selet Address</option>
+                                                {reportGeneratorAdminNames.map((spoc, index) => (
+                                                    <option key={index} value={spoc.id}>{spoc.name}</option>
+                                                ))}
+                                            </select>
+
+                                        </div>
+                                        <div className="mb-4 ">
+                                            <label className='capitalize text-gray-500' htmlFor="basic entry">basic entry</label>
+                                            <select name="updated_json.insuffDetails.basic_entry"
+                                                value={formData.updated_json.insuffDetails.basic_entry}
+                                                onChange={handleChange}
+                                                id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                                <option value="">Selet basic entry</option>
+                                                {reportGeneratorAdminNames.map((spoc, index) => (
+                                                    <option key={index} value={spoc.id}>{spoc.name}</option>
+                                                ))}                                  </select>
+
+                                        </div>
+                                    </div>
+                                    <div className="grid md:grid-cols-3 grid-cols-1 gap-3">
+                                        <div className="mb-4 ">
+                                            <label className='capitalize text-gray-500 ' htmlFor="education">education</label>
+                                            <select name="updated_json.insuffDetails.education" id=""
+                                                value={formData.updated_json.insuffDetails.education}
+                                                onChange={handleChange}
+                                                className="border w-full rounded-md p-2 mt-2 capitalize">
+                                                <option value="">Selet Education</option>
+                                                {reportGeneratorAdminNames.map((spoc, index) => (
+                                                    <option key={index} value={spoc.id}>{spoc.name}</option>
+                                                ))}                                    </select>
+
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <label className='capitalize text-gray-500' htmlFor="case upload">case upload</label>
+                                            <input
+                                                type="text"
+                                                name="updated_json.insuffDetails.case_upload"
+                                                id="case_upload"
+                                                className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                value={formData.updated_json.insuffDetails.case_upload}
+                                                onChange={handleChange}
+                                            />
+
+                                        </div>
+                                        <div className="mb-4 ">
+                                            <label className='capitalize text-gray-500 block' htmlFor="Employment Spoc:">Employment Spoc:</label>
+                                            <select name="updated_json.insuffDetails.emp_spoc" id=""
+                                                value={formData.updated_json.insuffDetails.emp_spoc}
+                                                onChange={handleChange}
+                                                className="border w-full rounded-md p-2 mt-2 capitalize">
+                                                <option value="">Selet Employment Spoc</option>
+                                                <option value="yes">yes</option>
+                                                <option value="no">no</option>
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div className="mb-4">
+                                        <label className='capitalize text-gray-500' htmlFor="Remarks & reason for Delay:">Remarks & reason for Delay:</label>
+                                        <input
+                                            type="text"
+                                            value={formData.updated_json.insuffDetails.delay_reason}
+                                            onChange={handleChange}
+                                            name="updated_json.insuffDetails.delay_reason"
+                                            id="delay_reason"
+                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                        />
+
+
+                                    </div>
+                                    <div className='flex gap-3 items-center my-2'>
+                                        <input
+                                            type="checkbox"
+                                            value={formData.updated_json.insuffDetails.have_not_insuff}
+                                            onChange={handleChange}
+                                            name="updated_json.insuffDetails.have_not_insuff"
+                                            id="have_not_insuff"
+                                            checked={["1", 1, true].includes(formData.updated_json.insuffDetails.have_not_insuff)}
+
+                                            className="border rounded-md p-2 capitalize"
+                                        />
+                                        <label htmlFor="have_not_insuff" className='font-bold capitalize text-lg'>Have Not Insuff</label>
+                                    </div>
+
+                                    {![true, "1", 1].includes(formData.updated_json.insuffDetails.have_not_insuff) && (
+
+                                        <div className='have-not-insufff'>
+
+
+                                            <div className="mb-4">
+                                                <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">Insufficiency Remarks</label>
+                                                <input
+                                                    type="text"
+                                                    name="updated_json.insuffDetails.first_insufficiency_marks"
+                                                    id="first_insufficiency_marks"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    value={formData.updated_json.insuffDetails.first_insufficiency_marks}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            <div className="mb-4">
+                                                <label className="capitalize text-gray-500" htmlFor="first_insuff_date">
+                                                    Insuff Raised Date:
+                                                </label>
+                                                <DatePicker
+                                                    selected={
+                                                        formData.updated_json.insuffDetails.first_insuff_date
+                                                            ? new Date(formData.updated_json.insuffDetails.first_insuff_date)
+                                                            : null
+                                                    }
+                                                    onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.first_insuff_date")}
+                                                    dateFormat="dd-MM-yyyy"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                />
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <label className="capitalize text-gray-500" htmlFor="first_insuff_reopened_date">
+                                                    Insuff Cleared Date / Re-Opened Date
+                                                </label>
+                                                <DatePicker
+                                                    selected={
+                                                        formData.updated_json.insuffDetails.first_insuff_reopened_date
+                                                            ? new Date(formData.updated_json.insuffDetails.first_insuff_reopened_date)
+                                                            : null
+                                                    }
+                                                    onChange={(date) => handleDatesChange(date, "updated_json.insuffDetails.first_insuff_reopened_date")}
+                                                    dateFormat="dd-MM-yyyy"
+                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                />
+                                            </div>
+
+
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+
                         </div>
+
 
                         <div className="text-right mt-4">
                             <button

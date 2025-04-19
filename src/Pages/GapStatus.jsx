@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'; import { useApi
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 const GapStatus = () => {
-    const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { isApiLoading, setIsApiLoading ,checkAuthentication} = useApiCall();
     const [initialAnnexureData, setInitialAnnexureData] = useState({
         gap_validation: {
             phd_institute_name_gap: '',
@@ -36,11 +36,9 @@ const GapStatus = () => {
     const [loading, setLoading] = useState(false);
     const [serviceDataMain, setServiceDataMain] = useState([]);
     const [serviceDataImageInputNames, setServiceDataImageInputNames] = useState([]);
-    const [cefDataApp, setCefDataApp] = useState([]);
     const [serviceData, setServiceData] = useState([]);
     const [serviceValueData, setServiceValueData] = useState([]);
     const location = useLocation();
-    const currentURL = location.pathname + location.search;
     const [annexureImageData, setAnnexureImageData] = useState([]);
     const [gaps, setGaps] = useState({});
     const [employGaps, setEmployGaps] = useState({});
@@ -48,6 +46,7 @@ const GapStatus = () => {
 
     const branchId = queryParams.get('branch_id');
     const applicationId = queryParams.get('applicationId');
+    
     const fetchData = useCallback(() => {
         setIsApiLoading(true);
         setLoading(true); // Start loading
@@ -212,9 +211,19 @@ const GapStatus = () => {
                 setIsApiLoading(false); // End loading
             });
     }, [applicationId, branchId]);
-    useEffect(() => {
-        fetchData();
-    }, [fetchData])
+     
+          useEffect(() => {
+              const fetchMainData = async () => {
+                  if (!isApiLoading) {
+                      await checkAuthentication();
+                      await fetchData();  // Correct function call
+                  }
+              };
+          
+              fetchMainData();  // Call the async function inside useEffect
+          
+          }, [fetchData]);  // Correct dependencies
+  
 
     const renderGapMessage = (gap) => {
         if (gap?.years > 0 || gap?.months > 0) {

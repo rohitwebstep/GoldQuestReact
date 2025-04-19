@@ -559,7 +559,13 @@ const CandidateExcelTrackerStatus = () => {
             });
         }
     };
-
+    const handleSelectAll = () => {
+        if (selectedItems.length === data.length) {
+            setSelectedItems([]); // Deselect all if already selected
+        } else {
+            setSelectedItems(data); // Select all items
+        }
+    };
 
     async function exportAddress() {
         let allData = []; // Array to store all rows before exporting
@@ -618,7 +624,71 @@ const CandidateExcelTrackerStatus = () => {
 
         // Save the Excel file (single file for all selected items)
         XLSX.writeFile(wb, `Address-Details.xlsx`);
+        setSelectedItems('')
     }
+    async function exportAllData() {
+        let allData = [];
+
+        for (let index = 0; index < data.length; index++) {
+            const item = data[index];
+
+            try {
+                const mainData = await fetchDataForAddress(item.main_id, item.branch_id);
+
+                if (!mainData) continue;
+
+                const serviceIds = mainData.application?.services?.split(",").map(id => parseInt(id)) || [];
+
+                const customerServices = JSON.parse(mainData.customerInfo?.services || "[]");
+
+                const matchedServices = customerServices
+                    .filter(service => serviceIds.includes(service.serviceId))
+                    .map(service => service.serviceTitle)
+                    .join(", ") || "NA";
+
+                let uanNumber = "NA";
+                if (mainData.serviceData?.data?.uan_number_latest_employment_1) {
+                    uanNumber = mainData.serviceData.data.uan_number_latest_employment_1;
+                }
+
+                const rowData = {
+                    "S/No": index + 1,
+                    "App ID": item?.applications_id || "NA",
+                    "Name": mainData.application?.name || "NA",
+                    "DOB": mainData.CEFData?.dob || "NA",
+                    "Father's Name": mainData.CEFData?.father_name || "NA",
+                    "Spouse Name": mainData.application?.husband_name || "NA",
+                    "Permanent Address": mainData.CEFData?.permanent_address || "NA",
+                    "Current Address": mainData.CEFData?.current_address || "NA",
+                    "Mobile No": mainData.application?.mobile_number || "NA",
+                    "Alternate Mobile No": mainData.CEFData?.current_address_landline_number || "NA",
+                    "PAN No": mainData.CEFData?.pan_card_number || "NA",
+                    "UAN No": uanNumber,
+                    "USE": matchedServices,
+                };
+
+                allData.push(rowData);
+            } catch (error) {
+                console.error(`Error processing index ${index}:`, error);
+            }
+        }
+
+
+        if (allData.length === 0) {
+            alert("No data to export.");
+            return;
+        }
+
+        const ws = XLSX.utils.json_to_sheet(allData);
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+        XLSX.writeFile(wb, "Address-Details.xlsx");
+        setSelectedItems('')
+    }
+
+
 
 
     const fetchDataForAddress = useCallback(async (applicationId, branchId) => {
@@ -710,9 +780,12 @@ const CandidateExcelTrackerStatus = () => {
                             </form>
                         </div>
                         <div className="col md:flex justify-end gap-6 ">
+                            <button type="button" className='bg-green-500 rounded-md p-2 px-5 text-white' onClick={() => handleSelectAll()}>Select All</button>
                             {selectedItems.length > 0 && (
-
-                                <button onClick={() => exportAddress(data)} className='bg-blue-500 rounded-md p-2 text-white'>Export Selected</button>
+                                <>
+                                    <button type="button" onClick={() => exportAddress(data)} className='bg-blue-500 rounded-md p-2 px-5 text-white'>Export Selected</button>
+                                    <button type="button" onClick={() => exportAllData()} className='bg-green-500 rounded-md p-2 px-5 text-white'>Export All</button>
+                                </>
                             )}
 
                             <form action="">
@@ -734,6 +807,9 @@ const CandidateExcelTrackerStatus = () => {
                     </div>
 
                 </div>
+
+
+
                 <div ref={tableRef} className="overflow-x-auto py-6 md:px-4 shadow-md rounded-md bg-white">
                     {loading ? (
                         <div className='flex justify-center items-center py-6 h-full'>

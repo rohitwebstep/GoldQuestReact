@@ -780,9 +780,9 @@ const BackgroundForm = () => {
                     setApiStatus(false);
 
                     Swal.fire({
-                        title: 'Success',
+                        title: 'error',
                         text: result.message || 'Application does not exist.',
-                        icon: 'success',
+                        icon: 'error',
                         confirmButtonText: 'OK',
                         allowOutsideClick: false,  // Disable side clicks
                         allowEscapeKey: false,    // Disable escape key to close
@@ -1643,8 +1643,7 @@ const BackgroundForm = () => {
             // Check if the education_fields and employment_fields are already stringified
             const isEducationFieldsStringified = typeof annexureData.gap_validation.education_fields === 'string';
             const isEmploymentFieldsStringified = typeof annexureData.gap_validation.employment_fields === 'string';
-            console.log('isEducationFieldsStringified', isEducationFieldsStringified);
-            console.log('isEmploymentFieldsStringified', isEmploymentFieldsStringified);
+   
 
             // Only stringify if the fields are not already stringified
             const educationFieldsString = isEducationFieldsStringified
@@ -1931,7 +1930,6 @@ const BackgroundForm = () => {
         }));
     }, [activeTab]);
 
-    console.log('annexureData',annexureData)
 
     return (
         <>

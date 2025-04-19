@@ -26,7 +26,6 @@ ChartJS.register(
 const Chart2 = () => {
   const { tableData, loading } = useDashboard();
 
-  console.log("Raw tableData:", tableData); // Debugging
 
   const data = tableData.clientApplications;
 
@@ -36,7 +35,6 @@ const Chart2 = () => {
   }
 
   const processData = () => {
-    console.log("Raw Data:", data);
 
     const groupedByDateCategory = {};
     let hasApplications = false; // Track if there are any valid applications
@@ -66,7 +64,6 @@ const Chart2 = () => {
       return null; // Return null if there are no applications
     }
 
-    console.log("Grouped by Date & Category:", groupedByDateCategory);
 
     // Collect all unique dates across all categories
     const labels = new Set();
@@ -77,7 +74,6 @@ const Chart2 = () => {
     });
 
     const sortedLabels = Array.from(labels).sort();
-    console.log("Sorted Labels (Dates):", sortedLabels);
 
     let datasets = Object.keys(groupedByDateCategory).map((category) => {
       const dataPoints = sortedLabels.map(
@@ -96,7 +92,6 @@ const Chart2 = () => {
     // ✅ Ensure categories with ONLY zero values are fully removed
     datasets = datasets.filter((dataset) => dataset.data.some((value) => value > 0));
 
-    console.log("Filtered Datasets (Non-Zero Only):", datasets);
 
     return { labels: sortedLabels, datasets };
   };

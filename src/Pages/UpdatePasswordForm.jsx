@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
+import { useApiCall } from '../ApiCallContext';
 const UpdatePasswordForm = () => {
+        const { isApiLoading ,checkAuthentication} = useApiCall();
+    
     const [newPass, setNewPass] = useState({
         newpass: '',
         c_newpass: '',
@@ -35,6 +38,16 @@ const UpdatePasswordForm = () => {
     
         return NewErr;
     };
+
+       useEffect(() => {
+            const fetchData = async () => {
+                if (!isApiLoading) {
+                    await checkAuthentication();
+                }
+            };
+        
+            fetchData();
+        }, []);
     
 
     const handleSubmit = (e) => {

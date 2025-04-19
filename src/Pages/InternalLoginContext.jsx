@@ -18,6 +18,8 @@ export const LoginProvider = ({ children }) => {
         email: "",
         password: "",
         role: "",
+        is_report_generator:'',
+        is_qc_verifier:'',
         service_ids: "", // This will store the selected groups in an array
 
     });
@@ -51,6 +53,8 @@ export const LoginProvider = ({ children }) => {
             password: selectedAdmin.password || '', // This may be an empty string or undefined, depending on your form structure
             role: selectedAdmin.role || '',
             id: selectedAdmin.id || '',
+            is_report_generator: selectedAdmin.is_report_generator || '',
+            is_qc_verifier: selectedAdmin.is_qc_verifier || '',
             status: selectedAdmin.status || '',
             service_ids: selectedAdmin.role !== "admin" ? parsedServiceGroups.join(',') : '', // Store as a comma-separated string for the service_ids
         });

@@ -11,7 +11,10 @@
     font-family: "Poppins", sans-serif;
 }
 
-
+.react-time-picker__inputGroup input {
+  width: 10% !important;
+  outline: none;
+}
 .select-search-container input.select-search-input {
   border-radius: 6px;
   border: 1px solid #ccc !important;

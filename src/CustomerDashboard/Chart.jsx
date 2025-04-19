@@ -24,7 +24,7 @@ ChartJS.register(
 
 const Chart = () => {
   const { tableData, fetchDashboard, loading } = useDashboard();
-  const { isBranchApiLoading } = useApiCall();
+  const { isBranchApiLoading, checkBranchAuthentication } = useApiCall();
 
   const [hasData, setHasData] = useState(true); // State to check if there is data
 
@@ -40,10 +40,15 @@ const Chart = () => {
   }, [tableData]); // Run this useEffect whenever `tableData` changes
 
   useEffect(() => {
-    if (!isBranchApiLoading) {
-      fetchDashboard();
-    }
-  }, []);
+    const fetchData = async () => {
+      if (!isBranchApiLoading) {
+        await checkBranchAuthentication();
+        await fetchDashboard();
+      }
+    };
+
+    fetchData();
+  }, [fetchDashboard]);
 
   // Function to process the data and create the pie chart
   const processData = () => {

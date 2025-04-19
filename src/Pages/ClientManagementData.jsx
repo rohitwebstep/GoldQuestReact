@@ -113,14 +113,11 @@ const ClientManagementData = () => {
 
             // Making the request directly without confirmation prompt
             const res = await fetch(`${API_URL}/customer/add-customer-listings?admin_id=${admin_id}&_token=${storedToken}`);
-            console.log(res); // Log the response to check if the token is returned
             const result = await res.json();
 
             const newToken = result._token || result.token; // Adjust depending on the actual structure
-            console.log('New token:', newToken); // Log the token to verify it's returned correctly
             if (newToken) {
                 localStorage.setItem("_token", newToken);
-                console.log('Token saved:', localStorage.getItem("_token")); // Log after saving
             }
 
             if (!res.ok) {

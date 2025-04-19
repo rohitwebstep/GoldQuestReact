@@ -299,7 +299,7 @@ const AdminChekin = () => {
         });
     };
 
- 
+
 
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -732,10 +732,14 @@ const AdminChekin = () => {
                 };
             });
 
-            // Filter out rows with empty values
+            console.log('servicesData', servicesData);
+            console.log('secondTableData', secondTableData);
+
             const filteredSecondTableData = secondTableData.filter(row =>
-                row.component !== 'NIL' && row.source !== 'NIL' && row.completedDate !== 'NIL' && row.status !== 'NIL'
+                [row.component, row.source, row.completedDate, row.status].some(value => value !== 'NIL')
             );
+
+            console.log('filteredSecondTableData', filteredSecondTableData);
 
 
             // Generate the Second Table
@@ -747,41 +751,69 @@ const AdminChekin = () => {
                     [
                         {
                             content: 'REPORT COMPONENT',
+                            rowSpan: 2,
                             styles: {
                                 halign: 'center',
+                                valign: 'middle', // <== Vertically center text
                                 fillColor: "#6495ed",
-                                textColor: [0, 0, 0],
-                                lineWidth: 0.4,
+                                textColor: [255, 255, 255],
                                 fontStyle: 'bold',
-                                lineWidth: 0.5, // Border width
-                                cellPadding: 3, // Padding inside the cell
-                                lineColor: [100, 149, 237], // Border color
+                                cellPadding: 3,
                             },
-
                         },
-
                         {
                             content: 'INFORMATION SOURCE',
-                            styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineWidth: 0.2, fontStyle: 'bold', },
-
+                            rowSpan: 2,
+                            styles: {
+                                halign: 'center',
+                                valign: 'middle', // <== Vertically center text
+                                fillColor: "#6495ed",
+                                textColor: [255, 255, 255],
+                                fontStyle: 'bold',
+                            },
                         },
                         {
-                            content: 'COMPONENT STATUS', colSpan: 2,
-                            styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' },
+                            content: 'COMPONENT STATUS',
+                            colSpan: 2,
+                            styles: {
+                                halign: 'center',
+                                valign: 'middle',
+                                fillColor: "#6495ed",
+                                textColor: [255, 255, 255],
+                                fontStyle: 'bold',
+                            },
                         },
                     ],
                     [
-                        { content: '', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [100, 149, 237], textColor: [0, 0, 0], fontStyle: 'bold' } },
-                        { content: '', styles: { halign: 'center', fillColor: "#6495ed", textColor: [0, 0, 0], lineColor: [255, 255, 255], fontStyle: 'bold' } },
-                        { content: 'Completed Date', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' } },
-                        { content: 'Verification Status', styles: { halign: 'center', fillColor: "#6495ed", lineColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.4, fontStyle: 'bold' } },
+                        // Only include cells under the colSpan above
+                        {
+                            content: 'COMPLETED DATE',
+                            styles: {
+                                halign: 'center',
+                                fillColor: "#6495ed",
+                                textColor: [255, 255, 255],
+                                lineWidth: 0.4,
+                                fontStyle: 'bold',
+                            },
+                        },
+                        {
+                            content: 'VERIFICATION STATUS',
+                            styles: {
+                                halign: 'center',
+                                fillColor: "#6495ed",
+                                textColor: [255, 255, 255],
+                                lineWidth: 0.4,
+                                fontStyle: 'bold',
+                            },
+                        },
                     ]
                 ],
                 body: filteredSecondTableData.map(row => {
                     // Set text color based on verification status
                     let statusColor;
-                    let statusText = row.status.replace(/^completed_/, '').toUpperCase();  // Remove 'completed_' and convert to uppercase
+                    let statusText = row.status.replace(/^completed_/, '').toUpperCase(); // Remove 'completed_' and convert to uppercase
 
+                    // Determine the color based on status
                     switch (statusText.toLowerCase()) {
                         case 'green':
                             statusColor = { textColor: 'green' }; // Green text
@@ -803,17 +835,19 @@ const AdminChekin = () => {
                             break;
                     }
 
-                    // Return the row with dynamic styles for 'verification status'
-                    return [
-                        row.component,
-                        row.source,
-                        row.completedDate, // Show completedDate in its own column
-                        {
-                            content: statusText, // Show only the color name (e.g., GREEN, RED, etc.)
-                            styles: { halign: 'center', fontStyle: 'bold', ...statusColor } // Apply dynamic text color
-                        },
-                    ];
-                }),
+                    // Only return a row if the component is not 'NIL'
+                    if (row.component !== 'NIL') {
+                        return [
+                            row.component || 'NIL',
+                            row.source || 'NIL',
+                            row.completedDate || 'NIL', // Show completedDate in its own column
+                            {
+                                content: statusText, // Show only the color name (e.g., GREEN, RED, etc.)
+                                styles: { halign: 'center', fontStyle: 'bold', ...statusColor } // Apply dynamic text color
+                            },
+                        ];
+                    }
+                }).filter(Boolean), // Filter out undefined rows from the map (if any)
 
                 styles: {
                     cellPadding: 2,
@@ -828,13 +862,13 @@ const AdminChekin = () => {
                 headStyles: {
                     fillColor: [61, 117, 166],
                     textColor: [0, 0, 0],
-                    lineWidth: 0.4,
+                    lineWidth: 0.3,
                     fontStyle: 'bold',
-                    lineColor: [255, 255, 255],
+                    lineColor: [61, 117, 166],
                 },
                 bodyStyles: {
                     lineColor: [61, 117, 166],
-                    lineWidth: 0.4,
+                    lineWidth: 0.3,
                 },
                 columnStyles: {
                     0: { halign: 'left' },
@@ -844,12 +878,15 @@ const AdminChekin = () => {
                 },
             });
 
+
             addFooter(doc);
             const pageHeight = doc.internal.pageSize.height;
             yPosition = doc.lastAutoTable.finalY || 0; // Current Y position
 
 
             // Check if adding the space will exceed the page height
+
+
             if (yPosition + 70 > pageHeight) {
                 addFooter(doc);  // Add the footer before adding a new page
                 doc.addPage();   // Add a new page
@@ -1020,7 +1057,6 @@ const AdminChekin = () => {
                         values: valuesObj,
                     });
                 });
-
                 const tableData = serviceData.map((data) => {
                     if (!data || !data.values) {
                         return null;
@@ -1034,19 +1070,40 @@ const AdminChekin = () => {
                     }
 
                     const isReportDetailsExist = data.values.isReportDetailsExist;
-                    const value = data.values[name];
-                    const reportDetails = data.values[`report_details_${name}`];
+                    let value = data.values[name];
+                    let reportDetails = data.values[`report_details_${name}`];
 
                     if (value === undefined || value === "" || (isReportDetailsExist && !reportDetails)) {
                         return null;
                     }
 
-                    if (isReportDetailsExist && reportDetails) {
-                        return [data.label, value, reportDetails];
-                    } else {
-                        return [data.label, value];
+                    if (name.startsWith("verification_status")) {
+                        value = String(value).toUpperCase();
                     }
-                }).filter(Boolean); // Remove null/undefined entries
+
+                    function parseDate(value) {
+                        if (typeof value !== "string") return value;
+                    
+                        // Strict check for date-like formats
+                        const isStrictDateFormat =
+                            /^\d{4}-\d{2}-\d{2}$/.test(value) || // YYYY-MM-DD
+                            /^\d{2}\/\d{2}\/\d{4}$/.test(value) || // DD/MM/YYYY or MM/DD/YYYY
+                            /^\d{4}-\d{2}-\d{2}T/.test(value); // ISO 8601
+                    
+                        if (!isStrictDateFormat) return value;
+                    
+                        const parsedDate = new Date(value);
+                        return isNaN(parsedDate) ? value : parsedDate.toLocaleDateString('en-GB').replace(/\//g, '-');
+                    }
+                    
+
+
+                    if (isReportDetailsExist && reportDetails) {
+                        return [data.label, parseDate(value), parseDate(reportDetails)];
+                    } else {
+                        return [data.label, parseDate(value)];
+                    }
+                }).filter(Boolean);
 
                 // Skip table rendering if no valid tableData
                 if (tableData.length > 0) {
@@ -1419,15 +1476,6 @@ const AdminChekin = () => {
     useEffect(() => {
         if (!isApiLoading) { fetchData(); }
     }, [clientId, branch_id]);
-
-
-    // useEffect(() => {
-    //     if (!isApiLoading) {
-    //         fetchAdminList();
-    //     }
-    // }, [fetchAdminList]);
-
-    const rowRefs = useRef({}); // Store refs for each row
 
 
     const handleViewMore = async (index) => {
@@ -1811,35 +1859,44 @@ const AdminChekin = () => {
                                                         onClick={() => {
                                                             const reportDownloadFlag = (data.overall_status === 'completed' && data.is_verify === 'yes') || data.is_verify === 'no' ? 1 : 0;
 
-                                                            // Set the button to loading
                                                             setLoadingStates(prevState => ({
                                                                 ...prevState,
                                                                 [index]: true
                                                             }));
 
-                                                            // Directly call generatePDF
                                                             generatePDF(index, reportDownloadFlag, data).finally(() => {
-                                                                // After PDF generation, reset loading state for the clicked button
                                                                 setLoadingStates(prevState => ({
                                                                     ...prevState,
                                                                     [index]: false
                                                                 }));
                                                             });
                                                         }}
-                                                        className={`bg-[#3e76a5] uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded hover:bg-white hover:text-[#3e76a5] 
-      ${data.overall_status !== 'completed' && data.is_verify !== 'no' ? 'opacity-50 cursor-not-allowed' : ''} 
-      ${loadingStates[index] ? 'cursor-wait' : ''}`} // Add cursor-wait to indicate loading
-                                                        disabled={(data.overall_status !== 'completed' && data.is_verify !== 'no') || loadingStates[index] || isApiLoading} // Disable button while loading
+                                                        className={`uppercase border border-white hover:border-[#3e76a5] text-white px-4 py-2 rounded 
+        hover:bg-white hover:text-[#3e76a5] 
+        ${!data.overall_status || (data.overall_status !== 'completed' && data.is_verify !== 'no') ? 'opacity-50 cursor-not-allowed' : ''} 
+        ${loadingStates[index] ? 'cursor-wait' : ''} 
+        ${data.overall_status === 'completed' && data.is_verify === 'yes' ? 'bg-green-500' // Blue for DOWNLOAD REPORT
+                                                                : data.overall_status === 'completed' && (!data.is_verify || data.is_verify === 'no') ? 'bg-[#17a2b8]' // Green for QC PENDING
+                                                                    : 'bg-red-500' // Red for NOT READY
+                                                            }`
+                                                        }
+                                                        disabled={(!data.overall_status || (data.overall_status !== 'completed' && data.is_verify !== 'no')) || loadingStates[index] || isApiLoading}
                                                     >
-                                                        {loadingStates[index] ? 'Please Wait, Your PDF is Generating' :
-                                                            data.overall_status === 'completed' ? (
-                                                                data.is_verify === 'yes' ? 'DOWNLOAD' :
-                                                                    data.is_verify === 'no' ? 'QC PENDING' : 'NOT READY'
-                                                            ) :
-                                                                data.overall_status === 'wip' ? 'WIP' :
-                                                                    data.overall_status === 'insuff' ? 'INSUFF' : 'NOT READY'
+                                                        {
+                                                            loadingStates[index]
+                                                                ? 'Please Wait, Your PDF is Generating'
+                                                                : data.overall_status === 'completed'
+                                                                    ? (data.is_verify === 'yes'
+                                                                        ? 'DOWNLOAD REPORT'
+                                                                        : (!data.is_verify || data.is_verify === 'no' ? 'QC PENDING' : 'NOT READY'))
+                                                                    : data.overall_status === 'wip'
+                                                                        ? 'WIP'
+                                                                        : data.overall_status === 'insuff'
+                                                                            ? 'INSUFF'
+                                                                            : 'NOT READY'
                                                         }
                                                     </button>
+
                                                 </td>
                                                 <td className="text-left p-2 border capitalize">{data.overall_status || 'WIP'}</td>
                                                 <td className="text-left p-2 border capitalize">{data.report_type || 'NIL'}</td>

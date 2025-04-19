@@ -148,7 +148,6 @@ const DeletionCertification = () => {
 
   const handleDelete = (mainId, type) => {
 
-    console.log('id', mainId)
     const validateError = Validate(); // Perform validation only if not editing
 
     if (Object.keys(validateError).length === 0) {

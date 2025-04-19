@@ -91,7 +91,6 @@ const CandidateForm = () => {
     };
 
 
-    console.log('input', input)
     const handleChange = (event) => {
         const { name, value, checked } = event.target;
 

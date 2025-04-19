@@ -12,7 +12,7 @@ import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
 import { jsPDF } from 'jspdf';
 const CandidateBGV = () => {
-    const { branchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
     const contentRef = useRef();
     const [error, setError] = useState(null);
     const [customBgv, setCustomBgv] = useState('');
@@ -127,7 +127,7 @@ const CandidateBGV = () => {
             yPosition += 20; // Move yPosition down for the next section
 
             const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
-            let imageHeight = 80; // Fixed height of 500px for the image
+            const imageHeight = 80; // Fixed height of 500px for the image
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
             if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
@@ -579,74 +579,7 @@ const CandidateBGV = () => {
             yPosition = doc.autoTable.previous.finalY + 10;
 
 
-            doc.addPage();
-            let newYPosition = 20
-            doc.autoTable({
-                head: [[{ content: 'Declaration and Authorization', colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
-                ], // Table headers
-                body: [
-                    ['Name', cefData.name_declaration],
-                    ['Date', cefData.declaration_date],
-                ],
-                startY: newYPosition, // Starting Y position
-                margin: { top: 20 }, // Margin for the table
-                theme: 'grid', // You can change the table theme (grid, stripes, etc.)
-            });
-
-
-
-
-            newYPosition = doc.autoTable.previous.finalY + 20; // Adjusting for space from the last table
-
-            doc.text("Attach Signature.", doc.internal.pageSize.width / 2, newYPosition, { align: 'center' });
-
-            const lineHeight = 10;
-            const margin = 10;
-            const DocHeight = 100; // Height for images (adjust as needed)
-
-            // Check if the signature exists
-            if (cefData && cefData.signature) {
-                // Check if the signature is an image
-                const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-                const isImage = validImageExtensions.some(ext => cefData.signature.toLowerCase().endsWith(ext));
-
-                if (isImage) {
-                    // Fetch the base64 image
-                    const imageBases = await fetchImageToBase([cefData.signature]);
-
-                    // Assuming imageBases[0] exists and contains the base64 string
-                    if (imageBases && imageBases[0] && imageBases[0].base64) {
-                        const imageBase64 = imageBases[0].base64;
-                        const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
-
-                        // Add the image to the PDF
-                        doc.addImage(imageBase64, 'PNG', 5, newYPosition + 20, imageWidth, DocHeight);
-                        newYPosition += DocHeight + 20; // Update the position after the image
-                    }
-                } else {
-                    // If not an image, show a clickable button to view the document
-                    const buttonText = "Click to view attached document";
-                    const textWidth = doc.getTextWidth(buttonText);
-                    const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-
-                    // Add the text at the center
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(10);
-                    doc.setTextColor(255, 0, 0); // Red color for the button text
-                    doc.text(buttonText, centerX + 10, newYPosition + 10);
-
-                    // Create the clickable link to open the document (e.g., cefData.signature could be a URL to the document)
-                    doc.link(centerX, newYPosition + 10, textWidth, 10, { url: cefData.signature });
-
-                    // Update the position after the link
-                    newYPosition += lineHeight + 20; // Adjust space for next content
-                }
-            } else {
-                // If no signature exists, add a message or alternative content
-                doc.text("No Signature uploaded.", 10, newYPosition + 10);
-                newYPosition += lineHeight + 20; // Adjust space for next content
-            }
-
+           
 
 
             (async () => {
@@ -1265,6 +1198,131 @@ const CandidateBGV = () => {
                     }
 
                 }
+
+                doc.addPage();
+                let newYPosition = 20
+                doc.autoTable({
+                    head: [[
+                        { content: 'Declaration and Authorization', colSpan: 4, styles: { halign: 'center', fontSize: 16, bold: true } }
+                    ]],
+                    body: [
+                        [
+                            { content: 'I hereby authorize GoldQuest Global HR Services Private Limited and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion. I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative. I release all persons from liability on account of such disclosure. I confirm that the above information is correct to the best of my knowledge. I agree that in the event of my obtaining employment, my probationary appointment, confirmation as well as continued employment in the services of the company are subject to clearance of medical test and background verification check done by the company.',
+                            colSpan: 4, styles: { halign: 'center', fontSize: 9, cellPadding: 5 } }
+                        ],
+                        ['Name', cefData?.name_declaration || 'N/A', 'Date', cefData?.declaration_date || 'N/A']
+                    ],
+                    startY: newYPosition,
+                    margin: { top: 20 },
+                    theme: 'grid',
+                });
+                
+    
+    
+    
+                newYPosition = doc.autoTable.previous.finalY + 20; // Adjusting for space from the last table
+    
+                doc.text("Attach Signature.", doc.internal.pageSize.width / 2, newYPosition, { align: 'center' });
+    
+                const lineHeight = 10;
+                const margin = 10;
+                const DocHeight = 100; // Height for images (adjust as needed)
+    
+                // Check if the signature exists
+                if (cefData && cefData.signature) {
+                    // Check if the signature is an image
+                    const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    const isImage = validImageExtensions.some(ext => cefData.signature.toLowerCase().endsWith(ext));
+    
+                    if (isImage) {
+                        // Fetch the base64 image
+                        const imageBases = await fetchImageToBase([cefData.signature]);
+    
+                        // Assuming imageBases[0] exists and contains the base64 string
+                        if (imageBases && imageBases[0] && imageBases[0].base64) {
+                            const imageBase64 = imageBases[0].base64;
+                            const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
+    
+                            // Add the image to the PDF
+                            doc.addImage(imageBase64, 'PNG', 5, newYPosition + 20, imageWidth, DocHeight);
+                            newYPosition += DocHeight + 20; // Update the position after the image
+                        }
+                    } else {
+                        // If not an image, show a clickable button to view the document
+                        const buttonText = "Click to view attached document";
+                        const textWidth = doc.getTextWidth(buttonText);
+                        const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+    
+                        // Add the text at the center
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(10);
+                        doc.setTextColor(255, 0, 0); // Red color for the button text
+                        doc.text(buttonText, centerX + 10, newYPosition + 10);
+    
+                        // Create the clickable link to open the document (e.g., cefData.signature could be a URL to the document)
+                        doc.link(centerX, newYPosition + 10, textWidth, 10, { url: cefData.signature });
+    
+                        // Update the position after the link
+                        newYPosition += lineHeight + 20; // Adjust space for next content
+                    }
+                } else {
+                    // If no signature exists, add a message or alternative content
+                    doc.text("No Signature uploaded.", 10, newYPosition + 10);
+                    newYPosition += lineHeight + 20; // Adjust space for next content
+                }
+    
+                doc.addPage();
+
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                const pageWidth = doc.internal.pageSize.width; // Get the page width
+                const textWidth = doc.getTextWidth("Documents (Mandatory)"); // Get the width of the text
+                
+                doc.text("Documents (Mandatory)", (pageWidth - textWidth) / 2, 15); // Center-align text
+                
+                // Define table columns
+                const columns = [
+                    { content: "Education", styles: { fontStyle: "bold" } },
+                    { content: "Employment", styles: { fontStyle: "bold" } },
+                    { content: "Government ID / Address Proof", styles: { fontStyle: "bold" } }
+                ];
+
+                // Define table rows
+                const rows = [
+                    [
+                        "Photocopy of degree certificate and final mark sheet of all examinations.",
+                        "Photocopy of relieving / experience letter for each employer mentioned in the form.",
+                        "Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID."
+                    ]
+                ];
+
+                // Generate table
+                doc.autoTable({
+                    startY: 20,
+                    head: [columns],
+                    headStyles: {
+                        lineWidth: 0.3,
+                    },
+                    body: rows,
+                    styles: { fontSize: 10, cellPadding: 4 },
+                    theme: "grid",
+                    columnStyles: {
+                        0: { halign: "center", minCellWidth: 60 },
+                        1: { halign: "center", minCellWidth: 60 },
+                        2: { halign: "center", minCellWidth: 60 }
+                    }
+                });
+
+                // Footer Note
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont("helvetica", "normal");
+                doc.text(
+                    "NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to onboarding@goldquestglobal.in. Additionally, you can reach out to us at onboarding@goldquestglobal.in.",
+                    14,
+                    doc.lastAutoTable.finalY + 10,
+                    { maxWidth: 180 }
+                );
                 doc.save(`${customerInfo?.client_unique_id}-${customerInfo?.name}`);
 
                 swalLoading.close();
@@ -1549,13 +1607,6 @@ const CandidateBGV = () => {
 
         return updatedAnnexureData; // This can be used for further handling if needed
     };
-
-
-
-
-
-
-    // Update the state with the new employment fields
     const [annexureData, setAnnexureData] = useState(initialAnnexureData);
 
     const [hiddenRows, setHiddenRows] = useState({});
@@ -1564,44 +1615,6 @@ const CandidateBGV = () => {
     const [cefDataApp, setCefDataApp] = useState([]);
     const [annexureImageData, setAnnexureImageData] = useState([]);
 
-
-    const getValuesFromUrl = (currentURL) => {
-        const result = {};
-        const keys = [
-            "YXBwX2lk", // app_id
-            "YnJhbmNoX2lk", // branch_id
-            "Y3VzdG9tZXJfaWQ=" // customer_id
-        ];
-
-
-        // Loop through keys to find their values in the URL
-        keys.forEach(key => {
-            const regex = new RegExp(`${key}=([^&]*)`);
-            const match = currentURL.match(regex);
-            result[key] = match && match[1] ? match[1] : null;
-        });
-
-        // Function to check if the string is a valid base64
-        const isValidBase64 = (str) => {
-            const base64Pattern = /^[A-Za-z0-9+/]+={0,2}$/;
-            return base64Pattern.test(str) && (str.length % 4 === 0);
-        };
-
-
-        // Function to decode key-value pairs
-        const decodeKeyValuePairs = (obj) => {
-            return Object.entries(obj).reduce((acc, [key, value]) => {
-                const decodedKey = isValidBase64(key) ? atob(key) : key;
-                const decodedValue = value && isValidBase64(value) ? atob(value) : null;
-                acc[decodedKey] = decodedValue;
-                return acc;
-            }, {});
-        };
-
-        // Decoding key-value pairs and returning the result
-        const decodedResult = decodeKeyValuePairs(result);
-        return decodedResult;
-    };
 
 
     const renderGapMessage = (gap) => {
@@ -1621,9 +1634,6 @@ const CandidateBGV = () => {
             </p>
         );
     };
-
-
-
 
 
     const toggleRowsVisibility = (serviceIndex, rowIndex, isChecked) => {
@@ -1780,9 +1790,6 @@ const CandidateBGV = () => {
     };
 
 
-
-
-
     const calculateDateGap = (startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -1830,7 +1837,6 @@ const CandidateBGV = () => {
 
     const calculateGaps = () => {
 
-        //console.log('annexureData.gap_validation', annexureData.gap_validation)
         // Data from your JSON
         const secondaryEndDate = annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap || null;
         const seniorSecondaryStartDate = annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap || null;
@@ -1867,10 +1873,8 @@ const CandidateBGV = () => {
             const employmentEndDates = [];
             let i = 1; // Start index
 
-            //console.log('%cFetching employment dates...', 'color: blue; font-weight: bold;');
 
             const employmentValues = annexureData?.gap_validation?.employment_fields;
-            //console.log('%cEmployment values:', 'color: green; font-weight: bold;', employmentValues);
 
             if (!employmentValues) {
                 console.warn('%cNo employment fields found in the data.', 'color: red; font-weight: bold;');
@@ -1890,13 +1894,11 @@ const CandidateBGV = () => {
                 const startKey = `employment_start_date_gap`;
                 const endKey = `employment_end_date_gap`;
 
-                //console.log(`%cChecking ${employmentKey}:`, 'color: blue; font-weight: bold;', employmentData);
 
                 // Check if start or end date exists
                 const hasStartDate = startKey in employmentData;
                 const hasEndDate = endKey in employmentData;
 
-                //console.log(`%cChecking keys: ${startKey}: ${hasStartDate}, ${endKey}: ${hasEndDate}`, 'color: purple;');
 
                 if (!hasStartDate && !hasEndDate) {
                     console.warn(`%cNo start or end date found for ${employmentKey}, stopping loop.`, 'color: orange;');
@@ -1909,23 +1911,18 @@ const CandidateBGV = () => {
                         name: startKey,
                         value: employmentData[startKey]
                     });
-                    //console.log(`✅ %cAdded Start Date: ${employmentData[startKey]}`, 'color: green;');
                 }
                 if (hasEndDate) {
                     employmentEndDates.push({
                         name: endKey,
                         value: employmentData[endKey]
                     });
-                    //console.log(`✅ %cAdded End Date: ${employmentData[endKey]}`, 'color: green;');
                 }
 
                 i++; // Move to next employment record
             }
 
-            // Final logs
-            //console.log('%cEmployment Start Dates:', 'color: blue; font-weight: bold;', employmentStartDates);
-            //console.log('%cEmployment End Dates:', 'color: blue; font-weight: bold;', employmentEndDates);
-
+        
             return { employmentStartDates, employmentEndDates };
         }
 
@@ -1936,13 +1933,11 @@ const CandidateBGV = () => {
         function getEmploymentDateDifferences(startDates, endDates) {
             let differences = [];
 
-            //console.log('Calculating employment date differences...');
 
             for (let i = 0; i < endDates.length; i++) {
                 const currentEnd = endDates[i].value;
                 const nextStart = startDates[i + 1] ? startDates[i + 1].value : null;
 
-                //console.log('Comparing dates:', currentEnd, nextStart);
 
                 if (currentEnd && nextStart && currentEnd !== nextStart) {
                     const diff = calculateDateDifference(currentEnd, nextStart);
@@ -1956,13 +1951,11 @@ const CandidateBGV = () => {
                             startValue: nextStart,
                             difference: diff
                         });
-                        //console.log('Valid difference found:', differences[differences.length - 1]);
                     }
                 }
             }
 
             // Log differences
-            //console.log('Employment date differences:', differences);
 
             return differences;
         }
@@ -1976,12 +1969,16 @@ const CandidateBGV = () => {
     };
 
 
-    useEffect(() => {
-        if (!branchApiLoading) {
-            fetchData();
-        }
-    }, [fetchData, annexureData]);
-    //console.log('gaps', gaps)
+     useEffect(() => {
+           const fetchDataMain = async () => {
+               if (!isBranchApiLoading) {
+                   await checkBranchAuthentication();
+                   await fetchData();
+               }
+           };
+   
+           fetchDataMain();
+       }, [fetchData]);
 
 
     return (

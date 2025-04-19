@@ -9,7 +9,7 @@ import { useApiCall } from '../ApiCallContext';
 const CustomerLoginForm = () => {
     const [loading, setLoading] = useState(false);
     const [loadingPassword, setLoadingPassword] = useState(false);
-    const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { isApiLoading, setIsApiLoading, isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
 
     const API_URL = useApi();
     const [showPassword, setShowPassword] = useState(false);
@@ -52,27 +52,27 @@ const CustomerLoginForm = () => {
         if (!email) {
             return;
         }
-    
+
         const adminData = localStorage.getItem('admin');
         const storedToken = localStorage.getItem('_token');
-    
+
         if (!adminData || !storedToken) {
             console.error('Missing admin data or token');
             return;
         }
-    
+
         const admin_id = JSON.parse(adminData)?.id;
-    
+
         setIsApiLoading(true);
         setLoadingPassword(true);
-    
+
         try {
             const response = await fetch(
                 `${API_URL}/customer/fetch-branch-password?branch_email=${encodeURIComponent(email)}&admin_id=${admin_id}&_token=${storedToken}`
             );
-    
+
             const result = await response.json();
-    
+
             // Check for session expiration or invalid token in the response
             if (result.message && result.message.toLowerCase().includes("invalid") && result.message.toLowerCase().includes("token")) {
                 Swal.fire({
@@ -86,13 +86,13 @@ const CustomerLoginForm = () => {
                 });
                 return; // Exit further processing after showing session expired message
             }
-    
+
             // Handle new token if present in the response
             const newToken = result._token || result.token;
             if (newToken) {
                 localStorage.setItem("_token", newToken); // Update token
             }
-    
+
             // Handle errors if the response is not okay (non-200 status)
             if (!response.ok) {
                 Swal.fire(
@@ -102,7 +102,7 @@ const CustomerLoginForm = () => {
                 );
                 throw new Error(result.message || 'Unknown error');
             }
-    
+
             // Proceed if password is found in the result
             if (result?.password) {
                 setInput((prev) => ({
@@ -117,7 +117,7 @@ const CustomerLoginForm = () => {
                     confirmButtonText: "OK",
                 });
             }
-    
+
         } catch (error) {
             console.error('Error fetching password:', error);
             Swal.fire({
@@ -131,7 +131,7 @@ const CustomerLoginForm = () => {
             setIsApiLoading(false);
         }
     };
-    
+
 
 
 
@@ -160,11 +160,12 @@ const CustomerLoginForm = () => {
 
     const handleSubmitForm = async (e) => {
         e.preventDefault();
+        setIsBranchApiLoading(true);
 
         const validateError = validations();
-        const admin_id = JSON.parse(localStorage.getItem('admin'))?.id;
-        const storedToken = localStorage.getItem('_token');
-        const adminNewToken = localStorage.getItem('adminNewToken');
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
+        const adminNewToken = localStorage.getItem("adminNewToken");
 
         if (Object.keys(validateError).length === 0) {
             setLoading(true);
@@ -173,8 +174,8 @@ const CustomerLoginForm = () => {
             myHeaders.append("Content-Type", "application/json");
 
             const payload = {
-                "username": input.email,
-                "password": input.password,
+                username: input.email,
+                password: input.password,
             };
 
             if (admin_id) {
@@ -186,40 +187,48 @@ const CustomerLoginForm = () => {
             } else if (storedToken) {
                 payload.admin_token = storedToken;
             }
-            const raw = JSON.stringify(payload);
 
             try {
                 const response = await fetch(`${API_URL}/branch/login`, {
                     method: "POST",
                     headers: myHeaders,
-                    body: raw,
+                    body: JSON.stringify(payload),
                 });
-                const result = await response.json();
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const result = await response.json();
                 setLoading(false);
 
                 if (!result.status) {
                     Swal.fire({
-                        title: 'Error!',
+                        title: "Error!",
                         text: `An error occurred: ${result.message}`,
-                        icon: 'error',
-                        confirmButtonText: 'Ok'
+                        icon: "error",
+                        confirmButtonText: "Ok",
                     });
                 } else {
                     const branchData = result.branchData;
                     const branch_token = result.token;
 
-                    localStorage.setItem('branch', JSON.stringify(branchData));
-                    localStorage.setItem('branch_token', branch_token);
+                    localStorage.setItem("branch", JSON.stringify(branchData));
+                    localStorage.setItem("branch_token", branch_token);
 
                     Swal.fire({
                         title: "Success",
-                        text: 'OTP SENT SUCCESSFULLY',
+                        text: "OTP SENT SUCCESSFULLY",
                         icon: "success",
-                        confirmButtonText: "Ok"
+                        confirmButtonText: "Ok",
                     });
 
-                    if (result.message === "OTP sent successfully.") {
+                    if (
+                        result.message.toLowerCase().includes("otp") &&
+                        result.message.toLowerCase().includes("sent")
+                    ) {
+                        const branchRawData = { email: input.email }
+                        localStorage.setItem("branch", JSON.stringify(branchRawData));
                         setShowOtpModal(true);
                     } else {
                         handleLoginSuccess(result);
@@ -227,32 +236,35 @@ const CustomerLoginForm = () => {
 
                     setError({});
 
-                    // If "Remember Me" is checked, store the email and password in localStorage
+                    // "Remember Me" functionality
                     if (rememberMe) {
-                        localStorage.setItem('email', input.email);
-                        localStorage.setItem('password', input.password);
-                        localStorage.setItem('rememberMe', true);
+                        localStorage.setItem("email", input.email);
+                        localStorage.setItem("password", input.password);
+                        localStorage.setItem("rememberMe", "true");
                     } else {
-                        localStorage.removeItem('email');
-                        localStorage.removeItem('password');
-                        localStorage.setItem('rememberMe', false);
+                        localStorage.removeItem("email");
+                        localStorage.removeItem("password");
+                        localStorage.setItem("rememberMe", "false");
                     }
                 }
             } catch (error) {
                 setLoading(false);
-
                 Swal.fire({
-                    title: 'Error!',
+                    title: "Error!",
                     text: `Error: ${error.message}`,
-                    icon: 'error',
-                    confirmButtonText: 'Ok'
+                    icon: "error",
+                    confirmButtonText: "Ok",
                 });
-                console.error('Login failed:', error);
+                console.error("Login failed:", error);
+            } finally {
+                setIsBranchApiLoading(false);
             }
         } else {
             setError(validateError);
+            setIsBranchApiLoading(false);
         }
     };
+
 
     const handleLoginSuccess = (result) => {
         const branchData = result.branchData;
