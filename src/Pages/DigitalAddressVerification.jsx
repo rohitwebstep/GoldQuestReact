@@ -528,12 +528,14 @@ const DigitalAddressVerification = () => {
                             messageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400');
                         }
 
+                        /*
                         Swal.fire({
                             title: title,
                             text: result.message,
                             icon: icon,
                             confirmButtonText: 'OK',
                         });
+                        */
 
                         messageDiv.innerHTML = `
         <h1 class="font-semibold text-2xl">${title}</h1>
