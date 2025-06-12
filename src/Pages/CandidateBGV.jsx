@@ -361,10 +361,38 @@ const CandidateBGV = () => {
                 { title: "Mobile Number", value: cefData.mb_no || "N/A" },
                 { title: "Father's Name", value: cefData.father_name || "N/A" },
                 { title: "Spouse's Name", value: cefData.husband_name || "N/A" },
-                { title: "Date of Birth", value: cefData.dob || "N/A" },
+                { title: "Date of Birth", value: formatDate(cefData.dob) || "N/A" },
+                {
+                    title: "Age",
+                    value: getFormattedAge(cefData.dob) || "N/A"
+                },
                 { title: "Gender", value: cefData.gender || "N/A" },
+                { title: "Alternative Mobile Number", value: cefData.alternative_mobile_number || "N/A" },
                 // Add conditional fields based on customBgv and nationality
             ];
+
+            function getFormattedAge(dob) {
+                const birthDate = new Date(dob);
+                const today = new Date();
+
+                let years = today.getFullYear() - birthDate.getFullYear();
+                let months = today.getMonth() - birthDate.getMonth();
+
+                if (today.getDate() < birthDate.getDate()) {
+                    months -= 1;
+                }
+
+                if (months < 0) {
+                    years -= 1;
+                    months += 12;
+                }
+
+                if (years < 1 && months >= 0) {
+                    return `${months} month${months !== 1 ? 's' : ''}`;
+                }
+
+                return `${years} year${years !== 1 ? 's' : ''} ${months} month${months !== 1 ? 's' : ''}`;
+            }
 
             // Conditionally add fields
             if (customBgv === 1 && nationality === "Indian") {
@@ -389,6 +417,7 @@ const CandidateBGV = () => {
 
             tableData.push(
                 { title: "Aadhar Card Number", value: cefData.aadhar_card_number || "N/A" },
+                { title: "Aadhar Card Number", value: cefData.aadhar_card_linked_mobile_number || "N/A" },
                 { title: "Pan Card Number", value: cefData.pan_card_number || "N/A" },
                 { title: "Nationality", value: cefData.nationality || "N/A" },
                 { title: "Marital Status", value: cefData.marital_status || "N/A" }
@@ -530,21 +559,23 @@ const CandidateBGV = () => {
             // Table for Permanent Address
             doc.autoTable({
                 startY: yPosition,
-                head: [[{ content: 'Permanent Address', colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
-                ],
+                head: [[
+                    { content: 'Permanent Address', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }
+                ]],
                 body: [
-                    ['Permanent Address', cefData.permanent_address || 'N/A'],
-                    ['Pin Code', cefData.permanent_pin_code || 'N/A'],
-                    ['Mobile Number', cefData.permanent_address_landline_number || 'N/A'],
-                    ['Current State', cefData.permanent_address_state || 'N/A'],
-                    ['Current Landmark', cefData.permanent_prominent_landmark || 'N/A'],
-                    ['Current Address Stay No.', cefData.permanent_address_stay_to || 'N/A'],
-                    ['Nearest Police Station', cefData.permanent_address_nearest_police_station || 'N/A']
+                    ['House no', cefData.permanent_address || 'N/A'],
+                    ['Street', cefData.permanent_street_locality || 'N/A'],
+                    ['District', cefData.permanent_sector_village || 'N/A'],
+                    ['City', cefData.permanent_city || 'N/A'],
+                    ['State', cefData.permanent_address_state || 'N/A'],
+                    ['Pincode', cefData.permanent_pin_code || 'N/A'],
                 ],
                 theme: 'grid',
                 margin: { top: 10 },
-                styles: { fontSize: 10, cellPadding: 3 }
+                styles: { fontSize: 10, cellPadding: 3 },
+                pageBreak: 'avoid'  // Prevent breaking table across pages
             });
+
 
             // Update yPosition after the permanent address table
             yPosition = doc.autoTable.previous.finalY + 20; // Add a small margin after the table
@@ -557,13 +588,12 @@ const CandidateBGV = () => {
                     head: [[{ content: 'Current Address', colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
                     ],
                     body: [
-                        ['Current Address', cefData.current_address || 'N/A'],
-                        ['Pin Code', cefData.current_address_pin_code || 'N/A'],
-                        ['Mobile Number', cefData.current_address_landline_number || 'N/A'],
-                        ['Current State', cefData.current_address_state || 'N/A'],
-                        ['Current Landmark', cefData.current_prominent_landmark || 'N/A'],
-                        ['Current Address Stay No.', cefData.current_address_stay_to || 'N/A'],
-                        ['Nearest Police Station', cefData.current_address_nearest_police_station || 'N/A']
+                        ['House no', cefData.current_address || 'N/A'],
+                        ['Street', cefData.current_street_locality || 'N/A'],
+                        ['District', cefData.current_sector_village || 'N/A'],
+                        ['City', cefData.current_city || 'N/A'],
+                        ['State', cefData.current_address_state || 'N/A'],
+                        ['Pincode', cefData.current_pin_code || 'N/A'],
                     ],
                     theme: 'grid',
                     margin: { top: 10 },
@@ -578,20 +608,16 @@ const CandidateBGV = () => {
             yPosition = doc.autoTable.previous.finalY + 10;
 
 
-           
 
 
+            doc.addPage();
             (async () => {
-                if (!serviceDataMain.length) return; // If no services, return early
-
-                // const selectedServices = serviceDataMain.slice(0, 2); // Get only the first 2 services
-
-                for (let i = 0; i < serviceDataMain.length; i++) {
+                if (serviceDataMain || !serviceDataMain.length === 0) {
+                     for (let i = 0; i < serviceDataMain.length; i++) {
                     const service = serviceDataMain[i];
                     const tableData = [];
-
                     if (serviceDataMain.length > 1) {
-                        doc.addPage();
+
                         yPosition = 20;
                     }
                     // Reset yPosition before each service
@@ -621,8 +647,8 @@ const CandidateBGV = () => {
                                 body: [
                                     ['Institute Name', annexureData?.gap_validation?.education_fields?.phd_1?.phd_institute_name_gap || 'N/A'],
                                     ['School Name', annexureData?.gap_validation?.education_fields?.phd_1?.phd_school_name_gap || 'N/A'],
-                                    ['Start Date', annexureData?.gap_validation?.education_fields?.phd_1?.phd_start_date_gap || 'N/A'],
-                                    ['End Date', annexureData?.gap_validation?.education_fields?.phd_1?.phd_end_date_gap || 'N/A'],
+                                    ['Start Date', formatDate(annexureData?.gap_validation?.education_fields?.phd_1?.phd_start_date_gap) || 'N/A'],
+                                    ['End Date', formatDate(annexureData?.gap_validation?.education_fields?.phd_1?.phd_end_date_gap) || 'N/A'],
                                     ['Specialization', annexureData?.gap_validation?.education_fields?.phd_1?.phd_specialization_gap || 'N/A'],
                                     ["Gap Status", renderGapMessageNew(gaps?.gapPostGradToPhd) || 'N/A']
                                 ],
@@ -684,7 +710,7 @@ const CandidateBGV = () => {
                         yPosition = doc.autoTable.previous.finalY + 10;
                         // Post Graduation
                         if (annexureData?.gap_validation?.highest_education_gap === 'post_graduation' || annexureData?.gap_validation?.highest_education_gap === 'phd') {
-                            doc.addPage();
+                            // doc.addPage();
                             yPosition = 20;
 
                             const postGradData = [
@@ -900,7 +926,7 @@ const CandidateBGV = () => {
                             ;  // Call this function separately if required for gap message
                         }
 
-                        doc.addPage();
+                        // doc.addPage();
                         yPosition = 10;
                         // Secondary Education Section
                         if (
@@ -1061,224 +1087,271 @@ const CandidateBGV = () => {
 
                     }
                     else {
-                        service.rows.forEach((row, rowIndex) => {
+                        let shouldSkipTable = false;
+                        let tableData = [];
 
-                            if (hiddenRows[`${i}-${rowIndex}`]) {
-                                return null;
-                            }
+                        // First pass to check if any checkbox is checked
+                        service.rows.forEach((row, rowIndex) => {
+                            if (hiddenRows[`${i}-${rowIndex}`]) return;
+
                             row.inputs.forEach((input) => {
                                 const isCheckbox = input.type === 'checkbox';
                                 const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
                                 const isChecked = ["1", 1, true, "true"].includes(annexureData[service.db_table]?.[input.name] ?? false);
 
-                                // Handle logic for checkbox checked state
                                 if (isDoneCheckbox && isChecked) {
-                                    // Hide all rows except the one with the checked checkbox
-                                    service.rows.forEach((otherRow, otherRowIndex) => {
-                                        if (otherRowIndex !== rowIndex) {
-                                            hiddenRows[`${i}-${otherRowIndex}`] = true; // Hide other rows
-                                        }
-                                    });
-                                    hiddenRows[`${i}-${rowIndex}`] = false; // Ensure current row stays visible
+                                    shouldSkipTable = true;
                                 }
-                                if (input.type === 'file') return; // Skip file inputs
-
-                                const inputValue = annexureData[service.db_table]?.[input.name] || "NIL";
-                                tableData.push([input.label, inputValue]);
                             });
                         });
 
-                        // Add service heading
-                        doc.setFontSize(16);
-                        yPosition += 10;
-                        doc.autoTable({
-                            startY: yPosition,
-                            head: [[{ content: service.heading, colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
-                            ],
-                            body: tableData,
-                            theme: 'grid',
-                            margin: { horizontal: 10 },
-                            styles: { fontSize: 10 },
-                        });
+                        // ✅ Skip the entire block (table + images) if checkbox is ticked
+                        if (!shouldSkipTable) {
+                            // Build table data
+                            service.rows.forEach((row, rowIndex) => {
+                                if (hiddenRows[`${i}-${rowIndex}`]) return;
 
-                        yPosition = doc.lastAutoTable.finalY + 10; // Update yPosition after table
+                                row.inputs.forEach((input) => {
+                                    if (input.type === 'file') return;
 
+                                    let inputValue = annexureData[service.db_table]?.[input.name] || "NIL";
 
-                        // Process and add images for this service
-                        const fileInputs = service.rows.flatMap(row =>
-                            row.inputs.filter(({ type }) => type === "file").map(input => input.name)
-                        );
-
-                        if (fileInputs.length > 0) {
-                            const filePromises = fileInputs.map(async (inputName) => {
-                                const annexureFilesStr = annexureData[service.db_table]?.[inputName];
-                                let annexureDataImageHeight = 220;
-
-                                if (annexureFilesStr) {
-                                    const fileUrls = annexureFilesStr.split(",").map(url => url.trim());
-                                    if (fileUrls.length === 0) {
-                                        doc.setFont("helvetica", "italic");
-                                        doc.setFontSize(10);
-                                        doc.setTextColor(150, 150, 150);
-                                        doc.text("No annexure files available.", 10, yPosition + 10);
-                                        yPosition += 10;
-                                        return;
+                                    // Format ISO date to dd-mm-yyyy
+                                    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                                    if (isoDateRegex.test(inputValue)) {
+                                        const [year, month, day] = inputValue.split("-");
+                                        inputValue = `${day}-${month}-${year}`;
                                     }
 
-                                    // Filter out non-image URLs (pdf, xls, etc.)
-                                    const imageUrlsToProcess = fileUrls.filter(url => {
-                                        const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-                                        return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
-                                    });
+                                    tableData.push([input.label, inputValue]);
+                                });
+                            });
 
-                                    // Filter out URLs that are not images
-                                    const nonImageUrlsToProcess = fileUrls.filter(url => {
-                                        const validNonImageExtensions = ['pdf', 'xls', 'xlsx'];
-                                        return validNonImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
-                                    });
+                            if (tableData.length > 0) {
+                                doc.setFontSize(16);
+                                yPosition += 10;
+                                doc.autoTable({
+                                    startY: yPosition,
+                                    head: [[{ content: service.heading, colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }]],
+                                    body: tableData,
+                                    theme: 'grid',
+                                    margin: { horizontal: 10 },
+                                    styles: { fontSize: 10 },
+                                });
+                                yPosition = doc.previousAutoTable.finalY + 10;
+                            }
 
-                                    // Handle image files
-                                    if (imageUrlsToProcess.length > 0) {
-                                        const imageBases = await fetchImageToBase(imageUrlsToProcess);
-                                        for (const image of imageBases) {
-                                            if (!image.base64.startsWith('data:image/')) continue;
+                            // ✅ Process and add images/files for this service
+                            const fileInputs = service.rows.flatMap(row =>
+                                row.inputs.filter(({ type }) => type === "file").map(input => input.name)
+                            );
 
-                                            doc.addPage();
-                                            yPosition = 20;
+                            if (fileInputs.length > 0) {
+                                const filePromises = fileInputs.map(async (inputName) => {
+                                    const annexureFilesStr = annexureData[service.db_table]?.[inputName];
+                                    let annexureDataImageHeight = 220;
 
-                                            try {
-                                                const imageWidth = doc.internal.pageSize.width - 10;
-                                                // Adjust height if needed based on image dimensions or conditions
-                                                doc.addImage(image.base64, image.type, 5, yPosition + 20, imageWidth, annexureDataImageHeight);
-                                                yPosition += (annexureDataImageHeight + 30);
-                                            } catch (error) {
-                                                console.error(`Error adding image:`, error);
-                                            }
-                                        }
-                                    }
+                                    if (annexureFilesStr) {
+                                        const fileUrls = annexureFilesStr.split(",").map(url => url.trim());
 
-                                    // Handle non-image files (PDF, XLS, etc.)
-                                    const pageHeight = doc.internal.pageSize.height;
-                                    const margin = 10; // margin from top and bottom
-                                    let lineHeight = 10; // space between lines
-
-                                    if (nonImageUrlsToProcess.length > 0) {
-                                        nonImageUrlsToProcess.forEach(url => {
-                                            // Calculate available space on the current page
-                                            if (yPosition + lineHeight > pageHeight - margin) {
-                                                doc.addPage(); // Add a new page if there's not enough space
-                                                yPosition = margin; // Reset yPosition after adding a new page
-                                            }
-
-                                            // Add a button to open the file in a new tab
-                                            doc.setFont("helvetica", "normal");
-                                            doc.setFontSize(10);
-                                            doc.setTextColor(255, 0, 0);
-                                            const buttonText = `Click to open the file`;
-                                            const textWidth = doc.getTextWidth(buttonText);
-                                            const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-
-                                            // Add the text at the center and create the link
-                                            doc.text(buttonText, centerX, yPosition + 10);
-                                            doc.link(centerX, yPosition + 10, textWidth, 10, { url: url });
-
-                                            // Adjust yPosition for the next line
-                                            yPosition += lineHeight + 2; // Adjust for button space
+                                        const imageUrlsToProcess = fileUrls.filter(url => {
+                                            const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                                            return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
                                         });
+
+                                        const nonImageUrlsToProcess = fileUrls.filter(url => {
+                                            const validNonImageExtensions = ['pdf', 'xls', 'xlsx'];
+                                            return validNonImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                                        });
+
+                                        // Handle image files
+                                        if (imageUrlsToProcess.length > 0) {
+                                            const imageBases = await fetchImageToBase(imageUrlsToProcess);
+                                            for (const image of imageBases) {
+                                                if (!image.base64.startsWith('data:image/')) continue;
+
+                                                doc.addPage();
+                                                yPosition = 20;
+
+                                                try {
+                                                    const imageWidth = doc.internal.pageSize.width - 10;
+                                                    doc.addImage(image.base64, image.type, 5, yPosition + 20, imageWidth, annexureDataImageHeight);
+                                                    yPosition += (annexureDataImageHeight + 30);
+                                                } catch (error) {
+                                                    console.error(`Error adding image:`, error);
+                                                }
+                                            }
+                                        }
+
+                                        // Handle non-image files (PDF, XLS, etc.)
+                                        const pageHeight = doc.internal.pageSize.height;
+                                        const margin = 10;
+                                        let lineHeight = 10;
+
+                                        if (nonImageUrlsToProcess.length > 0) {
+                                            nonImageUrlsToProcess.forEach(url => {
+                                                if (yPosition + lineHeight > pageHeight - margin) {
+                                                    doc.addPage();
+                                                    yPosition = margin;
+                                                }
+
+                                                doc.setFont("helvetica", "normal");
+                                                doc.setFontSize(10);
+                                                doc.setTextColor(255, 0, 0);
+                                                const buttonText = `Click to open the file`;
+                                                const textWidth = doc.getTextWidth(buttonText);
+                                                const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+                                                doc.text(buttonText, centerX, yPosition + 10);
+                                                doc.link(centerX, yPosition + 10, textWidth, 10, { url: url });
+
+                                                yPosition += lineHeight + 2;
+                                            });
+                                        }
                                     }
+                                });
 
-                                }
-                            });
+                                await Promise.all(filePromises);
+                            }
+                            if (tableData.length > 0 && fileInputs.length > 0) {
+                                doc.addPage();
 
-                            await Promise.all(filePromises);
+                            }
+
                         }
-
-
                     }
 
+                    const fileInputs = service?.rows?.flatMap(row =>
+                        row.inputs.filter(({ type }) => type === "file").map(input => input.name)
+                    );
+                    if (!fileInputs.length > 0) {
+                        doc.addPage();
+                    }
+                }
                 }
 
-                doc.addPage();
-                let newYPosition = 20
+                // const selectedServices = serviceDataMain.slice(0, 2); // Get only the first 2 services
+                console.log('service',serviceDataMain)
+
+           
+                let newYPosition = 20;
+
+                // Upper Table: Declaration & Authorization
                 doc.autoTable({
                     head: [[
-                        { content: 'Declaration and Authorization', colSpan: 4, styles: { halign: 'center', fontSize: 16, bold: true } }
+                        {
+                            content: 'Declaration & Authorization',
+                            colSpan: 3,
+                            styles: {
+                                halign: 'left',
+                                fontSize: 12,
+                                textColor: 255,
+                            }
+                        }
                     ]],
-                    body: [
-                        [
-                            { content: 'I hereby authorize GoldQuest Global HR Services Private Limited and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion. I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative. I release all persons from liability on account of such disclosure. I confirm that the above information is correct to the best of my knowledge. I agree that in the event of my obtaining employment, my probationary appointment, confirmation as well as continued employment in the services of the company are subject to clearance of medical test and background verification check done by the company.',
-                            colSpan: 4, styles: { halign: 'center', fontSize: 9, cellPadding: 5 } }
-                        ],
-                        ['Name', cefData?.name_declaration || 'N/A', 'Date', cefData?.declaration_date || 'N/A']
-                    ],
+                    body: [[
+                        {
+                            content: `I hereby authorize GoldQuest Global HR Services Pvt Ltd and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion. I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative. I release all persons from liability on account of such disclosure.\n\nI confirm that the above information is correct to the best of my knowledge. I agree that in the event of my obtaining employment, my probationary appointment, confirmation as well as continued employment in the services of the company are subject to clearance of medical test and background verification check done by the company.`,
+                            colSpan: 3,
+                            styles: {
+                                fontSize: 10,
+                                cellPadding: { top: 2, bottom: 2, left: 2, right: 2 },
+                                valign: 'top'
+                            }
+                        }
+                    ]],
                     startY: newYPosition,
-                    margin: { top: 20 },
                     theme: 'grid',
+                    margin: { left: 10, right: 9 },
+                    styles: { fontSize: 9 },
+                    tableWidth: 'wrap',
+                    columnStyles: {
+                        0: { cellWidth: 70 },
+                        1: { cellWidth: 70 },
+                        2: { cellWidth: 50 }
+                    }
                 });
-                
-    
-    
-    
-                newYPosition = doc.autoTable.previous.finalY + 20; // Adjusting for space from the last table
-    
-                doc.text("Attach Signature.", doc.internal.pageSize.width / 2, newYPosition, { align: 'center' });
-    
-                const lineHeight = 10;
-                const margin = 10;
-                const DocHeight = 100; // Height for images (adjust as needed)
-    
-                // Check if the signature exists
-                if (cefData && cefData.signature) {
-                    // Check if the signature is an image
+
+                newYPosition = doc.autoTable.previous.finalY;
+
+                // Lower Table: Candidate Info and Signature
+                const colWidths = [70, 70, 50]; // match upper table width
+                const imageWidth = 65;
+                const imageHeight = 40;
+
+                const name = cefData?.name_declaration || 'N/A';
+                const dateFilled = formatDate(cefData?.declaration_date) || 'N/A';
+
+                doc.autoTable({
+                    body: [[
+                        { content: name, styles: { halign: 'center', valign: 'top', fontSize: 10 } },
+                        { content: '', styles: { halign: 'center', valign: 'top', minCellHeight: 44 } },
+                        { content: dateFilled, styles: { halign: 'center', valign: 'top', fontSize: 0 } }
+                    ], [
+                        { content: 'Full name of the candidate', styles: { halign: 'center', fontSize: 10, fontStyle: "bold" } },
+                        { content: 'Signature', styles: { halign: 'center', fontSize: 10, fontStyle: "bold" } },
+                        { content: 'Date of form filled', styles: { halign: 'center', fontSize: 10, fontStyle: "bold" } }
+                    ]],
+                    columnStyles: {
+                        0: { cellWidth: colWidths[0] },
+                        1: { cellWidth: colWidths[1] },
+                        2: { cellWidth: colWidths[2] }
+                    },
+                    startY: newYPosition,
+                    theme: 'grid',
+                    margin: { left: 10, right: 10 },
+                    tableWidth: 'wrap'
+                });
+                const tableY = doc.autoTable.previous.finalY - 40;
+                const cellStartX = 10 + colWidths[0]; // X of signature cell
+                const colWidth = colWidths[1]; // width of signature cell
+
+                // Handle Signature
+                if (cefData?.signature) {
                     const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                     const isImage = validImageExtensions.some(ext => cefData.signature.toLowerCase().endsWith(ext));
-    
+
                     if (isImage) {
-                        // Fetch the base64 image
                         const imageBases = await fetchImageToBase([cefData.signature]);
-    
-                        // Assuming imageBases[0] exists and contains the base64 string
-                        if (imageBases && imageBases[0] && imageBases[0].base64) {
-                            const imageBase64 = imageBases[0].base64;
-                            const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
-    
-                            // Add the image to the PDF
-                            doc.addImage(imageBase64, 'PNG', 5, newYPosition + 20, imageWidth, DocHeight);
-                            newYPosition += DocHeight + 20; // Update the position after the image
+                        if (imageBases && imageBases[0]?.base64) {
+                            const imageX = cellStartX + (colWidth - imageWidth) / 2;
+                            const imageY = tableY + (22 - imageHeight) / 2;
+
+                            doc.addImage(
+                                imageBases[0].base64,
+                                'PNG',
+                                imageX,
+                                imageY,
+                                imageWidth,
+                                imageHeight
+                            );
                         }
                     } else {
-                        // If not an image, show a clickable button to view the document
                         const buttonText = "Click to view attached document";
                         const textWidth = doc.getTextWidth(buttonText);
-                        const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-    
-                        // Add the text at the center
+                        const centerX = cellStartX + ((colWidth - textWidth) / 2);
+                        const centerY = tableY + 25;
+
                         doc.setFont("helvetica", "normal");
                         doc.setFontSize(10);
-                        doc.setTextColor(255, 0, 0); // Red color for the button text
-                        doc.text(buttonText, centerX + 10, newYPosition + 10);
-    
-                        // Create the clickable link to open the document (e.g., cefData.signature could be a URL to the document)
-                        doc.link(centerX, newYPosition + 10, textWidth, 10, { url: cefData.signature });
-    
-                        // Update the position after the link
-                        newYPosition += lineHeight + 20; // Adjust space for next content
+                        doc.setTextColor(255, 0, 0);
+                        doc.text(buttonText, centerX, centerY);
+                        doc.link(centerX, centerY - 5, textWidth, 10, { url: cefData.signature });
                     }
                 } else {
-                    // If no signature exists, add a message or alternative content
-                    doc.text("No Signature uploaded.", 10, newYPosition + 10);
-                    newYPosition += lineHeight + 20; // Adjust space for next content
+                    doc.setFontSize(10);
+                    doc.text("No Signature uploaded.", cellStartX + 5, tableY + 25);
                 }
-    
+
                 doc.addPage();
 
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "bold");
                 const pageWidth = doc.internal.pageSize.width; // Get the page width
                 const textWidth = doc.getTextWidth("Documents (Mandatory)"); // Get the width of the text
-                
+
                 doc.text("Documents (Mandatory)", (pageWidth - textWidth) / 2, 15); // Center-align text
-                
+
                 // Define table columns
                 const columns = [
                     { content: "Education", styles: { fontStyle: "bold" } },
@@ -1311,7 +1384,6 @@ const CandidateBGV = () => {
                         2: { halign: "center", minCellWidth: 60 }
                     }
                 });
-
                 // Footer Note
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
@@ -2019,7 +2091,14 @@ const CandidateBGV = () => {
         const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         return validImageExtensions.some(ext => fileUrl.toLowerCase().endsWith(ext));
     }
-
+    const formatDate = (dateStr) => {
+        const d = new Date(dateStr);
+        if (isNaN(d)) return "Invalid Date";
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
     return (
         <>
             {
@@ -2037,7 +2116,7 @@ const CandidateBGV = () => {
                                     </div>
                                 )}
 
-                                <h4 className="text-Black md:text-3xl text-center text-xl md:mb-6 mb-3 font-bold mt-3">Background Verification Form</h4>
+                                <h4 className="text-Black md:text-2xl text-center text-xl md:mb-6 mb-3 font-bold mt-3 text-[#3e76a5] ">Background Verification Form</h4>
                                 <div className='md:flex gap-5 justify-center'>
                                     <div className="mb-2 py-4 rounded-md">
                                         <h5 className="text-lg font-bold text-center md:text-start">Company name: <span className="text-lg font-normal">{companyName}</span></h5>
@@ -2124,7 +2203,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                             <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 border rounded-md  p-4" >
                                                 {purpose == 'NORMAL BGV(EMPLOYMENT)' && (
                                                     <div className="form-group col-span-2" >
-                                                        <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
                                                         <input
                                                             type="file"
                                                             accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
@@ -2158,7 +2237,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                     </div>
                                                 )}
                                                 < div className="form-group col-span-2" >
-                                                    <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span></label >
+                                                    <label className='font-bold text-sm text-gray-700 ' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span></label >
                                                     <input
                                                         type="file"
                                                         accept=".jpg,.jpeg,.png" // Restrict to image files
@@ -2200,7 +2279,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                     customBgv === 1 && (
                                                         <>
                                                             <div className="form-group col-span-2" >
-                                                                <label className='text-sm' > Passport size photograph - (mandatory with white Background)<span className="text-red-500 text-lg" >* </span></label >
+                                                                <label className='font-bold text-sm text-gray-700 ' > Passport size photograph - (mandatory with white Background)<span className="text-red-500 text-lg" >* </span></label >
                                                                 <input
                                                                     type="file"
                                                                     accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
@@ -2245,7 +2324,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                 < div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6 " >
                                                     <div className="form-group" >
-                                                        <label className='text-sm' > Full Name as per Govt ID Proof(first, middle, last): <span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' > Full Name as per Govt ID Proof(first, middle, last): <span className="text-red-500 text-lg" >* </span></label >
                                                         <input
                                                             disabled
                                                             value={cefData.full_name}
@@ -2257,7 +2336,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         />
                                                     </div>
                                                     < div className="form-group" >
-                                                        <label className='text-sm' htmlFor="former_name" > Former Name / Maiden Name(if applicable)<span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="former_name" > Former Name / Maiden Name(if applicable)<span className="text-red-500 text-lg" >* </span></label >
                                                         <input
                                                             disabled
                                                             value={cefData.former_name}
@@ -2268,7 +2347,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         />
                                                     </div>
                                                     < div className="form-group" >
-                                                        <label className='text-sm' htmlFor="mob_no" > Mobile Number: <span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="mob_no" > Mobile Number: <span className="text-red-500 text-lg" >* </span></label >
                                                         <input
                                                             disabled
                                                             value={cefData.mb_no}
@@ -2282,10 +2361,10 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         />
                                                     </div>
                                                 </div>
-                                                < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                     <div className="form-group" >
-                                                        <label className='text-sm' htmlFor="father_name">Father's Name: <span className="text-red-500 text-lg">*</span></label>
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="father_name">Father's Name: <span className="text-red-500 text-lg">*</span></label>
                                                         <input
                                                             disabled
                                                             value={cefData.father_name}
@@ -2297,7 +2376,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         />
                                                     </div>
                                                     < div className="form-group" >
-                                                        <label className='text-sm' htmlFor="husband_name" > Spouse's Name</label>
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="husband_name" > Spouse's Name</label>
                                                         < input
                                                             disabled
                                                             value={cefData.husband_name}
@@ -2308,23 +2387,39 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         />
                                                     </div>
 
+                                                </div>
+                                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+
                                                     < div className="form-group" >
-                                                        <label className='text-sm' htmlFor="dob" > DOB: <span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="dob" > DOB: <span className="text-red-500 text-lg" >* </span></label >
                                                         <input
                                                             disabled
-                                                            value={cefData.dob}
-                                                            type="date"
+                                                            value={formatDate(cefData.dob)}
+                                                            type="text"
                                                             className="form-control border rounded w-full p-2 mt-2"
                                                             name="dob"
                                                             id="dob"
 
                                                         />
                                                     </div>
+                                                    <div className="form-group">
+
+                                                        <label className='text-sm' htmlFor="age">Age:</label>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control border rounded w-full p-2 mt-2 bg-gray-100"
+                                                            name="age"
+                                                            id="age"
+                                                            value={cefData.age}
+                                                            readOnly
+                                                        />
+
+                                                    </div>
                                                 </div>
                                                 < div className="grid grid-cols-1 md:grid-cols-1 gap-4" >
 
                                                     <div className="form-group my-4" >
-                                                        <label className='text-sm' htmlFor="gender" >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="gender" >
                                                             Gender: <span className="text-red-500 text-lg" >* </span>
                                                         </label>
                                                         < select
@@ -2343,24 +2438,51 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         </select>
                                                     </div>
                                                 </div>
-                                                {nationality === "Indian" && (
-                                                    <div className='form-group'>
-                                                        <label className='text-sm'>Aadhar card No</label>
+                                                < div className="grid grid-cols-1 md:grid-cols-1 gap-4" >
+
+                                                    <div className="form-group my-4" >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="alternative_mobile_number" >
+                                                            Alternative Mobile Number: <span className="text-red-500 text-lg" >* </span>
+                                                        </label>
                                                         <input
                                                             type="text"
-                                                            name="aadhar_card_number"
-                                                            value={cefData.aadhar_card_number}
+                                                            name="alternative_mobile_number"
+                                                            value={cefData.alternative_mobile_number}
                                                             disabled
                                                             className="form-control border rounded w-full p-2 mt-2"
                                                         />
                                                     </div>
+                                                </div>
+                                                {nationality === "Indian" && (
+                                                    <>
+                                                        <div className='form-group'>
+                                                            <label className='font-bold text-sm text-gray-700 '>Aadhar card No</label>
+                                                            <input
+                                                                type="text"
+                                                                name="aadhar_card_number"
+                                                                value={cefData.aadhar_card_number}
+                                                                disabled
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                            />
+                                                        </div>
+                                                        <div className='form-group'>
+                                                            <label className='text-sm'>Aadhar Linked Mobile No</label>
+                                                            <input
+                                                                type="text"
+                                                                name="aadhar_card_linked_mobile_number"
+                                                                disabled
+                                                                value={cefData.aadhar_card_linked_mobile_number}
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                            />
+                                                        </div>
+                                                    </>
                                                 )}
                                                 < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
                                                     {
                                                         customBgv === 1 && nationality === "Indian" && (
                                                             <>
                                                                 <div className='form-group'>
-                                                                    <label className='text-sm'>
+                                                                    <label className='font-bold text-sm text-gray-700 '>
                                                                         Name as per Aadhar card <span className='text-red-500 text-lg'>*</span>
                                                                     </label>
                                                                     <input
@@ -2374,7 +2496,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 </div>
 
                                                                 <div className='form-group'>
-                                                                    <label className='text-sm'>
+                                                                    <label className='font-bold text-sm text-gray-700 '>
                                                                         Aadhar Card Image <span className='text-red-500 text-lg'>*</span>
                                                                     </label>
                                                                     <input
@@ -2425,7 +2547,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                 {nationality === "Indian" && (
                                                     <div className='form-group' >
-                                                        <label className='text-sm' > Pan card No </label>
+                                                        <label className='font-bold text-sm text-gray-700 ' > Pan card No </label>
                                                         <input
                                                             type="text"
                                                             disabled
@@ -2443,7 +2565,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                             <>
 
                                                                 <div className='form-group' >
-                                                                    <label className='text-sm' >Name as per Pan Card< span className='text-red-500 text-lg' >* </span></label >
+                                                                    <label className='font-bold text-sm text-gray-700 ' >Name as per Pan Card< span className='text-red-500 text-lg' >* </span></label >
                                                                     <input
                                                                         disabled
                                                                         type="text"
@@ -2457,7 +2579,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                     {customBgv === 1 && nationality === "Indian" && (
                                                         <div className='form-group' >
-                                                            <label className='text-sm' > Pan Card Image < span className='text-red-500 text-lg' >* </span></label >
+                                                            <label className='font-bold text-sm text-gray-700 ' > Pan Card Image < span className='text-red-500 text-lg' >* </span></label >
                                                             <input
                                                                 type="file"
                                                                 disabled
@@ -2507,7 +2629,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                 {
                                                     customBgv == 0 && nationality === "Other" && (
                                                         <div className="form-group" >
-                                                            <label className='text-sm' > Social Security Number(if applicable): </label>
+                                                            <label className='font-bold text-sm text-gray-700 ' > Social Security Number(if applicable): </label>
                                                             < input
                                                                 disabled
                                                                 value={cefData.ssn_number}
@@ -2524,7 +2646,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                             <div className="form-group" >
-                                                                <label className='text-sm' >Passport No</label>
+                                                                <label className='font-bold text-sm text-gray-700 ' >Passport No</label>
                                                                 < input
                                                                     disabled
                                                                     value={cefData.passport_no}
@@ -2535,7 +2657,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 />
                                                             </div>
                                                             <div className="form-group" >
-                                                                <label className='text-sm' >Driving Licence / Resident Card / Id no</label>
+                                                                <label className='font-bold text-sm text-gray-700 ' >Driving Licence / Resident Card / Id no</label>
                                                                 < input
                                                                     disabled
                                                                     value={cefData.dme_no}
@@ -2548,7 +2670,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                         </div>
                                                         <div className="form-group" >
-                                                            <label className='text-sm' >TAX No</label>
+                                                            <label className='font-bold text-sm text-gray-700 ' >TAX No</label>
                                                             < input
                                                                 disabled
                                                                 value={cefData.tax_no}
@@ -2562,7 +2684,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                 )}
                                                 < div className="grid grid-cols-1 md:grid-cols-2 gap-4 " >
                                                     <div className="form-group" >
-                                                        <label className='text-sm' htmlFor="nationality" > Nationality: <span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="nationality" > Nationality: <span className="text-red-500 text-lg" >* </span></label >
                                                         <input
                                                             disabled
                                                             value={cefData.nationality}
@@ -2574,7 +2696,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                         />
                                                     </div>
                                                     < div className="form-group" >
-                                                        <label className='text-sm' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' htmlFor="marital_status" > Marital Status: <span className="text-red-500 text-lg" >* </span></label >
                                                         <select
                                                             className="form-control border rounded w-full p-2 mt-2"
                                                             name="marital_status"
@@ -2600,7 +2722,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                     <>
                                                         <div className='border border-gray-300 p-6 rounded-md mt-5 hover:transition-shadow duration-300' >
 
-                                                            <label className='text-sm' > Blood Group </label>
+                                                            <label className='font-bold text-sm text-gray-700 ' > Blood Group </label>
                                                             < div className='form-group' >
                                                                 <input
                                                                     type="text"
@@ -2615,7 +2737,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <h3 className='md:text-center text-start md:text-xl text-sm font-bold pb-4' > Add Emergency Contact Details </h3>
                                                                 < div className='md:grid grid-cols-3 gap-3 ' >
                                                                     <div className='form-group' >
-                                                                        <label className='text-sm' > Name < span className='text-red-500 text-lg' >* </span></label >
+                                                                        <label className='font-bold text-sm text-gray-700 ' > Name < span className='text-red-500 text-lg' >* </span></label >
                                                                         <input
                                                                             type="text"
                                                                             name="emergency_details_name"
@@ -2625,7 +2747,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         />
                                                                     </div>
                                                                     < div className='form-group' >
-                                                                        <label className='text-sm' > Relation < span className='text-red-500 text-lg' >* </span></label >
+                                                                        <label className='font-bold text-sm text-gray-700 ' > Relation < span className='text-red-500 text-lg' >* </span></label >
                                                                         <input
                                                                             type="text"
                                                                             name="emergency_details_relation"
@@ -2635,7 +2757,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         />
                                                                     </div>
                                                                     < div className='form-group' >
-                                                                        <label className='text-sm' > Contact Number < span className='text-red-500 text-lg' >* </span></label >
+                                                                        <label className='font-bold text-sm text-gray-700 ' > Contact Number < span className='text-red-500 text-lg' >* </span></label >
                                                                         <input
                                                                             type="text"
                                                                             name="emergency_details_contact_number"
@@ -2652,7 +2774,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <h3 className='md:text-center text-start md:text-xl text-sm font-bold pb-2' > Insurance Nomination Details: - (A set of parent either Parents or Parents in Law, 1 child, Spouse Nominee details)</h3>
                                                                 < div className='md:grid grid-cols-2 gap-3' >
                                                                     <div className='form-group' >
-                                                                        <label className='text-sm' > Name(s)
+                                                                        <label className='font-bold text-sm text-gray-700 ' > Name(s)
                                                                         </label>
                                                                         < input
                                                                             type="text"
@@ -2663,7 +2785,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         />
                                                                     </div>
                                                                     < div className='form-group' >
-                                                                        <label className='text-sm' > Nominee Relationship
+                                                                        <label className='font-bold text-sm text-gray-700 ' > Nominee Relationship
                                                                         </label>
                                                                         < input
                                                                             type="text"
@@ -2677,15 +2799,15 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         <lalbel>Nominee Date of Birth
                                                                         </lalbel>
                                                                         < input
-                                                                            type="date"
+                                                                            type="text"
                                                                             name="insurance_details_nominee_dob"
-                                                                            value={cefData.insurance_details_nominee_dob}
+                                                                            value={formatDate(cefData.insurance_details_nominee_dob)}
                                                                             disabled
                                                                             className="form-control border rounded w-full p-2 mt-2"
                                                                         />
                                                                     </div>
                                                                     < div className='form-group' >
-                                                                        <label className='text-sm' > Contact No.
+                                                                        <label className='font-bold text-sm text-gray-700 ' > Contact No.
                                                                         </label>
                                                                         < input
                                                                             type="text"
@@ -2710,7 +2832,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         disabled
                                                                         className="form-control border rounded p-2"
                                                                     />
-                                                                    <label className='text-sm' > Yes </label>
+                                                                    <label className='font-bold text-sm text-gray-700 ' > Yes </label>
                                                                 </div>
                                                                 < div className='form-group pt-2 flex gap-2' >
                                                                     <input
@@ -2722,7 +2844,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         disabled
                                                                         className="form-control border rounded p-2"
                                                                     />
-                                                                    <label className='text-sm' > No </label>
+                                                                    <label className='font-bold text-sm text-gray-700 ' > No </label>
                                                                 </div>
                                                             </div>
 
@@ -2745,94 +2867,133 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                 <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Permanent Address </h3>
                                                 <div className='border border-black p-4 rounded-md'>
-                                                    < div className="grid grid-cols-1 md:grid-cols-2 gap-4 " >
-
-                                                        <div className="form-group" >
-                                                            <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {/* 1. Flat / House No. */}
+                                                        <div className="form-group">
+                                                            <label className='text-sm' htmlFor="permanent_address"> Flat/House No. < span
+                                                                className="text-red-500 text-lg">* </span></label>
                                                             <input
                                                                 disabled
                                                                 value={cefData.permanent_address}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_address"
-                                                                name="permanent_address"
-
                                                             />
                                                         </div>
 
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+                                                        {/* 2. Street/Road, Locality */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_street_locality">
+                                                                Street/Road, Locality Area <span className="text-red-500 text-lg">*</span>
+                                                            </label>
                                                             <input
                                                                 disabled
-                                                                value={cefData.permanent_pin_code}
+                                                                value={cefData.permanent_street_locality}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_pin_code"
-                                                                name="permanent_pin_code"
-
                                                             />
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                            <input
-                                                                disabled
-                                                                value={cefData.permanent_address_landline_number}
-                                                                type="number"
-                                                                className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_address_landline_number"
-                                                                name="permanent_address_landline_number"
 
-                                                            />
-                                                        </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                        {/* 3. Sector/Village */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_sector_village">
+                                                                Sector, Village <span className="text-red-500 text-lg">*</span>
+                                                            </label>
                                                             <input
+
                                                                 disabled
-                                                                value={cefData.permanent_address_state}
+                                                                value={cefData.permanent_sector_village}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_address_state"
-                                                                name="permanent_address_state"
 
                                                             />
+
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+
+                                                        {/* 4. Landmark */}
+                                                        <div className="form-group">
+                                                            <label className='text-sm' htmlFor="permanent_prominent_landmark"> Landmark < span
+                                                                className="text-red-500 text-lg">* </span></label>
                                                             <input
                                                                 disabled
                                                                 value={cefData.permanent_prominent_landmark}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_prominent_landmark"
-                                                                name="permanent_prominent_landmark"
 
                                                             />
+
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="permanent_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                            <input
-                                                                disabled
-                                                                value={cefData.permanent_address_stay_to}
+
+                                                        {/* 5. City */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_city">
+                                                                City <span className="text-red-500 text-lg">*</span>
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.permanent_city}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="permanent_address_stay_to"
-                                                                name="permanent_address_stay_to"
+                                                            />
+                                                        </div>
+
+                                                        {/* 6. State */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_address_state">
+                                                                State <span className="text-red-500 text-lg">*</span>
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.permanent_address_state}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                            />
+
+
+                                                        </div>
+
+                                                        {/* 7. Pin Code */}
+                                                        <div className="form-group">
+                                                            <label className='text-sm' htmlFor="permanent_pin_code"> Pin Code < span
+                                                                className="text-red-500 text-lg">* </span></label>
+                                                            <input disabled
+                                                                value={cefData.permanent_pin_code}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
 
                                                             />
                                                         </div>
 
+                                                        {/* 8. Mobile Number */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_address_landline_number">
+                                                                Mobile Number <span className="text-red-500 text-lg">*</span>
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.permanent_address_landline_number}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                            />
+                                                        </div>
+
+                                                        {/* 9. Alternate Mobile Number */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_address_stay_to">
+                                                                Alternate Mobile No
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.permanent_address_stay_to}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2" />
+
+                                                        </div>
                                                     </div>
 
-                                                    < div className="form-group" >
-                                                        <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                        < input
-                                                            disabled
+
+                                                    < div className="form-group">
+                                                        <label className='text-sm' htmlFor="permanent_address_nearest_police_station"> Nearest Police Station.<span
+                                                            className="text-red-500">*</span></label>
+                                                        < input disabled
                                                             value={cefData.permanent_address_nearest_police_station}
                                                             type="text"
                                                             className="form-control border rounded w-full p-2 mt-2"
-                                                            id="permanent_address_nearest_police_station"
-                                                            name="permanent_address_nearest_police_station"
-
                                                         />
                                                     </div>
                                                 </div>
@@ -2843,93 +3004,133 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                 <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Current Address </h3>
                                                 <div className='border border-black p-4 rounded-md'>
-                                                    < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
-
-
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {/* 1. Flat / House No. */}
+                                                        <div className="form-group">
+                                                            <label className='text-sm' htmlFor="permanent_address"> Flat/House No. < span
+                                                                className="text-red-500 text-lg">* </span></label>
                                                             <input
+                                                                disabled
                                                                 value={cefData.current_address}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_address"
-                                                                name="current_address"
-                                                                disabled
-
                                                             />
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
+
+                                                        {/* 2. Street/Road, Locality */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_street_locality">
+                                                                Street/Road, Locality Area <span className="text-red-500 text-lg">*</span>
+                                                            </label>
                                                             <input
                                                                 disabled
-                                                                value={cefData.current_address_pin_code}
+                                                                value={cefData.current_street_locality}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_address_pin_code"
-                                                                name="current_address_pin_code"
-
                                                             />
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                            <input
-                                                                disabled
-                                                                value={cefData.current_address_landline_number}
-                                                                type="number"
-                                                                className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_address_landline_number"
-                                                                name="current_address_landline_number"
 
-                                                            />
-                                                        </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
+                                                        {/* 3. Sector/Village */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_sector_village">
+                                                                Sector, Village <span className="text-red-500 text-lg">*</span>
+                                                            </label>
                                                             <input
+
                                                                 disabled
-                                                                value={cefData.current_address_state}
+                                                                value={cefData.current_sector_village}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_address_state"
-                                                                name="current_address_state"
 
                                                             />
+
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
+
+                                                        {/* 4. Landmark */}
+                                                        <div className="form-group">
+                                                            <label className='text-sm' htmlFor="permanent_prominent_landmark"> Landmark < span
+                                                                className="text-red-500 text-lg">* </span></label>
                                                             <input
                                                                 disabled
                                                                 value={cefData.current_prominent_landmark}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_prominent_landmark"
-                                                                name="current_prominent_landmark"
 
                                                             />
+
                                                         </div>
-                                                        < div className="form-group" >
-                                                            <label className='text-sm' htmlFor="current_address_stay_to" > Current Address Stay No.< span className="text-red-500 text-lg" >* </span></label >
-                                                            <input
-                                                                disabled
-                                                                value={cefData.current_address_stay_to}
+
+                                                        {/* 5. City */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_city">
+                                                                City <span className="text-red-500 text-lg">*</span>
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.current_city}
                                                                 type="text"
                                                                 className="form-control border rounded w-full p-2 mt-2"
-                                                                id="current_address_stay_to"
-                                                                name="current_address_stay_to"
                                                             />
                                                         </div>
 
+                                                        {/* 6. State */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_address_state">
+                                                                State <span className="text-red-500 text-lg">*</span>
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.current_address_state}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                            />
+
+
+                                                        </div>
+
+                                                        {/* 7. Pin Code */}
+                                                        <div className="form-group">
+                                                            <label className='text-sm' htmlFor="permanent_pin_code"> Pin Code < span
+                                                                className="text-red-500 text-lg">* </span></label>
+                                                            <input disabled
+                                                                value={cefData.current_pin_code}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+
+                                                            />
+                                                        </div>
+
+                                                        {/* 8. Mobile Number */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_address_landline_number">
+                                                                Mobile Number <span className="text-red-500 text-lg">*</span>
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.current_address_landline_number}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                            />
+                                                        </div>
+
+                                                        {/* 9. Alternate Mobile Number */}
+                                                        <div className="form-group">
+                                                            <label className="text-sm" htmlFor="permanent_address_stay_to">
+                                                                Alternate Mobile No
+                                                            </label>
+                                                            <input disabled
+                                                                value={cefData.current_address_stay_to}
+                                                                type="text"
+                                                                className="form-control border rounded w-full p-2 mt-2" />
+
+                                                        </div>
                                                     </div>
 
-                                                    <div className="form-group" >
-                                                        <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.</label>
-                                                        < input
-                                                            disabled
+
+                                                    < div className="form-group">
+                                                        <label className='text-sm' htmlFor="permanent_address_nearest_police_station"> Nearest Police Station.<span
+                                                            className="text-red-500">*</span></label>
+                                                        < input disabled
                                                             value={cefData.current_address_nearest_police_station}
                                                             type="text"
                                                             className="form-control border rounded w-full p-2 mt-2"
-                                                            id="current_address_nearest_police_station"
-                                                            name="current_address_nearest_police_station"
-
                                                         />
                                                     </div>
                                                 </div>
@@ -2961,7 +3162,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                     <div className='border border-black p-4 rounded-md'>
                                                                         <div className="md:grid grid-cols-2 gap-3 my-4">
                                                                             <div>
-                                                                                <label>Institute Name</label>
+                                                                                <label className='font-bold text-sm text-gray-700'> Institute Name</label>
                                                                                 <input
                                                                                     disabled
                                                                                     type="text"
@@ -2971,7 +3172,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <label>School Name</label>
+                                                                                <label className='font-bold text-sm text-gray-700'> School Name</label>
                                                                                 <input
                                                                                     disabled
                                                                                     type="text"
@@ -2981,7 +3182,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <label>Start Date</label>
+                                                                                <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                                 <input
                                                                                     type="date"
                                                                                     disabled
@@ -2991,7 +3192,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <label>End Date</label>
+                                                                                <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                                 <input
                                                                                     type="date"
                                                                                     disabled
@@ -3034,7 +3235,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                         <h3 className="text-lg font-bold py-3">Correspondence PHD {index}</h3>
                                                                                         <div className="md:grid grid-cols-2 gap-3 my-4">
                                                                                             <div>
-                                                                                                <label>Institute Name</label>
+                                                                                                <label className='font-bold text-sm text-gray-700'> Institute Name</label>
                                                                                                 <input
                                                                                                     type="text"
                                                                                                     disabled
@@ -3045,7 +3246,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                                 />
                                                                                             </div>
                                                                                             <div>
-                                                                                                <label>School Name</label>
+                                                                                                <label className='font-bold text-sm text-gray-700'> School Name</label>
                                                                                                 <input
                                                                                                     type="text"
                                                                                                     disabled
@@ -3056,7 +3257,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                                 />
                                                                                             </div>
                                                                                             <div>
-                                                                                                <label>Start Date</label>
+                                                                                                <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                                                 <input
                                                                                                     type="date"
                                                                                                     value={phdSection?.phd_start_date_gap || ''}
@@ -3066,7 +3267,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                                 />
                                                                                             </div>
                                                                                             <div>
-                                                                                                <label>End Date</label>
+                                                                                                <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                                                 <input
                                                                                                     type="date"
                                                                                                     value={phdSection?.phd_end_date_gap || ''}
@@ -3111,7 +3312,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <div className="border border-black p-4 rounded-md">
                                                                     <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                         <div>
-                                                                            <label>University / Institute Name</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> University / Institute Name</label>
                                                                             <input
                                                                                 type="text"
                                                                                 disabled
@@ -3121,7 +3322,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label>Course</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Course</label>
                                                                             <input
                                                                                 type="text"
                                                                                 disabled
@@ -3131,7 +3332,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label>Specialization Major</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Specialization Major</label>
                                                                             <input
                                                                                 type="text"
                                                                                 disabled
@@ -3143,7 +3344,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         </div>
 
                                                                         <div>
-                                                                            <label>Start Date</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                             <input
                                                                                 type="date"
                                                                                 value={annexureData?.gap_validation?.education_fields?.post_graduation_1?.[`post_graduation_start_date_gap`] || ''}
@@ -3155,7 +3356,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                                     </div>
                                                                     <div>
-                                                                        <label>End Date</label>
+                                                                        <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                         <input
                                                                             type="date"
                                                                             disabled
@@ -3187,7 +3388,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                     <h3 className="text-lg font-bold py-3 ">Correspondence POST GRADUATION {index}</h3>
                                                                                     <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                                         <div>
-                                                                                            <label>University / Institute Name</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> University / Institute Name</label>
                                                                                             <input
                                                                                                 type="text"
                                                                                                 disabled
@@ -3198,7 +3399,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                             />
                                                                                         </div>
                                                                                         <div>
-                                                                                            <label>Course</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Course</label>
                                                                                             <input
                                                                                                 type="text"
                                                                                                 disabled
@@ -3209,7 +3410,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                             />
                                                                                         </div>
                                                                                         <div>
-                                                                                            <label>Specialization Major</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Specialization Major</label>
                                                                                             <input
                                                                                                 type="text"
                                                                                                 disabled
@@ -3221,7 +3422,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                         </div>
 
                                                                                         <div>
-                                                                                            <label>Start Date</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                                             <input
                                                                                                 type="date"
                                                                                                 value={phdSection?.post_graduation_start_date_gap || ''}
@@ -3234,7 +3435,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                                                     </div>
                                                                                     <div>
-                                                                                        <label>End Date</label>
+                                                                                        <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                                         <input
                                                                                             type="date"
                                                                                             value={phdSection?.post_graduation_end_date_gap || ''}
@@ -3265,7 +3466,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <div className="border border-black p-4 rounded-md">
                                                                     <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                         <div>
-                                                                            <label>University / Institute Name</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> University / Institute Name</label>
                                                                             <input
                                                                                 type="text"
                                                                                 disabled
@@ -3275,7 +3476,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label>Course</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Course</label>
                                                                             <input
                                                                                 type="text"
                                                                                 disabled
@@ -3285,7 +3486,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label>Specialization Major</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Specialization Major</label>
                                                                             <input
                                                                                 type="text"
                                                                                 disabled
@@ -3297,7 +3498,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         </div>
 
                                                                         <div>
-                                                                            <label>Start Date</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                             <input
                                                                                 disabled
                                                                                 type="date"
@@ -3309,7 +3510,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                                     </div>
                                                                     <div>
-                                                                        <label>End Date</label>
+                                                                        <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                         <input
                                                                             type="date"
                                                                             disabled
@@ -3341,7 +3542,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                     <h3 className="text-lg font-bold py-3">Correspondence GRADUATION {index}</h3>
                                                                                     <div className="md:grid grid-cols-2 gap-3 my-4 ">
                                                                                         <div>
-                                                                                            <label>University / Institute Name</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> University / Institute Name</label>
                                                                                             <input
                                                                                                 type="text"
                                                                                                 disabled
@@ -3352,7 +3553,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                             />
                                                                                         </div>
                                                                                         <div>
-                                                                                            <label>Course</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Course</label>
                                                                                             <input
                                                                                                 type="text"
                                                                                                 disabled
@@ -3363,7 +3564,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                             />
                                                                                         </div>
                                                                                         <div>
-                                                                                            <label>Specialization Major</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Specialization Major</label>
                                                                                             <input
                                                                                                 type="text"
                                                                                                 disabled
@@ -3375,7 +3576,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                         </div>
 
                                                                                         <div>
-                                                                                            <label>Start Date</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                                             <input
                                                                                                 type="date"
                                                                                                 value={phdSection?.graduation_start_date_gap || ''}
@@ -3388,7 +3589,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                                                     </div>
                                                                                     <div>
-                                                                                        <label>End Date</label>
+                                                                                        <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                                         <input
                                                                                             type="date"
                                                                                             value={phdSection?.graduation_end_date_gap || ''}
@@ -3418,7 +3619,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <h3 className="text-lg font-bold py-3">SENIOR SECONDARY</h3>
                                                                 <div className="border border-black  p-4 rounded-md">
                                                                     <div className="my-3">
-                                                                        <label>School Name</label>
+                                                                        <label className='font-bold text-sm text-gray-700'> School Name</label>
                                                                         <input
                                                                             type="text"
                                                                             disabled
@@ -3429,7 +3630,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                     </div>
                                                                     <div className="md:grid grid-cols-2 gap-3 my-4">
                                                                         <div>
-                                                                            <label>Start Date</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                             <input
                                                                                 type="date"
                                                                                 disabled
@@ -3439,7 +3640,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label>End Date</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                             <input
                                                                                 type="date"
                                                                                 disabled
@@ -3472,7 +3673,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                     <h3 className="text-lg font-bold py-3">Correspondence SENIOR SECONDARY {index}</h3>
 
                                                                                     <div className="my-3">
-                                                                                        <label>School Name</label>
+                                                                                        <label className='font-bold text-sm text-gray-700'> School Name</label>
                                                                                         <input
                                                                                             type="text"
                                                                                             disabled
@@ -3484,7 +3685,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                     </div>
                                                                                     <div className="md:grid grid-cols-2 gap-3 my-4">
                                                                                         <div>
-                                                                                            <label>Start Date</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                                             <input
                                                                                                 type="date"
                                                                                                 value={phdSection?.senior_secondary_end_date_gap || ''}
@@ -3494,7 +3695,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                             />
                                                                                         </div>
                                                                                         <div>
-                                                                                            <label>End Date</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                                             <input
                                                                                                 type="date"
                                                                                                 value={phdSection?.senior_secondary_end_date_gap || ''}
@@ -3525,7 +3726,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <h3 className="text-lg font-bold py-3">SECONDARY</h3>
                                                                 <div className=" border border-black p-4 rounded-md">
                                                                     <div className="my-3">
-                                                                        <label>School Name</label>
+                                                                        <label className='font-bold text-sm text-gray-700'> School Name</label>
                                                                         <input
                                                                             type="text"
                                                                             disabled
@@ -3536,7 +3737,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                     </div>
                                                                     <div className="md:grid grid-cols-2 gap-3 my-4">
                                                                         <div>
-                                                                            <label>Start Date</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                             <input
                                                                                 type="date"
                                                                                 disabled
@@ -3546,7 +3747,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label>End Date</label>
+                                                                            <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                             <input
                                                                                 disabled
                                                                                 type="date"
@@ -3578,7 +3779,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                     <h3 className="text-lg font-bold py-3">Correspondence SECONDARY {index}</h3>
 
                                                                                     <div className="my-3">
-                                                                                        <label>School Name</label>
+                                                                                        <label className='font-bold text-sm text-gray-700'> School Name</label>
                                                                                         <input
                                                                                             type="text"
                                                                                             disabled
@@ -3590,7 +3791,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                     </div>
                                                                                     <div className="md:grid grid-cols-2 gap-3 my-4">
                                                                                         <div>
-                                                                                            <label>Start Date</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> Start Date</label>
                                                                                             <input
                                                                                                 type="date"
                                                                                                 value={phdSection?.secondary_start_date_gap || ''}
@@ -3600,7 +3801,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                             />
                                                                                         </div>
                                                                                         <div>
-                                                                                            <label>End Date</label>
+                                                                                            <label className='font-bold text-sm text-gray-700'> End Date</label>
                                                                                             <input
                                                                                                 type="date"
                                                                                                 disabled
@@ -3649,7 +3850,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <div className='mt-5'>
                                                                     <label htmlFor="employmentType_gap" className='font-bold'>EMPLOYMENT</label>
                                                                     <div className='mb-3'>
-                                                                        <label htmlFor="years_of_experience_gap">Year's of Experience</label>
+                                                                        <label className='font-bold text-sm text-gray-700' htmlFor="years_of_experience_gap">Year's of Experience</label>
                                                                         <input
                                                                             type="number"
                                                                             disabled
@@ -3660,7 +3861,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <label htmlFor="no_of_employment">No of Employment</label>
+                                                                        <label className='font-bold text-sm text-gray-700' htmlFor="no_of_employment">No of Employment</label>
                                                                         <input
                                                                             type="number"
                                                                             disabled
@@ -3678,7 +3879,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                             <div key={index} className='border border-black p-4 rounded-md my-3'>
                                                                 <h3 className="text-lg font-bold pb-3">Employment({index + 1})</h3>
                                                                 <div>
-                                                                    <label htmlFor={`employment_type_gap`}>Employment Type</label>
+                                                                    <label className='font-bold text-sm text-gray-700' htmlFor={`employment_type_gap`}>Employment Type</label>
                                                                     <select
                                                                         type="text"
                                                                         disabled
@@ -3697,7 +3898,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                     {/* Start Date Field */}
                                                                     <div>
-                                                                        <label htmlFor={`employment_start_date_gap`}>Start Date</label>
+                                                                        <label className='font-bold text-sm text-gray-700' htmlFor={`employment_start_date_gap`}>Start Date</label>
                                                                         <input
                                                                             type="date"
                                                                             disabled
@@ -3711,7 +3912,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                                     {/* End Date Field */}
                                                                     <div>
-                                                                        <label htmlFor={`employment_end_date_gap`}>End Date</label>
+                                                                        <label className='font-bold text-sm text-gray-700' htmlFor={`employment_end_date_gap`}>End Date</label>
                                                                         <input
                                                                             type="date"
                                                                             disabled
@@ -3783,7 +3984,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
                                                                                         return (
                                                                                             <div key={inputIndex} className={row.inputs.length === 5 && (inputIndex === 3 || inputIndex === 4) ? 'col-span-3' : ''}>
-                                                                                                <label className="text-sm block font-medium mb-0 text-gray-700 capitalize">
+                                                                                                <label className="text-sm block font-bold mb-0 text-gray-700 capitalize">
                                                                                                     {input.label.replace(/[\/\\]/g, '')}
                                                                                                     {input.required && <span className="text-red-500">*</span>}
                                                                                                 </label>
@@ -3809,10 +4010,10 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                                                                 )}
                                                                                                 {input.type === 'datepicker' && (
                                                                                                     <input
-                                                                                                        type="date"
+                                                                                                        type="text"
                                                                                                         disabled
                                                                                                         name={input.name}
-                                                                                                        value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                        value={formatDate(annexureData[service.db_table]?.[input.name]) || ''}
                                                                                                         className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                                                                     />
                                                                                                 )}
@@ -3981,7 +4182,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
 
                                                     < div className="form-group" >
-                                                        <label className='text-sm'>Name</label>
+                                                        <label className='font-bold text-sm text-gray-700 '>Name</label>
                                                         < input
                                                             value={cefData.name_declaration}
                                                             type="text"
@@ -3993,11 +4194,11 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
 
 
                                                     < div className="form-group" >
-                                                        <label className='text-sm' > Date < span className='text-red-500' >* </span></label >
+                                                        <label className='font-bold text-sm text-gray-700 ' > Date < span className='text-red-500' >* </span></label >
                                                         <input
                                                             disabled
-                                                            value={cefData.declaration_date}
-                                                            type="date"
+                                                            value={formatDate(cefData.declaration_date)}
+                                                            type="text"
                                                             className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
                                                             name="declaration_date"
                                                         />
@@ -4005,7 +4206,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                                     </div>
                                                 </div>
                                                 <div className="form-group" >
-                                                    <label className='text-sm'> Attach signature: <span className="text-red-500 text-lg" >* </span></label >
+                                                    <label className='font-bold text-sm text-gray-700 '> Attach signature: <span className="text-red-500 text-lg" >* </span></label >
                                                     <input
                                                         type="file"
                                                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
@@ -4089,7 +4290,7 @@ ${activeTab === serviceData.length + 2 ? "bg-[#3e76a5] text-white" : "bg-gray-10
                                         <button
                                             type="button"
                                             onClick={handleBack} // Call the handleBack function when the button is clicked
-                                            className="px-6 py-2 text-gray-500 bg-gray-200 rounded-md hover:bg-gray-300"
+                                            className="px-6 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                                         >
                                             Go Back
                                         </button>

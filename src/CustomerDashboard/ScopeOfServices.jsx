@@ -128,7 +128,7 @@ const ScopeOfServices = () => {
     return (
         <>
             <div className=''>
-                <h2 className='text-center md:text-4xl text-2xl font-bold pb-8 md:pt-7 md:pb-4'>Client Master Data</h2>
+                <h2 className='text-center md:text-2xl text-2xl font-bold pb-8 md:pt-7 text-[#3e76a5] md:pb-4'>Client Master Data</h2>
                 <div className="overflow-x-auto bg-white shadow-md rounded-md md:m-10 m-3 h-full">
                     <table className="min-w-full border bg-white overflow-auto shadow-md rounded-md p-3 ">
 
@@ -137,43 +137,43 @@ const ScopeOfServices = () => {
                             <td className="py-2 px-4 border-b text-center border-r-2 whitespace-nowrap uppercase font-bold">INFORMATION</td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b border-r-2 whitespace-nowrap text-left">Company Name</th>
+                            <th className="py-2 px-4 border-b border-r-2 whitespace-nowrap text-left text-gray-700">Company Name</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.name || 'NA'}</td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">Company Email</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">Company Email</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">
                                 {customer.emails ? JSON.parse(customer.emails).join(', ') || 'NA' : 'NA'}
                             </td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">Company Mobile</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">Company Mobile</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.mobile || 'NA'}</td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">Company Address</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">Company Address</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.address || 'NA'}</td>
                         </tr>
 
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">GST</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">GST</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.gst_number || 'NA'}</td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">Contact Person</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">Contact Person</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.contact_person_name || 'NA'}</td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">Status</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">Status</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.status || 'NA'}</td>
                         </tr>
                         <tr>
-                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">TAT</th>
+                            <th className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap text-gray-700">TAT</th>
                             <td className="py-2 px-4 border-b text-left border-r-2 whitespace-nowrap">{customer.tat_days || 'NA'}</td>
                         </tr>
 
                     </table></div>
-                <h2 className='text-center md:text-4xl text-2xl font-bold pb-8 pt-7 md:pb-4'>Scope Of Services</h2>
+                <h2 className='text-center md:text-2xl text-2xl font-bold pb-8 pt-7 md:pb-4 text-[#3e76a5]'>Scope Of Services</h2>
 
                 <div className="overflow-x-auto bg-white shadow-md rounded-md md:m-10 m-3 h-full">
                     {loading && (

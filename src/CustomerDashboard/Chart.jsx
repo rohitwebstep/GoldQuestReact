@@ -153,7 +153,7 @@ const Chart = () => {
         </div>
       ) : chartData ? (
         <>
-          <h2 className="text-center font-bold py-4 text-lg">
+          <h2 className="text-center font-bold text-gray-700 py-4 text-lg">
             Application Count by Category
           </h2>
 
@@ -172,7 +172,7 @@ const Chart = () => {
           </div>
         </>
       ) : (
-        <h2 className="text-center font-bold py-4 text-lg text-gray-500">
+        <h2 className="text-center font-bold py-4 text-lg text-gray-700">
           No Applications Found
         </h2>
       )}

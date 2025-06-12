@@ -124,6 +124,7 @@ const CandidateForm = () => {
         const employee_id = String(input.employee_id || '').trim();
         const nationality = String(input.nationality || '').trim();
         const mobile_number = String(input.mobile_number || '').trim();
+        const purpose_of_application = String(input.purpose_of_application || '').trim();
         const email = String(input.email || '').trim();
 
         // Name validation
@@ -146,6 +147,9 @@ const CandidateForm = () => {
         if (!mobile_number) {
             NewErr.mobile_number = 'Mobile number is required';
         }
+        if (!purpose_of_application) {
+            NewErr.purpose_of_application = 'Purpose Of Application is required';
+        }
 
         // Email validation
         if (!email) {
@@ -161,9 +165,6 @@ const CandidateForm = () => {
 
         return NewErr;
     };
-
-
-
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -323,46 +324,47 @@ const CandidateForm = () => {
                     <div className="md:grid gap-4 grid-cols-2 mb-4">
                         <div className="col bg-white shadow-md rounded-md p-3 md:p-6">
                             <div className="mb-4">
-                                <label htmlFor="applicant_name" className='text-sm'>Name of the organisation<span className='text-red-500'>*</span></label>
-                                <input type="text" name="applicant_name" className="border w-full rounded-md p-2 mt-2" disabled value={branch_name?.name || branch_name?.branch_name} />
+                                <label htmlFor="applicant_name" className='text-sm font-bold text-gray-700'>Name of the organisation<span className='text-red-500'>*</span></label>
+                                <input type="text" name="applicant_name" className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2" disabled value={branch_name?.name || branch_name?.branch_name} />
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="name" className='text-sm'>Full name of the applicant <span className='text-red-500'>*</span></label>
-                                <input type="text" name="name" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.name} />
+                                <label htmlFor="name" className='text-sm font-bold text-gray-700'>Full name of the applicant <span className='text-red-500'>*</span></label>
+                                <input type="text" name="name" className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2" onChange={handleChange} value={input.name} />
                                 {error.name && <p className='text-red-500'>{error.name}</p>}
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="employee_id" className='text-sm'>Employee ID</label>
+                                <label htmlFor="employee_id" className='text-sm font-bold text-gray-700'>Employee ID</label>
                                 <input
                                     type="text"
                                     name="employee_id"
-                                    disabled={isEditCandidate && preSelectedClient?.employee_id}
-                                    className="border w-full rounded-md p-2 mt-2"
+                                    // disabled={isEditCandidate && preSelectedClient?.employee_id}
+                                    className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2"
                                     onChange={handleChange}
                                     value={input.employee_id ? input.employee_id.toUpperCase() : ''} // Ensure a fallback if employee_id is null
                                 />
                             </div>
 
                             <div className="mb-4">
-                                <label htmlFor="mobile_number" className='text-sm'>Mobile Number<span className='text-red-500'>*</span></label>
-                                <input type="number" name="mobile_number" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.mobile_number} />
+                                <label htmlFor="mobile_number" className='text-sm font-bold text-gray-700'>Mobile Number<span className='text-red-500'>*</span></label>
+                                <input type="number" name="mobile_number" className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2" onChange={handleChange} value={input.mobile_number} />
                                 {error.mobile_number && <p className='text-red-500'>{error.mobile_number}</p>}
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="email" className='text-sm'>Email ID<span className='text-red-500'>*</span></label>
-                                <input type="email" name="email" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={input.email} />
+                                <label htmlFor="email" className='text-sm font-bold text-gray-700'>Email ID<span className='text-red-500'>*</span></label>
+                                <input type="email" name="email" className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2" onChange={handleChange} value={input.email} />
                                 {error.email && <p className='text-red-500'>{error.email}</p>}
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="email" className='text-sm'>Purpose of Application</label>
+                                <label htmlFor="email" className='text-sm font-bold text-gray-700'>Purpose of Application<span className='text-red-500'>*</span></label>
                                 <select
                                     name="purpose_of_application"
                                     onChange={handleCustomInputChange}
                                     value={input.purpose_of_application || input.customPurpose}
-                                    className="border w-full rounded-md p-2 mt-2"
+                                    className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2"
                                     id="purpose_of_application"
                                 >
                                     <option value="">SELECT PURPOSE</option>
+                                    <option value="NORMAL BGV(EMPLOYMENT)">NORMAL BGV(EMPLOYMENT)</option>
                                     <option value="TENANT VERIFICATION(TENANCY VERIFICATION)">TENANT VERIFICATION(TENANCY VERIFICATION)</option>
                                     <option value="TENANT VERIFICATION">TENANT VERIFICATION</option>
                                     <option value="JUNIOR STAFF(MAID)">JUNIOR STAFF(MAID)</option>
@@ -370,12 +372,13 @@ const CandidateForm = () => {
                                     <option value="JUNIOR STAFF(BABY SITTER)">JUNIOR STAFF(BABY SITTER)</option>
                                     <option value="JUNIOR STAFF(PATIENT ATTENDER)">JUNIOR STAFF(PATIENT ATTENDER)</option>
                                     <option value="JUNIOR STAFF(DRIVER)">JUNIOR STAFF(DRIVER)</option>
-                                    <option value="NORMAL BGV(EMPLOYMENT)">NORMAL BGV(EMPLOYMENT)</option>
                                     <option value="CUSTOM">CUSTOM</option>
                                     {input.customPurpose && (
                                         <option value={input.customPurpose} selected>{input.customPurpose}</option>
                                     )}
                                 </select>
+                                {error.purpose_of_application && <p className='text-red-500'>{error.purpose_of_application}</p>}
+
                             </div>
 
                             {isModalOpen && (
@@ -388,7 +391,7 @@ const CandidateForm = () => {
                                                 name="customPurpose"
                                                 value={input.customPurpose}
                                                 onChange={handleChange}
-                                                className="border w-full rounded-md p-2 mt-2"
+                                                className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2"
                                                 id="customPurpose"
                                             />
                                         </div>
@@ -412,8 +415,8 @@ const CandidateForm = () => {
                                 </div>
                             )}
                             <div className="mb-4">
-                                <label htmlFor="email" className='text-sm'>Nationality<span className='text-red-500'>*</span></label>
-                                <select name="nationality" onChange={handleChange} value={input.nationality} className="border w-full rounded-md p-2 mt-2" id="nationality">
+                                <label htmlFor="email" className='text-sm font-bold text-gray-700'>Nationality<span className='text-red-500'>*</span></label>
+                                <select name="nationality" onChange={handleChange} value={input.nationality} className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2" id="nationality">
                                     <option value="">Select Nationality</option>
                                     <option value="Indian">Indian</option>
                                     <option value="Other">Other</option> {/* Correct option for "Other" */}
@@ -435,7 +438,7 @@ const CandidateForm = () => {
                                                 {services.map((item) => (
                                                     <li
                                                         key={item.serviceId}
-                                                        className={`border p-2 my-1 mb-0 flex gap-3 text-sm  items-center ${input.services.includes(String(item.serviceId)) ? 'selected' : ''}`}
+                                                        className={`border border-gray-300 shadow-md p-2 my-1 mb-0 flex gap-3 text-sm  items-center ${input.services.includes(String(item.serviceId)) ? 'selected' : ''}`}
                                                     >
                                                         <input
                                                             type="checkbox"
@@ -445,7 +448,7 @@ const CandidateForm = () => {
                                                             checked={input.services.includes(String(item.serviceId))} // Match ID type
                                                         />
 
-                                                        <div className='font-bold'>{item.serviceTitle}</div>
+                                                        <div className='font-bold text-gray-700     '>{item.serviceTitle}</div>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -456,12 +459,12 @@ const CandidateForm = () => {
                                 </div>
 
                                 <div className="mt-5">
-                                    <strong className="mb-2 block">Packages:</strong>
+                                    <strong className="mb-2 block text-gray-700">Packages:</strong>
                                     {!candidateLoading && (
                                         <select
                                             value={input.package || ""} // Ensure it reflects the state
                                             onChange={handlePackageChange}
-                                            className="text-left w-full border p-2 rounded-md"
+                                            className="text-left w-full border-gray-300 shadow-md border p-2 rounded-md"
                                         >
                                             <option value="">Select a package</option>
                                             <option value="select_all">Select All</option>

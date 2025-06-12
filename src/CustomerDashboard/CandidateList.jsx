@@ -490,7 +490,10 @@ const CandidateList = () => {
             FormStatus: report.is_bgv_form_opened === "1" ? 'Open' : 'Not Yet Opened',
             EmploymentGap: report.is_employment_gap || 'NIL',
             EducationGap: report.is_education_gap || 'NIL',
+            "Current(Pincode,Landmark)": `${report.current_address_pin_code || 'NIL'}, ${report.current_prominent_landmark || 'NIL'}`,
+            "Permanent(Pincode,Landmark)": `${report.permanent_pin_code || 'NIL'}, ${report.permanent_prominent_landmark || 'NIL'}`,
         }));
+        
 
         // Create a worksheet and workbook
         const ws = XLSX.utils.json_to_sheet(formattedData);
@@ -614,7 +617,7 @@ const CandidateList = () => {
         <>
 
             <div className="py-4 md:py-16">
-                <h2 className="md:text-4xl text-2xl font-bold pb-8 md:pb-4 text-center">Candidate DropBox</h2>
+                <h2 className="md:text-2xl text-2xl font-bold pb-8 md:pb-4 text-center text-[#3e76a5]">Candidate DropBox</h2>
                 <div className="md:grid md:grid-cols-6 md:p-4 gap-5 md:m-7 m-3">
                     <div className="md:col-span-6 md:p-6">
                         <CandidateForm />
@@ -628,7 +631,7 @@ const CandidateList = () => {
                                     <select name="" id="" onChange={(e) => {
                                         handleSelectChange(e);
                                         setCurrentPage(1);
-                                    }} className='outline-none border p-2 md:p-3 w-7/12 text-left rounded-md md:w-6/12'>
+                                    }} className='outline-none border  border-gray-300 shadow-md  p-2 md:p-3 w-7/12 text-left rounded-md md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -655,7 +658,7 @@ const CandidateList = () => {
                                 <div className="flex md:items-stretch items-center gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
+                                        className='outline-none border-2 p-3 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here...'
                                         value={searchTerm}
                                         onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
@@ -803,7 +806,7 @@ const CandidateList = () => {
                                                                         </span>
                                                                     ))
                                                                 ) : (
-                                                                    <span className="text-gray-500">No service available</span>
+                                                                    <span className="text-gray-700">No service available</span>
                                                                 )}
                                                             </div>
                                                         </div>

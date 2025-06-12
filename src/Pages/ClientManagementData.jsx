@@ -266,7 +266,7 @@ const ClientManagementData = () => {
                     <div className="flex md:items-stretch items-center gap-3">
                         <input
                             type="search"
-                            className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
+                            className='outline-none border-2 text-sm border-gray-300 shadow-md  p-2 rounded-md w-full my-4 md:my-0'
                             placeholder='Search by Service Name'
                             value={searchTerm}
                             onChange={(e) => {
@@ -294,15 +294,15 @@ const ClientManagementData = () => {
                                 <table className="min-w-full">
                                     <thead>
                                         <tr className='bg-[#3e76a5]'>
-                                            <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
-                                            <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Price</th>
-                                            <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Select Package</th>
+                                            <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase text-sm whitespace-nowrap">Service Name</th>
+                                            <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase text-sm whitespace-nowrap">Price</th>
+                                            <th className="py-2 text-sm px-4 text-white border-r border-b text-left uppercase text-sm whitespace-nowrap">Select Package</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {currentItems.map((item) => (
                                             <tr key={item.serviceId}>
-                                                <td className="py-2 text-sm px-4 border-l border-r border-b whitespace-nowrap">
+                                                <td className="py-2 text-sm px-4 border-l font-bold text-gray-700 border-r border-b text-sm whitespace-nowrap">
                                                     <input
                                                         type="checkbox"
                                                         className='me-2'
@@ -310,7 +310,7 @@ const ClientManagementData = () => {
                                                         onChange={() => handleCheckboxChange(item.serviceId)}
                                                     /> {item.serviceTitle}
                                                 </td>
-                                                <td className="py-2 text-sm px-4 border-r border-b whitespace-nowrap">
+                                                <td className="py-2 text-sm px-4 border-r  border-b whitespace-nowrap">
                                                     <input
                                                         type="number"
                                                         name="price"
@@ -320,7 +320,7 @@ const ClientManagementData = () => {
                                                     />
                                                     {validationsErrors[item.serviceId]?.price && <span className="text-red-500 capitalize">{validationsErrors[item.serviceId].price}</span>}
                                                 </td>
-                                                <td className="py-2 text-sm px-4 border-r border-b whitespace-nowrap uppercase text-left">
+                                                <td className="py-2  text-gray-700 text-sm border-gray-300 shadow-md  px-4 border-r border-b whitespace-nowrap uppercase text-left">
                                                     <Multiselect
                                                         options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
                                                         selectedValues={packageList.filter(pkg => (selectedPackages[item.serviceId] || []).includes(pkg.id)).map(pkg => ({ name: pkg.title, id: pkg.id }))}

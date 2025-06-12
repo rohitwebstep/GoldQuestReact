@@ -287,8 +287,8 @@ const CandidateExcelTrackerStatus = () => {
 
 
         // Construct the URL dynamically with query parameters
-        // const url = `${API_URL}/candidate-master-tracker/send?application_id=${applicationID}&branch_id=${branch_id}&customer_id=${customer_id}&admin_id=${adminId}&_token=${token}`;
-        const url = `https://api.goldquestglobal.in/candidate-master-tracker/bgv-application-by-id?application_id=${applicationID}&branch_id=${branch_id}&admin_id=${adminId}&_token=${token}`;
+          const url = `${API_URL}/candidate-master-tracker/send?application_id=${applicationID}&branch_id=${branch_id}&customer_id=${customer_id}&admin_id=${adminId}&_token=${token}`;
+        // const url = `https://api.goldquestglobal.in/candidate-master-tracker/bgv-application-by-id?application_id=${applicationID}&branch_id=${branch_id}&admin_id=${adminId}&_token=${token}`;
         const requestOptions = {
             method: "GET",
             redirect: "follow", // No body required for GET requests
@@ -388,6 +388,8 @@ const CandidateExcelTrackerStatus = () => {
             'Check GAP Status',
             'CEF Filled Date',
             'DAV Filled Date',
+            
+            
         ];
 
         // Prepare data rows
@@ -421,6 +423,7 @@ const CandidateExcelTrackerStatus = () => {
                     day: '2-digit',
                 }).format(new Date(data.dav_filled_date))
                 : 'NIL',
+             
         ]);
 
         // Create a worksheet from the data
@@ -598,13 +601,31 @@ const CandidateExcelTrackerStatus = () => {
                 "DOB": data.CEFData?.dob || 'NA', // Assuming 'DOB' should be from 'dob'
                 "Father's Name": data.CEFData?.father_name || 'NA', // Corrected key name
                 "Spouse Name": data.application?.husband_name || 'NA',
-                "Permanent Address": data.CEFData?.permanent_address || 'NA', // Assuming permanent address field
-                "Current Address": data.CEFData?.current_address || 'NA',
                 "Mobile No": data.application?.mobile_number || 'NA', // Switched to mobile_number
                 "Alternate Mobile No": data.CEFData?.current_address_landline_number || 'NA', // Assuming alternate mobile number
                 "PAN No": data.CEFData?.pan_card_number || 'NA', // Assuming PAN is under application
                 "UAN No": uanNumber || 'NA', // Assuming UAN is under application
                 "USE": matchedServices || 'NA', // Added default fallback
+                "(PERMANENT) Flat/House No":data.CEFData?.permanent_address,
+                "(PERMANENT) Street/Road, Locality Area":data.CEFData?.permanent_street_locality,
+                "(PERMANENT) Sector, Village":data.CEFData?.permanent_sector_village,
+                "(PERMANENT) Landmark ":data.CEFData?.permanent_prominent_landmark,
+                "(PERMANENT) City  ":data.CEFData?.permanent_city,
+                "(PERMANENT) State   ":data.CEFData?.permanent_address_state,
+                "(PERMANENT) Pin Code  ":data.CEFData?.permanent_pin_code,
+                "(PERMANENT) Mobile Number":data.CEFData?.permanent_address_landline_number,
+                "(PERMANENT) Alternate Mobile No":data.CEFData?.permanent_address_stay_to,
+                "(PERMANENT) Nearest Police Station":data.CEFData?.permanent_address_nearest_police_station,
+                "(CURRENT) Flat/House No":data.CEFData?.current_address,
+                "(CURRENT) Street/Road, Locality Area":data.CEFData?.current_street_locality,
+                "(CURRENT) Sector, Village":data.CEFData?.current_sector_village,
+                "(CURRENT) Landmark ":data.CEFData?.current_prominent_landmark,
+                "(CURRENT) City  ":data.CEFData?.current_city,
+                "(CURRENT) State   ":data.CEFData?.current_address_state,
+                "(CURRENT) Pin Code  ":data.CEFData?.current_pin_code,
+                "(CURRENT) Mobile Number":data.CEFData?.current_address_landline_number,
+                "(CURRENT) Alternate Mobile No":data.CEFData?.current_address_stay_to,
+                "(CURRENT) Nearest Police Station":data.CEFData?.current_address_nearest_police_station,
             };
 
             allData.push(filteredData);
@@ -665,6 +686,26 @@ const CandidateExcelTrackerStatus = () => {
                     "PAN No": mainData.CEFData?.pan_card_number || "NA",
                     "UAN No": uanNumber,
                     "USE": matchedServices,
+                    "(PERMANENT) Flat/House No":mainData.CEFData?.permanent_address,
+                    "(PERMANENT) Street/Road, Locality Area":mainData.CEFData?.permanent_street_locality,
+                    "(PERMANENT) Sector, Village":mainData.CEFData?.permanent_sector_village,
+                    "(PERMANENT) Landmark ":mainData.CEFData?.permanent_prominent_landmark,
+                    "(PERMANENT) City  ":mainData.CEFData?.permanent_city,
+                    "(PERMANENT) State   ":mainData.CEFData?.permanent_address_state,
+                    "(PERMANENT) Pin Code  ":mainData.CEFData?.permanent_pin_code,
+                    "(PERMANENT) Mobile Number":mainData.CEFData?.permanent_address_landline_number,
+                    "(PERMANENT) Alternate Mobile No":mainData.CEFData?.permanent_address_stay_to,
+                    "(PERMANENT) Nearest Police Station":mainData.CEFData?.permanent_address_nearest_police_station,
+                    "(CURRENT) Flat/House No":mainData.CEFData?.current_address,
+                    "(CURRENT) Street/Road, Locality Area":mainData.CEFData?.current_street_locality,
+                    "(CURRENT) Sector, Village":mainData.CEFData?.current_sector_village,
+                    "(CURRENT) Landmark ":mainData.CEFData?.current_prominent_landmark,
+                    "(CURRENT) City  ":mainData.CEFData?.current_city,
+                    "(CURRENT) State   ":mainData.CEFData?.current_address_state,
+                    "(CURRENT) Pin Code  ":mainData.CEFData?.current_pin_code,
+                    "(CURRENT) Mobile Number":mainData.CEFData?.current_address_landline_number,
+                    "(CURRENT) Alternate Mobile No":mainData.CEFData?.current_address_stay_to,
+                    "(CURRENT) Nearest Police Station":mainData.CEFData?.current_address_nearest_police_station,
                 };
 
                 allData.push(rowData);
@@ -757,7 +798,7 @@ const CandidateExcelTrackerStatus = () => {
                                     <select name="options" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-auto'>
+                                    }} id="" className='outline-none border p-2 border-gray-300 shadow-md ps-2 text-left rounded-md w-7/12 md:w-auto'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -792,7 +833,7 @@ const CandidateExcelTrackerStatus = () => {
                                 <div className="flex md:items-stretch items-center  gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
+                                        className='outline-none border-2 p-2 border-gray-300 shadow-md rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here'
                                         value={searchTerm}
                                         onChange={(e) => {
@@ -998,12 +1039,13 @@ const CandidateExcelTrackerStatus = () => {
                                             )}
                                             {currentItems.some(item => item.dav_filled_date) ? (
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                    {data.dav_filled_date
-                                                        ? new Intl.DateTimeFormat('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: '2-digit',
-                                                        }).format(new Date(data.dav_filled_date))
+                                                
+                                                        {data.dav_filled_date
+                                                        ? (new Date(data.dav_filled_date))
+                                                            .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                                                            .split('/')
+                                                            .map((item, index) => index === 0 || index === 1 ? item.replace(/^0/, '') : item) // Remove leading zero from day and month
+                                                            .join('-')
                                                         : 'NIL'}
                                                 </td>
                                             ) : (

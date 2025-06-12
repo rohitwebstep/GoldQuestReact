@@ -728,7 +728,7 @@ const CaseLog = () => {
     return (
         <div className='md:grid md:grid-cols-2 gap-4 justify-between m-6 items-stretch'>
             <div>
-                <h2 className='text-center md:text-3xl md:mt-10 md:mb-10 mt-3 font-bold mb-4'> Case Logs </h2>
+                <h2 className='text-center md:text-2xl md:mt-10 md:mb-10 mt-3 font-bold mb-4 text-[#3e76a5]'> Case Logs </h2>
                 <div className='m-0 bg-white shadow-md p-3 md:h-100 rounded-md'>
 
                     <form className='mt-4' onSubmit={handleSubmit}>
@@ -738,7 +738,7 @@ const CaseLog = () => {
                             <input
                                 type="text"
                                 name="title"
-                                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                                className="appearance-none border rounded w-full py-2 px-3 border-gray-300 shadow-md text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                                 id="title"
                                 onChange={handleChange}
                                 value={formData.title}
@@ -750,7 +750,7 @@ const CaseLog = () => {
                             <input
                                 type="text"
                                 name="description"
-                                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 border-gray-300 shadow-md mb-3 leading-tight focus:outline-none focus:shadow-outline"
                                 id="confirmtitle"
                                 onChange={handleChange}
                                 value={formData.description}
@@ -762,7 +762,7 @@ const CaseLog = () => {
                 </div>
             </div>
             <div>
-                <h2 className='text-center md:text-3xl md:mt-10 md:mb-10 mt-3 font-bold mb-4'> Tickets Details </h2>
+                <h2 className='text-center md:text-2xl md:mt-10 md:mb-10 mt-3 font-bold mb-4 text-[#3e76a5]'> Tickets Details </h2>
                 <div className=' border p-3 bg-white shadow-md rounded-md  mx-auto'>
 
                     <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
@@ -772,7 +772,7 @@ const CaseLog = () => {
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-7/12 md:w-auto p-3'>
+                                    }} className='outline-none md:pe-14 md:ps-2 text-left border-gray-300 shadow-md  rounded-md border w-7/12 md:w-auto p-3'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -784,7 +784,7 @@ const CaseLog = () => {
                                     </select>
                                     <button
                                         onClick={exportToExcel}
-                                        className="bg-[#3e76a5] text-white text-sm py-3 px-4 rounded-md capitalize"
+                                        className="bg-[#3e76a5] text-white text-sm whitespace-nowrap py-3 px-4 rounded-md capitalize"
                                         type="button"
                                         disabled={currentItems.length === 0}
                                     >
@@ -798,7 +798,7 @@ const CaseLog = () => {
                                 <div className="flex md:items-stretch items-center  gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-2 text-sm rounded-md w-full my-4 md:my-0'
+                                        className='outline-none border-2 p-2 text-sm border-gray-300 shadow-md  rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here'
                                         value={searchTerm}
                                           onChange={(e) => {
@@ -954,7 +954,7 @@ const CaseLog = () => {
                                     }
                                 }}
                                 placeholder="Type your message..."
-                                className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                                className="flex-1 p-2 border border-gray-300  border-gray-300 shadow-md rounded-md focus:outline-none focus:ring focus:ring-blue-300"
                             />
                             <button
                                 onClick={handleSend}

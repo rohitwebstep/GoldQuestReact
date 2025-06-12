@@ -289,7 +289,7 @@ const ServiceEditForm = () => {
                     <tbody>
                         {currentItems.map((item) => (
                             <tr key={item.service_id}>
-                                <td className="py-2 md:py-3 text-sm px-4 border-l border-r border-b whitespace-nowrap">
+                                <td className="py-2 md:py-3 text-sm font-bold text-gray-700 px-4 border-l border-r border-b whitespace-nowrap">
                                     <input
                                         type="checkbox"
                                         className='me-2'
@@ -307,7 +307,7 @@ const ServiceEditForm = () => {
                                         className='outline-none'
                                     />
                                 </td>
-                                <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
+                                <td className="py-2 md:py-3 px-4  text-gray-700 border-r border-b whitespace-nowrap uppercase text-left">
                                     <Multiselect
                                         options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
                                         selectedValues={Object.entries(item.packages).map(([id, name]) => ({ name, id }))}

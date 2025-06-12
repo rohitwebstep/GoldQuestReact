@@ -4,7 +4,7 @@ import AddUserForm from './AddUserForm';
 const AddUser = () => {
   return (
     <div className="pt-10">
-      <h2 className="text-center md:text-4xl text-2xl font-bold pb-8 pt-7 md:pb-4">
+      <h2 className="text-center md:text-2xl text-2xl text-[#3e76a5] font-bold pb-8 pt-7 md:pb-4">
         Create Subuser
       </h2>
       <div className="md:grid grid-cols-2 gap-8 m-12">

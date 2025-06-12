@@ -5,17 +5,24 @@ import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { MdOutlineArrowRightAlt } from "react-icons/md";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css'; // Correct path for newer Swiper versions
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
 import LogoBgv from '../Images/LogoBgv.jpg'
 import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
+import { parseISO, isValid } from 'date-fns';
+import { format } from 'date-fns';
+import { State } from "country-state-city";
+
+const states = State.getStatesOfCountry('IN');
+const optionState = states.map(state => ({ value: state.isoCode, label: state.name }));
 
 const BackgroundForm = () => {
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
     const [gaps, setGaps] = useState({});
     const [employGaps, setEmployGaps] = useState({});
-
+    const refs = useRef({});
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(false)
     const [conditionHtml, setConditionHtml] = useState("");
@@ -25,10 +32,12 @@ const BackgroundForm = () => {
             highest_education_gap: '',
             years_of_experience_gap: '',
             no_of_employment: 0,
-            i_am_fresher:'',
+            i_am_fresher: '',
 
         }
     });
+    const [options, setOptions] = useState(optionState);
+    const [selectedFilesMap, setSelectedFilesMap] = useState({});
 
     const createEmploymentFields = (noOfEmployments, fieldValue) => {
         let employmentFieldsData = fieldValue.employment_fields;
@@ -568,7 +577,17 @@ const BackgroundForm = () => {
             father_name: '',
             husband_name: '',
             dob: '',
+            age: '',
             gender: '',
+
+            permanent_street_locality: '',
+            current_sector_village: '',
+            permanent_city: '',
+            current_street_locality: '',
+            current_pin_code: '',
+            current_city: '',
+
+            alternative_mobile_number: '',
             permanent_address: '',
             current_address_pin_code: '',
             permanent_pin_code: '',
@@ -592,6 +611,7 @@ const BackgroundForm = () => {
             pan_card_name: '',
             aadhar_card_name: '',
             aadhar_card_number: '',
+            aadhar_card_linked_mobile_number: '',
             emergency_details_name: '',
             emergency_details_relation: '',
             emergency_details_contact_number: '',
@@ -635,7 +655,7 @@ const BackgroundForm = () => {
                     const applicationData = result.data?.application || [];
                     setApplicationData(result.data?.applicationData)
                     setCefDataApp(cefData);
-
+                    const currentDate = new Date().toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
                     setFormData({
                         ...formData,
                         personal_information: {
@@ -645,11 +665,21 @@ const BackgroundForm = () => {
                             father_name: cefData?.father_name || formData.father_name,
                             husband_name: cefData?.husband_name || formData.husband_name,
                             dob: cefData?.dob || formData.dob,
+                            age: cefData?.age || formData.age,
                             gender: cefData?.gender || formData.gender,
+                            alternative_mobile_number: cefData?.alternative_mobile_number || formData.alternative_mobile_number,
                             permanent_address: cefData?.permanent_address || formData.permanent_address,
                             current_address_pin_code: cefData?.current_address_pin_code || formData.current_address_pin_code,
                             permanent_pin_code: cefData?.permanent_pin_code || formData.permanent_pin_code,
-                            declaration_date: formData.personal_information.declaration_date || cefData?.declaration_date,
+                            permanent_street_locality: cefData?.permanent_street_locality || formData.permanent_street_locality,
+                            permanent_sector_village: cefData?.permanent_sector_village || formData.permanent_sector_village,
+
+                            current_sector_village: cefData?.current_sector_village || formData.current_sector_village,
+                            permanent_city: cefData?.permanent_city || formData.permanent_city,
+                            current_street_locality: cefData?.current_street_locality || formData.current_street_locality,
+                            current_pin_code: cefData?.current_pin_code || formData.current_pin_code,
+                            current_city: cefData?.current_city || formData.current_city,
+                            declaration_date: cefData?.declaration_date || currentDate,
                             current_address: cefData?.current_address || formData.current_address,
                             current_address_landline_number: cefData?.current_address_landline_number || formData.current_address_landline_number,
                             permanent_address_landline_number: cefData?.permanent_address_landline_number || formData.permanent_address_landline_number,
@@ -672,6 +702,7 @@ const BackgroundForm = () => {
                             pan_card_name: cefData?.pan_card_name || formData.pan_card_name,
                             aadhar_card_name: cefData?.aadhar_card_name || formData.aadhar_card_name,
                             aadhar_card_number: cefData?.aadhar_card_number || formData.aadhar_card_number,
+                            aadhar_card_linked_mobile_number: cefData?.aadhar_card_linked_mobile_number || formData.aadhar_card_linked_mobile_number,
                             emergency_details_name: cefData?.emergency_details_name || formData.emergency_details_name,
                             emergency_details_relation: cefData?.emergency_details_relation || formData.emergency_details_relation,
                             emergency_details_contact_number: cefData?.emergency_details_contact_number || formData.emergency_details_contact_number,
@@ -779,23 +810,39 @@ const BackgroundForm = () => {
 
                     setApiStatus(false);
 
-                    Swal.fire({
-                        title: 'error',
-                        text: result.message || 'Application does not exist.',
-                        icon: 'error',
-                        confirmButtonText: 'OK',
-                        allowOutsideClick: false,  // Disable side clicks
-                        allowEscapeKey: false,    // Disable escape key to close
-                        preConfirm: () => {
-                            // Prevent the modal from closing when the OK button is clicked
-                            return false;  // This will stop the modal from closing
-                        },
-                        customClass: {
-                            container: 'custom-container',  // Add class to the container
-                            popup: 'custom-popup',          // Optional: Add class to the entire popup
-                            header: 'custom-header'         // Optional: Add class to the header
-                        }
-                    });
+                    if (result.message && (result.message.includes('already') || result.message.includes('submit'))) {
+                        Swal.fire({
+                            title: 'Success',
+                            text: result.message || 'Operation successful.',
+                            icon: 'success',
+                            allowOutsideClick: false,  // Disable side clicks
+                            allowEscapeKey: false,     // Disable escape key to close
+                            showConfirmButton: false,  // Hide the OK button
+                            customClass: {
+                                container: 'custom-container',  // Add class to the container
+                                popup: 'custom-popup',          // Optional: Add class to the entire popup
+                                header: 'custom-header'         // Optional: Add class to the header
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: result.message || 'Application does not exist.',
+                            icon: 'error',
+                            allowOutsideClick: false,  // Disable side clicks
+                            allowEscapeKey: false,     // Disable escape key to close
+                            showConfirmButton: false,  // Hide the OK button
+                            preConfirm: () => {
+                                // Prevent the modal from closing when the OK button is clicked
+                                return false;  // This will stop the modal from closing
+                            },
+                            customClass: {
+                                container: 'custom-container',  // Add class to the container
+                                popup: 'custom-popup',          // Optional: Add class to the entire popup
+                                header: 'custom-header'         // Optional: Add class to the header
+                            }
+                        });
+                    }
 
 
 
@@ -825,6 +872,10 @@ const BackgroundForm = () => {
                 personal_information: {
                     ...formData.personal_information,
                     current_address: formData.personal_information.permanent_address,
+                    current_street_locality: formData.personal_information.permanent_street_locality,
+                    current_sector_village: formData.personal_information.permanent_sector_village,
+                    current_city: formData.personal_information.permanent_city,
+                    current_pin_code: formData.personal_information.permanent_pin_code,
                     current_address_landline_number: formData.personal_information.permanent_address_landline_number,
                     current_address_state: formData.personal_information.permanent_address_state,
                     current_prominent_landmark: formData.personal_information.permanent_prominent_landmark,
@@ -851,7 +902,6 @@ const BackgroundForm = () => {
         }
     };
     const [companyName, setCompanyName] = useState([]);
-    const refs = useRef({});
 
     const [isValidApplication, setIsValidApplication] = useState(true);
     const location = useLocation();
@@ -898,22 +948,66 @@ const BackgroundForm = () => {
 
 
     const decodedValues = getValuesFromUrl(currentURL);
+    const calculateAge = (dob) => {
+        const birthDate = new Date(dob);
+        const today = new Date();
+
+        let years = today.getFullYear() - birthDate.getFullYear();
+        let months = today.getMonth() - birthDate.getMonth();
+
+        if (today.getDate() < birthDate.getDate()) {
+            months--;
+        }
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        return `${years} years ${months} months`;
+    };
+
 
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
+
         if (type === 'file') {
             setFormData({ ...formData, [name]: files[0] });
         } else {
+            let updatedData = {
+                ...formData.personal_information,
+                [name]: value
+            };
+
+            // If DOB is being changed, calculate age
+
+
             setFormData({
                 ...formData,
-                personal_information: {
-                    ...formData.personal_information,
-                    [name]: value
-                }
+                personal_information: updatedData
             });
         }
     };
 
+
+
+    const handleDateChange = (date, fieldName) => {
+        let updatedData = {
+            ...formData.personal_information,
+            [fieldName]: date,
+        };
+
+        // Optional: handle DOB to calculate age
+        if (fieldName === 'dob') {
+            const age = calculateAge(date);
+            updatedData.age = age;
+        }
+
+        setFormData({
+            ...formData,
+            personal_information: updatedData,
+        });
+    };
 
 
 
@@ -1213,40 +1307,40 @@ const BackgroundForm = () => {
     const handleNext = () => {
         let validationErrors = {};
 
-
         if (activeTab === 0) {
-            validationErrors = validate1(); // Validation for the first tab
+            console.log("Running validation for the first tab: validate1");
+            validationErrors = validate1();
         } else if (activeTab === 1) {
-            validationErrors = validateSec(); // Validation for the second tab
+            console.log("Running validation for the second tab: validateSec");
+            validationErrors = validateSec();
         } else if (activeTab > 0 && activeTab <= (serviceDataMain.length + 2)) {
+            console.log(`Running validation for service tab at index ${activeTab}: validate`);
+
             serviceDataMain[activeTab - 2].rows.forEach((row, rowIndex) => {
-
                 const checkboxInput = row.inputs.find(input => input.type === 'checkbox');
-
                 const checkboxName = checkboxInput?.name;
-
                 const annexureValue = annexureData[serviceDataMain[activeTab - 2].db_table]?.[checkboxName] ?? false;
-
                 const isChecked = ["1", 1, true, "true"].includes(annexureValue);
-
                 toggleRowsVisibility(activeTab - 2, rowIndex, isChecked);
             });
 
-            validationErrors = validate(); // Validation for service-related tabs
+            validationErrors = validate();
         } else if (activeTab === serviceDataMain.length + 2) {
-            validationErrors = validate2(); // Validation for the last tab
+            console.log("Running validation for the last tab: validate2");
+            validationErrors = validate2();
         }
 
         if (Object.keys(validationErrors).length === 0) {
-            setErrors({}); // Clear any previous errors
-
+            setErrors({});
             if (activeTab < serviceDataMain.length + 2) {
                 setActiveTab(activeTab + 1);
             }
         } else {
-            setErrors(validationErrors); // Set the validation errors to the state
+            console.log("Validation errors:", validationErrors);
+            setErrors(validationErrors);
         }
     };
+
 
     const handleCheckboxChange = (checkboxName, isChecked, tablename) => {
         setCheckedCheckboxes((prevState) => ({
@@ -1277,10 +1371,9 @@ const BackgroundForm = () => {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ];
 
-
         const requiredFields = [
-            "marital_status", "full_name", "former_name", "mb_no", "father_name", "dob",
-            "gender", "nationality",
+            "marital_status", "full_name", "mb_no", "father_name", "dob",
+            "gender", "alternative_mobile_number", "nationality",
         ];
 
 
@@ -1293,10 +1386,42 @@ const BackgroundForm = () => {
         if (status === 1 && nationality === "Indian") {
             requiredFields.push("aadhar_card_name", "pan_card_name");
         }
+        const headings = serviceDataMain.map(service => service.heading);
 
-        if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
+        const excludedHeadings = [
+            'permanent address',
+            'current address',
+            'insta drug test',
+            'police verification',
+            'court verification',
+            'criminal database',
+            'credit/cibil check',
+            'national identity-1',
+            'national identity-2',
+            'company site visit',
+            'fca',
+            'itr/form 26as',
+            'proof of address check',
+            'digital address',
+            'web based/ social media services',
+            'bank statement check',
+            'medical test - male',
+            'medical test - female'
+        ];
+
+        // Only require 'resume_file' if *all* headings are in the excluded list
+        const allHeadingsExcluded = headings.every(heading =>
+            excludedHeadings.map(h => h.toLowerCase()).includes(heading.toLowerCase())
+        );
+
+        if (!allHeadingsExcluded && purpose.toLowerCase() === 'normal bgv(employment)') {
             requiredFields.push('resume_file');
         }
+
+        console.log('allHeadingsExcluded', allHeadingsExcluded)
+
+
+
 
         const validateFile = (fileName) => {
             let file;
@@ -1361,7 +1486,7 @@ const BackgroundForm = () => {
                 delete newErrors[field];
             }
         });
-        if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
+        if (!allHeadingsExcluded && purpose.toLowerCase() === 'normal bgv(employment)') {
             const resumeFileInFiles = files['applications_resume_file'] && files['applications_resume_file'].resume_file;
             const resumeFileInCefData = cefDataApp['resume_file'];
             let file = null;
@@ -1400,7 +1525,7 @@ const BackgroundForm = () => {
         return newErrors;
     };
     const handleBack = () => {
-        if (activeTab > 1) {
+        if (activeTab > 0) {
             setActiveTab(activeTab - 1); // Adjust the active tab to go back
         }
     };
@@ -1409,10 +1534,8 @@ const BackgroundForm = () => {
         const newErrors = {};
         const requiredFields = [
             "current_address", "permanent_address",
-            "current_address_landline_number", "permanent_address_landline_number", "current_address_state", "permanent_address_state",
-            "current_prominent_landmark", "permanent_prominent_landmark",
-            "current_address_nearest_police_station", "permanent_address_nearest_police_station", "current_address_pin_code",
-            "permanent_pin_code"
+            "current_address_landline_number", "permanent_address_landline_number", "current_address_state", "current_pin_code", "permanent_address_state",
+            "current_prominent_landmark", "permanent_prominent_landmark", "permanent_pin_code"
         ];
 
         requiredFields.forEach((field) => {
@@ -1506,9 +1629,21 @@ const BackgroundForm = () => {
     }, []);
 
 
+    const [selectedFileName, setSelectedFileName] = useState("");
 
     const handleFileChange = (dbTable, fileName, e) => {
         const selectedFiles = Array.from(e.target.files);
+        const files = Array.from(e.target.files);
+        if (selectedFiles.length > 0) {
+            const fileNames = selectedFiles.map((file) => file.name);
+            console.log(`Selected files for ${fileName}:`, fileNames);
+            setSelectedFilesMap((prev) => ({
+                ...prev,
+                [fileName]: fileNames, // Only file names, not whole File objects
+            }));
+        }
+
+
         const maxSize = 2 * 1024 * 1024;
         const allowedTypes = [
             'image/jpeg', 'image/png', 'application/pdf',
@@ -1551,7 +1686,22 @@ const BackgroundForm = () => {
         });
 
     };
+    const renderFileNames = (inputName) => {
+        const files = selectedFilesMap[inputName];
+        if (!files || files.length === 0) return null;
 
+        return (
+            <ul className="text-base absolute pr-[80px] whitespace-nowrap pl-4 bg-white top-[40px] m-0 left-[113px] p-2 list-none flex flex-wrap gap-x-1">
+                {files.map((file, index) => (
+                    <li key={index} className="list-none inline">
+                        {file}{index !== files.length - 1 && ','}
+                    </li>
+                ))}
+            </ul>
+
+
+        );
+    };
     let isGapPresent = "no";
 
     // Check if any gap exists
@@ -1572,6 +1722,14 @@ const BackgroundForm = () => {
             break;  // No need to check further once a gap is found
         }
     }
+    const showThankYouPage = () => {
+        // You can either use a router redirect or manipulate a state to render a blank thank you page
+        setPageContent(
+            <div className="flex items-center justify-center h-screen bg-white">
+                <h1 className="text-3xl font-semibold text-gray-700">Thank you for your submission!</h1>
+            </div>
+        );
+    };
 
     const handleSubmit = async (custombgv, e) => {
         e.preventDefault();
@@ -1643,7 +1801,7 @@ const BackgroundForm = () => {
             // Check if the education_fields and employment_fields are already stringified
             const isEducationFieldsStringified = typeof annexureData.gap_validation.education_fields === 'string';
             const isEmploymentFieldsStringified = typeof annexureData.gap_validation.employment_fields === 'string';
-   
+
 
             // Only stringify if the fields are not already stringified
             const educationFieldsString = isEducationFieldsStringified
@@ -1694,34 +1852,6 @@ const BackgroundForm = () => {
 
             // Handle the response based on custombgv
             if (custombgv === 0) {
-                // If custombgv is 0, show success or error messages only without progress or function calls
-                if (fileCount === 0) {
-                    Swal.fire({
-                        title: "Success",
-                        text: activeTab === serviceDataMain.length + 2 ? "Your Form is saved successfully" : 'Your Form is saved successfully. You can proceed to your next step!',
-                        icon: "success",
-                        confirmButtonText: "Ok",
-                    }).then(() => {
-                        fetchApplicationStatus(); // Call fetch status only for custombgv 0
-                        Swal.close(); // Close the loading spinner after processing is complete
-                    });
-                } else {
-                    // Handle file upload logic for custombgv 0, but without progress
-                    await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv); // Upload files
-                    Swal.fire({
-                        title: "Success",
-                        text: activeTab === serviceDataMain.length + 2 ? "Your Form is saved successfully" : 'Your Form is saved successfully. You can proceed to your next step!',
-                        icon: "success",
-                        confirmButtonText: "Ok",
-                    }).then(() => {
-                        fetchApplicationStatus(); // Call fetch status after success
-                        Swal.close(); // Close the loading spinner after processing is complete
-                    });
-                }
-            }
-
-            if (custombgv === 1) {
-                // If custombgv is 1, show detailed success message and proceed with progress and file uploads
                 if (fileCount === 0) {
                     Swal.fire({
                         title: "Success",
@@ -1729,20 +1859,57 @@ const BackgroundForm = () => {
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
-                        fetchApplicationStatus(); // Call fetch status after submission
-                        Swal.close(); // Close the loading spinner
+                        showThankYouPage(); // Show thank you page
                     });
                 } else {
-                    await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv); // Upload files
-                    setProgress(100); // Set progress to 100% after file upload
+                    await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv);
+                    Swal.fire({
+                        title: "Success",
+                        text: result.message || "BGV Application Created Successfully.",
+                        icon: "success",
+                        confirmButtonText: "Ok",
+                    }).then(() => {
+                        showThankYouPage(); // Show thank you page
+                    });
+                }
+            }
+
+            if (custombgv === 1) {
+                if (fileCount === 0) {
+                    Swal.fire({
+                        title: "Success",
+                        text: result.message || "BGV Application Created Successfully.",
+                        icon: "success",
+                        showConfirmButton: false,      // Hides the OK button
+                        allowOutsideClick: false,      // Disables closing by clicking outside
+                        allowEscapeKey: false,         // Disables Esc key closing
+                        allowEnterKey: false,          // Disables Enter key
+                        backdrop: true,                // Optional: keeps the dimmed background
+                        didOpen: () => {
+                            // Prevents tabbing out of modal
+                            document.activeElement.blur();
+                        }
+                    }).then(() => {
+                        showThankYouPage(); // Show thank you page
+                    });
+                } else {
+                    await uploadCustomerLogo(result.cef_id, fileCount, TotalApiCalls, custombgv);
+                    setProgress(100);
                     Swal.fire({
                         title: "Success",
                         text: result.message || "BGV Application Created Successfully",
                         icon: "success",
-                        confirmButtonText: "Ok",
+                        showConfirmButton: false,      // Hides the OK button
+                        allowOutsideClick: false,      // Disables closing by clicking outside
+                        allowEscapeKey: false,         // Disables Esc key closing
+                        allowEnterKey: false,          // Disables Enter key
+                        backdrop: true,                // Optional: keeps the dimmed background
+                        didOpen: () => {
+                            // Prevents tabbing out of modal
+                            document.activeElement.blur();
+                        }
                     }).then(() => {
-                        fetchApplicationStatus(); // Call fetch status after successful file upload
-                        Swal.close(); // Close the loading spinner
+                        showThankYouPage(); // Show thank you page
                     });
                 }
 
@@ -1754,7 +1921,9 @@ const BackgroundForm = () => {
                         father_name: '',
                         husband_name: '',
                         dob: '',
+                        age: '',
                         gender: '',
+                        alternative_mobile_number: '',
                         permanent_address: '',
                         pin_code: '',
                         declaration_date: '',
@@ -1771,6 +1940,7 @@ const BackgroundForm = () => {
                         pan_card_name: '',
                         aadhar_card_name: '',
                         aadhar_card_number: '',
+                        aadhar_card_linked_mobile_number: '',
                         emergency_details_name: '',
                         emergency_details_relation: '',
                         emergency_details_contact_number: '',
@@ -1780,6 +1950,8 @@ const BackgroundForm = () => {
                     },
                 });
             }
+
+            window.location.reload();
 
         } catch (error) {
             Swal.fire("Error!", error.message, "error");
@@ -1918,17 +2090,17 @@ const BackgroundForm = () => {
     const isFormFilled = formData[`tab${activeTab + 1}`] !== "";
 
 
-    useEffect(() => {
-        const currentDate = new Date().toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
+    // useEffect(() => {
+    //     const currentDate = new Date().toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
 
-        setFormData(prevState => ({
-            ...prevState,
-            personal_information: {
-                ...prevState.personal_information,
-                declaration_date: currentDate, // Set current date
-            }
-        }));
-    }, [activeTab]);
+    //     setFormData(prevState => ({
+    //         ...prevState,
+    //         personal_information: {
+    //             ...prevState.personal_information,
+    //             declaration_date: currentDate, // Set current date
+    //         }
+    //     }));
+    // }, [activeTab]);
 
 
     return (
@@ -1993,7 +2165,7 @@ const BackgroundForm = () => {
                                                 </div>
                                             )}
 
-                                            <h4 className="text-Black md:text-3xl text-center text-xl md:mb-6 mb-3 font-bold mt-3">Background Verification Form</h4>
+                                            <h4 className="text-Black md:text-2xl text-center text-xl md:mb-6 mb-3 font-bold mt-3  ">Background Verification Form</h4>
                                             <div className='md:flex gap-5 justify-center'>
                                                 <div className="mb-2 py-4 rounded-md">
                                                     <h5 className="text-lg font-bold text-center md:text-start">Company name: <span className="text-lg font-normal">{companyName}</span></h5>
@@ -2087,26 +2259,32 @@ const BackgroundForm = () => {
                                                     <div>
                                                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 border rounded-md  p-4" >
                                                             {purpose == 'NORMAL BGV(EMPLOYMENT)' && (
-                                                                <div className="form-group col-span-2" >
+                                                                <div className="form-group relative col-span-2" >
                                                                     <label className='text-sm' > Applicant’s CV: <span className="text-red-500 text-lg" >* </span></label >
                                                                     <input
                                                                         type="file"
                                                                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-                                                                        className="form-control border rounded w-full bg-white p-2 mt-2"
+                                                                        className="form-control  border rounded w-full bg-white p-2 mt-2"
                                                                         name="resume_file"
                                                                         id="resume_file"
+
                                                                         onChange={(e) => handleFileChange("applications_resume_file", "resume_file", e)}
                                                                         ref={(el) => (refs.current["resume_file"] = el)} // Attach ref here
 
                                                                     />
+
                                                                     {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
 
                                                                     {cefDataApp.resume_file && (
                                                                         <div className=' border rounded-md mt-4'><img src={cefDataApp.resume_file || "NO IMAGE FOUND"} className=' object-contain p-3' alt="NO IMAGE FOUND" /></div>
                                                                     )}
+                                                                    <div className=" absolute top-0 -left-[7px]">
+                                                                        {renderFileNames("resume_file")}
+                                                                    </div>
+
                                                                 </div>
                                                             )}
-                                                            < div className="form-group col-span-2" >
+                                                            < div className="form-group col-span-2 relative" >
                                                                 <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span> (Please attach only masked aadhar card , if don't have masked aadhar card then attach pan card/passowrd/voter ID/DL)</label >
                                                                 <input
                                                                     type="file"
@@ -2117,6 +2295,8 @@ const BackgroundForm = () => {
                                                                     multiple // Allow multiple file selection
                                                                     ref={(el) => (refs.current["applications_govt_id"] = el)} // Attach ref here
                                                                 />
+                                                                {renderFileNames("govt_id")}
+
                                                                 {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
 
                                                                 <div className='md:flex overflow-scroll gap-3'>
@@ -2142,7 +2322,7 @@ const BackgroundForm = () => {
                                                                         <p></p>
                                                                     )}
                                                                 </div>
-
+                                                                {renderFileNames("govt_id")}
 
                                                             </div>
 
@@ -2151,16 +2331,16 @@ const BackgroundForm = () => {
                                                             {
                                                                 status === 1 && (
                                                                     <>
-                                                                        <div className="form-group col-span-2" >
+                                                                        <div className="form-group relative col-span-2" >
                                                                             <label className='text-sm' > Passport size photograph - (mandatory with white Background)<span className="text-red-500 text-lg" >* </span></label >
                                                                             <input
                                                                                 type="file"
-                                                                                accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
-
+                                                                                accept=".jpg,.jpeg,.png" // Restrict to image files
                                                                                 className="form-control border rounded w-full bg-white p-2 mt-2"
                                                                                 name="passport_photo"
                                                                                 onChange={(e) => handleFileChange("applications_passport_photo", "passport_photo", e)
                                                                                 }
+
                                                                                 multiple
                                                                                 ref={(el) => (refs.current["passport_photo"] = el)} // Attach ref here
 
@@ -2190,7 +2370,7 @@ const BackgroundForm = () => {
                                                                                 )}
                                                                             </div>
 
-
+                                                                            {renderFileNames("passport_photo")}
                                                                         </div>
                                                                     </>
                                                                 )}
@@ -2216,7 +2396,7 @@ const BackgroundForm = () => {
                                                                     {errors.full_name && <p className="text-red-500 text-sm" > {errors.full_name} </p>}
                                                                 </div>
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="former_name" > Former Name / Maiden Name(if applicable)<span className="text-red-500 text-lg" >* </span></label >
+                                                                    <label className='text-sm' htmlFor="former_name" > Former Name / Maiden Name(if applicable)</label >
                                                                     <input
                                                                         onChange={handleChange}
                                                                         value={formData.personal_information.former_name}
@@ -2245,7 +2425,7 @@ const BackgroundForm = () => {
                                                                     {errors.mb_no && <p className="text-red-500 text-sm" > {errors.mb_no} </p>}
                                                                 </div>
                                                             </div>
-                                                            < div className="grid grid-cols-1 md:grid-cols-3 gap-4" >
+                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
                                                                 <div className="form-group" >
                                                                     <label className='text-sm' htmlFor="father_name">Father's Name: <span className="text-red-500 text-lg">*</span></label>
@@ -2273,20 +2453,48 @@ const BackgroundForm = () => {
                                                                         name="husband_name"
                                                                     />
                                                                 </div>
-
+                                                            </div>
+                                                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                                                 < div className="form-group" >
                                                                     <label className='text-sm' htmlFor="dob" > DOB: <span className="text-red-500 text-lg" >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.dob}
-                                                                        type="date"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        name="dob"
-                                                                        id="dob"
-                                                                        ref={(el) => (refs.current["dob"] = el)} // Attach ref here
 
+                                                                    <DatePicker
+                                                                        selected={formData.personal_information.dob ? new Date(formData.personal_information.dob) : null}
+                                                                        onChange={(date) => {
+                                                                            const isoDate = date ? date.toISOString().split('T')[0] : '';
+                                                                            const age = calculateAge(isoDate);
+                                                                            setFormData((prev) => ({
+                                                                                ...prev,
+                                                                                personal_information: {
+                                                                                    ...prev.personal_information,
+                                                                                    dob: isoDate,
+                                                                                    age: age,
+                                                                                },
+                                                                            }));
+                                                                        }}
+                                                                        maxDate={new Date()}
+                                                                        className="form-control border rounded w-full p-2 mt-2"
+                                                                        placeholderText="Select DOB"
+                                                                        showYearDropdown
+                                                                        dateFormat="dd-MM-yyyy"
+                                                                        id="dob"
+                                                                        name="dob"
                                                                     />
+
                                                                     {errors.dob && <p className="text-red-500 text-sm" > {errors.dob} </p>}
+                                                                </div>
+                                                                <div className="form-group">
+
+                                                                    <label className='text-sm' htmlFor="age">Age:</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="form-control border rounded w-full p-2 mt-2 bg-gray-100"
+                                                                        name="age"
+                                                                        id="age"
+                                                                        value={formData.personal_information.age || ''}
+                                                                        readOnly
+                                                                    />
+
                                                                 </div>
                                                             </div>
                                                             < div className="grid grid-cols-1 md:grid-cols-1 gap-4" >
@@ -2313,17 +2521,47 @@ const BackgroundForm = () => {
                                                                     {errors.gender && <p className="text-red-500 text-sm" >{errors.gender} </p>}
                                                                 </div>
                                                             </div>
-                                                            {nationality === "Indian" && (
-                                                                <div className='form-group'>
-                                                                    <label className='text-sm'>Aadhar card No</label>
+                                                            < div className="grid grid-cols-1 md:grid-cols-1 gap-4" >
+
+                                                                <div className="form-group my-4" >
+                                                                    <label className='text-sm' htmlFor="alternative_mobile_number" >
+                                                                        Alternate Mobile Number: <span className="text-red-500 text-lg" >* </span>
+                                                                    </label>
                                                                     <input
                                                                         type="text"
-                                                                        name="aadhar_card_number"
-                                                                        value={formData.personal_information.aadhar_card_number}
+                                                                        name="alternative_mobile_number"
+                                                                        value={formData.personal_information.alternative_mobile_number}
                                                                         onChange={handleChange}
                                                                         className="form-control border rounded w-full p-2 mt-2"
                                                                     />
+                                                                    {errors.alternative_mobile_number && <p className="text-red-500 text-sm" >{errors.alternative_mobile_number} </p>}
                                                                 </div>
+                                                            </div>
+                                                            {nationality === "Indian" && (
+                                                                <>
+                                                                    < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+                                                                        <div className='form-group'>
+                                                                            <label className='text-sm'>Aadhar card No</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name="aadhar_card_number"
+                                                                                value={formData.personal_information.aadhar_card_number}
+                                                                                onChange={handleChange}
+                                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                            />
+                                                                        </div>
+                                                                        <div className='form-group'>
+                                                                            <label className='text-sm'>Aadhar Linked Mobile No</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                name="aadhar_card_linked_mobile_number"
+                                                                                value={formData.personal_information.aadhar_card_linked_mobile_number}
+                                                                                onChange={handleChange}
+                                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </>
                                                             )}
                                                             < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
 
@@ -2349,7 +2587,7 @@ const BackgroundForm = () => {
                                                                                 )}
                                                                             </div>
 
-                                                                            <div className='form-group'>
+                                                                            <div className='form-group relative'>
                                                                                 <label className='text-sm'>
                                                                                     Aadhar Card Image <span className='text-red-500 text-lg'>*</span> (Please attach only masked aadhar card)
                                                                                 </label>
@@ -2364,43 +2602,46 @@ const BackgroundForm = () => {
                                                                                 {errors.aadhar_card_image && (
                                                                                     <p className="text-red-500 text-sm">{errors.aadhar_card_image}</p>
                                                                                 )}
-
-
+                                                                                <div className='adharcard'>
+                                                                                    {renderFileNames("aadhar_card_image")}
+                                                                                </div>
                                                                             </div>
+                                                                            {
+                                                                                cefDataApp.aadhar_card_image && (
+                                                                                    isImage(cefDataApp.aadhar_card_image) ? (
+                                                                                        // If it's an image, display it
+                                                                                        <div className='border rounded-md my-4 p-2'>
+                                                                                            <p className="font-bold ">Aadhar Card Image</p>
+                                                                                            <div>
+                                                                                                <img
+                                                                                                    src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"}
+                                                                                                    alt="Aadhar Card"
+                                                                                                    className=' object-contain p-3'
+                                                                                                />
+                                                                                            </div>
+
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        // If it's not an image, show a clickable link (view document)
+                                                                                        <div className='mt-2 p-5 border text-center'>
+                                                                                            <a
+                                                                                                href={cefDataApp.aadhar_card_image}
+                                                                                                target="_blank"
+                                                                                                rel="noopener noreferrer"
+                                                                                                className="text-blue-500 text-center font-bold "
+                                                                                            >
+                                                                                                View Aadhar Card Document
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    )
+                                                                                )
+                                                                            }
                                                                         </>
                                                                     )
                                                                 }
-                                                            </div>
-                                                            {
-                                                                cefDataApp.aadhar_card_image && (
-                                                                    isImage(cefDataApp.aadhar_card_image) ? (
-                                                                        // If it's an image, display it
-                                                                        <div className='border rounded-md my-4 p-2'>
-                                                                            <p className="font-bold ">Aadhar Card Image</p>
-                                                                            <div>
-                                                                                <img
-                                                                                    src={cefDataApp.aadhar_card_image || "NO IMAGE FOUND"}
-                                                                                    alt="Aadhar Card"
-                                                                                    className=' object-contain p-3'
-                                                                                />
-                                                                            </div>
 
-                                                                        </div>
-                                                                    ) : (
-                                                                        // If it's not an image, show a clickable link (view document)
-                                                                        <div className='mt-2 p-5 border text-center'>
-                                                                            <a
-                                                                                href={cefDataApp.aadhar_card_image}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="text-blue-500 text-center font-bold "
-                                                                            >
-                                                                                View Aadhar Card Document
-                                                                            </a>
-                                                                        </div>
-                                                                    )
-                                                                )
-                                                            }
+
+                                                            </div>
                                                             {nationality === "Indian" && (
                                                                 <div className='form-group' >
                                                                     <label className='text-sm' > Pan card No </label>
@@ -2440,54 +2681,58 @@ const BackgroundForm = () => {
                                                                     )}
 
                                                                 {status === 1 && nationality === "Indian" && (
-                                                                    <div className='form-group' >
-                                                                        <label className='text-sm' > Pan Card Image < span className='text-red-500 text-lg' >* </span></label >
-                                                                        <input
-                                                                            type="file"
-                                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                                                    <>
+                                                                        <div className='form-group relative' >
+                                                                            <label className='text-sm' > Pan Card Image < span className='text-red-500 text-lg' >* </span></label >
+                                                                            <input
+                                                                                type="file"
+                                                                                accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
 
-                                                                            name="pan_card_image"
-                                                                            onChange={(e) => handleFileChange("applications_pan_card_image", "pan_card_image", e)
-                                                                            }
-                                                                            className="form-control border rounded w-full p-1 mt-2"
-                                                                            ref={(el) => (refs.current["pan_card_image"] = el)} // Attach ref here
+                                                                                name="pan_card_image"
+                                                                                onChange={(e) => handleFileChange("applications_pan_card_image", "pan_card_image", e)
+                                                                                }
+                                                                                className="form-control border rounded w-full p-1 mt-2"
+                                                                                ref={(el) => (refs.current["pan_card_image"] = el)} // Attach ref here
 
 
-                                                                        />
-                                                                        {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
-
-                                                                    </div>
+                                                                            />
+                                                                            {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
+                                                                            <div className='pancard'>
+                                                                                {renderFileNames("pan_card_image")}
+                                                                            </div>
+                                                                        </div>
+                                                                        {cefDataApp.pan_card_image && (
+                                                                            isImage(cefDataApp.pan_card_image) ? (
+                                                                                // If it's an image, display it
+                                                                                <div className='mt-3 border rounded-md p-2'>
+                                                                                    <p className=' font-bold'>Pan Card Image</p>
+                                                                                    <img
+                                                                                        src={cefDataApp.pan_card_image || "NO IMAGE FOUND"}
+                                                                                        className='object-contain p-3'
+                                                                                        alt="Pan Card Image"
+                                                                                    />
+                                                                                </div>
+                                                                            ) : (
+                                                                                // If it's not an image, show a clickable link (view document)
+                                                                                <div className='mt-2 p-5 border text-center'>
+                                                                                    <a
+                                                                                        href={cefDataApp.pan_card_image}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="text-blue-500 font-bold "
+                                                                                    >
+                                                                                        View Pan Card Document
+                                                                                    </a>
+                                                                                </div>
+                                                                            )
+                                                                        )}
+                                                                    </>
                                                                 )}
 
 
 
                                                             </div>
 
-                                                            {cefDataApp.pan_card_image && (
-                                                                isImage(cefDataApp.pan_card_image) ? (
-                                                                    // If it's an image, display it
-                                                                    <div className='mt-3 border rounded-md p-2'>
-                                                                        <p className=' font-bold'>Pan Card Image</p>
-                                                                        <img
-                                                                            src={cefDataApp.pan_card_image || "NO IMAGE FOUND"}
-                                                                            className='object-contain p-3'
-                                                                            alt="Pan Card Image"
-                                                                        />
-                                                                    </div>
-                                                                ) : (
-                                                                    // If it's not an image, show a clickable link (view document)
-                                                                    <div className='mt-2 p-5 border text-center'>
-                                                                    <a
-                                                                        href={cefDataApp.pan_card_image}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="text-blue-500 font-bold "
-                                                                    >
-                                                                        View Pan Card Document
-                                                                    </a>
-                                                                </div>
-                                                                )
-                                                            )}
                                                             {
                                                                 status == 0 && nationality === "Other" && (
                                                                     <div className="form-group" >
@@ -2569,7 +2814,7 @@ const BackgroundForm = () => {
                                                                         value={formData.personal_information.marital_status}
 
                                                                     >
-                                                                        <option value="" selected> SELECT Marital STATUS </option>
+                                                                        <option value="" selected> SELECT MARITAL STATUS </option>
                                                                         < option value="Don't wish to disclose"> Don't wish to disclose</option>
                                                                         < option value="Single"> Single </option>
                                                                         < option value="Married"> Married </option>
@@ -2669,16 +2914,18 @@ const BackgroundForm = () => {
                                                                                         onChange={handleChange}
                                                                                         className="form-control border rounded w-full p-2 mt-2"
                                                                                     />
+
+
                                                                                 </div>
                                                                                 < div className='form-group' >
                                                                                     <lalbel>Nominee Date of Birth
                                                                                     </lalbel>
-                                                                                    < input
-                                                                                        type="date"
-                                                                                        name="insurance_details_nominee_dob"
-                                                                                        value={formData.personal_information.insurance_details_nominee_dob}
-                                                                                        onChange={handleChange}
+                                                                                    <DatePicker
+                                                                                        selected={formData.personal_information.insurance_details_nominee_dob}
+                                                                                        onChange={(date) => handleChange({ target: { name: 'insurance_details_nominee_dob', value: date } })}
                                                                                         className="form-control border rounded w-full p-2 mt-2"
+                                                                                        name="insurance_details_nominee_dob"
+                                                                                        dateFormat="dd-MM-yyyy"
                                                                                     />
                                                                                 </div>
                                                                                 < div className='form-group' >
@@ -2739,227 +2986,323 @@ const BackgroundForm = () => {
 
                                                 {activeTab === 1 && (
                                                     <>
-                                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
+                                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300'>
 
-                                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Permanent Address </h3>
+                                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5'> Permanent Address </h3>
                                                             <div className='border border-black p-4 rounded-md'>
-                                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4 " >
-
-                                                                    <div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address" > Permanent Address < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address"
-                                                                            name="permanent_address"
-                                                                            disabled={isSameAsPermanent} // Disable if checkbox is checked
-
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    {/* 1. Flat / House No. */}
+                                                                    <div className="form-group">
+                                                                        <label className='text-sm' htmlFor="permanent_address"> Flat/House No. < span
+                                                                            className="text-red-500 text-lg">* </span></label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_address} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="permanent_address"
+                                                                            name="permanent_address" disabled={isSameAsPermanent} // Disable if checkbox is checked
                                                                             ref={(el) => (refs.current["permanent_address"] = el)} // Attach ref here
 
                                                                         />
-                                                                        {errors.permanent_address && <p className="text-red-500 text-sm" > {errors.permanent_address} </p>}
+                                                                        {errors.permanent_address && <p className="text-red-500 text-sm"> {errors.permanent_address} </p>}
                                                                     </div>
 
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_pin_code}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_pin_code"
-                                                                            name="permanent_pin_code"
-                                                                            ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref here
+                                                                    {/* 2. Street/Road, Locality */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="permanent_street_locality">
+                                                                            Street/Road, Locality Area
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_street_locality}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_street_locality" name="permanent_street_locality" disabled={isSameAsPermanent}
+                                                                            ref={(el) => (refs.current["permanent_street_locality"] = el)}
+                                                                        />
+
+                                                                    </div>
+
+                                                                    {/* 3. Sector/Village */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="permanent_sector_village">
+                                                                            Sector, Village
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_sector_village}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_sector_village" name="permanent_sector_village" disabled={isSameAsPermanent}
+                                                                            ref={(el) => (refs.current["permanent_sector_village"] = el)}
+                                                                        />
+
+                                                                    </div>
+
+                                                                    {/* 4. Landmark */}
+                                                                    <div className="form-group">
+                                                                        <label className='text-sm' htmlFor="permanent_prominent_landmark"> Landmark < span
+                                                                            className="text-red-500 text-lg">* </span></label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_prominent_landmark}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_prominent_landmark" name="permanent_prominent_landmark" ref={(el) =>
+                                                                                (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
 
                                                                         />
-                                                                        {errors.permanent_pin_code && <p className="text-red-500 text-sm" > {errors.permanent_pin_code} </p>}
+                                                                        {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm">
+                                                                            {errors.permanent_prominent_landmark} </p>}
                                                                     </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address_landline_number}
-                                                                            type="number"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address_landline_number"
-                                                                            name="permanent_address_landline_number"
-                                                                            ref={(el) => (refs.current["permanent_address_landline_number"] = el)} // Attach ref here
+
+                                                                    {/* 5. City */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="permanent_city">
+                                                                            City
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_city} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="permanent_city"
+                                                                            name="permanent_city" disabled={isSameAsPermanent} ref={(el) => (refs.current["permanent_city"] =
+                                                                                el)}
+                                                                        />
+
+                                                                    </div>
+
+                                                                    {/* 6. State */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="permanent_address_state">
+                                                                            State <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+                                                                        {nationality.toLowerCase() === 'other' ? (
+
+                                                                            <input onChange={handleChange} type="text"
+                                                                                value={formData.personal_information.permanent_address_state}
+                                                                                className="form-control border rounded w-full p-2 mt-1" id="permanent_address_state"
+                                                                                name="permanent_address_state" ref={(el) => (refs.current["permanent_address_state"] = el)}
+                                                                            />
+                                                                        ) : (
+                                                                            <select onChange={handleChange} value={formData.personal_information.permanent_address_state}
+                                                                                className="form-control border rounded w-full p-2 mt-1" id="permanent_address_state"
+                                                                                name="permanent_address_state" ref={(el) => (refs.current["permanent_address_state"] = el)}
+                                                                            >
+                                                                                {options.map((option) => (
+                                                                                    <option key={option.value} value={option.value}>
+                                                                                        {option.label}
+                                                                                    </option>
+                                                                                ))}
+                                                                            </select>
+
+
+                                                                        )}
+                                                                        {errors.permanent_address_state && (
+                                                                            <p className="text-red-500 text-sm">{errors.permanent_address_state}</p>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* 7. Pin Code */}
+                                                                    <div className="form-group">
+                                                                        <label className='text-sm' htmlFor="permanent_pin_code"> Pin Code < span
+                                                                            className="text-red-500 text-lg">* </span></label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_pin_code} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="permanent_pin_code"
+                                                                            name="permanent_pin_code" ref={(el) => (refs.current["permanent_pin_code"] = el)} // Attach ref
+                                                                            here
 
                                                                         />
-                                                                        {errors.permanent_address_landline_number && <p className="text-red-500 text-sm" > {errors.permanent_address_landline_number} </p>}
+                                                                        {errors.permanent_pin_code && <p className="text-red-500 text-sm"> {errors.permanent_pin_code} </p>}
                                                                     </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address_state}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address_state"
-                                                                            name="permanent_address_state"
-                                                                            ref={(el) => (refs.current["permanent_address_state"] = el)} // Attach ref here
 
+                                                                    {/* 8. Mobile Number */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="permanent_address_landline_number">
+                                                                            Mobile Number <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+                                                                        <input onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_address_landline_number} type="number"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="permanent_address_landline_number"
+                                                                            name="permanent_address_landline_number" ref={(el) =>
+                                                                                (refs.current["permanent_address_landline_number"] = el)}
                                                                         />
-                                                                        {errors.permanent_address_state && <p className="text-red-500 text-sm" > {errors.permanent_address_state} </p>}
+                                                                        {errors.permanent_address_landline_number && (
+                                                                            <p className="text-red-500 text-sm">
+                                                                                {errors.permanent_address_landline_number}
+                                                                            </p>
+                                                                        )}
                                                                     </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_prominent_landmark}
-                                                                            type="text"
+
+                                                                    {/* 9. Alternate Mobile Number */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="permanent_address_stay_to">
+                                                                            Alternate Mobile No
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.permanent_address_stay_to}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="permanent_address_stay_to" name="permanent_address_stay_to" />
+                                                                    </div>
+                                                                    < div className="form-group">
+                                                                        <label className='text-sm' htmlFor="permanent_address_nearest_police_station"> Nearest Police Station.</label>
+                                                                        < input onChange={handleChange}
+                                                                            value={formData.personal_information.permanent_address_nearest_police_station} type="text"
                                                                             className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_prominent_landmark"
-                                                                            name="permanent_prominent_landmark"
-                                                                            ref={(el) => (refs.current["permanent_prominent_landmark"] = el)} // Attach ref here
+                                                                            id="permanent_address_nearest_police_station" name="permanent_address_nearest_police_station" />
 
-                                                                        />
-                                                                        {errors.permanent_prominent_landmark && <p className="text-red-500 text-sm" > {errors.permanent_prominent_landmark} </p>}
                                                                     </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="permanent_address_stay_to">Alternate Mobile No</label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.permanent_address_stay_to}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="permanent_address_stay_to"
-                                                                            name="permanent_address_stay_to"
-
-                                                                        />
-                                                                    </div>
-
                                                                 </div>
 
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.<span className="text-red-500">*</span></label>
-                                                                    < input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.permanent_address_nearest_police_station}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="permanent_address_nearest_police_station"
-                                                                        name="permanent_address_nearest_police_station"
 
-                                                                    />
-                                                                    {errors.permanent_address_nearest_police_station && <p className="text-red-500 text-sm" > {errors.permanent_address_nearest_police_station} </p>}
-                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300' >
-                                                            <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange}
-                                                                id="" className='me-2' /><label>Same as Permanent Address</label>
+                                                        <div className=' border-gray-300 rounded-md mt-5 hover:transition-shadow duration-300'>
+                                                            <input type="checkbox" name="" checked={isSameAsPermanent} onChange={handleAddressCheckboxChange} id=""
+                                                                className='me-2' /><label>Same as Permanent Address</label>
 
-                                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5' > Current Address </h3>
+                                                            <h3 className='md:text-start md:mb-2 text-start md:text-2xl text-sm font-bold my-5'> Current Address </h3>
                                                             <div className='border border-black p-4 rounded-md'>
-                                                                < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
-
-
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' > Current Address <span className="text-red-500 text-lg" >*</span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address"
-                                                                            name="current_address"
-                                                                            disabled={isSameAsPermanent} // Disable if checkbox is checked
-
-                                                                            ref={(el) => (refs.current["current_address"] = el)} // Attach ref here
-
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    {/* 1. Flat / House No. */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_address">
+                                                                            Flat/House No. <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_address} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="current_address"
+                                                                            name="current_address" disabled={isSameAsPermanent} ref={(el) => (refs.current["current_address"]
+                                                                                = el)}
                                                                         />
-                                                                        {errors.current_address && <p className="text-red-500 text-sm" > {errors.current_address} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_pin_code" > Pin Code < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_pin_code}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_pin_code"
-                                                                            name="current_address_pin_code"
-                                                                            ref={(el) => (refs.current["current_address_pin_code"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_pin_code && <p className="text-red-500 text-sm" > {errors.current_address_pin_code} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_landline_number" > Mobile Number < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_landline_number}
-                                                                            type="number"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_landline_number"
-                                                                            name="current_address_landline_number"
-                                                                            ref={(el) => (refs.current["current_address_landline_number"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_landline_number && <p className="text-red-500 text-sm" > {errors.current_address_landline_number} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_state" > Current State < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_state}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_state"
-                                                                            name="current_address_state"
-                                                                            ref={(el) => (refs.current["current_address_state"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_address_state && <p className="text-red-500 text-sm" > {errors.current_address_state} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_prominent_landmark" > Current Landmark < span className="text-red-500 text-lg" >* </span></label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_prominent_landmark}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_prominent_landmark"
-                                                                            name="current_prominent_landmark"
-                                                                            ref={(el) => (refs.current["current_prominent_landmark"] = el)} // Attach ref here
-
-                                                                        />
-                                                                        {errors.current_prominent_landmark && <p className="text-red-500 text-sm" > {errors.current_prominent_landmark} </p>}
-                                                                    </div>
-                                                                    < div className="form-group" >
-                                                                        <label className='text-sm' htmlFor="current_address_stay_to" > Alternate Mobile No</label >
-                                                                        <input
-                                                                            onChange={handleChange}
-                                                                            value={formData.personal_information.current_address_stay_to}
-                                                                            type="text"
-                                                                            className="form-control border rounded w-full p-2 mt-2"
-                                                                            id="current_address_stay_to"
-                                                                            name="current_address_stay_to"
-
-                                                                        />
+                                                                        {errors.current_address && (
+                                                                            <p className="text-red-500 text-sm">{errors.current_address}</p>
+                                                                        )}
                                                                     </div>
 
+                                                                    {/* 2. Street/Road, Locality */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_street_locality">
+                                                                            Street/Road, Locality Area
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_street_locality}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2" id="current_street_locality"
+                                                                            name="current_street_locality" disabled={isSameAsPermanent} ref={(el) =>
+                                                                                (refs.current["current_street_locality"] = el)}
+                                                                        />
+
+                                                                    </div>
+
+                                                                    {/* 3. Sector/Village */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_sector_village">
+                                                                            Sector, Village
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_sector_village}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2" id="current_sector_village"
+                                                                            name="current_sector_village" disabled={isSameAsPermanent} ref={(el) =>
+                                                                                (refs.current["current_sector_village"] = el)}
+                                                                        />
+
+                                                                    </div>
+
+                                                                    {/* 4. Landmark */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_prominent_landmark">
+                                                                            Landmark <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_prominent_landmark}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_prominent_landmark" name="current_prominent_landmark" ref={(el) =>
+                                                                                (refs.current["current_prominent_landmark"] = el)}
+                                                                        />
+                                                                        {errors.current_prominent_landmark && (
+                                                                            <p className="text-red-500 text-sm">{errors.current_prominent_landmark}</p>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* 5. City */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_city">
+                                                                            City
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_city} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="current_city" name="current_city"
+                                                                            disabled={isSameAsPermanent} ref={(el) => (refs.current["current_city"] = el)}
+                                                                        />
+
+                                                                    </div>
+
+                                                                    {/* 6. State */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_address_state">
+                                                                            State <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+
+                                                                        {
+                                                                            nationality.toLowerCase() === "other" ? (
+                                                                                <input onChange={handleChange} type="text"
+                                                                                    value={formData.personal_information.current_address_state}
+                                                                                    className="form-control border rounded w-full p-2 mt-1" id="current_address_state"
+                                                                                    name="current_address_state" ref={(el) => (refs.current["current_address_state"] = el)}
+                                                                                />
+                                                                            ) : (
+                                                                                <select onChange={handleChange} value={formData.personal_information.current_address_state}
+                                                                                    className="form-control border rounded w-full p-2 mt-2" id="current_address_state"
+                                                                                    name="current_address_state" ref={(el) => (refs.current["current_address_state"] = el)}
+                                                                                >
+                                                                                    <option value="">Select State</option>
+                                                                                    {options.map((option) => (
+                                                                                        <option key={option.value} value={option.value}>
+                                                                                            {option.label}
+                                                                                        </option>
+                                                                                    ))}
+                                                                                </select>
+
+                                                                            )
+                                                                        }
+
+                                                                        {errors.current_address_state && (
+                                                                            <p className="text-red-500 text-sm">{errors.current_address_state}</p>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* 7. Pin Code */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_pin_code">
+                                                                            Pin Code <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_pin_code} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="current_pin_code"
+                                                                            name="current_pin_code" ref={(el) => (refs.current["current_pin_code"] = el)}
+                                                                        />
+                                                                        {errors.current_pin_code && (
+                                                                            <p className="text-red-500 text-sm">{errors.current_pin_code}</p>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* 8. Mobile Number */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_address_landline_number">
+                                                                            Mobile Number <span className="text-red-500 text-lg">*</span>
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_address_landline_number}
+                                                                            type="number" className="form-control border rounded w-full p-2 mt-2"
+                                                                            id="current_address_landline_number" name="current_address_landline_number" ref={(el) =>
+                                                                                (refs.current["current_address_landline_number"] = el)}
+                                                                        />
+                                                                        {errors.current_address_landline_number && (
+                                                                            <p className="text-red-500 text-sm">
+                                                                                {errors.current_address_landline_number}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* 9. Alternate Mobile Number */}
+                                                                    <div className="form-group">
+                                                                        <label className="text-sm" htmlFor="current_address_stay_to">
+                                                                            Alternate Mobile No
+                                                                        </label>
+                                                                        <input onChange={handleChange} value={formData.personal_information.current_address_stay_to}
+                                                                            type="text" className="form-control border rounded w-full p-2 mt-2" id="current_address_stay_to"
+                                                                            name="current_address_stay_to" />
+                                                                    </div>
+                                                                    <div className="form-group">
+                                                                        <label className='text-sm' htmlFor="current_address_nearest_police_station"> Nearest Police Station.</label>
+                                                                        < input onChange={handleChange}
+                                                                            value={formData.personal_information.current_address_nearest_police_station} type="text"
+                                                                            className="form-control border rounded w-full p-2 mt-2" id="current_address_nearest_police_station"
+                                                                            name="current_address_nearest_police_station" />
+
+                                                                    </div>
                                                                 </div>
 
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="nearest_police_station" > Nearest Police Station.<span className="text-red-500">*</span></label>
-                                                                    < input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.current_address_nearest_police_station}
-                                                                        type="text"
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="current_address_nearest_police_station"
-                                                                        name="current_address_nearest_police_station"
-                                                                        ref={(el) => (refs.current["current_address_nearest_police_station"] = el)} // Attach ref here
 
-                                                                    />
-                                                                    {errors.current_address_nearest_police_station && <p className="text-red-500 text-sm" > {errors.current_address_nearest_police_station} </p>}
-
-                                                                </div>
                                                             </div>
+
                                                         </div>
                                                     </>
                                                 )}
@@ -3860,7 +4203,7 @@ const BackgroundForm = () => {
                                                                                                     }
 
                                                                                                     return (
-                                                                                                        <div key={inputIndex} className={row.inputs.length === 5 && (inputIndex === 3 || inputIndex === 4) ? 'col-span-3' : ''}>
+                                                                                                        <div key={inputIndex} className={row.inputs.length === 5 && (inputIndex === 3 || inputIndex === 4) ? 'col-span-3 relative' : 'relative'}>
                                                                                                             <label className="text-sm block font-medium mb-0 text-gray-700 capitalize">
                                                                                                                 {input.label.replace(/[\/\\]/g, '')}
                                                                                                                 {input.required && <span className="text-red-500">*</span>}
@@ -3886,12 +4229,22 @@ const BackgroundForm = () => {
                                                                                                                 />
                                                                                                             )}
                                                                                                             {input.type === 'datepicker' && (
-                                                                                                                <input
-                                                                                                                    type="date"
-                                                                                                                    name={input.name}
-                                                                                                                    value={annexureData[service.db_table]?.[input.name] || ''}
+                                                                                                                <DatePicker
+                                                                                                                    selected={
+                                                                                                                        isValid(parseISO(annexureData[service.db_table]?.[input.name] || ''))
+                                                                                                                            ? parseISO(annexureData[service.db_table][input.name])
+                                                                                                                            : null
+                                                                                                                    }
+                                                                                                                    onChange={(date) =>
+                                                                                                                        handleServiceChange(
+                                                                                                                            service.db_table,
+                                                                                                                            input.name,
+                                                                                                                            date ? format(date, 'yyyy-MM-dd') : ''
+                                                                                                                        )
+                                                                                                                    }
                                                                                                                     className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                                                                    onChange={(e) => handleServiceChange(service.db_table, input.name, e.target.value)}
+                                                                                                                    dateFormat="dd-MM-yyyy"
+                                                                                                                    placeholderText="Select date"
                                                                                                                 />
                                                                                                             )}
                                                                                                             {input.type === 'number' && (
@@ -3930,15 +4283,19 @@ const BackgroundForm = () => {
 
                                                                                                             {input.type === 'file' && (
                                                                                                                 <>
-                                                                                                                    <input
-                                                                                                                        type="file"
-                                                                                                                        name={input.name}
-                                                                                                                        multiple
-                                                                                                                        accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
-                                                                                                                        className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
-                                                                                                                        onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
-                                                                                                                    />
-
+                                                                                                                    <div className='relative'>
+                                                                                                                        <input
+                                                                                                                            type="file"
+                                                                                                                            name={input.name}
+                                                                                                                            multiple
+                                                                                                                            accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx"
+                                                                                                                            className="mt-1 p-2 border w-full border-gray-300 rounded-md focus:outline-none"
+                                                                                                                            onChange={(e) => handleFileChange(service.db_table + '_' + input.name, input.name, e)}
+                                                                                                                        />
+                                                                                                                        <div className='dynamic'>
+                                                                                                                            {renderFileNames(input.name)}
+                                                                                                                        </div>
+                                                                                                                    </div>
                                                                                                                     {annexureData[service.db_table] && annexureData[service.db_table][input.name] ? (
                                                                                                                         <div className="border p-3 rounded-md mt-4">
                                                                                                                             <Swiper
@@ -4079,18 +4436,20 @@ const BackgroundForm = () => {
 
                                                                 < div className="form-group" >
                                                                     <label className='text-sm' >Declaration Date < span className='text-red-500' >* </span></label >
-                                                                    <input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.declaration_date}
-                                                                        type="date"
+                                                                    <DatePicker
+                                                                        selected={formData.personal_information.declaration_date}
+                                                                        onChange={(date) => handleDateChange(date, 'declaration_date')}
                                                                         className="form-control border rounded w-full p-2 mt-2 bg-white mb-0"
-                                                                        name="declaration_date"
+                                                                        placeholderText="Select declaration date"
+                                                                        dateFormat="dd-MM-yyyy"
                                                                     />
+
+
                                                                     {errors.declaration_date && <p className="text-red-500 text-sm"> {errors.declaration_date} </p>}
 
                                                                 </div>
                                                             </div>
-                                                            <div className="form-group" >
+                                                            <div className="form-group relative" >
                                                                 <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
                                                                 <input
                                                                     onChange={(e) => handleFileChange("applications_signature", "signature", e)}
@@ -4131,9 +4490,9 @@ const BackgroundForm = () => {
                                                                         )
                                                                     )
                                                                 }
-
-
-
+                                                                <div className='signature'>
+                                                                    {renderFileNames("signature")}
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -4192,7 +4551,7 @@ const BackgroundForm = () => {
                                                     }}
                                                     className={`px-6 py-2 rounded-md ${isFormFilled
                                                         ? "text-white bg-blue-500 hover:bg-blue-600"
-                                                        : "text-gray-500 bg-blue-400 cursor-not-allowed"
+                                                        : "text-gray-700 bg-blue-400 cursor-not-allowed"
                                                         }`}
                                                     disabled={!isFormFilled} // Disable button if form is not filled
                                                 >
@@ -4202,7 +4561,7 @@ const BackgroundForm = () => {
                                                     <button
                                                         type='button'
                                                         onClick={handleBack} // Call the handleBack function when the button is clicked
-                                                        className="px-6 py-2 text-gray-500 bg-gray-200 rounded-md hover:bg-gray-300"
+                                                        className="px-6 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                                                     >
                                                         Go Back
                                                     </button>

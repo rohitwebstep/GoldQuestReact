@@ -281,7 +281,7 @@ const InactiveClients = () => {
                 handleSelectChange(e); // Call the select change handler
                 setCurrentPage(1); // Reset current page to 1
               }}
-              className="outline-none p-3 text-left rounded-md w-7/12 md:w-6/12"
+              className="outline-none p-3 text-left  border border-gray-300 shadow-md rounded-md w-7/12 md:w-6/12"
             >
 
               <option value="10">10 Rows</option>
@@ -308,7 +308,7 @@ const InactiveClients = () => {
             <div className="flex md:items-stretch items-center gap-3">
               <input
                 type="search"
-                className='outline-none border-2 p-3 rounded-md w-full my-4 md:my-0'
+                className='outline-none border-2 p-3 border-gray-300 shadow-md rounded-md w-full my-4 md:my-0'
                 placeholder='Search Here...'
                 value={searchTerm}
                 onChange={(e) => {
@@ -321,7 +321,7 @@ const InactiveClients = () => {
         </div>
       </div >
       <div className="bg-white m-4  shadow-md rounded-md p-3">
-        <h2 className='text-center text-2xl font-bold my-5'>InActive Clients</h2>
+        <h2 className='text-center text-2xl font-bold text-[#3e76a5] my-5'>INACTIVE CLIENTS</h2>
 
 
         <div className="overflow-x-auto py-6 px-4">
@@ -408,7 +408,7 @@ const InactiveClients = () => {
                           onClick={(e) => e.stopPropagation()} // Prevent popup close when clicking inside
                         >
                           <button
-                            className="close-btn text-gray-500 hover:text-gray-700 absolute top-3 right-3"
+                            className="close-btn text-gray-700 hover:text-gray-700 absolute top-3 right-3"
                             onClick={() => setShowPopup(null)} // Close the popup when clicking close button
                           >
                             ✕

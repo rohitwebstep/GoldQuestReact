@@ -25,9 +25,9 @@ const tabNames = {
   profile: {
     icon: (<><UserIcon className="h-6 w-6 mr-3 text-gray-600" />Client Management</>),
     subItems: [
-      { id: 'add_clients', name: 'Add New Client', icon: <IoMdPersonAdd className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'active_clients', name: 'Active Clients', icon: <FaEye className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'inactive_clients', name: 'Inactive Clients', icon: <FaEyeSlash className="h-5 w-5 mr-2 text-gray-500" /> }
+      { id: 'add_clients', name: 'Add New Client', icon: <IoMdPersonAdd className="h-5 w-5 mr-2 text-gray-700" /> },
+      { id: 'active_clients', name: 'Active Clients', icon: <FaEye className="h-5 w-5 mr-2 text-gray-700" /> },
+      { id: 'inactive_clients', name: 'Inactive Clients', icon: <FaEyeSlash className="h-5 w-5 mr-2 text-gray-700" /> }
     ]
   },
   package_management: (<><BiSolidPackage className="h-6 w-6 mr-3 text-gray-600" />Package Management</>),
@@ -37,15 +37,15 @@ const tabNames = {
   report: {
     icon: (<><TbReportSearch className="h-6 w-6 mr-3 text-gray-600" />Reports Summary</>),
     subItems: [
-      { id: 'report_summary', name: 'Report Tracker', icon: <FaSquarePollHorizontal className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'generate_report', name: 'Generate Report', icon: <RiAiGenerate className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'report_summary', name: 'Report Tracker', icon: <FaSquarePollHorizontal className="h-5 w-5 mr-2 text-gray-700" /> },
+      { id: 'generate_report', name: 'Generate Report', icon: <RiAiGenerate className="h-5 w-5 mr-2 text-gray-700" /> },
     ]
   },
   delete: {
     icon: (<><AiOutlineSafetyCertificate className="h-6 w-6 mr-3 text-gray-600" />Deletion Certification</>),
     subItems: [
-      { id: 'deletion_certificate', name: 'Deletion Certificate', icon: <MdOutlineDelete className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'deletion_requests', name: 'Deletion Certificate Requests', icon: <AiOutlineSafetyCertificate className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'deletion_certificate', name: 'Deletion Certificate', icon: <MdOutlineDelete className="h-5 w-5 mr-2 text-gray-700" /> },
+      { id: 'deletion_requests', name: 'Deletion Certificate Requests', icon: <AiOutlineSafetyCertificate className="h-5 w-5 mr-2 text-gray-700" /> },
     ]
   },
   external: (<><VscLinkExternal className="h-6 w-6 mr-3 text-gray-600" />External Login Credentials</>),
@@ -61,8 +61,8 @@ const tabNames = {
   developers_tool: {
     icon: (<><FaCode className="h-6 w-6 mr-3 text-gray-600" />Developers</>),
     subItems: [
-      { id: 'developers', name: 'Developer', icon: <MdOutlineDeveloperMode   className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'report_forms', name: 'Services Forms', icon: <FaServicestack  className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'developers', name: 'Developer', icon: <MdOutlineDeveloperMode   className="h-5 w-5 mr-2 text-gray-700" /> },
+      { id: 'report_forms', name: 'Services Forms', icon: <FaServicestack  className="h-5 w-5 mr-2 text-gray-700" /> },
     ]
   },
   // file_manager: (<><FaFileAlt className="h-6 w-6 mr-3 text-gray-600" />File Manager</>),
@@ -111,7 +111,7 @@ const Sidebar = () => {
                 <React.Fragment key={tab}>
                   <li
                     className={classNames(
-                      'w-full flex items-center p-3 cursor-pointer rounded-md my-2 text-sm',
+                      'w-full flex items-center p-3 cursor-pointer shadow-md rounded-md my-2 text-base uppercase' ,
                       {
                         'bg-[#3e76a5] text-white': activeTab === tab,
                         'hover:bg-[#3e76a5] hover:text-white': activeTab !== tab && !isApiLoading,
@@ -136,7 +136,7 @@ const Sidebar = () => {
                         <li
                           key={subItem.id}
                           className={classNames(
-                            'w-full flex items-center p-3 cursor-pointer rounded-md my-2 text-sm',
+                            'w-full flex items-center p-3 cursor-pointer rounded-md my-2 shadow-md text-base uppercase',
                             {
                               'bg-[#3e76a5] text-white': activeTab === subItem.id,
                               'hover:bg-[#3e76a5] hover:text-white': activeTab !== subItem.id && !isApiLoading,

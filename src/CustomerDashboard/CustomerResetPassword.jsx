@@ -75,7 +75,7 @@ const CustomerResetPassword = () => {
     <div className="bg-white md:w-5/12 m-auto shadow-md rounded-sm p-5 translate-y-2/4">
       <div className="text-center">
         <PiDotsThreeFill className='text-8xl w-full text-center' />
-        <h2 className='text-3xl font-bold py-4'>Set New Password</h2>
+        <h2 className='text-2xl font-bold py-4'>Set New Password</h2>
         <p className='text-lg'>Must be at least 8 characters</p>
       </div>
       <form onSubmit={handleSubmit}>

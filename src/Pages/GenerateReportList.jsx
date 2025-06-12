@@ -281,7 +281,7 @@ const GenerateReportList = () => {
     <>
       <div className=" py-4 px-4">
 
-        <h2 className='text-center md:text-3xl text-xl font-bold py-4'>Report Generate DATA</h2>
+        <h2 className='text-center text-2xl font-bold py-4 text-[#3e76a5]'>Report Generate DATA</h2>
         <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
           <div className="col">
             <form action="">
@@ -289,7 +289,7 @@ const GenerateReportList = () => {
                 <select name="options" onChange={(e) => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1
-                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+                }} id="" className='outline-none border border-gray-300 shadow-md p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
@@ -314,7 +314,7 @@ const GenerateReportList = () => {
               <div className="flex md:items-stretch items-center  gap-3">
                 <input
                   type="search"
-                  className='outline-none border p-2 text-sm rounded-md w-full my-4 md:my-0'
+                  className='outline-none border border-gray-300 shadow-md p-2 text-sm rounded-md w-full my-4 md:my-0'
                   placeholder='Search Here'
                   value={searchTerm}
                   onChange={(e) => {

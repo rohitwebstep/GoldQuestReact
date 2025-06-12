@@ -262,7 +262,7 @@ const ExternalLoginData = () => {
 
   return (
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
-      <h2 className='text-center md:text-3xl text-xl font-bold py-4'>External Login Credentials</h2>
+      <h2 className='text-center md:text-2xl text-xl font-bold py-4 text-[#3e76a5]'>External Login Credentials</h2>
 
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
         <div className="col">
@@ -271,7 +271,7 @@ const ExternalLoginData = () => {
               <select name="options" onChange={(e) => {
                 handleSelectChange(e); // Call the select change handler
                 setCurrentPage(1); // Reset current page to 1
-              }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+              }} id="" className='outline-none border border-gray-300 shadow-md p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                 <option value="10">10 Rows</option>
                 <option value="20">20 Rows</option>
                 <option value="50">50 Rows</option>
@@ -296,7 +296,7 @@ const ExternalLoginData = () => {
             <div className="flex md:items-stretch items-center  gap-3">
               <input
                 type="search"
-                className='outline-none border p-2 text-sm rounded-md w-full my-4 md:my-0'
+                className='outline-none border p-2  border-gray-300 shadow-md  text-sm rounded-md w-full my-4 md:my-0'
                 placeholder='Search Here'
                 value={searchTerm}
                 onChange={(e) => {

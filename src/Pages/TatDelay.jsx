@@ -221,7 +221,7 @@ const TatDelay = () => {
     <>
       <div className="m-4 md:py-16">
         <div className="text-center">
-          <h2 className='md:text-4xl text-2xl font-bold pb-8 md:pb-4'>Tat Delay Notifications</h2>
+          <h2 className='md:text-2xl text-2xl font-bold pb-8 md:pb-4 text-[#3e76a5]'>Tat Delay Notifications</h2>
         </div>
         <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
           <div className="col">
@@ -230,7 +230,7 @@ const TatDelay = () => {
                 <select name="options" onChange={(e) => {
                   handleSelectChange(e); // Call the select change handler
                   setCurrentPage(1); // Reset current page to 1
-                }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+                }} id="" className='outline-none border border-gray-300 shadow-md p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                   <option value="10">10 Rows</option>
                   <option value="20">20 Rows</option>
                   <option value="50">50 Rows</option>
@@ -256,7 +256,7 @@ const TatDelay = () => {
               <div className="flex md:items-stretch items-center  gap-3">
                 <input
                   type="search"
-                  className='outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0'
+                  className='outline-none border-2 p-3  border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
                   placeholder='Search Here'
                   value={searchTerm}
                   onChange={(e) => {
@@ -309,7 +309,7 @@ const TatDelay = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-3 px-4 border-b text-center text-gray-500">No TAT Delay Applications Available</td>
+                    <td colSpan="6" className="py-3 px-4 border-b text-center text-gray-700">No TAT Delay Applications Available</td>
                   </tr>
                 )}
               </tbody>

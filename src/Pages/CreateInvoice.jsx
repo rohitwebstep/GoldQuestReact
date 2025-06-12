@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useData } from './DataContext';
 import SelectSearch from 'react-select-search';
 import 'react-select-search/style.css';
+import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import Swal from 'sweetalert2';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useCustomFunction } from '../CustomFunctionsContext';
 import { useApiCall } from '../ApiCallContext'; // Import the hook for ApiCallContext
 import logoImg from '../Images/logo-both.png'
@@ -21,6 +24,8 @@ const CreateInvoice = () => {
     invoice_date: '',
     month: '',
     year: '',
+    exportType: '',
+    gstApplicable:'',
   });
 
   const handleChange = (e) => {
@@ -34,10 +39,10 @@ const CreateInvoice = () => {
   const options = listData.map((client) => ({
     name: client.name + `(${client.client_unique_id})`,
     value: client.main_id,
-    clientId:client.client_unique_id
+    clientId: client.client_unique_id
 
   }));
- 
+
 
 
   useEffect(() => {
@@ -46,6 +51,13 @@ const CreateInvoice = () => {
     }
 
   }, [fetchData]);
+
+  const handleDateChange = useCallback((date, name) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: date,
+    }));
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -60,6 +72,8 @@ const CreateInvoice = () => {
       _token: storedToken,
       month: formData.month,
       year: formData.year,
+      exportType: formData.exportType,
+      gstApplicable: formData.gstApplicable,
     }).toString();
 
     const requestOptions = {
@@ -154,21 +168,38 @@ const CreateInvoice = () => {
           costInfo: { overallServiceAmount, cgst, sgst, totalTax, totalAmount } = {},
           serviceInfo = [],
         } = data?.finalArr || {}; // Destructure costInfo and serviceInfo from finalArr
-
+        console.log('formData', formData);
         // If there are applications, generate the PDF
         if (applications.length > 0) {
-          generatePdf(
-            serviceNames,
-            customer,
-            applications,
-            companyInfo,
-            overallServiceAmount,
-            cgst,
-            totalTax,
-            totalAmount,
-            serviceInfo,
-            sgst
-          );
+          if (formData.exportType == 'pdf') {
+            generatePdf(
+              serviceNames,
+              customer,
+              applications,
+              companyInfo,
+              overallServiceAmount,
+              cgst,
+              totalTax,
+              totalAmount,
+              serviceInfo,
+              sgst,
+              formData.gstApplicable,
+            );
+          } else if (formData.exportType == 'excel') {
+            generateExcel(
+              serviceNames,
+              customer,
+              applications,
+              companyInfo,
+              overallServiceAmount,
+              cgst,
+              totalTax,
+              totalAmount,
+              serviceInfo,
+              sgst
+            );
+          }
+          console.log('overallServiceAmount', overallServiceAmount)
 
           Swal.fire({
             title: "Success!",
@@ -230,6 +261,33 @@ const CreateInvoice = () => {
     return totalFee;
   }
 
+  function getTotalApplicationCountByService(serviceId, applications) {
+    let count = 0;
+
+    if (Array.isArray(applications) && applications.length > 0) {
+      for (const appGroup of applications) {
+        if (appGroup.applications && Array.isArray(appGroup.applications)) {
+          for (const application of appGroup.applications) {
+            if (
+              application.statusDetails &&
+              Array.isArray(application.statusDetails)
+            ) {
+              const hasMatchingService = application.statusDetails.some(
+                (statusDetail) => statusDetail.serviceId === String(serviceId)
+              );
+              if (hasMatchingService) {
+                count++;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return count;
+  }
+
+
   function calculatePercentage(amount, percentage) {
     return (amount * percentage) / 100;
   }
@@ -273,14 +331,100 @@ const CreateInvoice = () => {
     doc.text(pageNumberText, centerX, footerYPosition - 3, { align: 'center' });
   }
 
-  const generatePdf = (serviceNames, customer, applications, companyInfo, overallServiceAmount, cgst, totalTax, totalAmount, serviceInfo, sgst) => {
+
+const generateExcel = (
+  serviceNames,
+  customer,
+  applications,
+  companyInfo,
+  overallServiceAmount,
+  cgst,
+  totalTax,
+  totalAmount,
+  serviceInfo,
+  sgst
+) => {
+  const serviceCodes = serviceNames.map(service => service.shortCode);
+  const headers = [
+    "SL NO", "Application ID", "Employee ID", "Case Received", "Candidate Full Name",
+    ...serviceCodes, "Add Fee", "Pricing", "Report Date"
+  ];
+
+  const serviceTotals = Array(serviceNames.length).fill(0);
+  let overallPricing = 0;
+  let overAllAdditionalFee = 0;
+
+  const rows = (applications[0]?.applications?.length > 0)
+    ? applications[0].applications.map((app, index) => {
+      let totalCost = 0;
+      const appAdditionalFee = getTotalAdditionalFee(app.id, applications) || 0;
+      overAllAdditionalFee += appAdditionalFee;
+
+      const row = [
+        index + 1,
+        app.application_id,
+        app.employee_id,
+        app.created_at ? app.created_at.split("T")[0] : "N/A",
+        app.name,
+        ...serviceNames.map((service, i) => {
+          if (!service || !service.id) return "NIL";
+
+          const serviceExists = Array.isArray(app?.statusDetails) &&
+            app.statusDetails.some(
+              detail => String(detail?.serviceId) === String(service?.id)
+            );
+
+          if (serviceExists) {
+            const colPrice = getServicePriceById(service.id, serviceInfo) || 0;
+            service.serviceIndexPrice = (service.serviceIndexPrice || 0) + colPrice;
+            totalCost += colPrice;
+            serviceTotals[i] += colPrice;
+            return colPrice;
+          } else {
+            return "NIL";
+          }
+        }),
+        appAdditionalFee,
+        totalCost + appAdditionalFee,
+        app.report_date ? app.report_date.split("T")[0] : ""
+      ];
+
+      overallPricing += totalCost + appAdditionalFee;
+      return row;
+    })
+    : [];
+
+  // Total row
+  const totalRow = [
+    "Total", "", "", "", "",
+    ...serviceTotals,
+    overAllAdditionalFee,
+    overallPricing,
+    ""
+  ];
+
+  rows.push(totalRow);
+
+  // Final Excel Sheet Array
+  const worksheetData = [headers, ...rows];
+
+  // Create worksheet and workbook
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
+
+  // Download Excel file
+  XLSX.writeFile(workbook, `Applications_Report_${Date.now()}.xlsx`);
+};
+
+  const generatePdf = (serviceNames, customer, applications, companyInfo, overallServiceAmount, cgst, totalTax, totalAmount, serviceInfo, sgst,gstApplicable) => {
     const doc = new jsPDF('landscape');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     let yPosition = 10; // Initial y-position for content alignment
 
     // Set Logo
-   
+
     const imgWidth = 80;
     const imgHeight = 30;
     doc.addImage(logoImg, 'PNG', 10, yPosition, imgWidth, imgHeight);
@@ -367,18 +511,16 @@ const CreateInvoice = () => {
     // Find the index of the second comma
     const firstCommaIndex = address.indexOf(',');
     const secondCommaIndex = address.indexOf(',', firstCommaIndex + 1);
-    
+
     // Split the address into two parts at the second comma
     const part1 = address.substring(0, secondCommaIndex).trim();  // Text before the second comma
     const part2 = address.substring(secondCommaIndex + 1).trim();  // Text after the second comma
-    
+
     // Display the parts in the PDF
     let currentYPosition = billToYPosition + 18;
-    doc.text('Location:'+part1, billToXPosition, currentYPosition);
+    doc.text('Location:' + part1, billToXPosition, currentYPosition);
     currentYPosition += 6; // Adjust vertical spacing
     doc.text(part2, billToXPosition, currentYPosition);
-    
-
 
 
     const billToEndYPosition = billToYPosition + 25; // Adjust based on the content height
@@ -416,18 +558,27 @@ const CreateInvoice = () => {
     addFooter(doc)
     const headers1 = [["Product Description", "SAC Code", "Qty", "Rate", "Additional Fee", "Taxable Amount"]];
     let overallServiceAdditionalFeeAmount = 0;
+    let overallServiceAmountRaw = 0
     const rows1 = serviceInfo.map(service => {
       const serviceAdditionalFee = getTotalAdditionalFeeByService(service.serviceId, applications);
+      const serviceCount = getTotalApplicationCountByService(service.serviceId, applications);
+
+      const unitPrice = (service.price ?? 0) + serviceAdditionalFee;
+      const servicePrice = unitPrice * serviceCount;
+
       overallServiceAdditionalFeeAmount += serviceAdditionalFee;
+      overallServiceAmountRaw += servicePrice ?? 0;
+
       return [
-        service.serviceTitle,
+        service.serviceTitle ?? '',
         "998521",
-        service.count.toString(),
-        service.price.toString(),
-        serviceAdditionalFee,
-        (serviceAdditionalFee + service.totalCost).toString()
+        serviceCount.toString(),
+        (service.price ?? 0).toString(),
+        serviceAdditionalFee.toString(),
+        (servicePrice ?? 0).toString()
       ];
     });
+
 
     const tableWidth = doc.internal.pageSize.width * 0.8; // Set the width to 60% of page width
     const leftMargin = (doc.internal.pageSize.width - tableWidth) / 2; // Center the table horizontally
@@ -503,17 +654,46 @@ const CreateInvoice = () => {
 
     // Tax Details Calculation
     doc.setFontSize(8)
-    let newOverallServiceAmount = parseInt(overallServiceAmount) + parseInt(overallServiceAdditionalFeeAmount);
-    const cgstTax = calculatePercentage(newOverallServiceAmount, parseInt(cgst.percentage));
-    const sgstTax = calculatePercentage(newOverallServiceAmount, parseInt(sgst.percentage));
+    const parsedServiceAmount = parseInt(overallServiceAmountRaw) || 0;
+    const parsedAdditionalFee = parseInt(overallServiceAdditionalFeeAmount) || 0;
+    console.log('parsedServiceAmount', parsedServiceAmount);
+    console.log('parsedAdditionalFee', parsedAdditionalFee);
+    console.log('overallServiceAmountRaw', overallServiceAmountRaw);
+
+
+    const newOverallServiceAmount = parsedServiceAmount + parsedAdditionalFee;
+
+    const cgstPercent = parseFloat(cgst?.percentage) || 0;
+    const sgstPercent = parseFloat(sgst?.percentage) || 0;
+
+    const cgstTax = calculatePercentage(newOverallServiceAmount, cgstPercent);
+    const sgstTax = calculatePercentage(newOverallServiceAmount, sgstPercent);
+
+    const totalTaxPercent = cgstPercent + sgstPercent;
+    const totalAmountWithTax = newOverallServiceAmount + cgstTax + sgstTax;
+
     const taxDetails = [
       { label: "Total Amount Before Tax", amount: String(newOverallServiceAmount) },
-      { label: `Add: CGST - ${cgst.percentage}%`, amount: String(cgstTax) },
-      { label: `Add: SGST - ${sgst.percentage}%`, amount: String(sgstTax) },
-      { label: `Total Tax - ${parseInt(cgst.percentage) + parseInt(sgst.percentage)}%`, amount: String(cgstTax + sgstTax) },
-      { label: "Total Tax Amount (Round off)", amount: String(newOverallServiceAmount + cgstTax + sgstTax) },
-      { label: "GST On Reverse Charge", amount: "No" }
     ];
+
+    if (customer.state_code === "29") {
+      taxDetails.push(
+        { label: `Add: CGST - ${cgstPercent}%`, amount: String(cgstTax) },
+        { label: `Add: SGST - ${sgstPercent}%`, amount: String(sgstTax) },
+        { label: `Total Tax - ${totalTaxPercent}%`, amount: String(cgstTax + sgstTax) }
+      );
+    } else {
+      taxDetails.push(
+        { label: `IGST - ${totalTaxPercent}%`, amount: String(cgstTax + sgstTax) }
+      );
+    }
+
+    taxDetails.push(
+      { label: "Total Tax Amount (Round off)", amount: String(totalAmountWithTax) },
+      { label: "GST On Reverse Charge", amount: "No" }
+    );
+
+
 
     const taxLabelColumnWidth = tableWidths / 4;
     const taxValueColumnWidth = tableWidths / 4.5;
@@ -549,7 +729,6 @@ const CreateInvoice = () => {
     addFooter(doc)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12)
-    const labelWidth = doc.getTextWidth("Invoice Amount in Words:");
 
     const pageWidthHere = doc.internal.pageSize.width;
     const contentWidth = pageWidthHere * 0.8; // 80% of the page width
@@ -558,11 +737,26 @@ const CreateInvoice = () => {
     // Draw a border around the area where the label and amount will appear
     doc.setDrawColor(0, 0, 0); // Set border color to black
     doc.setLineWidth(0.5); // Set border thickness
-    doc.rect(leftX, invoiceYPosition - 3, contentWidth, 12); // Draw border (width: 80% of page, height: fixed)
+
+    if (customer.state_code === "29") {
+      doc.rect(leftX, invoiceYPosition - 1, contentWidth, 12); // Intra-state
+    } else {
+      doc.rect(leftX, invoiceYPosition + 5, contentWidth, 12); // Inter-state
+    }
+
     doc.setFont("helvetica", "normal");
-    const words = wordify(parseInt(newOverallServiceAmount + cgstTax + sgstTax));
-    // Add label with padding (4 units) to avoid overlap with the border
-    doc.text("Invoice Amount in Words:" + words + ' Rupees Only', leftX + 2, invoiceYPosition + 5); // 4 units padding from the left
+
+    // Ensure numeric sum before converting to words
+    const totalInvoiceAmount = Number(newOverallServiceAmount) + Number(cgstTax) + Number(sgstTax);
+    const words = wordify(totalInvoiceAmount);
+
+    // Add label with padding (2 units) to avoid overlap with the border
+    if (customer.state_code === "29") {
+      doc.text("Invoice Amount in Words: " + words + " Rupees Only", leftX + 2, invoiceYPosition + 6);
+    }
+    else {
+      doc.text("Invoice Amount in Words: " + words + " Rupees Only", leftX + 2, invoiceYPosition + 13);
+    }
 
 
 
@@ -596,67 +790,117 @@ const CreateInvoice = () => {
     doc.line(borderMargin, borderYPosition, pageWidth - borderMargin, borderYPosition);
 
 
+    /*
     const headers3 = [
       ["SL NO", "Application ID", "Employee ID", "Case Received", "Candidate Full Name", ...serviceCodes, "Add Fee", "CGST", "SGST", "Pricing", "Report Date"]
     ];
+    */
+
+    const headers3 = [
+      ["SL NO", "Application ID", "Employee ID", "Case Received", "Candidate Full Name", ...serviceCodes, "Add Fee", "Pricing", "Report Date"]
+    ];
+
+    // Initialize total tracking
+    const serviceTotals = Array(serviceNames.length).fill(0);
+    let overallPricing = 0;
+
     const rows3 = (applications[0]?.applications?.length > 0)
       ? applications[0].applications.map((app, index) => {
         let totalCost = 0;
-        const appAdditionalFee = getTotalAdditionalFee(app.id, applications);
+        const appAdditionalFee = getTotalAdditionalFee(app.id, applications) || 0;
         overAllAdditionalFee += appAdditionalFee;
 
         const applicationRow = [
           index + 1,
           app.application_id,
           app.employee_id,
-          // Safely check if app.created_at is defined before calling .split()
-          app.created_at ? app.created_at.split("T")[0] : "N/A",  // Use "N/A" or some default value
+          app.created_at ? app.created_at.split("T")[0] : "N/A",
           app.name,
-          ...serviceNames.map(service => {
-            if (!service || !service.id) {
-              return "NIL";
-            }
-            const serviceExists = app.statusDetails.some(
-              detail => detail.serviceId === service.id.toString()
-            );
+          ...serviceNames.map((service, i) => {
+            if (!service || !service.id) return "NIL";
+
+            const serviceExists = Array.isArray(app?.statusDetails) &&
+              app.statusDetails.some(
+                detail => String(detail?.serviceId) === String(service?.id)
+              );
+
             if (serviceExists) {
-              const colPrice = parseInt(getServicePriceById(service.id, serviceInfo)) || 0;
+              const colPrice = getServicePriceById(service.id, serviceInfo) || 0;
               service.serviceIndexPrice = (service.serviceIndexPrice || 0) + colPrice;
               totalCost += colPrice;
+              serviceTotals[i] += colPrice; // Accumulate per-service totals
               return colPrice;
             } else {
               return "NIL";
             }
           }),
-          parseInt(appAdditionalFee) || 0,
+          appAdditionalFee,
         ];
 
-        const appCGSTTax = calculatePercentage(parseInt(totalCost + appAdditionalFee), parseInt(cgst.percentage)) || 0;
-        const appSGSTTax = calculatePercentage(parseInt(totalCost + appAdditionalFee), parseInt(sgst.percentage)) || 0;
-        applicationRow.push(appCGSTTax, appSGSTTax, parseInt(totalCost + appCGSTTax + appSGSTTax + appAdditionalFee) || 0);
+        const pricingTotal = totalCost + appAdditionalFee;
+        overallPricing += pricingTotal;
 
-        // Safely check if app.report_date exists before calling .split()
-        applicationRow.push(app.report_date ? app.report_date.split("T")[0] : "");  // Use empty string if report_date is not defined
+        applicationRow.push(pricingTotal);
+        applicationRow.push(app.report_date ? app.report_date.split("T")[0] : "");
 
         return applicationRow;
       })
       : [];
 
+    // Create final total row
+    const totalRow = [
+      {
+        content: "Total",
+        colSpan: 5,
+        styles: { halign: 'center', fontStyle: 'bold' }
+      },
+      ...serviceTotals.map(total => ({
+        content: total || 0,
+        styles: { fontStyle: 'bold' }
+      })),
+      {
+        content: overAllAdditionalFee || 0,
+        styles: { fontStyle: 'bold' }
+      },
+      {
+        content: overallPricing || 0,
+        styles: { fontStyle: 'bold' }
+      },
+      {
+        content: "",
+        styles: { fontStyle: 'bold' }
+      }
+    ];
 
-    const tableWidthNew = doc.internal.pageSize.width-20; // Set the width to 60% of page width
-    const leftMarginNew = (doc.internal.pageSize.width - tableWidthNew) / 2; // Center the table horizontally
+
+    // Add total row tthe table
+    rows3.push(totalRow);
+
+    // Table rendering
+    const tableWidthNew = doc.internal.pageSize.width - 20;
+    const leftMarginNew = (doc.internal.pageSize.width - tableWidthNew) / 2;
 
     doc.autoTable({
-      startY: annexureYPosition + 10, // Adjust position to avoid overlapping with the Annexure text and border
+      startY: annexureYPosition + 10,
       head: headers3,
       body: rows3,
       styles: { fontSize: 8, halign: 'center', cellWidth: 'auto' },
-      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
-      bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.5, textColor: [0, 0, 0] },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.5
+      },
+      bodyStyles: {
+        lineColor: [0, 0, 0],
+        lineWidth: 0.5,
+        textColor: [0, 0, 0]
+      },
       theme: 'grid',
       margin: { top: 10, bottom: 10, left: leftMarginNew, right: leftMarginNew },
-      x: 0, // Starting position at the left edge
+      x: 0,
     });
+
 
     addFooter(doc)
 
@@ -666,13 +910,13 @@ const CreateInvoice = () => {
     if (customer.id === clientCode) {
       // If the customer ID matches the clientCode, use the client_unique_id
       const clientUniqueId = customer.client_unique_id;
-      
+
       // Finalize and Save PDF using customer.client_unique_id in the filename
       doc.save(`${clientUniqueId}_${formData.invoice_date}_Invoice`);
     } else {
       // If the IDs don't match, you can handle this case as needed
     }
-    
+
   }
   function addNotesPage(doc) {
     doc.addPage();
@@ -725,50 +969,58 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
   return (
     <div className="p-2 md:p-12">
       <div className="bg-white p-3 md:p-12 rounded-md w-full mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-center">Generate Invoice</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#3e76a5]">Generate Invoice</h2>
         <form onSubmit={handleSubmit} className="">
           <div className='mb-3'>
-            <label htmlFor="clrefin" className="block mb-2">Client Code:</label>
+            <label htmlFor="clrefin" className="block  mb-2 text-gray-700 text-sm uppercase font-bold ">Client Code:</label>
             <SelectSearch
               options={options}
               value={clientCode}
               name="language"
               placeholder="Choose client code"
-              onChange={(value) => setClientCode(value,options)}
+              onChange={(value) => setClientCode(value, options)}
               search
             />
           </div>
           <div>
-            <label htmlFor="invoice_number" className="block mb-2">Invoice Number:</label>
+            <label htmlFor="invoice_number" className="block text-gray-700 text-sm uppercase font-bold  mb-2">Invoice Number:</label>
             <input
               type="text"
               name="invoice_number"
               id="invoice_number"
               required
-              className="w-full p-3  mb-[20px] border border-gray-300 rounded-md"
+              className="w-full border-gray-300 shadow-md p-3  mb-[20px] border border-gray-300 rounded-md"
               value={formData.invoice_number}
               onChange={handleChange}
             />
           </div>
           <div>
-            <label htmlFor="invoice_date" className="block mb-2">Invoice Date:</label>
-            <input
+            <label htmlFor="invoice_date" className="block text-gray-700 text-sm uppercase font-bold  mb-2">Invoice Date:</label>
+            {/* <input
               type="date"
               name="invoice_date"
               id="invoice_date"
               required
-              className="w-full p-3  mb-[20px] border border-gray-300 rounded-md"
+              className="w-full border-gray-300 shadow-md p-3  mb-[20px] text-gray-700 text-sm uppercase  border border-gray-300 rounded-md"
               value={formData.invoice_date}
               onChange={handleChange}
+            /> */}
+            <DatePicker
+              selected={formData.invoice_date}
+              onChange={(date) => handleDateChange(date, 'invoice_date')}
+              dateFormat="dd-MM-yyyy"
+              className="w-full border-gray-300 shadow-md p-3  mb-[20px] text-gray-700 text-sm uppercase  border border-gray-300 rounded-md"
+              name="invoice_date"
+              id="invoice_date"
             />
           </div>
           <div>
-            <label htmlFor="moinv" className="block mb-2">Month & Year:</label>
+            <label htmlFor="moinv" className="block text-gray-700 text-sm uppercase font-bold  mb-2">Month & Year:</label>
             <select
               id="month"
               name="month"
               required
-              className="w-full p-3  mb-[20px] border border-gray-300 rounded-md"
+              className="w-full border-gray-300 shadow-md p-3  mb-[20px] border text-gray-700 text-sm uppercase border-gray-300 rounded-md"
               value={formData.month}
               onChange={handleChange}
             >
@@ -783,7 +1035,7 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
               id="year"
               name="year"
               required
-              className="w-full p-3 mb-[20px] border border-gray-300 rounded-md"
+              className="w-full border-gray-300 shadow-md p-3 mb-[20px] border text-gray-700 text-sm uppercase border-gray-300 rounded-md"
               value={formData.year}
               onChange={handleChange}
             >
@@ -793,6 +1045,38 @@ Make all your payment Cheques, RTGS/NEFT Payable to: "GOLDQUEST GLOBAL HR SERVIC
                   {year}
                 </option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="exportType" className="block text-gray-700 text-sm uppercase font-bold  mb-2">Export Type</label>
+            <select
+              id="exportType"
+              name="exportType"
+              required
+              className="w-full border-gray-300 shadow-md p-3  mb-[20px] border text-gray-700 text-sm uppercase border-gray-300 rounded-md"
+              value={formData.exportType}
+              onChange={handleChange}
+            >
+              <option value="">--Select Type--</option>
+              <option value="pdf">PDF</option>
+              <option value="excel">Excel</option>
+
+            </select>
+          </div>
+             <div>
+            <label htmlFor="gstApplicable" className="block text-gray-700 text-sm uppercase font-bold  mb-2">GST Applicable</label>
+            <select
+              id="gstApplicable"
+              name="gstApplicable"
+              required
+              className="w-full border-gray-300 shadow-md p-3  mb-[20px] border text-gray-700 text-sm uppercase border-gray-300 rounded-md"
+              value={formData.gstApplicable}
+              onChange={handleChange}
+            >
+              <option value="">--Select--</option>
+              <option value="yes">YES</option>
+              <option value="no">NO</option>
+
             </select>
           </div>
           <div className="text-left">

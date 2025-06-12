@@ -213,7 +213,7 @@ const PackageManagementList = () => {
                                 handleSelectChange(e); // Call the select change handler
                                 setCurrentPage(1); // Reset current page to 1
                             }}
-                            className="outline-none p-3 border text-left rounded-md w-7/12 md:w-6/12"
+                            className="outline-none border-gray-300 shadow-md p-3 border text-left rounded-md w-7/12 md:w-6/12"
                         >
 
                             <option value="10">10 Rows</option>
@@ -227,7 +227,7 @@ const PackageManagementList = () => {
                         </select>
                         <button
                             onClick={exportToExcel}
-                            className="bg-[#3e76a5] text-white py-3 text-sm px-4 rounded-md capitalize"
+                            className="bg-[#3e76a5] text-white py-3 whitespace-nowrap text-sm px-4 rounded-md capitalize"
                             type="button"
                             disabled={currentItems.length === 0}
                         >
@@ -240,7 +240,7 @@ const PackageManagementList = () => {
                         <div className="flex md:items-stretch items-center gap-3">
                             <input
                                 type="search"
-                                className='outline-none border-2 p-3 rounded-md w-full my-4 md:my-0'
+                                className='outline-none border-2 border-gray-300 shadow-md p-3 rounded-md w-full my-4 md:my-0'
                                 placeholder='Search Here.'
                                 value={searchTerm}
                                 onChange={(e) => {

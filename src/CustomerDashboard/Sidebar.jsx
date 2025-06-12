@@ -97,8 +97,8 @@ const Sidebar = () => {
                   {Object.keys(tabNames).map((tab) => (
                     <li
                       key={tab}
-                      className={`${activeTab === tab ? 'active bg-[#3e76a5] text-white' : 'togglelist hover:bg-[#3e76a5] hover:text-white'
-                        } w-full flex items-center p-3 cursor-pointer rounded-md mb-2 ${isBranchApiLoading ? 'pointer-events-none opacity-50' : ''}`}
+                      className={`${activeTab === tab ? 'active bg-[#3e76a5] text-white' : 'togglelist shadow-md rounded-md hover:bg-[#3e76a5] hover:text-white'
+                        } w-full flex  items-center p-3 cursor-pointer rounded-md mb-2 ${isBranchApiLoading ? 'pointer-events-none opacity-50' : ''}`}
                       onClick={() => !isBranchApiLoading && onTabChange(tab)} // Prevent tab change while loading
                     >
                       {tabNames[tab]}

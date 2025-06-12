@@ -462,7 +462,7 @@ const ClientBulkUpload = () => {
                                         {loading ? (
 
                                             <tr>
-                                                <td colSpan={6} className="py-4 text-center text-gray-500">
+                                                <td colSpan={6} className="py-4 text-center text-gray-700">
                                                     <Loader className="text-center" />
                                                 </td>
                                             </tr>

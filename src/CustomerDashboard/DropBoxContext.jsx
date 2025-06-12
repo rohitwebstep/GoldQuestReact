@@ -267,9 +267,20 @@ export const DropBoxProvider = ({ children }) => {
                 });
                 return;  // Exit the function if the response is not OK
             }
+            setInput({
+                name: "",
+                employee_id: "",
+                mobile_number: "",
+                email: "",
+                services: [],
+                package: "",
+                candidate_application_id: "",
+                purpose_of_application:"",
+                customPurpose:""
 
-            // Set data on success
-            setCandidateListData(result.data?.candidateApplications || []);
+            });
+            setIsEditCandidate(false)
+                        setCandidateListData(result.data?.candidateApplications || []);
             if (result.data?.customerInfo) {
                 const customer = result.data.customerInfo;
                 const customerCode = customer.client_unique_id;

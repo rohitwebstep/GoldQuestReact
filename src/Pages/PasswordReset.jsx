@@ -9,7 +9,7 @@ const PasswordReset = () => {
             <div className=" bg-white md:w-5/12 m-auto shadow-md rounded-sm p-5 translate-y-2/4 ">
                 <div className="text-center">
                     <FaEnvelope className='text-8xl text-center w-full' />
-                    <h2 className='text-3xl font-bold py-4'>Password Reset</h2>
+                    <h2 className='text-2xl font-bold py-4'>Password Reset</h2>
                     <p className='text-lg'>We Sent a Code to yourgmail@gmail.com</p>
                     <ul className='flex gap-6 justify-center py-6'>
                         <li className='h-14 w-14 rounded-lg border border-green-400'></li>

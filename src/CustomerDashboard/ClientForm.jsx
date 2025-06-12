@@ -451,19 +451,19 @@ const ClientForm = () => {
                         <div className="col bg-white shadow-md rounded-md p-3 md:p-6">
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="organisation_name" className='text-sm'>Name of the organisation<span className="text-red-500">*</span></label>
-                                    <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full capitalize rounded-md p-2 mt-2" disabled value={branch_name?.name || branch_name?.branch_name} />
+                                    <label htmlFor="organisation_name" className='text-sm font-bold text-gray-700 '>Name of the organisation<span className="text-red-500">*</span></label>
+                                    <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" disabled value={branch_name?.name || branch_name?.branch_name} />
                                     {inputError.organisation_name && <p className='text-red-500'>{inputError.organisation_name}</p>}
                                 </div>
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="name" className='text-sm'>Full name of the applicant <span className="text-red-500">*</span></label>
-                                    <input type="text" name="name" id="Applicant-Name" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.name} />
+                                    <label htmlFor="name" className='text-sm font-bold text-gray-700 '>Full name of the applicant <span className="text-red-500">*</span></label>
+                                    <input type="text" name="name" id="Applicant-Name" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.name} />
                                     {inputError.name && <p className='text-red-500'>{inputError.name}</p>}
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="attach_documents" className='text-sm'>Attach documents<span className="text-red-500">*</span></label>
-                                <input type="file" name="attach_documents" multiple id="Attach_Docs" className="border w-full capitalize rounded-md p-2 mt-2"
+                                <label htmlFor="attach_documents" className='text-sm font-bold text-gray-700 '>Attach documents<span className="text-red-500">*</span></label>
+                                <input type="file" name="attach_documents" multiple id="Attach_Docs" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2"
                                     accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
                                     onChange={(e) => handleFileChange('attach_documents', e)} />
                                 {inputError.attach_documents && <p className='text-red-500'>{inputError.attach_documents}</p>}
@@ -471,49 +471,49 @@ const ClientForm = () => {
                             </div>
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="employee_id" className='text-sm'>Employee ID</label>
-                                    <input type="text" name="employee_id" disabled={isEditClient} id="EmployeeId" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.employee_id.toUpperCase()} />
+                                    <label htmlFor="employee_id" className='text-sm font-bold text-gray-700 '>Employee ID</label>
+                                    <input type="text" name="employee_id" disabled={isEditClient} id="EmployeeId" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.employee_id.toUpperCase()} />
                                     
                                 </div>
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="spoc" className='text-sm'>Name of the SPOC</label>
-                                    <input type="text" name="spoc" id="spoc" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
+                                    <label htmlFor="spoc" className='text-sm font-bold text-gray-700 '>Name of the SPOC</label>
+                                    <input type="text" name="spoc" id="spoc" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
                                     
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="location" className='text-sm'>Location</label>
-                                <input type="text" name="location" id="Locations" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
+                                <label htmlFor="location" className='text-sm font-bold text-gray-700 '>Location</label>
+                                <input type="text" name="location" id="Locations" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
                                 {inputError.location && <p className='text-red-500'>{inputError.location}</p>}
                             </div>
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="batch_number" className='text-sm'>Batch number</label>
-                                    <input type="text" name="batch_number" id="Batch-Number" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
+                                    <label htmlFor="batch_number" className='text-sm font-bold text-gray-700 '>Batch number</label>
+                                    <input type="text" name="batch_number" id="Batch-Number" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
                                     {inputError.batch_number && <p className='text-red-500'>{inputError.batch_number}</p>}
                                 </div>
                                 <div className="mb-4 md:w-6/12">
-                                    <label htmlFor="sub_client" className='text-sm'>Sub client</label>
-                                    <input type="text" name="sub_client" id="SubClient" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
+                                    <label htmlFor="sub_client" className='text-sm font-bold text-gray-700 '>Sub client</label>
+                                    <input type="text" name="sub_client" id="SubClient" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
                                     {inputError.sub_client && <p className='text-red-500'>{inputError.sub_client}</p>}
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="photo">Upload photo</label>
-                                <input type="file" name="photo" id="upPhoto" className="border w-full capitalize rounded-md p-2 mt-2 outline-none" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
+                                <label className='text-gray-700 font-bold text-sm' htmlFor="photo">Upload photo</label>
+                                <input type="file" name="photo" id="upPhoto" className="border border-gray-300 shadow-md w-full capitalize rounded-md p-2 mt-2 outline-none" accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
                                     onChange={(e) => handleFileChange('photo', e)} />
                                 {inputError.photo && <p className='text-red-500'>{inputError.photo}</p>}
-                                <p className="text-gray-500 text-sm mt-2">
+                                <p className="text-gray-700 text-sm mt-2">
                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                                 </p>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="email" className='text-sm'>Purpose of Application</label>
+                                <label htmlFor="email" className='text-sm font-bold text-gray-700 '>Purpose of Application</label>
                                 <select
                                     name="purpose_of_application"
                                     onChange={handleCustomInputChange}
                                     value={clientInput.purpose_of_application || clientInput.customPurpose}
-                                    className="border w-full rounded-md p-2 mt-2"
+                                    className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2"
                                     id="purpose_of_application"
                                 >
                                     <option value="">SELECT PURPOSE</option>
@@ -532,8 +532,8 @@ const ClientForm = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="email" className='text-sm'>Nationality<span className='text-red-500'>*</span></label>
-                                <select name="nationality" onChange={handleChange} value={clientInput.nationality} className="border w-full rounded-md p-2 mt-2" id="nationality">
+                                <label htmlFor="email" className='text-sm font-bold text-gray-700 '>Nationality<span className='text-red-500'>*</span></label>
+                                <select name="nationality" onChange={handleChange} value={clientInput.nationality} className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2" id="nationality">
                                     <option value="">Select Nationality</option>
                                     <option value="Indian">Indian</option>
                                     <option value="Other">Other</option> {/* Correct option for "Other" */}
@@ -551,7 +551,7 @@ const ClientForm = () => {
                                                 name="customPurpose"
                                                 value={clientInput.customPurpose}
                                                 onChange={handleChange}
-                                                className="border w-full rounded-md p-2 mt-2"
+                                                className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2"
                                                 id="customPurpose"
                                             />
                                         </div>
@@ -586,7 +586,7 @@ const ClientForm = () => {
                                             {services.map((item) => (
                                                 <li
                                                     key={item.serviceId}
-                                                    className={`border p-2 my-1 mb-0 flex gap-3 text-sm  items-center ${clientInput.services.includes(String(item.serviceId)) ? 'selected' : ''}`}
+                                                    className={`border p-2 my-1 border-gray-300 shadow-md mb-0 flex gap-3 text-sm  items-center ${clientInput.services.includes(String(item.serviceId)) ? 'selected' : ''}`}
                                                 >
                                                     <input
                                                         type="checkbox"
@@ -595,7 +595,7 @@ const ClientForm = () => {
                                                         onChange={handleChange}
                                                         checked={clientInput.services.includes(String(item.serviceId))} // Match ID type
                                                     />
-                                                    <div className='font-bold'>{item.serviceTitle}</div>
+                                                    <div className='font-bold text-gray-700'>{item.serviceTitle}</div>
                                                 </li>
                                             ))}
                                         </ul>
@@ -606,12 +606,12 @@ const ClientForm = () => {
                                     )}
                                 </div>
                                 <div className="mt-5">
-                                    <strong className="mb-2 block">Packages:</strong>
+                                    <strong className="mb-2 block text-gray-700">Packages:</strong>
                                     {!loading && (
                                         <select
                                             value={clientInput.package || ""}
                                             onChange={handlePackageChange}
-                                            className="text-left w-full border p-2 rounded-md"
+                                            className="text-left w-full border  border-gray-300 shadow-md p-2 rounded-md"
                                         >
                                             <option value="">Select a package</option>
                                             <option value="select_all">Select All</option> {/* Added Select All option */}

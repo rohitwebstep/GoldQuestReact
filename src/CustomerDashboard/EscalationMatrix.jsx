@@ -40,7 +40,7 @@ const EscalationMatrix = () => {
           <div key={index} className="bg-white shadow-lg rounded-lg p-8 flex-1 space-y-6">
             <div className="border-b border-gray-300 pb-6 mb-6">
               <h4 className="text-2xl font-semibold text-[#3e76a5] mb-1">{item.label}</h4>
-              {item.Relations && <p className="text-lg text-gray-500">{item.Relations}</p>}
+              {item.Relations && <p className="text-lg text-gray-700">{item.Relations}</p>}
             </div>
             {item.spocdata ? (
               <ul className="space-y-6">

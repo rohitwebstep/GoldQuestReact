@@ -489,7 +489,7 @@ const AdminChekin = () => {
 
         // Right-align page number with respect to the page width
         const pageNumberX = pageWidth - margin - pageNumberWidth;
-        doc.text(pageNumberText, pageNumberX, footerYPosition - 3); // Adjusted vertical position
+        doc.text(pageNumberText, pageNumberX, footerYPosition ); // Adjusted vertical position
 
         // Draw a line above the footer
         doc.setLineWidth(0.3);
@@ -553,12 +553,27 @@ const AdminChekin = () => {
         });
         try {
             const applicationInfo = data.find(item => item.main_id === reportInfo.main_id);
-            const servicesData = await fetchServicesData(applicationInfo.main_id, applicationInfo.services, reportDownloadFlag);
+            const servicesDataRaw = await fetchServicesData(applicationInfo.main_id, applicationInfo.services, reportDownloadFlag);
+            console.log('servicesDataRaw -', servicesDataRaw);
+
+            const servicesData = servicesDataRaw.filter(service => {
+                const status = service?.annexureData?.status;
+                const lowerStatus = typeof status === 'string' ? status.toLowerCase() : status;
+
+                return lowerStatus !== null &&
+                    lowerStatus !== 'null' &&
+                    lowerStatus !== 'nil' &&
+                    lowerStatus !== '' &&
+                    lowerStatus !== undefined;
+            });
+
+            console.log('servicesData -', servicesData);
+
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             let yPosition = 5;
             const backgroundColor = '#f5f5f5';
-
+ const blueBg="#6495ed";
             doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
             const rightImageX = pageWidth - 10 - 70; // Page width minus margin (10) and image width (50)
@@ -605,43 +620,50 @@ const AdminChekin = () => {
                 return statusColor;
             };
 
+            let updatedStatus;
+            if (applicationInfo?.purpose_of_application?.toLowerCase() === "normal bgv(employment)") {
+                updatedStatus = "EMPLOYMENT";
+            }
+
             // First Table
             const firstTableData = [
                 [
-                    { content: 'Name of the Candidate', styles: { cellWidth: 'auto', fontStyle: 'bold' } },
+                    { content: 'Name of the Candidate', styles: { cellWidth: 'auto',  overflow: 'linebreak',   fontStyle: 'bold' } },
                     { content: applicationInfo?.name || 'NA' },
-                    { content: 'Client Name', styles: { cellWidth: 'auto', fontStyle: 'bold' } },
+                    { content: 'Client Name', styles: { cellWidth: 'auto',overflow: 'linebreak', fontStyle: 'bold' } },
                     { content: branchData || 'NA' },
                 ],
                 [
-                    { content: 'Application ID', styles: { fontStyle: 'bold' } },
+                    { content: 'Application ID', styles: { fontStyle: 'bold',overflow: 'linebreak' } },
                     { content: applicationInfo?.application_id || 'NA' },
-                    { content: 'Report Status', styles: { fontStyle: 'bold' } },
+                    { content: 'Report Status', styles: { fontStyle: 'bold',overflow: 'linebreak' } },
                     {
                         content: applicationInfo?.report_status
                             ? applicationInfo.report_status
                                 .replace(/[-_]/g, ' ') // Replace '-' and '_' with space
-                                .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize each word
+                                .toUpperCase() // Convert entire string to uppercase
                             : 'NA'
                     }
-
+                    
+  
                 ],
                 [
                     { content: 'Date of Birth', styles: { fontStyle: 'bold' } },
+                    
                     {
                         content: applicationInfo?.dob
-                            ? new Date(applicationInfo.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                            ? new Date(applicationInfo.dob).toLocaleDateString("en-GB").replace(/\//g, "-")
                             : "NA"
                     },
-
+  
                     { content: 'Application Received', styles: { fontStyle: 'bold' } },
                     {
                         content: applicationInfo?.created_at
                             ? new Date(applicationInfo.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")
                             : "NA"
                     }
-
-
+  
+  
                 ],
                 [
                     { content: 'Candidate Employee ID', styles: { fontStyle: 'bold' } },
@@ -652,7 +674,7 @@ const AdminChekin = () => {
                             ? new Date(applicationInfo.first_insuff_reopened_date).toLocaleDateString("en-GB").replace(/\//g, "-")
                             : 'NA'
                     }
-
+  
                 ],
                 [
                     { content: 'Report Type', styles: { fontStyle: 'bold' } },
@@ -660,10 +682,10 @@ const AdminChekin = () => {
                         content: applicationInfo?.report_type
                             ? applicationInfo.report_type
                                 .replace(/[-_]/g, ' ') // Replace '-' and '_' with space
-                                .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize each word
+                                .toUpperCase()
                             : 'NA'
                     },
-
+  
                     { content: 'Final Report Date', styles: { fontStyle: 'bold' } },
                     {
                         content: applicationInfo?.report_date
@@ -673,7 +695,7 @@ const AdminChekin = () => {
                 ],
                 [
                     { content: 'Verification Purpose', styles: { fontStyle: 'bold' } },
-                    { content: applicationInfo?.purpose_of_application?.toLowerCase() || 'NA' },
+                    { content: updatedStatus || applicationInfo?.purpose_of_application || 'NA' },
                     { content: 'Overall Report Status', styles: { fontStyle: 'bold' } },
                     {
                         content: applicationInfo?.final_verification_status.toUpperCase() || 'NA', // Show only the color name (e.g., GREEN, RED, etc.)
@@ -681,40 +703,40 @@ const AdminChekin = () => {
                     },
                 ],
             ];
-
+  
             doc.autoTable({
-                head: [],  // Remove the header by setting it to an empty array
-                body: firstTableData,
-                styles: {
-                    cellPadding: 2,
-                    fontSize: 10,
-                    valign: 'middle',
-                    lineColor: [62, 118, 165],
-                    lineWidth: 0.4,  // Border width for the table
-                    textColor: '#000',  // Default text color
-                },
-                headStyles: {
-                    fillColor: [255, 255, 255],  // Ensure no background color for the header
-                    textColor: 0,                // Optional: Reset header text color
-                    lineColor: [62, 118, 165],
-                    lineWidth: 0.2,  // Reduced border width for header
-                },
-                theme: 'grid',
-                margin: { top: 50 },
-                // Customize the overall status text color
-                willDrawCell: (data) => {
-                    const statusCell = data.cell.raw && data.cell.raw.content;
-                    const statusRow = firstTableData[5];  // We assume the status row is in index 5
-
-                    if (statusCell === statusRow[3].content) {
-                        const { textColor } = getStatusColor(statusCell);
-                        data.cell.styles.textColor = textColor;  // Apply dynamic text color
-                    }
-                },
-            });
+              head: [],
+              body: firstTableData,
+              styles: {
+                  cellPadding: 2,
+                  fontSize: 10,
+                  valign: 'middle',
+                  lineColor: [62, 118, 165],
+                  lineWidth: 0.3,
+                  textColor: '#000',
+              },
+              columnStyles: {
+                  0: { cellWidth: 45},
+                  1: { cellWidth: 'auto' },
+                  2: { cellWidth: 45 },
+                  3: { cellWidth: 'auto' },
+              },
+              theme: 'grid',
+              margin: { top: 50 },
+              willDrawCell: (data) => {
+                  const statusRow = firstTableData[5];
+                  const statusCell = data.cell.raw?.content;
+          
+                  if (statusCell === statusRow[3].content) {
+                      const { textColor } = getStatusColor(statusCell);
+                      data.cell.styles.textColor = textColor;
+                  }
+              },
+          });
 
 
             addFooter(doc);
+
             const secondTableData = servicesData.map(item => {
                 const sourceKey = item.annexureData
                     ? Object.keys(item.annexureData).find(key => key.startsWith('info_source') || key.startsWith('information_source'))
@@ -732,20 +754,18 @@ const AdminChekin = () => {
                 };
             });
 
-            console.log('servicesData', servicesData);
-            console.log('secondTableData', secondTableData);
 
-            const filteredSecondTableData = secondTableData.filter(row =>
-                [row.component, row.source, row.completedDate, row.status].some(value => value !== 'NIL')
-            );
+            // Filter secondTableData if report type is "Final"
+            console.log(`secondTableData - `, secondTableData);
+            const filteredSecondTableData = applicationInfo?.report_type.toLowerCase().includes('final')
+                ? secondTableData.filter(row =>
+                    row.status?.toLowerCase().includes("completed") // Check if the status includes "completed"
+                )
+                : secondTableData.filter(row =>
+                    [row.component, row.source, row.completedDate, row.status].some(value => (value || '').toLowerCase() !== 'nil')
+                );
 
-            console.log('filteredSecondTableData', filteredSecondTableData);
-
-
-            // Generate the Second Table
-
-
-            // Generate the Second Table
+            // Now use the filteredSecondTableData in the jsPDF table generation
             doc.autoTable({
                 head: [
                     [
@@ -785,31 +805,33 @@ const AdminChekin = () => {
                         },
                     ],
                     [
-                        // Only include cells under the colSpan above
                         {
-                            content: 'COMPLETED DATE',
+                            content: 'Completed Date',
                             styles: {
                                 halign: 'center',
                                 fillColor: "#6495ed",
                                 textColor: [255, 255, 255],
                                 lineWidth: 0.4,
                                 fontStyle: 'bold',
+                                overflow: 'hidden', // <== prevents wrapping
+                                cellWidth: 'auto' // Ensures no wrapping
                             },
                         },
                         {
-                            content: 'VERIFICATION STATUS',
+                            content: 'Verification Status',
                             styles: {
                                 halign: 'center',
                                 fillColor: "#6495ed",
                                 textColor: [255, 255, 255],
                                 lineWidth: 0.4,
                                 fontStyle: 'bold',
+                                overflow: 'hidden', // <== prevents wrapping
+                                cellWidth: 'auto' // Ensures no wrapping
                             },
                         },
-                    ]
+                    ]                    
                 ],
                 body: filteredSecondTableData.map(row => {
-                    // Set text color based on verification status
                     let statusColor;
                     let statusText = row.status.replace(/^completed_/, '').toUpperCase(); // Remove 'completed_' and convert to uppercase
 
@@ -835,17 +857,20 @@ const AdminChekin = () => {
                             break;
                     }
 
-                    // Only return a row if the component is not 'NIL'
                     if (row.component !== 'NIL') {
                         return [
                             row.component || 'NIL',
                             row.source || 'NIL',
-                            row.completedDate || 'NIL', // Show completedDate in its own column
                             {
-                                content: statusText, // Show only the color name (e.g., GREEN, RED, etc.)
-                                styles: { halign: 'center', fontStyle: 'bold', ...statusColor } // Apply dynamic text color
+                                content: row.completedDate || 'NIL',
+                                styles: { overflow: 'hidden'  , cellWidth: 'auto', halign: 'center' }
+                            },
+                            {
+                                content: statusText,
+                                styles: { halign: 'center', fontStyle: 'bold',overflow: 'hidden' , cellWidth: 'auto', ...statusColor }
                             },
                         ];
+                        
                     }
                 }).filter(Boolean), // Filter out undefined rows from the map (if any)
 
@@ -872,11 +897,12 @@ const AdminChekin = () => {
                 },
                 columnStyles: {
                     0: { halign: 'left' },
-                    1: { halign: 'center' },
-                    2: { halign: 'center' }, // Center alignment for the completed date column
-                    3: { halign: 'center' }, // Center alignment for the status column
+                    1: { halign: 'center', cellWidth: 50 }, // 👈 Reduces space for INFORMATION SOURCE
+                    2: { halign: 'center' },
+                    3: { halign: 'center' },
                 },
             });
+
 
 
             addFooter(doc);
@@ -925,52 +951,65 @@ const AdminChekin = () => {
 
 
             // Draw table border
-            doc.setLineWidth(0.5);
+            // doc.setLineWidth(0.5);
             doc.rect(tableStartX, tableStartY, totalTableWidth, tableHeight);
 
             // Draw columns
             columns.forEach((col, index) => {
-                const columnStartX =
-                    index === 0
-                        ? tableStartX // "Legend" column starts at tableStartX
-                        : tableStartX + legendColumnWidth + (index - 1) * otherColumnWidth; // Remaining columns start after the "Legend" column
-
-                const columnWidth = index === 0 ? legendColumnWidth : otherColumnWidth;
-
+                let columnStartX;
+                let columnWidth;
+            
+                if (index === 0) {
+                    columnStartX = tableStartX;
+                    columnWidth = legendColumnWidth;
+                } else {
+                    const isPendingColumn = index === 4;
+                    columnWidth = isPendingColumn ? otherColumnWidth + 6 : otherColumnWidth;
+            
+                    // Adjust startX for previous columns
+                    let prevWidthSum = legendColumnWidth;
+                    for (let i = 1; i < index; i++) {
+                        prevWidthSum += (i === 4 ? otherColumnWidth + 6: otherColumnWidth);
+                    }
+            
+                    columnStartX = tableStartX + prevWidthSum;
+                }
+            
                 // Draw column separators
                 if (index > 0) {
                     doc.line(columnStartX, tableStartY, columnStartX, tableStartY + tableHeight);
                 }
-
-                // Add label text (for Legend)
+            
+                // Add label text
                 if (col.label) {
                     doc.setFont("helvetica", "bold");
-                    doc.setFontSize(7); // Reduced font size for better fit
+                    doc.setFontSize(8);
                     doc.text(
                         col.label,
-                        columnStartX + 3, // Padding for text inside "Legend" column
+                        columnStartX + 3,
                         tableStartY + tableHeight / 2 + 2,
                         { baseline: "middle" }
                     );
                 }
-
+            
                 // Add color box
                 if (col.color) {
-                    const boxX = columnStartX + 3; // Adjusted padding for color box
+                    const boxX = columnStartX + 3;
                     const boxY = tableStartY + tableHeight / 2 - boxHeight / 2;
                     doc.setFillColor(col.color);
                     doc.rect(boxX, boxY, boxWidth, boxHeight, "F");
                 }
-
+            
                 // Add description text
                 if (col.description) {
                     doc.setFont("helvetica", "normal");
-                    doc.setFontSize(7); // Reduced font size for better fit
+                    doc.setFontSize(7.5);
                     const textX = columnStartX + 3 + boxWidth + textBoxGap;
                     const textY = tableStartY + tableHeight / 2 + 2;
                     doc.text(col.description, textX, textY, { baseline: "middle" });
                 }
             });
+            
 
 
 
@@ -984,6 +1023,14 @@ const AdminChekin = () => {
                 pageLoopCount += 1;
                 let reportFormJson;
                 let rows = [];
+
+                // Only process if report_type is "Final" and status includes "completed"
+                if (applicationInfo?.report_type.toLowerCase().includes('final') || applicationInfo?.report_type.toLowerCase().includes('interim')) {
+                    const serviceStatus = service.annexureData?.status || "";
+                    if (!serviceStatus.toLowerCase().includes("completed")) {
+                        continue; // Skip this service if status does not include "completed"
+                    }
+                }
 
                 try {
                     if (!service.reportFormJson || !service.reportFormJson.json) {
@@ -1008,9 +1055,6 @@ const AdminChekin = () => {
                 }
 
                 // Start adding content for the page if data is valid
-                // doc.addPage();
-                // addFooter(doc);
-
                 let yPosition = 20;
                 const serviceData = [];
 
@@ -1083,20 +1127,18 @@ const AdminChekin = () => {
 
                     function parseDate(value) {
                         if (typeof value !== "string") return value;
-                    
+
                         // Strict check for date-like formats
                         const isStrictDateFormat =
                             /^\d{4}-\d{2}-\d{2}$/.test(value) || // YYYY-MM-DD
                             /^\d{2}\/\d{2}\/\d{4}$/.test(value) || // DD/MM/YYYY or MM/DD/YYYY
                             /^\d{4}-\d{2}-\d{2}T/.test(value); // ISO 8601
-                    
+
                         if (!isStrictDateFormat) return value;
-                    
+
                         const parsedDate = new Date(value);
                         return isNaN(parsedDate) ? value : parsedDate.toLocaleDateString('en-GB').replace(/\//g, '-');
                     }
-                    
-
 
                     if (isReportDetailsExist && reportDetails) {
                         return [data.label, parseDate(value), parseDate(reportDetails)];
@@ -1120,12 +1162,12 @@ const AdminChekin = () => {
                     const backgroundColor = "#f5f5f5";
                     const backgroundColorHeading = "#6495ed";
                     const borderColor = "#6495ed";
-                    const xsPosition = 10;
+                    const xsPosition = 15;
                     const rectHeight = 10;
 
                     doc.setFillColor(backgroundColorHeading);
                     doc.setDrawColor(borderColor);
-                    doc.rect(xsPosition, yPosition, pageWidth - 20, rectHeight, "FD");
+                    doc.rect(xsPosition, yPosition,180, rectHeight, "FD");
 
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
@@ -1178,17 +1220,21 @@ const AdminChekin = () => {
                         bodyStyles: {
                             textColor: [0, 0, 0],
                             halign: "left",
+                            valign: "top", // ensures top-aligned text in taller cells
                         },
-                        tableLineColor: [62, 118, 165],
-                        tableLineWidth: 0.5,
-                        margin: { horizontal: 10 },
+                        columnStyles: {
+                            0: { cellWidth: 180 / 3 },  // A4 width ~180mm (after margins)
+                            1: { cellWidth: 180 / 3 },
+                            2: { cellWidth: 180 / 3 },
+                        },
+                        margin: { top: 20, bottom: 20, left: 15, right: 15 },
                     });
 
+
+
+
                     addFooter(doc);
-
-
                     yPosition = doc.lastAutoTable.finalY + 5;
-
                     const remarksData = serviceData.find((data) => data.label === "Remarks");
                     if (remarksData) {
                         const remarks = service.annexureData[remarksData.values.name] || "No remarks available.";
@@ -1199,20 +1245,49 @@ const AdminChekin = () => {
                         yPosition += 7;
                     }
 
+                                    // Utility function to compress a base64 image
+                    function compressBase64Image(base64Str, maxWidth = 800, quality = 0.7) {
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement("canvas");
+                                const ratio = img.width / img.height;
+
+                                let targetWidth = img.width;
+                                let targetHeight = img.height;
+
+                                if (img.width > maxWidth) {
+                                    targetWidth = maxWidth;
+                                    targetHeight = maxWidth / ratio;
+                                }
+
+                                canvas.width = targetWidth;
+                                canvas.height = targetHeight;
+
+                                const ctx = canvas.getContext("2d");
+                                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                                const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+                                resolve({ base64: compressedBase64, width: targetWidth, height: targetHeight, type: "JPEG" });
+                            };
+
+                            img.onerror = () => resolve(null);
+                            img.src = base64Str;
+                        });
+                    }
+
+                    // Main logic
                     const annexureData = service.annexureData || {}; // Ensure annexureData is an empty object if it's null or undefined
 
                     const annexureImagesKey = Object.keys(annexureData).find((key) =>
                         key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
                     );
 
-
                     if (annexureImagesKey) {
-
                         doc.addPage();
 
                         yPosition = 20;
                         const annexureImagesStr = annexureData[annexureImagesKey];
-
                         const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
 
                         if (annexureImagesSplitArr.length === 0) {
@@ -1223,32 +1298,38 @@ const AdminChekin = () => {
                             doc.text("No annexure images available.", 10, yPosition);
                             yPosition += 10;
                         } else {
-                            const imageBases = await fetchImageToBase(annexureImagesStr.trim());
+                            const rawImageBases = await fetchImageToBase(annexureImagesStr.trim());
 
-                            if (imageBases && imageBases.length > 0) {
+                            const imageBases = [];
+                            for (const image of rawImageBases) {
+                                if (!image.base64 || !image.base64.startsWith("data:image/")) {
+                                    console.warn("❌ Skipping invalid image base64.");
+                                    continue;
+                                }
+
+                                const compressed = await compressBase64Image(image.base64, 800, 0.7);
+                                if (compressed) imageBases.push(compressed);
+                            }
+
+                            if (imageBases.length > 0) {
                                 imageBases.forEach((image, index) => {
-
-                                    if (!image.base64 || !image.base64.startsWith("data:image/")) {
-                                        console.error(`❌ Invalid base64 data for image ${index + 1}`);
+                                    if (!image.base64.startsWith("data:image/")) {
+                                        console.error(`❌ Invalid compressed base64 for image ${index + 1}`);
                                         return;
                                     }
 
-                                    // **Add a new page ONLY if there are multiple images and it's not the first one**
                                     if (index > 0 && imageBases.length > 1) {
                                         doc.addPage();
                                     }
 
-                                    const pageWidth = doc.internal.pageSize.width - 20; // Keeping margins
-                                    const pageHeight = doc.internal.pageSize.height - 40; // Keeping margins
+                                    const pageWidth = doc.internal.pageSize.width - 20;
+                                    const pageHeight = doc.internal.pageSize.height - 40;
 
-                                    // **Scale Image to Fit the Page**
                                     let { width, height } = scaleImageForPDF(image.width, image.height, pageWidth, pageHeight);
 
-                                    // **Center Image**
                                     const centerX = (doc.internal.pageSize.width - width) / 2;
                                     const centerY = (doc.internal.pageSize.height - height) / 2;
 
-                                    // **Add Annexure Title**
                                     const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
 
                                     doc.setFont("helvetica", "bold");
@@ -1256,7 +1337,6 @@ const AdminChekin = () => {
                                     doc.setTextColor(0, 0, 0);
                                     doc.text(annexureText, doc.internal.pageSize.width / 2, 15, { align: "center" });
 
-                                    // **Add Image to the Center of the Page**
                                     try {
                                         doc.addImage(image.base64, image.type, centerX, centerY, width, height);
                                     } catch (error) {
@@ -1266,7 +1346,7 @@ const AdminChekin = () => {
                                     addFooter(doc);
                                 });
                             } else {
-                                console.warn("⚠️ No valid images found after fetching.");
+                                console.warn("⚠️ No valid images found after fetching and compressing.");
                             }
                         }
                     } else {
@@ -1297,22 +1377,12 @@ const AdminChekin = () => {
 
                         return { width, height };
                     }
-
-
-
-
                 }
-
-
-
-
-
-
-
                 addFooter(doc);
                 annexureIndex++;
                 yPosition += 20;
             }
+
 
             addFooter(doc);
             doc.addPage();
@@ -1332,7 +1402,7 @@ const AdminChekin = () => {
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
+            doc.setTextColor(255, 255, 255);
             const disclaimerLinesPart1 = doc.splitTextToSize(disclaimerTextPart1, disclaimerButtonWidth);
             const disclaimerLinesPart2 = doc.splitTextToSize(disclaimerTextPart2, disclaimerButtonWidth);
 
@@ -1357,16 +1427,17 @@ const AdminChekin = () => {
 
             const disclaimerButtonXPosition = (doc.internal.pageSize.width - disclaimerButtonWidth) / 2;
 
-
+const whitecolor = "#fff"
             if (disclaimerButtonWidth > 0 && disclaimerButtonHeight > 0 && !isNaN(disclaimerButtonXPosition) && !isNaN(disclaimerY)) {
                 doc.setDrawColor(62, 118, 165);
-                doc.setFillColor(backgroundColor);
+                doc.setFillColor(blueBg);
+                doc.setTextColor(whitecolor);
                 doc.rect(disclaimerButtonXPosition, disclaimerY, disclaimerButtonWidth, disclaimerButtonHeight, 'F');
                 doc.rect(disclaimerButtonXPosition, disclaimerY, disclaimerButtonWidth, disclaimerButtonHeight, 'D');
             } else {
             }
 
-            doc.setTextColor(0, 0, 0);
+            doc.setTextColor(whitecolor);
             doc.setFont("helvetica", "bold");
 
             const disclaimerButtonTextWidth = doc.getTextWidth('Disclaimer');
@@ -1572,25 +1643,34 @@ const AdminChekin = () => {
     const userRole = adminData.role;
 
 
-    const exportToExcel = async () => {
+const exportToExcel = async () => {
+    // Show loader
+    Swal.fire({
+        title: 'Exporting...',
+        text: 'Please wait while the Excel file is being generated.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    try {
         const worksheetData = await Promise.all(
-            currentItems.map(async (data, index) => {
+            filteredItems.map(async (data, index) => {
                 const servicesData = await fetchServicesData(data.main_id, data.services);
                 const headingsAndStatuses = [];
 
-                // Process servicesData
                 servicesData.forEach((service) => {
                     if (service.reportFormJson && service.reportFormJson.json) {
                         const reportJson = JSON.parse(service.reportFormJson.json);
                         const heading = reportJson?.heading || "NIL";
 
-                        // Ensure excelsorting is always an array
                         let excelsorting = [];
                         try {
                             excelsorting = service?.reportFormJson?.excel_sorting
                                 ? JSON.parse(service.reportFormJson.excel_sorting)
                                 : [];
-                            if (!Array.isArray(excelsorting)) excelsorting = []; // Ensure it's an array
+                            if (!Array.isArray(excelsorting)) excelsorting = [];
                         } catch (error) {
                             console.error("Error parsing excel_sorting:", error);
                             excelsorting = [];
@@ -1598,16 +1678,14 @@ const AdminChekin = () => {
 
                         if (heading) {
                             let status = service.annexureData?.status || "Initiated";
-                            status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "Initiated";
+                            status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "INITIATED";
                             headingsAndStatuses.push({ heading, status, sortOrder: excelsorting.indexOf(heading) });
                         }
                     }
                 });
 
-                // Sort by excelsorting order (headings not in the array go to the end)
                 headingsAndStatuses.sort((a, b) => (a.sortOrder - b.sortOrder || 0));
 
-                // Construct Excel row data
                 const row = {
                     INDEX: index + 1,
                     "TAT DAYS": data?.tat_days || "NIL",
@@ -1622,7 +1700,7 @@ const AdminChekin = () => {
                     "REPORT DATE": data?.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
                     "OVERALL STATUS": data?.overall_status || "NIL",
                     ...headingsAndStatuses.reduce((acc, { heading, status }) => {
-                        acc[heading] = status || 'Initiated';
+                        acc[heading] = status || 'INITIATED';
                         return acc;
                     }, {}),
                     "INSUFF REMARKS": data?.first_insufficiency_marks || "NIL",
@@ -1630,8 +1708,6 @@ const AdminChekin = () => {
                     "INSUFF CLEARED": data?.first_insuff_reopened_date
                         ? new Date(data.first_insuff_reopened_date).toLocaleDateString()
                         : "NIL",
-
-
                     "REMARKS & REASON FOR DELAY": data?.delay_reason || "NIL",
                     ADDRESS: data?.address || "NIL",
                     EDUCATION: data?.education || "NIL",
@@ -1646,14 +1722,32 @@ const AdminChekin = () => {
             })
         );
 
-        // Generate the Excel sheet
         const ws = XLSX.utils.json_to_sheet(worksheetData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Data");
 
-        // Save the workbook
         XLSX.writeFile(wb, "Data.xlsx");
-    };
+
+        // Close the loader and show success
+        Swal.fire({
+            icon: 'success',
+            title: 'Exported!',
+            text: 'Your Excel file has been downloaded.',
+            timer: 2000,
+            showConfirmButton: false,
+        });
+
+    } catch (error) {
+        // On error, show failure message
+        Swal.fire({
+            icon: 'error',
+            title: 'Export Failed',
+            text: 'Something went wrong during export. Please try again.',
+        });
+        console.error("Export to Excel failed:", error);
+    }
+};
+
 
     const statuses = {
         "overallCount": "OVERALL COUNT",
@@ -1687,7 +1781,7 @@ const AdminChekin = () => {
                         id=""
                         name="status"
                         onChange={handleStatusChange}
-                        className="outline-none border-2 p-2 rounded-md w-full md:w-5/12 my-4 md:my-0"
+                        className="outline-none border-2 p-2 rounded-md border-gray-300 shadow-md w-full md:w-5/12 my-4 md:my-0"
                     >
                         <option value="">Select Any Status</option>
                         {Array.isArray(options) && options.length > 0 ? (
@@ -1717,7 +1811,7 @@ const AdminChekin = () => {
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none pe-14 ps-2 w-7/12 md:w-auto text-left rounded-md border'>
+                                    }} className='outline-none pe-14 border-gray-300 shadow-md ps-2 w-7/12 md:w-auto text-left rounded-md border'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -1745,7 +1839,7 @@ const AdminChekin = () => {
                                 <div className="flex md:items-stretch items-center  gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-2 rounded-md w-full my-4 md:my-0'
+                                        className='outline-none border-2 p-2 border-gray-300 shadow-md rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here'
                                         value={searchTerm}
                                         onChange={(e) => {
@@ -1912,9 +2006,10 @@ const AdminChekin = () => {
                                                 <td className="text-left p-2 border capitalize whitespace-pre-wrap">{sanitizeText(data.first_insufficiency_marks) || 'NIL'}</td>
 
                                                 <td className="text-left p-2 border capitalize whitespace-pre-wrap">
-                                                    {data.first_insuff_date && !isNaN(new Date(data.first_insuff_date))
-                                                        ? `${String(new Date(data.first_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.first_insuff_date).getFullYear()}`
+                                                {data.first_insuff_date && !isNaN(new Date(data.first_insuff_date))
+                                                        ? `${String(new Date(data.first_insuff_date).getDate()).padStart(2, '0')}-${String(new Date(data.first_insuff_date).getMonth() + 1).padStart(2, '0')}-${new Date(data.report_date).getFullYear()}`
                                                         : 'NIL'}
+                                              
                                                 </td>
 
                                                 <td className="text-left p-2 border capitalize whitespace-pre-wrap">
@@ -1952,7 +2047,7 @@ const AdminChekin = () => {
                                             {/* Show loading state */}
                                             {servicesLoading[globalIndex] && (
                                                 <tr >
-                                                    <td colSpan={12} className="py-4 text-center text-gray-500">
+                                                    <td colSpan={12} className="py-4 text-center text-gray-700">
                                                         <div className='flex justify-center'>
                                                             <PulseLoader color="#36D7B7" loading={servicesLoading[globalIndex]} size={15} aria-label="Loading Spinner" />
                                                         </div>

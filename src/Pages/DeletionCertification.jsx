@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { MdCancel } from "react-icons/md";
 import Swal from 'sweetalert2';
 import 'reactjs-popup/dist/index.css';
@@ -7,6 +7,8 @@ import PulseLoader from "react-spinners/PulseLoader";
 import { useApi } from '../ApiContext'; // use the custom hook
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import Modal from 'react-modal';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import * as XLSX from 'xlsx';
 
 import 'jspdf-autotable';
@@ -39,6 +41,12 @@ const DeletionCertification = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
+  const handleDateChange = useCallback((date, name) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: date,
+    }));
+  }, []);
 
   const { isApiLoading, setIsApiLoading } = useApiCall();
 
@@ -310,7 +318,7 @@ const DeletionCertification = () => {
               <select name="options" onChange={(e) => {
                 handleSelectChange(e); // Call the select change handler
                 setCurrentPage(1); // Reset current page to 1
-              }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+              }} id="" className='outline-none border border-gray-300 shadow-md p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                 <option value="10">10 Rows</option>
                 <option value="20">20 Rows</option>
                 <option value="50">50 Rows</option>
@@ -335,7 +343,7 @@ const DeletionCertification = () => {
             <div className="  gap-3">
               <input
                 type="search"
-                className='outline-none border p-3 text-sm rounded-md w-full my-4 md:my-0'
+                className='outline-none border p-3 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
                 placeholder='Search Here'
                 value={searchTerm}
                 onChange={(e) => {
@@ -348,7 +356,7 @@ const DeletionCertification = () => {
         </div>
 
       </div>
-      <h2 className='text-center md:text-2xl text-xl font-bold my-5'>List Of Active Clients</h2>
+      <h2 className='text-center md:text-2xl text-xl font-bold my-5 text-[#3e76a5]'>List Of Active Clients</h2>
 
       <div className="overflow-x-auto py-6 p-3 border m-3 bg-white shadow-md rounded-md">
 
@@ -429,24 +437,26 @@ const DeletionCertification = () => {
 
                           <div className="mb-4">
                             <label className="block mb-2">From Date<span className='text-red-600'>*</span></label>
-                            <input
-                              type="date"
-                              name="fromDate"
-                              value={formData.fromDate}
-                              onChange={handleChange}
-                              className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                            {error.fromDate && <p className='text-red-500'>{error.fromDate}</p>}
                           </div>
-
+                          <DatePicker
+                            selected={formData.fromDate}
+                            onChange={(date) => handleDateChange(date, 'fromDate')}
+                            dateFormat="dd-MM-yyyy"
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            name="fromDate"
+                            id="fromDate"
+                          />
+                          {error.fromDate && <p className='text-red-500'>{error.fromDate}</p>}
                           <div className="mb-4">
                             <label className="block mb-2">To Date<span className='text-red-600'>*</span></label>
-                            <input
-                              type="date"
-                              name="toDate"
-                              value={formData.toDate}
-                              onChange={handleChange}
+                           
+                            <DatePicker
+                              selected={formData.toDate}
+                              onChange={(date) => handleDateChange(date, 'toDate')}
+                              dateFormat="dd-MM-yyyy"
                               className="w-full p-2 border border-gray-300 rounded-md"
+                              name="toDate"
+                              id="toDate"
                             />
                             {error.toDate && <p className='text-red-500'>{error.toDate}</p>}
                           </div>

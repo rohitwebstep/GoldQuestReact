@@ -224,7 +224,7 @@ const HolidayManagement = () => {
 
     return (
         <>
-            <h2 className='text-center md:text-3xl md:mt-14 mt-3 font-bold'> Holiday Management </h2>
+            <h2 className='text-center md:text-2xl md:mt-14 mt-3 font-bold text-[#3e76a5]' > Holiday Management </h2>
 
             <div className="grid md:grid-cols-2 items-stretch grid-cols-1 gap-7 p-3 md:p-8">
                 <div className='bg-white shadow-md rounded-md p-3'>
@@ -241,7 +241,7 @@ const HolidayManagement = () => {
                                     <select name="options" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+                                    }} id="" className='outline-none border border-gray-300 shadow-md p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -266,7 +266,7 @@ const HolidayManagement = () => {
                                 <div className="flex md:items-stretch items-center  gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-2 text-sm rounded-md w-full my-4 md:my-0'
+                                        className='outline-none border-2 p-2 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here.'
                                         value={searchTerm}
                                           onChange={(e) => {

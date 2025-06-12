@@ -206,80 +206,80 @@ const ServiceForm = () => {
   return (
     <form onSubmit={handleSubmit} disabled={loading}>
       <div className="mb-4">
-        <label htmlFor="ServiceName" className="block">Service Name<span className='text-red-500'>*</span></label>
+        <label htmlFor="ServiceName" className="block font-bold text-gray-700 font-bold text-gray-700 text-sm ">Service Name<span className='text-red-500'>*</span></label>
         <input
           type="text"
           name="name"
           id="ServiceName"
           value={serviceInput.name}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14  ps-2 border-gray-300 shadow-md text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.name && <p className='text-red-500'>{error.name}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="ServiceDisplayName" className="block">Service Description<span className='text-red-500'>*</span></label>
+        <label htmlFor="ServiceDisplayName" className="block font-bold text-gray-700 text-sm ">Service Description<span className='text-red-500'>*</span></label>
         <input
           type="text"
           name="d_name"
           id="ServiceDisplayName"
           value={serviceInput.d_name}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14 border-gray-300 shadow-md  ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.d_name && <p className='text-red-500'>{error.d_name}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="sac_code" className="block">SAC<span className='text-red-500'>*</span></label>
+        <label htmlFor="sac_code" className="block font-bold text-gray-700 text-sm ">SAC<span className='text-red-500'>*</span></label>
         <input
           type="text"
           name="sac_code"
           id="sac_code"
           value={serviceInput.sac_code}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14 border-gray-300 shadow-md  ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.sac_code && <p className='text-red-500'>{error.sac_code}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="short_code" className="block">Short Code<span className='text-red-500'>*</span></label>
+        <label htmlFor="short_code" className="block font-bold text-gray-700 text-sm ">Short Code<span className='text-red-500'>*</span></label>
         <input
           type="text"
           name="short_code"
           id="short_code"
           value={serviceInput.short_code}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14 border-gray-300 shadow-md  ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.short_code && <p className='text-red-500'>{error.short_code}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="excel_sorting" className="block">Excel Sorting<span className='text-red-500'>*</span></label>
+        <label htmlFor="excel_sorting" className="block font-bold text-gray-700 text-sm ">Excel Sorting<span className='text-red-500'>*</span></label>
         <input
           type="number"
           name="excel_sorting"
           id="excel_sorting"
           value={serviceInput.excel_sorting}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14 border-gray-300 shadow-md  ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.excel_sorting && <p className='text-red-500'>{error.excel_sorting}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="group" className="block">Service Group<span className='text-red-500'>*</span></label>
+        <label htmlFor="group" className="block font-bold text-gray-700 text-sm ">Service Group<span className='text-red-500'>*</span></label>
         <input
           type="text"
           name="group"
           id="group"
           value={serviceInput.group}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14 border-gray-300 shadow-md  ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.group && <p className='text-red-500'>{error.group}</p>}
       </div>
       <div className="mb-4">
-        <label htmlFor="email_description" className="block">Email Description</label>
+        <label htmlFor="email_description" className="block font-bold text-gray-700 text-sm ">Email Description</label>
         <input
           type="text"
           name="email_description"
           id="email_description"
           value={serviceInput.email_description}
           onChange={handleChange}
-          className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
+          className='outline-none pe-14 border-gray-300 shadow-md  ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
         {error.email_description && <p className='text-red-500'>{error.email_description}</p>}
       </div>
       <button

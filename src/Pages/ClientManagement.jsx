@@ -5,6 +5,8 @@ import ClientManagementData from "./ClientManagementData";
 import { useApi } from "../ApiContext";
 import { State } from 'country-state-city';
 import axios from "axios";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { useSidebar } from '../Sidebar/SidebarContext.jsx';
 import { useApiCall } from '../ApiCallContext'; // Import the hook for ApiCallContext
@@ -19,7 +21,6 @@ const debounce = (func, delay) => {
 
 const ClientManagement = () => {
   const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
-  const [showModal, setShowModal] = useState(false); // State to handle modal visibility
   const states = State.getStatesOfCountry('IN');
   const optionState = states.map(state => ({ value: state.isoCode, label: state.name }));
   const { handleTabChange } = useSidebar();
@@ -29,9 +30,7 @@ const ClientManagement = () => {
   const [isLoading, setIsLoading] = useState(false); // New state for loading indicator
   const [dataLoading, setDataLoading] = useState(false); // New state for loading indicator
   const [custom_bgv, setCustom_Bgv] = useState(0);
-  const handleModalToggle = () => {
-    setShowModal(!showModal); // Toggle modal visibility
-  };
+
   const [, setInsertId] = useState();
   const API_URL = useApi();
   const { clientData, setClientData, validationsErrors, admins } = useClient();
@@ -599,7 +598,7 @@ const ClientManagement = () => {
   return (
     <>
       <div className="py-4 md:py-16 m-4">
-        <h2 className="md:text-4xl text-2xl md:mb-8 font-bold pb-8 md:pb-4 text-center">
+        <h2 className=" text-2xl md:mb-8  text-[#3e76a5] font-bold pb-8 md:pb-4 text-center">
           Client Management
         </h2>
         <div className="md:w-9/12 m-auto bg-white shadow-md border rounded-md p-3 md:p-10">
@@ -612,14 +611,14 @@ const ClientManagement = () => {
             (<form onSubmit={handleFormSubmit} disabled={dataLoading} >
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="company_name">Company Name: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold " htmlFor="company_name">Company Name: <span className="text-red-600">*</span></label>
                   <input
                     type="text"
                     ref={(el) => (refs.current["company_name"] = el)} // Attach ref here
 
                     name="company_name"
                     id="company_name"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2   outline-none text-sm"
                     value={input.company_name}
                     onChange={handleChange}
 
@@ -628,12 +627,12 @@ const ClientManagement = () => {
                 </div>
 
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="client_code">Client Code: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="client_code">Client Code: <span className="text-red-600">*</span></label>
                   <input
                     type="text"
                     name="client_code"
                     id="client_code"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={`GQ-${processedCode}`} // Ensure the value starts with 'GQ-' and is fully uppercase
                     onChange={handleChange}
                     ref={(el) => (refs.current["client_code"] = el)} // Attach ref here
@@ -644,12 +643,12 @@ const ClientManagement = () => {
               </div>
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="address">Address: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="address">Address: <span className="text-red-600">*</span></label>
                   <input
                     type="text"
                     name="address"
                     id="address"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.address}
                     onChange={handleChange}
                     ref={(el) => (refs.current["address"] = el)} // Attach ref here
@@ -658,12 +657,12 @@ const ClientManagement = () => {
                   {errors.address && <p className="text-red-500">{errors.address}</p>}
                 </div>
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="mobile_number">Mobile: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="mobile_number">Mobile: <span className="text-red-600">*</span></label>
                   <input
                     type="number"
                     name="mobile_number"
                     id="mobile_number"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.mobile_number}
                     onChange={handleChange}
                     ref={(el) => (refs.current["mobile_number"] = el)} // Attach ref here
@@ -677,12 +676,12 @@ const ClientManagement = () => {
               <div className="md:flex gap-5">
 
                 <div className="mb-4 md:w-6/12">
-                  <label htmlFor="contact_person">Contact Person: <span className="text-red-600">*</span></label>
+                  <label className="font-bold text-gray-700 text-sm" htmlFor="contact_person">Contact Person: <span className="text-red-600">*</span></label>
                   <input
                     type="text"
                     name="contact_person"
                     id="contact_person"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.contact_person}
                     onChange={handleChange}
                     ref={(el) => (refs.current["contact_person"] = el)} // Attach ref here
@@ -691,13 +690,13 @@ const ClientManagement = () => {
                   {errors.contact_person && <p className="text-red-500">{errors.contact_person}</p>}
                 </div>
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="state">
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="state">
                     State: <span className="text-red-600">*</span>
                   </label>
                   <select
                     name="state"
                     id="state"
-                    className="w-full border p-2 rounded-md mt-2"
+                    className="w-full border p-2 border-gray-300 shadow-md  text-sm rounded-md mt-2"
                     value={input.state}
                     onChange={handleChange}
                   >
@@ -748,12 +747,12 @@ const ClientManagement = () => {
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
 
-                  <label className="text-gray-500" htmlFor="state_code">State Code: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="state_code">State Code: <span className="text-red-600">*</span></label>
                   <input
                     type="number"
                     name="state_code"
                     id="state_code"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.state_code}
                     onChange={handleChange}
                     ref={(el) => (refs.current["state_code"] = el)} // Attach ref here
@@ -762,14 +761,14 @@ const ClientManagement = () => {
                   {errors.state_code && <p className="text-red-500">{errors.state_code}</p>}
                 </div>
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="escalation_admin_id">Name of the Escalation Point of Contact:<span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="escalation_admin_id">Name of the Escalation Point of Contact:<span className="text-red-600">*</span></label>
 
                   <select
                     name="escalation_admin_id"
                     ref={(el) => (refs.current["escalation_admin_id"] = el)} // Attach ref here
                     id="escalation_admin_id"
                     value={input.escalation_admin_id}
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     onChange={handleChange}
                   >
                     <option value="">Select Option</option>
@@ -790,14 +789,14 @@ const ClientManagement = () => {
                 {emails.map((email, index) => (
                   <>
                     <div key={index} className="mb-4 md:flex justify-between items-end gap-3 ">
-                      <div className="w-full">   <label className="text-gray-500 whitespace-nowrap">Client Email {index + 1}: <span className="text-red-600">*</span></label>
+                      <div className="w-full">   <label className="text-gray-700 text-sm font-bold whitespace-nowrap">Client Email {index + 1}: <span className="text-red-600">*</span></label>
                         <input
                           type="email"
                           name={`email${index}`}
                           value={email}
                           onChange={(e) => handleChange(e, index)}
                           ref={(el) => (refs.current[`email${index}`] = el)} // Corrected ref key
-                          className="border  rounded-md p-2 mt-2 outline-none text-sm emailCheck w-full"
+                          className="border border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm emailCheck w-full"
                         />
 
                         {errors[`email${index}`] && <p className="text-red-500 text-sm whitespace-nowrap">{errors[`email${index}`]}</p>}</div>
@@ -818,15 +817,15 @@ const ClientManagement = () => {
                 ))}
               </div>
 
-              <button className="bg-[#3e76a5] text-white rounded-3 p-2 mt-0 rounded-md px-7 mb-3" type="button" onClick={addMoreEmails}>Add More Client Email</button>
+              <button className="bg-[#3e76a5] text-white text-sm rounded-3 p-2 mt-0 rounded-md px-7 mb-3" type="button" onClick={addMoreEmails}>Add More Client Email</button>
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="client_spoc">Name of The Client SPOC:<span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="client_spoc">Name of The Client SPOC:<span className="text-red-600">*</span></label>
                   <input
                     type="text"
                     name="client_spoc"
                     id="client_spoc"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.client_spoc}
                     onChange={handleChange}
                     ref={(el) => (refs.current["client_spoc"] = el)} // Attach ref here
@@ -837,12 +836,12 @@ const ClientManagement = () => {
                 </div>
 
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="gstin">GSTIN: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="gstin">GSTIN: <span className="text-red-600">*</span></label>
                   <input
                     type="text"
                     name="gstin"
                     id="gstin"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.gstin}
                     ref={(el) => (refs.current["gstin"] = el)} // Attach ref here
 
@@ -854,12 +853,12 @@ const ClientManagement = () => {
 
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="tat">TAT: <span className="text-red-600">*</span></label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="tat">TAT: <span className="text-red-600">*</span></label>
                   <input
                     type="number"
                     name="tat"
                     id="tat"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.tat}
                     onChange={handleChange}
                     ref={(el) => (refs.current["tat"] = el)} // Attach ref here
@@ -869,16 +868,20 @@ const ClientManagement = () => {
                 </div>
 
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="date_agreement">Date of Service Agreement:<span className="text-red-600">*</span></label>
-                  <input
-                    type="date"
-                    name="date_agreement"
-                    id="date_agreement"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
-                    value={input.date_agreement}
-                    onChange={handleChange}
-                    ref={(el) => (refs.current["date_agreement"] = el)} // Attach ref here
-
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="date_agreement">Date of Service Agreement:<span className="text-red-600">*</span></label>
+                  <DatePicker
+                    selected={input.date_agreement ? new Date(input.date_agreement) : null}
+                    onChange={(date) => {
+                      const formattedDate = date ? date.toISOString().split("T")[0] : "";
+                      setInput((prevInput) => ({
+                        ...prevInput,
+                        date_agreement: formattedDate,
+                      }));
+                    }}
+                    placeholderText="Select agreement date"
+                    className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2 outline-none text-sm"
+                    dateFormat="dd-MM-yyyy"
+                    ref={(el) => (refs.current["date_agreement"] = el)}
                   />
                   {errors.date_agreement && <p className="text-red-500">{errors.date_agreement}</p>}
                 </div>
@@ -886,20 +889,20 @@ const ClientManagement = () => {
 
               <div className="md:flex gap-5">
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="client_standard">Client Standard Procedure:</label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="client_standard">Client Standard Procedure:</label>
                   <textarea name="client_standard"
                     id="client_standard"
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     value={input.client_standard}
                     rows={1}
 
                     onChange={handleChange}></textarea>
                 </div>
                 <div className="mb-4 md:w-6/12">
-                  <label className="text-gray-500" htmlFor="agreement_period">Agreement Period</label>
+                  <label className="text-gray-700 text-sm font-bold" htmlFor="agreement_period">Agreement Period</label>
 
                   <select name="agreement_period" // Attach ref here
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm" id="agreement_period" onChange={handleChange} value={input.agreement_period}>
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm" id="agreement_period" onChange={handleChange} value={input.agreement_period}>
                     <option value="Unless terminated" selected>Unless terminated</option>
                     <option value="1 year">1 year</option>
                     <option value="2 year">2 year</option>
@@ -909,31 +912,31 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4">
-                <label className="text-gray-500" htmlFor="agr_upload">Agreement Upload:<span className="text-red-500">*</span></label>
+                <label className="text-gray-700 text-sm font-bold" htmlFor="agr_upload">Agreement Upload:<span className="text-red-500">*</span></label>
 
                 <input
                   ref={(el) => (refs.current["agr_upload"] = el)} // Attach ref here
                   type="file"
                   name="agr_upload"
                   id="agr_upload"
-                  className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                  className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                   onChange={(e) => handleFileChange('agr_upload', e)}
                   accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
                 />
                 {errors.agr_upload && <p className="text-red-500">{errors.agr_upload}</p>}
 
-                <p className="text-gray-500 text-sm mt-2">
+                <p className="text-gray-700 text-sm  mt-2">
                   Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                 </p>
               </div>
 
               <div className="mb-4">
-                <label className="text-gray-500" htmlFor="industry_classification">Industry Classification<span className="text-red-600">*</span></label>
+                <label className="text-gray-700 text-sm font-bold" htmlFor="industry_classification">Industry Classification<span className="text-red-600">*</span></label>
                 <input
                   type="text"
                   name="industry_classification"
                   id="industry_classification"
-                  className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                  className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                   onChange={handleChange}
                   ref={(el) => (refs.current["industry_classifications"] = el)} // Attach ref here
 
@@ -942,14 +945,14 @@ const ClientManagement = () => {
 
               </div>
               <div className="mb-4">
-                <label className="text-gray-500" htmlFor="director_email">Director email
+                <label className="text-gray-700 text-sm font-bold" htmlFor="director_email">Director email
                 </label>
                 <input
                   type="email"
                   name="director_email"
                   id="director_email"
                   value={input.director_email}
-                  className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                  className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                   onChange={handleChange}
 
                 />
@@ -958,13 +961,13 @@ const ClientManagement = () => {
 
 
               <div className="mb-4">
-                <label className="text-gray-500" htmlFor="custom_template">Required Custom Template:<span className="text-red-600">*</span></label>
+                <label className="text-gray-700 text-sm font-bold" htmlFor="custom_template">Required Custom Template:<span className="text-red-600">*</span></label>
                 <select
                   name="custom_template"
                   ref={(el) => (refs.current["custom_template"] = el)} // Attach ref here
                   id="custom_template"
                   value={input.custom_template || ''} // Ensure a default empty value if undefined
-                  className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                  className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                   onChange={handleChange}
                 >
                   <option value="">Select Option</option>
@@ -976,31 +979,31 @@ const ClientManagement = () => {
                 {input.custom_template === 'yes' && (
                   <>
                     <div className="mb-4">
-                      <label htmlFor="custom_logo" className="text-gray-500">Upload Custom Logo :<span className="text-red-600">*</span></label>
+                      <label htmlFor="custom_logo" className="text-gray-700 text-sm">Upload Custom Logo :<span className="text-red-600">*</span></label>
                       <input
                         ref={(el) => (refs.current["custom_logo"] = el)} // Attach ref here
                         type="file"
                         name="custom_logo"
                         id="custom_logo"
-                        className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                        className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                         onChange={(e) => handleFileChange('custom_logo', e)}
                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
                       />
                       {errors.custom_logo && <p className="text-red-500">{errors.custom_logo}</p>}
 
-                      <p className="text-gray-500 text-sm mt-2">
+                      <p className="text-gray-700 text-sm  mt-2">
                         Only JPG, PNG, PDF, DOCX, and XLSX files are allowed. Max file size: 2MB.
                       </p>
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="custom_address" className="text-gray-500">Custom Address</label>
+                      <label htmlFor="custom_address" className="text-gray-700 text-sm">Custom Address</label>
                       <textarea
                         name="custom_address"
                         id="custom_address"
                         onChange={handleChange}
                         value={input.custom_address}
-                        className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                        className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                       ></textarea>
 
                     </div>
@@ -1011,7 +1014,7 @@ const ClientManagement = () => {
 
 
               <div className="mb-4">
-                <label className="text-gray-500" htmlFor="additional_login">Additional login Required</label>
+                <label className="text-gray-700 text-sm font-bold" htmlFor="additional_login">Additional login Required</label>
                 <div className="flex items-center gap-10 mt-4">
                   <div>
                     <input
@@ -1041,7 +1044,7 @@ const ClientManagement = () => {
                     id="username"
                     placeholder="username2"
                     value={input.username}
-                    className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                     onChange={handleChange}
                   />
                 )}
@@ -1049,18 +1052,18 @@ const ClientManagement = () => {
 
 
               <div className="my-8">
-                <h3 className="text-lg font-semibold mb-4">Branch Details</h3>
+                <h3 className="text-lg text-gray-700  font-semibold mb-4">Branch Details</h3>
                 {branchForms.map((branch, index) => (
                   <div key={index} className="md:grid grid-cols-2 content-between items-center gap-4 mb-3">
                     <div>
-                      <label className="text-gray-500" htmlFor={`branch_name_${index}`}>
+                      <label className="text-gray-700 text-sm font-bold" htmlFor={`branch_name_${index}`}>
                         Branch Name
                       </label>
                       <input
                         type="text"
                         name="branch_name"
                         id={`branch_name_${index}`}
-                        className="border w-full rounded-md p-2 mt-2 outline-none text-sm"
+                        className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
                         value={branch.branch_name}
                         ref={(el) => (refs.current[`branch_name_${index}`] = el)} // Corrected ref key
                         onChange={(e) => handleChange(e, index)}
@@ -1069,14 +1072,14 @@ const ClientManagement = () => {
 
                     </div>
                     <div>
-                      <label className="text-gray-500" htmlFor={`branch_email_${index}`}>
+                      <label className="text-gray-700 text-sm font-bold" htmlFor={`branch_email_${index}`}>
                         Branch Email
                       </label>
                       <input
                         type="email"
                         name="branch_email"
                         id={`branch_email_${index}`}
-                        className="border w-full rounded-md p-2 mt-2 outline-none text-sm emailCheck"
+                        className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm emailCheck"
                         value={branch.branch_email}
                         onChange={(e) => handleChange(e, index)}
                         ref={(el) => (refs.current[`branch_email_${index}`] = el)} // Corrected ref key
@@ -1097,7 +1100,7 @@ const ClientManagement = () => {
                 ))}
 
                 <button
-                  className="bg-[#3e76a5] text-white rounded-md p-2 mt-4"
+                  className="bg-[#3e76a5] text-white text-sm rounded-md p-2 mt-4"
                   type="button"
                   onClick={addMoreFields}
                 >
@@ -1115,7 +1118,7 @@ const ClientManagement = () => {
                   ref={(el) => (refs.current['custom_bgv'] = el)} // Corrected ref key
 
                 />
-                <label className="text-gray-500" htmlFor="agr_upload">Custom BGV</label>
+                <label className="text-gray-700 text-sm font-bold" htmlFor="agr_upload">Custom BGV</label>
               </div>
               <ClientManagementData />
               <div className="flex justify-center">

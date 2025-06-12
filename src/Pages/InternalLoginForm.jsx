@@ -239,12 +239,12 @@ const InternalLoginForm = () => {
         <>
             <form action="" onSubmit={handleSubmit}>
                 <div className="mb-4">
-                    <label className="text-gray-500" htmlFor="employee_id">Employee ID: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700 text-gray-700 font-bold text-sm   " htmlFor="employee_id">Employee ID: <span className='text-red-500'>*</span></label>
                     <input
                         type="text"
                         name="employee_id"
                         id="employee_id"
-                        className="border w-full rounded-md p-2 mt-2 uppercase"
+                        className="border w-full border-gray-300 s shadow-md border-gray-300 text-sm shadow-md rounded-md p-2 mt-2 uppercase "
                         onChange={handleChange}
                         disabled={editAdmin}
                         value={formData.employee_id.toUpperCase()}
@@ -252,24 +252,24 @@ const InternalLoginForm = () => {
                     {error.employee_id && <p className='text-red-500'>{error.employee_id}</p>}
                 </div>
                 <div className="mb-4">
-                    <label className="text-gray-500" htmlFor="Employee-name">Employee Name: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="Employee-name">Employee Name: <span className='text-red-500'>*</span></label>
                     <input
                         type="text"
                         name="name"
                         id="Employee-name"
-                        className="border w-full rounded-md p-2 mt-2"
+                        className="border w-full border-gray-300 text-sm shadow-md rounded-md p-2 mt-2"
                         onChange={handleChange}
                         value={formData.name}
                     />
                     {error.name && <p className='text-red-500'>{error.name}</p>}
                 </div>
                 <div className="mb-4">
-                    <label className="text-gray-500" htmlFor="mobile-mobile">Employee Mobile: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="mobile-mobile">Employee Mobile: <span className='text-red-500'>*</span></label>
                     <input
                         type="number"
                         name="mobile"
                         id="mobile-mobile"
-                        className="border w-full rounded-md p-2 mt-2"
+                        className="border w-full border-gray-300 text-sm shadow-md rounded-md p-2 mt-2"
                         onChange={handleChange}
                         value={formData.mobile}
 
@@ -277,12 +277,12 @@ const InternalLoginForm = () => {
                     {error.mobile && <p className='text-red-500'>{error.mobile}</p>}
                 </div>
                 <div className="mb-4">
-                    <label className="text-gray-500" htmlFor="emailid">Email: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="emailid">Email: <span className='text-red-500'>*</span></label>
                     <input
                         type="email"
                         name="email"
                         id="emailid"
-                        className="border w-full rounded-md p-2 mt-2"
+                        className="border w-full border-gray-300 text-sm shadow-md rounded-md p-2 mt-2"
                         onChange={handleChange}
                         value={formData.email}
                     />
@@ -290,12 +290,12 @@ const InternalLoginForm = () => {
                 </div>
                 {!editAdmin && (
                     <div className="mb-4">
-                        <label className="text-gray-500" htmlFor="password">Password: <span className='text-red-500'>*</span></label>
+                        <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="password">Password: <span className='text-red-500'>*</span></label>
                         <input
                             type="password"
                             name="password"
                             id="password"
-                            className="border w-full rounded-md p-2 mt-2"
+                            className="border w-full border-gray-300 text-sm shadow-md rounded-md p-2 mt-2"
                             onChange={handleChange}
                             value={formData.password}
                         />
@@ -304,7 +304,7 @@ const InternalLoginForm = () => {
                 )}
                 {editAdmin && (
                     <div className="mb-4">
-                        <label className="text-gray-500">Status</label>
+                        <label className="text-gray-700 text-gray-700 font-bold text-sm  ">Status</label>
                         <div className="flex items-center space-x-4 mt-3">
                             <div className="flex items-center">
                                 <input
@@ -314,9 +314,9 @@ const InternalLoginForm = () => {
                                     value="1"
                                     checked={formData.status == 1}
                                     onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
-                                    className="mr-2"
+                                    className="mr-2 "
                                 />
-                                <label htmlFor="active" className="text-sm">Active</label>
+                                <label htmlFor="active" className="text-sm font-bold text-gray-700">Active</label>
                             </div>
 
                             {/* Inactive Status */}
@@ -330,7 +330,7 @@ const InternalLoginForm = () => {
                                     onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
                                     className="mr-2"
                                 />
-                                <label htmlFor="inactive" className="text-sm">Inactive</label>
+                                <label htmlFor="inactive" className="text-sm font-bold text-gray-700">Inactive</label>
                             </div>
                         </div>
                     </div>
@@ -338,13 +338,13 @@ const InternalLoginForm = () => {
 
 
                 <div className="mb-4">
-                    <label className="text-gray-500" htmlFor="role">Role: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="role">Role: <span className='text-red-500'>*</span></label>
 
                     <div className="relative">
                         <select
                             name="role"
                             id="role"
-                            className="w-full border p-2 rounded-md mt-2"
+                            className="w-full border p-2 border-gray-300 text-sm shadow-md rounded-md mt-2"
                             onChange={handleChange}
                             value={formData.role}
                             disabled={loading}
@@ -368,7 +368,7 @@ const InternalLoginForm = () => {
 
                 {formData.role !== 'admin' && (
                     <div className="mb-4 relative">
-                        <label htmlFor="service_group" className="block mb-2">Services Name</label>
+                        <label htmlFor="service_group" className="block mb-2 text-gray-700 font-bold text-sm  ">Services Name</label>
                         <SelectSearch
                             multiple
                             options={options}
@@ -393,13 +393,13 @@ const InternalLoginForm = () => {
                 <div className='flex gap-4 mb-5'>
 
                     <div className='flex gap-3 items-center'><input type="checkbox" checked={['1', 1, true, 'true'].includes(formData.is_report_generator)}
-                        onChange={handleChange} name="is_report_generator" value={formData.is_report_generator} id="is_report_generator" /><label htmlFor="is_report_generator">Report Generator</label></div>
+                        onChange={handleChange} name="is_report_generator" value={formData.is_report_generator} id="is_report_generator" /><label htmlFor="is_report_generator" className='text-gray-700 font-bold text-sm  '>Report Generator</label></div>
                     <div className='flex gap-3 items-center'><input type="checkbox" checked={['1', 1, true, 'true'].includes(formData.is_qc_verifier)}
-                        onChange={handleChange} value={formData.is_qc_verifier} name="is_qc_verifier" id="is_qc_verifier" /><label htmlFor="is_qc_verifier">Qc Verifier</label></div>
+                        onChange={handleChange} value={formData.is_qc_verifier} name="is_qc_verifier" id="is_qc_verifier" /><label htmlFor="is_qc_verifier" className='text-gray-700 font-bold text-sm  '>Qc Verifier</label></div>
                 </div>
-                <button type="submit" disabled={loading || isApiLoading} className={`w-full rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
+                <button type="submit" disabled={loading || isApiLoading} className={`w-full rounded-md  text-sm p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                 >Send</button>
-                <button type="button" onClick={emptyForm} className='bg-blue-400 hover:bg-blue-800 text-white p-3 mt-5 rounded-md w-full'>Reset Form</button>
+                <button type="button" onClick={emptyForm} className='bg-blue-400 hover:bg-blue-800 text-sm text-white p-3 mt-5 rounded-md w-full'>Reset Form</button>
             </form>
         </>
     );

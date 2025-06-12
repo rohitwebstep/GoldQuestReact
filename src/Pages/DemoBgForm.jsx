@@ -983,7 +983,7 @@ const DemoBgForm = () => {
                                 </div>
                             )}
 
-                            <h4 className="text-Black md:text-3xl text-center text-xl md:mb-6 mb-3 font-bold mt-3">Background Verification Form</h4>
+                            <h4 className="text-Black md:text-2xl text-center text-xl md:mb-6 mb-3 font-bold mt-3">Background Verification Form</h4>
                             <div className="md:mb-6 mb-2 py-4 rounded-md">
                                 <h5 className="text-lg font-bold text-center md:text-start">Company name: <span className="text-lg font-normal">{companyName}</span></h5>
                             </div>
@@ -1063,7 +1063,7 @@ const DemoBgForm = () => {
 
                                                 />
                                                 {errors.resume_file && <p className="text-red-500 text-sm" > {errors.resume_file} </p>}
-                                                <p className="text-gray-500 text-sm mt-2" >
+                                                <p className="text-gray-700 text-sm mt-2" >
                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                 </p>
                                             </div>
@@ -1079,7 +1079,7 @@ const DemoBgForm = () => {
                                                     ref={(el) => (refs.current["applications_govt_id"] = el)} // Attach ref here
                                                 />
                                                 {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
-                                                <p className="text-gray-500 text-sm mt-2" >
+                                                <p className="text-gray-700 text-sm mt-2" >
                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                 </p>
                                             </div>
@@ -1103,7 +1103,7 @@ const DemoBgForm = () => {
 
                                                             />
                                                             {errors.passport_photo && <p className="text-red-500 text-sm" > {errors.passport_photo} </p>}
-                                                            <p className="text-gray-500 text-sm mt-2" >
+                                                            <p className="text-gray-700 text-sm mt-2" >
                                                                 Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                             </p>
                                                         </div>
@@ -1274,7 +1274,7 @@ const DemoBgForm = () => {
 
                                                                 />
                                                                 {errors.aadhar_card_image && <p className="text-red-500 text-sm" > {errors.aadhar_card_image} </p>}
-                                                                <p className="text-gray-500 text-sm mt-2" >
+                                                                <p className="text-gray-700 text-sm mt-2" >
                                                                     Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                                 </p>
                                                             </div>
@@ -1331,7 +1331,7 @@ const DemoBgForm = () => {
 
                                                             />
                                                             {errors.pan_card_image && <p className="text-red-500 text-sm" > {errors.pan_card_image} </p>}
-                                                            <p className="text-gray-500 text-sm mt-2" >
+                                                            <p className="text-gray-700 text-sm mt-2" >
                                                                 Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                             </p>
                                                         </div>
@@ -1895,7 +1895,7 @@ const DemoBgForm = () => {
 
                                                         />
                                                         {errors.signature && <p className="text-red-500 text-sm"> {errors.signature} </p>}
-                                                        < p className="text-gray-500 text-sm mt-2" >
+                                                        < p className="text-gray-700 text-sm mt-2" >
                                                             Only JPG, PNG, PDF, DOCX, and XLSX files are allowed.Max file size: 2MB.
                                                         </p>
 
@@ -1984,7 +1984,7 @@ const DemoBgForm = () => {
                                     }}
                                     className={`px-6 py-2 rounded-md ${isFormFilled
                                         ? "text-white bg-blue-500 hover:bg-blue-600"
-                                        : "text-gray-500 bg-blue-400 cursor-not-allowed"
+                                        : "text-gray-700 bg-blue-400 cursor-not-allowed"
                                         }`}
                                     disabled={!isFormFilled} // Disable button if form is not filled
                                 >

@@ -4,7 +4,7 @@ import BulkUploadForm from './BulkUploadForm';
 const BulkUpload = () => {
   return (
     <>
-      <h2 className='text-center md:text-4xl text-2xl font-bold pb-8 pt-14 md:pb-4'>
+      <h2 className='text-center md:text-2xl text-2xl font-bold pb-8 pt-14 md:pb-4'>
         Bulk Upload
       </h2>
 

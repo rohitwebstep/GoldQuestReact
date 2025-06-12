@@ -5,7 +5,7 @@ const EmailTemplate = () => {
   return (
     <>
     <div className="md:py-16 py-5">
-    <h2 className='md:text-4xl text-2xl font-bold pb-8 md:pb-4 text-center'>Email Templates</h2>
+    <h2 className='md:text-2xl text-2xl font-bold pb-8 md:pb-4 text-center'>Email Templates</h2>
     <div className="bg-white shadow-md rounded-md md:w-6/12 m-auto my-5 p-6">
     <form action="">
     <div className="mb-5">

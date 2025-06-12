@@ -97,7 +97,7 @@ const CustomerForgotPassword = () => {
 
   return (
     <div className="bg-white md:w-5/12 m-auto shadow-md rounded-sm p-5 translate-y-2/4">
-      <h2 className='md:text-4xl text-2xl font-bold pb-8 md:pb-4'>Forgot Password?</h2>
+      <h2 className='md:text-2xl text-2xl font-bold pb-8 md:pb-4'>Forgot Password?</h2>
       <p>We'll Send You Reset Instructions.</p>
 
       {/* Forgot Password Form */}

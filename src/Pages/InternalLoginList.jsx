@@ -239,7 +239,7 @@ const InternalLoginList = () => {
                                 handleSelectChange(e); // Call the select change handler
                                 setCurrentPage(1); // Reset current page to 1
                             }}
-                            className="outline-none border p-3 text-left rounded-md w-7/12 md:w-6/12"
+                            className="outline-none border text-sm p-3 text-left shadow-md border-gray-300 rounded-md w-7/12 md:w-6/12"
                         >
 
                             <option value="10">10 Rows</option>
@@ -253,7 +253,7 @@ const InternalLoginList = () => {
                         </select>
                         <button
                             onClick={exportToExcel}
-                            className="bg-[#3e76a5] text-sm text-white py-3 px-4 rounded-md capitalize"
+                            className="bg-[#3e76a5] text-sm whitespace-nowrap text-white py-3 px-4 rounded-md capitalize"
                             type="button"
                             disabled={currentItems.length === 0}
                         >
@@ -266,7 +266,7 @@ const InternalLoginList = () => {
                         <div className="flex md:items-stretch items-center gap-3">
                             <input
                                 type="search"
-                                className='outline-none border-2 p-3 rounded-md w-full text-sm my-4 md:my-0'
+                                className='outline-none border-2 p-3 border-gray-300 shadow-md rounded-md w-full text-sm my-4 md:my-0'
                                 placeholder='Search By Admin Name'
                                 value={searchTerm}
                                 onChange={(e) => {
@@ -278,7 +278,7 @@ const InternalLoginList = () => {
                     </form>
                 </div>
             </div>
-            <h2 className='text-center text-2xl font-bold my-5'>Admin List</h2>
+            <h2 className='text-center text-2xl font-bold my-5 text-[#3e76a5]'>Admin List</h2>
 
             <div className="overflow-x-auto">
                 {loading ? (

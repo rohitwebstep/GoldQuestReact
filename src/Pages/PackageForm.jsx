@@ -240,12 +240,12 @@ const PackageForm = ({ onSuccess }) => {
         <>
             <form onSubmit={handlePackageFormSubmit} disabled={isLoading}>
                 <div className="mb-4">
-                    <label htmlFor="packagename" className='text-sm'>Package Name<span className='text-red-500'>*</span></label>
+                    <label htmlFor="packagename" className='text-sm font-bold text-gray-700'>Package Name<span className='text-red-500'>*</span></label>
                     <input
                         type="text"
                         name="name"
                         id="packagename"
-                        className="border w-full rounded-md p-2 mt-2 capitalize text-sm"
+                        className="border w-full border-gray-300 shadow-md rounded-md p-2 mt-2 capitalize text-sm"
                         onChange={handleChange}
                         value={packageInput.name}
                         disabled={isLoading}
@@ -254,12 +254,12 @@ const PackageForm = ({ onSuccess }) => {
                 </div>
 
                 <div className="mb-4">
-                    <label htmlFor="message" className='text-sm'>Package Description<span className='text-red-500'>*</span></label>
+                    <label htmlFor="message" className='text-sm font-bold text-gray-700'>Package Description<span className='text-red-500'>*</span></label>
                     <textarea
                         disabled={isLoading}
                         name="message"
                         id="message"
-                        className="w-full border p-3 outline-none rounded-md mt-2 capitalize text-sm"
+                        className="w-full border p-3 border-gray-300 shadow-md outline-none rounded-md mt-2 capitalize text-sm"
                         rows={5}
                         cols={4}
                         onChange={handleChange}

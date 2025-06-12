@@ -195,9 +195,6 @@ const CustomerLoginForm = () => {
                     body: JSON.stringify(payload),
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
 
                 const result = await response.json();
                 setLoading(false);
@@ -205,7 +202,7 @@ const CustomerLoginForm = () => {
                 if (!result.status) {
                     Swal.fire({
                         title: "Error!",
-                        text: `An error occurred: ${result.message}`,
+                        text: `${result.message || result.error}`,
                         icon: "error",
                         confirmButtonText: "Ok",
                     });
@@ -395,7 +392,7 @@ const CustomerLoginForm = () => {
                     <div className="bg-white rounded-lg p-6 w-96 relative">
                         <button
                             type='button'
-                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                            className="absolute top-2 right-2 text-gray-700 hover:text-gray-800"
                             onClick={() => setShowOtpModal(false)} // Set showOtpModal to false
                         >
                             <svg

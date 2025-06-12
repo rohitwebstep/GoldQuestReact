@@ -391,12 +391,12 @@ const SubUserCredentials = () => {
     <>
       <div className='md:grid  grid-cols-2 gap-4 p-3'>
         <div className="p-5 bg-white rounded-md shadow-md mb-5">
-          <h2 className='text-center font-bold text-3xl p-3'>{isEditEmail ? "EDIT" : "CREATE"} SUBUSER</h2>
+          <h2 className='text-center font-bold text-2xl p-3 text-[#3e76a5]'>{isEditEmail ? "EDIT" : "CREATE"} SUBUSER</h2>
           <div className="bg-white md:p-12 p-6 w-full mx-auto ">
             <form className="space-y-4 w-full text-center" onSubmit={handleSubmit}>
 
               <div className="w-full text-left">
-                <label htmlFor="email" className="block mb-1 font-medium">
+                <label htmlFor="email" className="block mb-1 font-bold text-gray-700 ">
                   Email <span className="text-red-500 text-xl">*</span>
                 </label>
                 <input
@@ -405,14 +405,14 @@ const SubUserCredentials = () => {
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full p-3 mb-[20px] border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md`}
+                  className={`w-full p-3 mb-[20px] border shadow-md ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md`}
                 />
                 {errors.email && <p className="text-red-500">{errors.email}</p>}
               </div>
               {!isEditEmail && (
                 <>
                   <div className="w-full text-left">
-                    <label htmlFor="password" className="block mb-1 font-medium">
+                    <label htmlFor="password" className="block mb-1 font-bold text-gray-700 ">
                       Password <span className="text-red-500 text-xl">*</span>
                     </label>
                     <input
@@ -421,12 +421,12 @@ const SubUserCredentials = () => {
                       placeholder="Password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full p-3 mb-[20px] border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md`}
+                      className={`w-full p-3 mb-[20px] border shadow-md ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md`}
                     />
                     {errors.password && <p className="text-red-500">{errors.password}</p>}
                   </div>
                   <div className="w-full text-left">
-                    <label htmlFor="confirmPassword" className="block mb-1 font-medium">
+                    <label htmlFor="confirmPassword" className="block mb-1 font-bold text-gray-700 ">
                       Confirm Password <span className="text-red-500 text-xl">*</span>
                     </label>
                     <input
@@ -435,7 +435,7 @@ const SubUserCredentials = () => {
                       placeholder="Confirm Password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`w-full p-3 mb-[20px] border ${errors.confirmPassword || errors.passwordMatch ? 'border-red-500' : 'border-gray-300'} rounded-md`}
+                      className={`w-full p-3 mb-[20px] border shadow-md ${errors.confirmPassword || errors.passwordMatch ? 'border-red-500' : 'border-gray-300'} rounded-md`}
                     />
                     {errors.confirmPassword && <p className="text-red-500">{errors.confirmPassword}</p>}
                   </div>
@@ -463,7 +463,7 @@ const SubUserCredentials = () => {
                   <select name="options" onChange={(e) => {
                     handleSelectChange(e); // Call the select change handler
                     setCurrentPage(1); // Reset current page to 1
-                  }} id="" className='outline-none border p-2 ps-2 text-left rounded-md w-7/12 md:w-6/12'>
+                  }} id="" className='outline-none border p-2 ps-2 border-gray-300 shadow-md text-left rounded-md w-7/12 md:w-6/12'>
                     <option value="10">10 Rows</option>
                     <option value="20">20 Rows</option>
                     <option value="50">50 Rows</option>
@@ -488,7 +488,7 @@ const SubUserCredentials = () => {
                 <div className="flex md:items-stretch items-center  gap-3">
                   <input
                     type="search"
-                    className='outline-none border p-2 rounded-md w-full my-4 md:my-0'
+                    className='outline-none border p-2 border-gray-300 shadow-md rounded-md w-full my-4 md:my-0'
                     placeholder='Search by Email-ID'
                     value={searchTerm}
                     onChange={(e) => {

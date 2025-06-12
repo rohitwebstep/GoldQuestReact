@@ -116,14 +116,14 @@ const CustomerUpdatePassword = () => {
     return (
         <div className='h-screen mx-6 md:mx-0 md:flex items-center flex-wrap justify-center'>
             <form className='mt-4 md:w-6/12 m-0 bg-white shadow-md p-3 rounded-md' onSubmit={handleSubmit}>
-                <h2 className='text-xl py-5 font-bold text-center'>Update Password</h2>
+                <h2 className='text-xl py-5 font-bold text-center text-[#3e76a5]'>Update Password</h2>
 
                 <div className="mb-6 text-left">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newpass">New Password</label>
                     <input
                         type="password"
                         name="newpass"
-                        className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                        className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none border-gray-300 shadow-md focus:shadow-outline"
                         id="newpassword"
                         placeholder='********'
                         onChange={handleChange}
@@ -136,7 +136,7 @@ const CustomerUpdatePassword = () => {
                     <input
                         type="password"
                         name="c_newpass"
-                        className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                        className="appearance-none border rounded w-full border-gray-300 shadow-md  py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                         id="confirmnewpassword"
                         placeholder='********'
                         onChange={handleChange}

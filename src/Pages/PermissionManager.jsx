@@ -345,7 +345,7 @@ const PermissionManager = () => {
     // Execute the sequence]);
     return (
         <>
-            <h2 className='md:text-4xl text-2xl font-bold py-5 pb-8 md:pb-4 text-center'>Permission Manager</h2>
+            <h2 className='md:text-2xl text-2xl font-bold py-5 pb-8 md:pb-4 text-center text-[#3e76a5]'>Permission Manager</h2>
             <div className="w-full  overflow-hidden">
                 <div className="space-y-4 py-8 md:px-12 px-6 bg-white">
 

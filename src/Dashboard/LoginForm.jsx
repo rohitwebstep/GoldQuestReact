@@ -51,17 +51,20 @@ const LoginForm = () => {
     const newErrors = {};
 
     if (!input.username) {
-        newErrors.username = "This is Required";
+      newErrors.username = "This is Required";
     }
 
     if (!input.password) {
-        newErrors.password = "This is Required";
-    } else if (input.password.length < 8 | input.password.length > 10) {
+      newErrors.password = "This is Required";
+    }
+    /*
+    else if (input.password.length < 8 | input.password.length > 10) {
         newErrors.password = "Password must be between 8 and 10 characters long";
     }
+    */
 
     return newErrors;
-};
+  };
 
 
   const handleSubmit = (event) => {
@@ -297,9 +300,8 @@ const LoginForm = () => {
                       />
                       <button
                         type="submit"
-                        className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full ${
-                          isOtpLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                        className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full ${isOtpLoading ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
                         onClick={handleOtpSubmit}
                         disabled={isOtpLoading}
                       >

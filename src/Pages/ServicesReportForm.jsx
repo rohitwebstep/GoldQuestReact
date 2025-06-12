@@ -182,7 +182,7 @@ const ServiceReportForm = () => {
                         placeholder="Search by service title..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-md w-full"
+                        className="px-4 py-2 border border-gray-300 shadow-md  rounded-md w-full"
                     />
                 </div>
                 <div className={`${previewData ? 'hidden' : ''} min-w-full border-collapse border border-black`}>
@@ -267,7 +267,7 @@ const ServiceReportForm = () => {
                 {previewData && (
                     <div className="py-3 mt-6 relative">
                         <button
-                            className="ml-2 absolute top-4 right-0 px-10 text-right w-full p-3 font-bold text-white text-3xl border-none rounded-md"
+                            className="ml-2 absolute top-4 right-0 px-10 text-right w-full p-3 font-bold text-white text-2xl border-none rounded-md"
                             onClick={() => setPreviewData(null)}
                         >
                             X

@@ -409,7 +409,7 @@ const DropBoxList = () => {
     return (
         <>
             <div className=" py-4 md:py-16">
-                <h2 className='md:text-4xl text-2xl font-bold pb-8 md:pb-4 text-center'>Client DropBox</h2>
+                <h2 className='md:text-2xl text-2xl font-bold pb-8 md:pb-4 text-center text-[#3e76a5]'>Client DropBox</h2>
                 <div className="m-5">
                     <div>
                         <ClientForm />
@@ -424,7 +424,7 @@ const DropBoxList = () => {
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none pe-14 ps-2 text-left p-3 md:w-6/12 w-7/12 rounded-md border'>
+                                    }} className='outline-none pe-14 ps-2 border border-gray-300 shadow-md text-left p-3 md:w-6/12 w-7/12 rounded-md border'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -450,7 +450,7 @@ const DropBoxList = () => {
                                 <div className="flex md:items-stretch items-center gap-3">
                                     <input
                                         type="search"
-                                        className="outline-none border-2 p-3 text-sm rounded-md w-full my-4 md:my-0"
+                                        className="outline-none border-2 p-3 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0"
                                         placeholder="Search Here..."
                                         value={searchTerm}
                                         onChange={(e) => {
@@ -643,7 +643,7 @@ const DropBoxList = () => {
                                                                     </span>
                                                                 ))
                                                             ) : (
-                                                                <span className="text-gray-500">No service available</span>
+                                                                <span className="text-gray-700">No service available</span>
                                                             )}
                                                         </div>
                                                     </div>

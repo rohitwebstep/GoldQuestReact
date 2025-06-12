@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import { useApiCall } from '../ApiCallContext';
 const UpdatePasswordForm = () => {
-        const { isApiLoading ,checkAuthentication} = useApiCall();
-    
+    const { isApiLoading, checkAuthentication } = useApiCall();
+
     const [newPass, setNewPass] = useState({
         newpass: '',
         c_newpass: '',
@@ -25,30 +25,35 @@ const UpdatePasswordForm = () => {
 
     const validate = () => {
         const NewErr = {};
-    
+
         // Check if the new password is provided and its length is between 8 and 10 characters
-        if (!newPass.newpass) NewErr.newpass = 'This is required';
-        else if (newPass.newpass.length < 8 || newPass.newpass.length > 10) 
+        if (!newPass.newpass) {
+            NewErr.newpass = 'This is required';
+        }
+        /*
+        else if (newPass.newpass.length < 8 || newPass.newpass.length > 10) {
             NewErr.newpass = 'Password must be between 8 and 10 characters long';
-    
+        }
+            */
+
         // Check if the confirmation password is provided
         if (!newPass.c_newpass) NewErr.c_newpass = 'This is required';
-        else if (newPass.c_newpass !== newPass.newpass) 
+        else if (newPass.c_newpass !== newPass.newpass)
             NewErr.c_newpass = 'Passwords do not match';
-    
+
         return NewErr;
     };
 
-       useEffect(() => {
-            const fetchData = async () => {
-                if (!isApiLoading) {
-                    await checkAuthentication();
-                }
-            };
-        
-            fetchData();
-        }, []);
-    
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!isApiLoading) {
+                await checkAuthentication();
+            }
+        };
+
+        fetchData();
+    }, []);
+
 
     const handleSubmit = (e) => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
@@ -73,25 +78,25 @@ const UpdatePasswordForm = () => {
             };
 
             fetch("https://api.goldquestglobal.in/admin/update-password", requestOptions)
-            .then(response => {
-                const result = response.json();
-                const newToken = result._token || result.token;
-                if (newToken) {
-                    localStorage.setItem("_token", newToken);
-                }
-                  if (!response.ok) {
-                      return response.text().then(text => {
-                          const errorData = JSON.parse(text);
-                          Swal.fire(
-                              'Error!',
-                              `An error occurred: ${errorData.message}`,
-                              'error'
-                          );
-                          throw new Error(text);
-                      });
-                  }
-                  return result;
-              })
+                .then(response => {
+                    const result = response.json();
+                    const newToken = result._token || result.token;
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken);
+                    }
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            const errorData = JSON.parse(text);
+                            Swal.fire(
+                                'Error!',
+                                `An error occurred: ${errorData.message}`,
+                                'error'
+                            );
+                            throw new Error(text);
+                        });
+                    }
+                    return result;
+                })
                 .then((result) => {
                     // Clear form and errors on successful update
                     setNewPass({ newpass: '', c_newpass: '' });
@@ -113,7 +118,7 @@ const UpdatePasswordForm = () => {
                 <input
                     type="password"
                     name="newpass"
-                    className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                    className="appearance-none border rounded border-gray-300 shadow-md w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                     id="newpassword"
                     placeholder='********'
                     onChange={handleChange}
@@ -126,7 +131,7 @@ const UpdatePasswordForm = () => {
                 <input
                     type="password"
                     name="c_newpass"
-                    className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                    className="appearance-none border rounded w-full border-gray-300 shadow-md py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                     id="confirmnewpassword"
                     placeholder='********'
                     onChange={handleChange}

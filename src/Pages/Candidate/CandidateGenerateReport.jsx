@@ -776,7 +776,7 @@ const CandidateGenerateReport = () => {
 
     return (
         <div className="border rounded-md">
-            <h2 className="text-2xl font-bold py-3 text-center px-3 "> CANDIDATE GENERATE REPORT</h2>
+            <h2 className="text-2xl font-bold py-3 text-center px-3 text-[#3e76a5] "> CANDIDATE GENERATE REPORT</h2>
             <div className="bg-white md:p-12">
                 {loading ? (
                     <div className='flex justify-center items-center py-6 '>
@@ -1256,7 +1256,7 @@ const CandidateGenerateReport = () => {
 
                         <div className="form-group border rounded-md p-3">
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">First Level Insufficiency Remarks</label>
+                                <label className='capitalize text-gray-700' htmlFor="first_insufficiency_marks">First Level Insufficiency Remarks</label>
                                 <input
                                     type="text"
                                     name="updated_json.insuffDetails.first_insufficiency_marks"
@@ -1267,7 +1267,7 @@ const CandidateGenerateReport = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="first_insuff_date">First Insuff Raised Date:</label>
+                                <label className='capitalize text-gray-700' htmlFor="first_insuff_date">First Insuff Raised Date:</label>
                                 <input
                                     type="date"
                                     name="updated_json.insuffDetails.first_insuff_date"
@@ -1278,7 +1278,7 @@ const CandidateGenerateReport = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="first_insuff_reopened_date">First Insuff Cleared Date / Re-Opened date</label>
+                                <label className='capitalize text-gray-700' htmlFor="first_insuff_reopened_date">First Insuff Cleared Date / Re-Opened date</label>
                                 <input
                                     type="date"
                                     name="updated_json.insuffDetails.first_insuff_reopened_date"
@@ -1289,7 +1289,7 @@ const CandidateGenerateReport = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="second Level Insufficiency Remarks">Second Level Insufficiency Remarks</label>
+                                <label className='capitalize text-gray-700' htmlFor="second Level Insufficiency Remarks">Second Level Insufficiency Remarks</label>
                                 <input
                                     type="text"
                                     name="updated_json.insuffDetails.second_insufficiency_marks"
@@ -1301,7 +1301,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="second Insuff Raised Date:">Second Insuff Raised Date:</label>
+                                <label className='capitalize text-gray-700' htmlFor="second Insuff Raised Date:">Second Insuff Raised Date:</label>
                                 <input
                                     type="date"
                                     name="updated_json.insuffDetails.second_insuff_date"
@@ -1313,7 +1313,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="second Insuff Cleared Date / Re-Opened date">Second Insuff Cleared Date / Re-Opened date</label>
+                                <label className='capitalize text-gray-700' htmlFor="second Insuff Cleared Date / Re-Opened date">Second Insuff Cleared Date / Re-Opened date</label>
                                 <input
                                     type="date"
                                     name="updated_json.insuffDetails.second_insuff_reopened_date"
@@ -1325,7 +1325,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="third Level Insufficiency Remarks">third Level Insufficiency Remarks</label>
+                                <label className='capitalize text-gray-700' htmlFor="third Level Insufficiency Remarks">third Level Insufficiency Remarks</label>
                                 <input
                                     type="text"
                                     name="updated_json.insuffDetails.third_insufficiency_marks"
@@ -1337,7 +1337,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="third Insuff Raised Date:">third Insuff Raised Date:</label>
+                                <label className='capitalize text-gray-700' htmlFor="third Insuff Raised Date:">third Insuff Raised Date:</label>
                                 <input
                                     type="date"
                                     name="updated_json.insuffDetails.third_insuff_date"
@@ -1349,7 +1349,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="third Insuff Cleared Date / Re-Opened date">third Insuff Cleared Date / Re-Opened date</label>
+                                <label className='capitalize text-gray-700' htmlFor="third Insuff Cleared Date / Re-Opened date">third Insuff Cleared Date / Re-Opened date</label>
                                 <input
                                     type="date"
                                     name="updated_json.insuffDetails.third_insuff_reopened_date"
@@ -1361,7 +1361,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4 ">
-                                <label className='capitalize text-gray-500' htmlFor="overall status">overall status</label>
+                                <label className='capitalize text-gray-700' htmlFor="overall status">overall status</label>
                                 <select
                                     name="updated_json.insuffDetails.overall_status"
                                     value={formData.updated_json.insuffDetails.overall_status}
@@ -1381,7 +1381,7 @@ const CandidateGenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="report date">report date</label>
+                                    <label className='capitalize text-gray-700' htmlFor="report date">report date</label>
                                     <input
                                         type="date"
                                         name="updated_json.insuffDetails.report_date"
@@ -1393,7 +1393,7 @@ const CandidateGenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="overall status">Report Status:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="overall status">Report Status:</label>
                                     <select name="updated_json.insuffDetails.report_status" id=""
                                         value={formData.updated_json.insuffDetails.report_status}
                                         onChange={handleChange}
@@ -1408,7 +1408,7 @@ const CandidateGenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="report status">Report Type:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="report status">Report Type:</label>
                                     <select name="updated_json.insuffDetails.report_type" id=""
                                         value={formData.updated_json.insuffDetails.report_type}
                                         onChange={handleChange}
@@ -1421,7 +1421,7 @@ const CandidateGenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="Final Verification Status:">Final Verification Status:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="Final Verification Status:">Final Verification Status:</label>
                                     <select name="updated_json.insuffDetails.final_verification_status"
                                         value={formData.updated_json.insuffDetails.final_verification_status}
                                         onChange={handleChange}
@@ -1438,7 +1438,7 @@ const CandidateGenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500  ' htmlFor="Is verified by quality team">Is verified by quality team</label>
+                                    <label className='capitalize text-gray-700  ' htmlFor="Is verified by quality team">Is verified by quality team</label>
                                     <select name="updated_json.insuffDetails.is_verify"
                                         value={formData.updated_json.insuffDetails.is_verify}
                                         onChange={handleChange}
@@ -1450,7 +1450,7 @@ const CandidateGenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500 ' htmlFor="deadline date">deadline date</label>
+                                    <label className='capitalize text-gray-700 ' htmlFor="deadline date">deadline date</label>
                                     <input
                                         type="date"
                                         name="updated_json.insuffDetails.deadline_date"
@@ -1464,7 +1464,7 @@ const CandidateGenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500 ' htmlFor="Address">Address</label>
+                                    <label className='capitalize text-gray-700 ' htmlFor="Address">Address</label>
                                     <select name="updated_json.insuffDetails.insuff_address"
                                         value={formData.updated_json.insuffDetails.insuff_address}
                                         onChange={handleChange}
@@ -1475,7 +1475,7 @@ const CandidateGenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500' htmlFor="basic entry">basic entry</label>
+                                    <label className='capitalize text-gray-700' htmlFor="basic entry">basic entry</label>
                                     <select name="updated_json.insuffDetails.basic_entry"
                                         value={formData.updated_json.insuffDetails.basic_entry}
                                         onChange={handleChange}
@@ -1488,7 +1488,7 @@ const CandidateGenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500 ' htmlFor="education">education</label>
+                                    <label className='capitalize text-gray-700 ' htmlFor="education">education</label>
                                     <select name="updated_json.insuffDetails.education" id=""
                                         value={formData.updated_json.insuffDetails.education}
                                         onChange={handleChange}
@@ -1500,7 +1500,7 @@ const CandidateGenerateReport = () => {
                                 </div>
 
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="case upload">case upload</label>
+                                    <label className='capitalize text-gray-700' htmlFor="case upload">case upload</label>
                                     <input
                                         type="text"
                                         name="updated_json.insuffDetails.case_upload"
@@ -1514,7 +1514,7 @@ const CandidateGenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500 block' htmlFor="Employment Spoc:">Employment Spoc:</label>
+                                    <label className='capitalize text-gray-700 block' htmlFor="Employment Spoc:">Employment Spoc:</label>
                                     <select name="updated_json.insuffDetails.emp_spoc" id=""
                                         value={formData.updated_json.insuffDetails.emp_spoc}
                                         onChange={handleChange}
@@ -1525,7 +1525,7 @@ const CandidateGenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500' htmlFor="Report Generated By:">Report Generated By:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="Report Generated By:">Report Generated By:</label>
                                     <select name="updated_json.insuffDetails.report_generate_by"
                                         value={formData.updated_json.insuffDetails.report_generate_by}
                                         onChange={handleChange}
@@ -1541,7 +1541,7 @@ const CandidateGenerateReport = () => {
                                 </div>
                             </div>
                             <div className="mb-4 ">
-                                <label className='capitalize block text-gray-500' htmlFor="QC Done By:">QC Done By:</label>
+                                <label className='capitalize block text-gray-700' htmlFor="QC Done By:">QC Done By:</label>
 
                                 <select name="updated_json.insuffDetails.qc_done_by"
                                     value={formData.updated_json.insuffDetails.qc_done_by}
@@ -1556,7 +1556,7 @@ const CandidateGenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="Remarks & reason for Delay:">Remarks & reason for Delay:</label>
+                                <label className='capitalize text-gray-700' htmlFor="Remarks & reason for Delay:">Remarks & reason for Delay:</label>
                                 <input
                                     type="text"
                                     value={formData.updated_json.insuffDetails.delay_reason}

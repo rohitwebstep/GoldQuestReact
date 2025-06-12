@@ -205,7 +205,7 @@ const Dashboard = () => {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="3" className="py-3 px-4 border-b text-center text-gray-500">No applications available</td>
+                                                <td colSpan="3" className="py-3 px-4 border-b text-center text-gray-700">No applications available</td>
                                             </tr>
                                         )}
                                     </tbody>

@@ -22,8 +22,8 @@ const DigitalAddressVerification = () => {
             mobile_number: '',
             email: '',
             candidate_location: '',
-            candidate_address:'',
-            aadhaar_number: '',
+            candidate_address: '',
+            id_card_details: '',
             dob: '',
             father_name: '',
             husband_name: '',
@@ -159,7 +159,7 @@ const DigitalAddressVerification = () => {
                     longitude: mapLocation.longitude
                 }
             }));
-            
+
         }
     };
     const isApplicationExists = useCallback(() => {
@@ -224,8 +224,8 @@ const DigitalAddressVerification = () => {
                                 mobile_number: result.data?.mobile_number || '',
                                 email: result.data?.email || '',
                                 candidate_location: '',
-                                candidate_address:'',
-                                aadhaar_number: '',
+                                candidate_address: '',
+                                id_card_details: '',
                                 dob: '',
                                 father_name: '',
                                 husband_name: '',
@@ -271,7 +271,7 @@ const DigitalAddressVerification = () => {
                 customerLogoFormData.append("upload_category", key);
             }
 
-          
+
 
             try {
                 const response = await axios.post(`https://api.goldquestglobal.in/branch/candidate-application/digital-address-verification/upload`, customerLogoFormData, {
@@ -290,6 +290,33 @@ const DigitalAddressVerification = () => {
     }, []);
 
 
+    async function getCoordinatesFromAddress(address) {
+        try {
+            console.log('📍 Original address input:', address);
+
+            const encoded = encodeURIComponent(address);
+            console.log('🔐 Encoded address:', encoded);
+
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${GOOGLE_API_KEY}`;
+            console.log('🌐 Geocoding API URL:', url);
+
+            const response = await axios.get(url);
+            console.log('📦 Raw geocoding response:', JSON.stringify(response.data, null, 2));
+
+            if (response.data.status === 'OK') {
+                const location = response.data.results[0].geometry.location;
+                console.log('✅ Extracted Coordinates:', location);
+                return location;
+            } else {
+                console.error('⚠️ Geocoding failed with status:', response.data.status);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ Error while fetching geocode:', error.message);
+            return null;
+        }
+    }
+
 
     const handleSubmitForm = async (e) => {
         e.preventDefault();
@@ -299,28 +326,41 @@ const DigitalAddressVerification = () => {
         myHeaders.append("Content-Type", "application/json");
         const form = document.getElementById('bg-form');
         const personal_information = formData.personal_information;
-    
+        const fullAddress = [
+            personal_information.house_flat_no,
+            personal_information.street_adress,
+            personal_information.locality_name,
+            personal_information.landmark,
+            personal_information.city,
+            personal_information.state,
+            personal_information.country
+        ].filter(Boolean).join(', ');
+        const secondCoord = await getCoordinatesFromAddress(fullAddress);
+        const address_latitude=secondCoord.lat
+        const address_longitude=secondCoord.long
+        console.log(`secondCoord - `, secondCoord);
+        return;
         const raw = JSON.stringify({
             branch_id: decodedValues.branch_id,
             customer_id: decodedValues.customer_id,
             application_id: decodedValues.app_id,
             personal_information,
         });
-    
+
         const requestOptions = {
             method: "PUT",
             headers: myHeaders,
             body: raw,
             redirect: "follow"
         };
-    
+
         try {
             const response = await fetch(
                 "https://api.goldquestglobal.in/branch/candidate-application/digital-address-verification/submit",
                 requestOptions
             );
             const result = await response.json();
-    
+
             if (result.status) {
                 // Show success message
                 Swal.fire({
@@ -334,7 +374,7 @@ const DigitalAddressVerification = () => {
                         isApplicationExists();
                     }
                 });
-    
+
                 // If there are files, upload customer logo
                 if (fileCount > 0) {
                     await uploadCustomerLogo(
@@ -363,23 +403,23 @@ const DigitalAddressVerification = () => {
             setLoading(false); // Stop loading after operations complete
         }
     };
-    
+
     return (
         <>
 
             <form action="" onSubmit={handleSubmitForm} className='p-4' id='bg-form'>
                 {loading ? (
                     <div className="flex justify-center items-center h-screen w-screen">
-                    <PulseLoader 
-                        color="#36D7B7" 
-                        loading={loading} 
-                        size={15} 
-                        aria-label="Candidate Loading Spinner" 
-                    />
-                </div>
+                        <PulseLoader
+                            color="#36D7B7"
+                            loading={loading}
+                            size={15}
+                            aria-label="Candidate Loading Spinner"
+                        />
+                    </div>
                 ) : (
                     <>
-                    
+
                         <h3 className="text-center py-3 font-bold text-2xl">Digital Address Verification</h3>
 
                         <div className="border md:w-7/12 m-auto p-4 ">
@@ -443,8 +483,8 @@ const DigitalAddressVerification = () => {
 
                             <div className="md:grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                                 <div className=" my-3 form-group">
-                                    <label htmlFor="aadhaar_number" className="block text-sm font-medium text-gray-700">Aadhaar Number:</label>
-                                    <input type="text" value={formData.personal_information.aadhaar_number} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md border p-2" name="aadhaar_number" />
+                                    <label htmlFor="id_card_details" className="block text-sm font-medium text-gray-700">Id Card details (Passport/Dl/Resident Card/Adhaar)</label>
+                                    <input type="text" value={formData.personal_information.id_card_details} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md border p-2" name="id_card_details" />
                                 </div>
 
                                 <div className=" my-3 form-group">

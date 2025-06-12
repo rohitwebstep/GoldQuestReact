@@ -387,7 +387,7 @@ const DeletionRequest = () => {
     return (
         <>
             <div className=" py-4 md:py-16">
-                <h2 className='md:text-4xl text-2xl font-bold pb-8 md:pb-4 text-center'>Deletion Requests</h2>
+                <h2 className=' text-2xl font-bold pb-8 md:pb-4 text-center text-[#3e76a5] '>Deletion Requests</h2>
 
                 <div className="overflow-x-auto py-6 px-4 bg-white shadow-md rounded-md md:m-10 m-3">
                 <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
@@ -397,7 +397,7 @@ const DeletionRequest = () => {
                                     <select name="options" id="" onChange={(e) => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
-                                    }} className='outline-none md:pe-14 md:ps-2 text-left rounded-md border w-7/12 md:w-auto p-3'>
+                                    }} className='outline-none md:pe-14 md:ps-2 text-left border-gray-300 shadow-md rounded-md border w-7/12 md:w-auto p-3'>
                                         <option value="10">10 Rows</option>
                                         <option value="20">20 Rows</option>
                                         <option value="50">50 Rows</option>
@@ -423,7 +423,7 @@ const DeletionRequest = () => {
                                 <div className="flex md:items-stretch items-center  gap-3">
                                     <input
                                         type="search"
-                                        className='outline-none border-2 p-2 text-sm rounded-md w-full my-4 md:my-0'
+                                        className='outline-none border-2 p-2 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here'
                                         value={searchTerm}
                                           onChange={(e) => {

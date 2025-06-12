@@ -149,7 +149,7 @@ const ActivityLogs = () => {
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="border p-2 rounded md:w-full w-7/12 "
+                            className="border p-2 border-gray-300 shadow-md  rounded md:w-full w-7/12 "
                         />
 
                         <button
@@ -166,7 +166,7 @@ const ActivityLogs = () => {
                             setItemsPerPage(Number(e.target.value));
                             setCurrentPage(1);
                         }}
-                        className="border rounded-lg px-3 py-2 mt-2 md:mt-0 text-gray-700 w-full md:w-auto bg-white  shadow-sm focus:ring-2 focus:ring-blue-400"
+                        className="border rounded-lg px-3 py-2 mt-2 md:mt-0 text-gray-700 w-full md:w-auto bg-white  shadow-md  focus:ring-2 focus:ring-blue-400"
                     >
                         {optionsPerPage.map((option) => (
                             <option key={option} value={option}>

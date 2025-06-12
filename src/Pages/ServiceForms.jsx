@@ -418,7 +418,7 @@ const ServiceForms = () => {
 
     return (
         <div className="bg-[#f7fafc] md:w-10/12 md:mx-auto m-4 mt-10 border border-gray-300 md:p-6 p-3 rounded-lg shadow-lg">
-            <h2 className="md:text-3xl font-bold py-3 text-center text-[#2d3b44] mb-4">
+            <h2 className="md:text-2xl font-bold py-3 text-center text-[#2d3b44] mb-4 text-[#3e76a5]">
                 GENERATE REPORT SERVICE FORM
             </h2>
 
@@ -428,7 +428,7 @@ const ServiceForms = () => {
 
                     <h3 className="text-lg font-semibold mb-3">Step 1: Define Heading and Headers</h3>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Heading:</label>
+                        <label className="block text-sm  font-bold text-gray-700">Heading:</label>
                         <input
                             type="text"
                             value={formData.heading}
@@ -436,7 +436,7 @@ const ServiceForms = () => {
                             className="border px-4 py-2 w-full rounded-lg mt-2"
                         />
                     </div>
-                    <label className="block text-sm font-medium text-gray-700">Headers:</label>
+                    <label className="block text-sm font-bold text-gray-700">Headers:</label>
 
                     <div className="mb-4 md:grid grid-cols-2 gap-2">
                         {formData.headers.filter(header => header !== "PARTICULARS").map((header, index) => (
@@ -501,7 +501,7 @@ const ServiceForms = () => {
                                     {row.inputs.map((input, inputIndex) => (
                                         <>
                                             <div className='mb-2'>
-                                                <label className="block text-sm font-medium text-gray-700">Label:</label>
+                                                <label className="block text-sm font-bold text-gray-700">Label:</label>
                                                 <input
                                                     type="text"
                                                     value={input.label}
@@ -509,10 +509,10 @@ const ServiceForms = () => {
                                                     className="border px-4 py-2 w-full rounded-lg"
                                                 />
                                             </div>
-                                            <div key={inputIndex} className="flex flex-col gap-4 p-4 border mb-4 rounded-lg shadow-sm">
+                                            <div key={inputIndex} className="flex flex-col gap-4 p-4 border mb-4 rounded-lg shadow-md ">
                                                 {/* Input heading rendered from formData.headers */}
                                                 {formData.headers[inputIndex] && (
-                                                    <h4 className="text-sm font-medium text-gray-800">
+                                                    <h4 className="text-sm font-bold  text-gray-700">
                                                         Input Type
                                                     </h4>
                                                 )}

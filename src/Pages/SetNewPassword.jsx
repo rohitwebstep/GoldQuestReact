@@ -19,6 +19,7 @@ const SetNewPassword = () => {
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent default form submission
     
+        /*
         // Password length validation
         if (password.length < 8 || password.length>10) {
             setPasswordError("Password must be between 8 and 10 characters long");
@@ -33,6 +34,7 @@ const SetNewPassword = () => {
         } else {
             setConfirmPasswordError(""); // Clear error if valid
         }
+            */
     
         // Check if passwords match
         if (password !== confirmPassword) {
@@ -107,7 +109,7 @@ const SetNewPassword = () => {
             <div className="bg-white md:w-5/12 w-full m-auto shadow-md rounded-sm p-5 border">
                 <div className="text-center">
                     <PiDotsThreeFill className="text-8xl w-full text-center" />
-                    <h2 className="text-3xl font-bold py-4">Set New Password</h2>
+                    <h2 className="text-2xl font-bold py-4">Set New Password</h2>
                     <p className="text-lg">Must be at least 8 characters</p>
                 </div>
                 <form onSubmit={handleSubmit}>

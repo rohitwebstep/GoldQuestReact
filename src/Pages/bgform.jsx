@@ -1045,7 +1045,7 @@ const GenerateReport = () => {
 
 
     return (
-        <div className="border rounded-md">
+        <div className="border border-gray-300 shadow-md rounded-md">
             <h2 className="text-2xl font-bold py-3 text-center px-3 ">GENERATE REPORT</h2>
             <div className="bg-white ">
                 {loading ? (
@@ -1066,7 +1066,7 @@ const GenerateReport = () => {
                                             onChange={handleDateChange}
                                             dateFormat="MMM yyyy"  // Format to display abbreviated Month and Year (e.g., "Jan 2025")
                                             showMonthYearPicker
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             name="month_year"
                                             id="month_year"
                                         />
@@ -1092,7 +1092,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="organization_name"
                                             id="organization_name"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.organization_name}
                                             disabled={formData.updated_json.organization_name}
                                             onChange={handleChange}
@@ -1105,7 +1105,7 @@ const GenerateReport = () => {
                                             name="verification_purpose"
                                             onChange={handleCustomInputChange}
                                             value={formData.updated_json.verification_purpose}
-                                            className="border w-full rounded-md p-2 mt-2"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2"
                                             id="verification_purpose"
                                         >
                                             <option value="">SELECT PURPOSE</option>
@@ -1134,7 +1134,7 @@ const GenerateReport = () => {
                                                     name="customPurpose"
                                                     value={formData.updated_json.customPurpose}
                                                     onChange={handleChange}
-                                                    className="border w-full rounded-md p-2 mt-2"
+                                                    className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2"
                                                     id="customPurpose"
                                                 />
                                             </div>
@@ -1164,7 +1164,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="employee_id"
                                             id="employee_id"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.employee_id}
                                             disabled={formData.updated_json.employee_id}
                                             onChange={handleChange}
@@ -1178,7 +1178,7 @@ const GenerateReport = () => {
                                             name="client_code"
                                             id="client_code"
                                             disabled
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.client_code}
 
                                             onChange={handleChange}
@@ -1193,7 +1193,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="applicant_name"
                                             id="applicant_name"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.applicant_name}
                                             disabled
                                             onChange={handleChange}
@@ -1206,7 +1206,7 @@ const GenerateReport = () => {
                                             type="tel"
                                             name="contact_number"
                                             id="contact_number"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.contact_number}
 
                                             onChange={handleChange}
@@ -1221,7 +1221,7 @@ const GenerateReport = () => {
                                             type="tel"
                                             name="contact_number2"
                                             id="contact_number2"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.contact_number2}
 
                                             onChange={handleChange}
@@ -1234,7 +1234,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="father_name"
                                             id="father_name"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.father_name}
 
                                             onChange={handleChange}
@@ -1248,7 +1248,7 @@ const GenerateReport = () => {
                                         <select
                                             name="gender"
                                             id="gender"
-                                            className="border w-full rounded-md p-2 mt-2"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2"
                                             value={formData.updated_json.gender}
 
                                             onChange={handleChange}
@@ -1274,7 +1274,7 @@ const GenerateReport = () => {
                                         <select
                                             name="marital_status"
                                             id="marital_status"
-                                            className="border w-full rounded-md p-2 mt-2"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2"
                                             value={formData.updated_json.marital_status}
 
                                             onChange={handleChange}
@@ -1298,7 +1298,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="updated_json.permanent_address.permanent_address"
                                             id="full_address"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.permanent_address.permanent_address || ''}
                                             onChange={handleChange}
                                         />
@@ -1313,7 +1313,7 @@ const GenerateReport = () => {
                                                     type="text"
                                                     name="updated_json.permanent_address.permanent_sender_name"
                                                     id="permanent_sender_name"
-                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                                     value={formData.updated_json.permanent_address.permanent_sender_name}
                                                     onChange={handleChange}
                                                 />
@@ -1339,7 +1339,7 @@ const GenerateReport = () => {
                                                     type="text"
                                                     name="updated_json.permanent_address.permanent_landmark"
                                                     id="permanent_landmark"
-                                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                    className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                                     value={formData.updated_json.permanent_address.permanent_landmark}
                                                     onChange={handleChange}
                                                 />
@@ -1381,7 +1381,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="updated_json.address.address"
                                             id="address"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.address.address}
                                             onChange={handleChange}
                                         />
@@ -1392,7 +1392,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="updated_json.address.landmark"
                                             id="landmark"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.address.landmark}
                                             onChange={handleChange}
                                         />
@@ -1403,7 +1403,7 @@ const GenerateReport = () => {
                                             type="text"
                                             name="updated_json.address.residence_mobile_number"
                                             id="residence_mobile_number"
-                                            className="border w-full rounded-md p-2 mt-2 capitalize"
+                                            className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                             value={formData.updated_json.address.residence_mobile_number}
                                             onChange={handleChange}
                                         />
@@ -1445,7 +1445,7 @@ const GenerateReport = () => {
 
                                                         {/* Status Selector */}
                                                         <select
-                                                            className="border p-2 mt-4 md:mt-0 w-full rounded-md"
+                                                            className="border border-gray-300 shadow-md p-2 mt-4 md:mt-0 w-full rounded-md"
                                                             value={preselectedStatus}
                                                             onChange={(e) => handleStatusChange(e, index)}  // Handle status change here
                                                             required
@@ -1473,7 +1473,7 @@ const GenerateReport = () => {
                                                         <input
                                                             type='number'
                                                             placeholder='Sorting By Order'
-                                                            className="border p-2 mt-4 md:mt-0 rounded-md w-full"
+                                                            className="border border-gray-300 shadow-md p-2 mt-4 md:mt-0 rounded-md w-full"
                                                             id={`sorting_order_${index}`}
                                                             value={preselectedSortingOrder}
                                                             onChange={(e) => handleSortingOrderChange(e, dbTable)}  // Assuming you have a handler for sorting order
@@ -1591,12 +1591,12 @@ const GenerateReport = () => {
                         <div className="form-group border rounded-md p-3">
 
                             <div className="mb-4 ">
-                                <label className='capitalize text-gray-500' htmlFor="overall status">overall status</label>
+                                <label className='capitalize text-gray-700' htmlFor="overall status">overall status</label>
                                 <select
                                     name="updated_json.insuffDetails.overall_status"
                                     value={formData.updated_json.insuffDetails.overall_status}
                                     onChange={handleChange}
-                                    className="border rounded-md p-2 mt-2 capitalize w-full"
+                                    className="border border-gray-300 shadow-md rounded-md p-2 mt-2 capitalize w-full"
                                 >
 
                                     <option value="">Select overall Status</option>
@@ -1619,23 +1619,23 @@ const GenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="report date">report date</label>
+                                    <label className='capitalize text-gray-700' htmlFor="report date">report date</label>
                                     <input
                                         type="date"
                                         name="updated_json.insuffDetails.report_date"
                                         id="report_date"
-                                        className="border rounded-md p-2 w-full mt-2 capitalize"
+                                        className="border border-gray-300 shadow-md rounded-md p-2 w-full mt-2 capitalize"
                                         value={formData.updated_json.insuffDetails.report_date}
                                         onChange={handleChange}
                                     />
 
                                 </div>
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="overall status">Report Status:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="overall status">Report Status:</label>
                                     <select name="updated_json.insuffDetails.report_status" id=""
                                         value={formData.updated_json.insuffDetails.report_status}
                                         onChange={handleChange}
-                                        className="border rounded-md p-2 mt-2 capitalize w-full">
+                                        className="border border-gray-300 shadow-md rounded-md p-2 mt-2 capitalize w-full">
                                         <option value="">Selet Report Status</option>
                                         <option value="Open">Open</option>
                                         <option value="Closed">Closed</option>
@@ -1645,11 +1645,11 @@ const GenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="report status">Report Type:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="report status">Report Type:</label>
                                     <select name="updated_json.insuffDetails.report_type" id=""
                                         value={formData.updated_json.insuffDetails.report_type}
                                         onChange={handleChange}
-                                        className="border rounded-md p-2 mt-2  w-full">
+                                        className="border border-gray-300 shadow-md rounded-md p-2 mt-2  w-full">
                                         <option value="">Selet Report Type</option>
                                         <option value="Interim Report">Interim Report</option>
                                         <option value="Final Report">Final Report</option>
@@ -1658,11 +1658,11 @@ const GenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="Final Verification Status:">Final Verification Status:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="Final Verification Status:">Final Verification Status:</label>
                                     <select name="updated_json.insuffDetails.final_verification_status"
                                         value={formData.updated_json.insuffDetails.final_verification_status}
                                         onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        id="" className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Selet Verification Status</option>
                                         <option value="green">green</option>
                                         <option value="red">red</option>
@@ -1677,12 +1677,12 @@ const GenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500  ' htmlFor="Is verified by quality team">Is verified by quality team</label>
+                                    <label className='capitalize text-gray-700  ' htmlFor="Is verified by quality team">Is verified by quality team</label>
                                     <select name="updated_json.insuffDetails.is_verify"
                                         value={formData.updated_json.insuffDetails.is_verify}
                                         onChange={handleChange}
 
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        id="" className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Please Select.....</option>
                                         <option value="yes">yes</option>
                                         <option value="no">no</option>
@@ -1690,12 +1690,12 @@ const GenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500 ' htmlFor="deadline date">deadline date</label>
+                                    <label className='capitalize text-gray-700 ' htmlFor="deadline date">deadline date</label>
                                     <input
                                         type="date"
                                         name="updated_json.insuffDetails.deadline_date"
                                         id="deadline_date"
-                                        className="border w-full rounded-md p-2 mt-2 capitalize"
+                                        className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                         value={formData.updated_json.insuffDetails.deadline_date}
                                         onChange={handleChange}
                                     />
@@ -1704,11 +1704,11 @@ const GenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500 ' htmlFor="Address">Address</label>
+                                    <label className='capitalize text-gray-700 ' htmlFor="Address">Address</label>
                                     <select name="updated_json.insuffDetails.insuff_address"
                                         value={formData.updated_json.insuffDetails.insuff_address}
                                         onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        id="" className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Selet Address</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
@@ -1717,11 +1717,11 @@ const GenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500' htmlFor="basic entry">basic entry</label>
+                                    <label className='capitalize text-gray-700' htmlFor="basic entry">basic entry</label>
                                     <select name="updated_json.insuffDetails.basic_entry"
                                         value={formData.updated_json.insuffDetails.basic_entry}
                                         onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        id="" className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Selet basic entry</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
@@ -1731,11 +1731,11 @@ const GenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500 ' htmlFor="education">education</label>
+                                    <label className='capitalize text-gray-700 ' htmlFor="education">education</label>
                                     <select name="updated_json.insuffDetails.education" id=""
                                         value={formData.updated_json.insuffDetails.education}
                                         onChange={handleChange}
-                                        className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Selet Education</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
@@ -1744,12 +1744,12 @@ const GenerateReport = () => {
                                 </div>
 
                                 <div className="mb-4">
-                                    <label className='capitalize text-gray-500' htmlFor="case upload">case upload</label>
+                                    <label className='capitalize text-gray-700' htmlFor="case upload">case upload</label>
                                     <input
                                         type="text"
                                         name="updated_json.insuffDetails.case_upload"
                                         id="case_upload"
-                                        className="border w-full rounded-md p-2 mt-2 capitalize"
+                                        className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                         value={formData.updated_json.insuffDetails.case_upload}
                                         onChange={handleChange}
                                     />
@@ -1758,11 +1758,11 @@ const GenerateReport = () => {
                             </div>
                             <div className="grid md:grid-cols-2 grid-cols-1 gap-3">
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500 block' htmlFor="Employment Spoc:">Employment Spoc:</label>
+                                    <label className='capitalize text-gray-700 block' htmlFor="Employment Spoc:">Employment Spoc:</label>
                                     <select name="updated_json.insuffDetails.emp_spoc" id=""
                                         value={formData.updated_json.insuffDetails.emp_spoc}
                                         onChange={handleChange}
-                                        className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Selet Employment Spoc</option>
                                         <option value="yes">yes</option>
                                         <option value="no">no</option>
@@ -1770,11 +1770,11 @@ const GenerateReport = () => {
 
                                 </div>
                                 <div className="mb-4 ">
-                                    <label className='capitalize text-gray-500' htmlFor="Report Generated By:">Report Generated By:</label>
+                                    <label className='capitalize text-gray-700' htmlFor="Report Generated By:">Report Generated By:</label>
                                     <select name="updated_json.insuffDetails.report_generate_by"
                                         value={formData.updated_json.insuffDetails.report_generate_by}
                                         onChange={handleChange}
-                                        id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                        id="" className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                         <option value="">Select Admin</option>
                                         {adminNames.map((spoc, index) => (
                                             <option key={index} value={spoc.id}>{spoc.name}</option>
@@ -1786,12 +1786,12 @@ const GenerateReport = () => {
                                 </div>
                             </div>
                             <div className="mb-4 ">
-                                <label className='capitalize block text-gray-500' htmlFor="QC Done By:">QC Done By:</label>
+                                <label className='capitalize block text-gray-700' htmlFor="QC Done By:">QC Done By:</label>
 
                                 <select name="updated_json.insuffDetails.qc_done_by"
                                     value={formData.updated_json.insuffDetails.qc_done_by}
                                     onChange={handleChange}
-                                    id="" className="border w-full rounded-md p-2 mt-2 capitalize">
+                                    id="" className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize">
                                     <option value="">Select Admin</option>
                                     {adminNames.map((spoc, index) => (
                                         <option key={index} value={spoc.id}>{spoc.name}</option>
@@ -1801,14 +1801,14 @@ const GenerateReport = () => {
 
                             </div>
                             <div className="mb-4">
-                                <label className='capitalize text-gray-500' htmlFor="Remarks & reason for Delay:">Remarks & reason for Delay:</label>
+                                <label className='capitalize text-gray-700' htmlFor="Remarks & reason for Delay:">Remarks & reason for Delay:</label>
                                 <input
                                     type="text"
                                     value={formData.updated_json.insuffDetails.delay_reason}
                                     onChange={handleChange}
                                     name="updated_json.insuffDetails.delay_reason"
                                     id="delay_reason"
-                                    className="border w-full rounded-md p-2 mt-2 capitalize"
+                                    className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                 />
 
 
@@ -1825,7 +1825,7 @@ const GenerateReport = () => {
                                         formData.updated_json.insuffDetails.have_not_insuff === "1" ||
                                         formData.updated_json.insuffDetails.have_not_insuff === 1
                                     }
-                                    className="border rounded-md p-2 capitalize"
+                                    className="border border-gray-300 shadow-md rounded-md p-2 capitalize"
                                 />
                                 <label htmlFor="have_not_insuff" className='font-bold capitalize text-lg'>Have Not Insuff</label>
                             </div>
@@ -1839,34 +1839,34 @@ const GenerateReport = () => {
 
 
                                         <div className="mb-4">
-                                            <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">Insufficiency Remarks</label>
+                                            <label className='capitalize text-gray-700' htmlFor="first_insufficiency_marks">Insufficiency Remarks</label>
                                             <input
                                                 type="text"
                                                 name="updated_json.insuffDetails.first_insufficiency_marks"
                                                 id="first_insufficiency_marks"
-                                                className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                                 value={formData.updated_json.insuffDetails.first_insufficiency_marks}
                                                 onChange={handleChange}
                                             />
                                         </div>
                                         <div className="mb-4">
-                                            <label className='capitalize text-gray-500' htmlFor="first_insuff_date">Insuff Raised Date:</label>
+                                            <label className='capitalize text-gray-700' htmlFor="first_insuff_date">Insuff Raised Date:</label>
                                             <input
                                                 type="date"
                                                 name="updated_json.insuffDetails.first_insuff_date"
                                                 id="first_insuff_date"
-                                                className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                                 value={formData.updated_json.insuffDetails.first_insuff_date}
                                                 onChange={handleChange}
                                             />
                                         </div>
                                         <div className="mb-4">
-                                            <label className='capitalize text-gray-500' htmlFor="first_insuff_reopened_date">Insuff Cleared Date / Re-Opened date</label>
+                                            <label className='capitalize text-gray-700' htmlFor="first_insuff_reopened_date">Insuff Cleared Date / Re-Opened date</label>
                                             <input
                                                 type="date"
                                                 name="updated_json.insuffDetails.first_insuff_reopened_date"
                                                 id="first_insuff_reopened_date"
-                                                className="border w-full rounded-md p-2 mt-2 capitalize"
+                                                className="border border-gray-300 shadow-md w-full rounded-md p-2 mt-2 capitalize"
                                                 value={formData.updated_json.insuffDetails.first_insuff_reopened_date}
                                                 onChange={handleChange}
                                             />
