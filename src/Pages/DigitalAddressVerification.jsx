@@ -47,7 +47,7 @@ const DigitalAddressVerification = () => {
             case "building_photo":
                 title = "Examples: Building / Home Photo";
                 examples = [
-                    { valid: true, imageUrl:`${hometrue}`, description: "Front view of entire building." },
+                    { valid: true, imageUrl: `${hometrue}`, description: "Front view of entire building." },
                     { valid: false, imageUrl: `${invalidhomepic}`, description: "Only a partial wall or unrelated structure." }
                 ];
                 break;
@@ -489,25 +489,19 @@ const DigitalAddressVerification = () => {
                 .then(res => res.json())
                 .then(result => {
                     if (!result.status) {
+                        const message = result.message.toLowerCase();
+                        const isAlreadySubmitted = message.includes("already") && message.includes("submitted");
+
                         setIsValidApplication(false);
-                        Swal.fire({
-                            title: 'Error',
-                            text: result.message,
-                            icon: 'error',
-                            confirmButtonText: 'OK',
-                        });
 
                         const form = document.getElementById('bg-form');
                         if (form) {
                             form.remove();
                         }
 
-                        const errorMessageDiv = document.createElement('div');
-                        errorMessageDiv.classList.add(
-                            'bg-red-100',
-                            'text-red-800',
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add(
                             'border',
-                            'border-red-400',
                             'p-6',
                             'rounded-lg',
                             'max-w-lg',
@@ -521,12 +515,32 @@ const DigitalAddressVerification = () => {
                             '-translate-y-1/2'
                         );
 
-                        errorMessageDiv.innerHTML = `
-                            <h1 class="font-semibold text-2xl">Error</h1>
-                            <p class="text-lg">${result.message}</p>
-                        `;
+                        let title = 'Error';
+                        let icon = 'error';
 
-                        document.body.appendChild(errorMessageDiv);
+                        if (isAlreadySubmitted) {
+                            // Success message styling
+                            messageDiv.classList.add('bg-green-100', 'text-green-800', 'border-green-400');
+                            title = 'Success';
+                            icon = 'success';
+                        } else {
+                            // Error message styling
+                            messageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400');
+                        }
+
+                        Swal.fire({
+                            title: title,
+                            text: result.message,
+                            icon: icon,
+                            confirmButtonText: 'OK',
+                        });
+
+                        messageDiv.innerHTML = `
+        <h1 class="font-semibold text-2xl">${title}</h1>
+        <p class="text-lg">${result.message}</p>
+    `;
+
+                        document.body.appendChild(messageDiv);
                     } else {
                         setData(result.data);
                         setFormData({
@@ -729,30 +743,34 @@ const DigitalAddressVerification = () => {
 
 
                 if (fileCount === 0) {
+                    /*
                     Swal.fire({
                         title: "Success",
                         text: `Client Created Successfully.`,
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
-                        // Run isApplicationExists() when the OK button is clicked
-                        isApplicationExists();
-                    });
+                        */
+                    // Run isApplicationExists() when the OK button is clicked
+                    isApplicationExists();
+                    // });
                 } else if (fileCount > 0) {
                     await uploadCustomerLogo(
                         decodedValues.app_id,
                         decodedValues.branch_id,
                         decodedValues.customer_id
                     );
+                    /*
                     Swal.fire({
                         title: "Success",
                         text: `Client Created Successfully.`,
                         icon: "success",
                         confirmButtonText: "Ok",
                     }).then(() => {
+                        */
 
-                        isApplicationExists();
-                    });
+                    isApplicationExists();
+                    // });
                 }
             } else {
                 Swal.fire({
@@ -1001,12 +1019,12 @@ const DigitalAddressVerification = () => {
                             </div>
 
                             <div className=" my-3 form-group">
-                               
-                                    <label htmlFor="id_proof" className="block text-sm font-medium text-gray-700">Upload id or Proof of Residence (Electricity Bill, Rent Receipt, Adhaar, Passport with same Address )<span className='text-red-500'>* </span>  
+
+                                <label htmlFor="id_proof" className="block text-sm font-medium text-gray-700">Upload id or Proof of Residence (Electricity Bill, Rent Receipt, Adhaar, Passport with same Address )<span className='text-red-500'>* </span>
                                     <button type="button" onClick={() => handleShowPopup("id_proof")} className="text-blue-600 text- underline ">
                                         Show Examples
                                     </button></label>
-                               
+
 
                                 <input type="file" className="mt-1 block w-full border-gray-300 rounded-md border p-2" id="id_proof" name="id_proof"
                                     onChange={(e) => handleFileChange('id_proof', e)}
@@ -1020,7 +1038,7 @@ const DigitalAddressVerification = () => {
 
                             <div className=" my-3 form-group">
                                 <label htmlFor="house_name_main_door" className="block text-sm font-medium text-gray-700">House name board / Main Door<span className='text-red-500'>* </span>
-                                <button type="button" onClick={() => handleShowPopup("home_photo")} className="text-blue-600 text- underline ">
+                                    <button type="button" onClick={() => handleShowPopup("home_photo")} className="text-blue-600 text- underline ">
                                         Show Examples
                                     </button></label>
                                 <input type="file" className="mt-1 block w-full border-gray-300 rounded-md border p-2" id="house_name_main_door" name="house_name_main_door" onChange={(e) => handleFileChange('house_name_main_door', e)}
@@ -1032,9 +1050,9 @@ const DigitalAddressVerification = () => {
                             <div className="md:grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className=" my-3 form-group">
                                     <label htmlFor="building_photo" className="block text-sm font-medium text-gray-700">Building / Home Photo<span className='text-red-500'>* </span>
-                                     <button type="button" onClick={() => handleShowPopup("building_photo")} className="text-blue-600 text- underline ">
-                                        Show Examples
-                                    </button>
+                                        <button type="button" onClick={() => handleShowPopup("building_photo")} className="text-blue-600 text- underline ">
+                                            Show Examples
+                                        </button>
                                     </label>
                                     <input type="file" className="mt-1 block w-full border-gray-300 rounded-md border p-2" id="building_photo" name="building_photo" onChange={(e) => handleFileChange('building_photo', e)}
                                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" multiple />
@@ -1044,9 +1062,9 @@ const DigitalAddressVerification = () => {
                                 </div>
                                 <div className=" my-3 form-group">
                                     <label htmlFor="street_photo" className="block text-sm font-medium text-gray-700">Street Photo<span className='text-red-500'>* </span>
-                                      <button type="button" onClick={() => handleShowPopup("street_photo")} className="text-blue-600 text- underline ">
-                                        Show Examples
-                                    </button></label>
+                                        <button type="button" onClick={() => handleShowPopup("street_photo")} className="text-blue-600 text- underline ">
+                                            Show Examples
+                                        </button></label>
                                     <input type="file" className="mt-1 block w-full border-gray-300 rounded-md border p-2" id="street_photo" name="street_photo" onChange={(e) => handleFileChange('street_photo', e)}
                                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" multiple />
                                     {errors.street_photo && (
@@ -1055,9 +1073,9 @@ const DigitalAddressVerification = () => {
                                 </div>
                                 <div className=" my-3 form-group">
                                     <label htmlFor="nearest_landmark" className="block text-sm font-medium text-gray-700"> Nearest landmark if any<span className='text-red-500'>* </span>
-                                       <button type="button" onClick={() => handleShowPopup("nearest_landmark")} className="text-blue-600 text- underline ">
-                                        Show Examples
-                                    </button></label>
+                                        <button type="button" onClick={() => handleShowPopup("nearest_landmark")} className="text-blue-600 text- underline ">
+                                            Show Examples
+                                        </button></label>
                                     <input type="file" className="mt-1 block w-full border-gray-300 rounded-md border p-2" id="nearest_landmark" name="nearest_landmark" onChange={(e) => handleFileChange('nearest_landmark', e)}
                                         accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" multiple />
                                     {errors.nearest_landmark && (
