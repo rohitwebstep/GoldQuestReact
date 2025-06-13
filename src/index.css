@@ -1,0 +1,543 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+    box-sizing: border-box;
+    font-family: "Arimo", sans-serif;
+}
+
+.react-time-picker__inputGroup input {
+  width: 10% !important;
+  outline: none;
+}
+.select-search-container input.select-search-input {
+  border-radius: 6px;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}.react-datepicker-wrapper {
+    width: 100%;
+}
+.rsw-editor {
+    height: 350px;
+}
+div#root {
+    max-width: 2000px;
+    margin: auto;
+
+}
+.shadow-md{
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px !important;
+}
+.table-row {
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+}
+
+.table-row-open {
+  opacity: 1;
+  max-height: 100px; /* Adjust this value based on your expected content height */
+}
+body{
+  background-color: #1a1a1a05;
+}
+/* this is my demo comment */
+
+[role='tooltip'].popup-content {
+    width: 60%;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 3px;
+    left: 20% !important;
+    background-color: transparent  !important;
+    border: none  !important;
+}
+
+  
+  [data-popup='tooltip'].popup-overlay {
+    background: #000000c7;
+}
+div#popup-2 {
+    width: 65% !important;
+    left: 20% !important;
+    overflow: scroll;
+    height: 100%;
+    top: 0 !important;
+}
+@media(max-width:767px){
+    div#popup-2 {
+        margin: 0 auto;
+        width: 90%;
+        left: 0 !important;
+        top: 0 !important;
+        right: 0;
+    }
+}
+.disabled {
+    opacity: 0.5;
+    pointer-events: none; /* Prevents any interaction */
+}
+/* ChartContainer.css */
+
+/* Modal Container */
+.modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff; /* White background */
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 400px; /* Maximum width for responsiveness */
+    width: 90%; /* Fallback width */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    z-index: 1000; /* Ensure modal is on top */
+  }
+  
+  /* Overlay */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 999; /* Behind the modal but above the page content */
+  }
+  
+  /* Modal Header */
+  .modal h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #333;
+  }
+  
+  /* Modal Form Elements */
+  .modal form label {
+    display: block;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+  }
+  
+  .modal form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  
+  .modal form input:focus {
+    border-color: #4caf50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  }
+  
+  /* Modal Buttons */
+  .modal .flex {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .modal button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .modal button:hover {
+    opacity: 0.9;
+  }
+  
+  .modal .bg-gray-300 {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+  
+  .modal .bg-gray-300:hover {
+    background-color: #d5d5d5;
+  }
+  
+  .select-search-container {
+    width: 100% !important;
+}
+@media(min-width:1600px){
+  .logo_img{
+    height: 200px !important;
+  }
+  .signinbtn{
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+  }
+}
+/* CSS to center the error box on the page */
+.error-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+  height: 100px;
+  margin: 0 auto;
+  background-color: #f8d7da; /* Light red background */
+  color: #721c24; /* Dark red text */
+  border: 1px solid #f5c6cb; /* Red border */
+  border-radius: 8px; /* Rounded corners */
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%; /* Vertically center */
+  left: 50%; /* Horizontally center */
+  transform: translate(-50%, -50%); /* Offset the position to perfectly center */
+}
+#sider_content button {
+  color: #192330 !important;
+  margin-left: 12px !important;
+}
+/* Overlay: Transparent background */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgb(0 0 0 / 10%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal content container */
+.custom-modal-content {
+  outline: none;
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 1001;
+}
+
+/* Modal container styling */
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+
+
+/* List of attachments */
+.modal-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.modal-list-text {
+  font-size: 1rem;
+  color: #333;
+}
+
+
+/* Footer (close button container) */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.modal-close-button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.modal-close-button:hover {
+  background-color: #c82333;
+}
+.select-search-container.select-search-is-multiple ul.select-search-options {
+  display: none;
+}
+
+
+.select-search-container.select-search-is-multiple.select-search-has-focus ul.select-search-options {
+  display: block !important;
+}
+.fileViewer img{
+max-width: 150px;
+height: 150px;
+object-fit: contain; 
+margin: 0 auto;
+}
+.fileViewer_service img{
+  max-width: 60px;
+height: 60px;
+}
+@media(max-width:767px){
+  td{
+    font-size: 12px !important;
+  }
+  th {
+    font-size: 13px !important;
+}
+  label {
+    font-size: 14px !important;
+}
+input,select{
+  font-size: 13px !important;
+}
+.fileViewer_service img {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+}
+}
+
+#servicesForm label {
+  line-height: 27px;
+}
+#servicesForm input {
+  padding: 8px;
+}
+#servicesForm input[type="file"] {
+  margin-top: 5px !important;
+  padding: 5px;
+}
+@media(min-width:1024px) and (max-width:1370px){
+  #login_form .logo_img {
+    height: 90px !important;
+}
+
+#login_form .flex.flex-col.items-center.mb-3.md\:mb-12 {
+    margin-bottom: 10px;
+}
+#login_form h2.text-\[18px\].text-center.font-bold.text-\[\#24245a\] {
+  font-size: 13px;
+}
+#login_form h2.text-\[18px\].text-center.font-bold.text-\[\#24245a\] {
+  font-size: 13px;
+}
+
+#login_form h2.text-xl.font-semibold.text-center.text-\[\#24245a\].mb-6.md\:text-2xl {
+  font-size: 18px;
+}
+
+#login_form form.mt-8 {margin-top: 10px;}
+
+#login_form input {
+  padding: 10px;
+  font-size: 12px;
+}
+
+#login_form button.w-full {
+  padding: 7px;
+  font-size: 15px;
+}
+}
+.form-blocked {
+  background-color: #f3f4f6; /* Light gray background */
+  opacity: 0.6; /* Make the form appear disabled */
+}
+#menuitem {
+  height: 60vh;
+}
+
+@media (min-width: 768px) {
+  #menuitem {
+    height: 70vh;
+  }
+}
+
+@media (min-width: 992px) {
+  #menuitem {
+    height: 80vh;
+  }
+}
+
+@media (min-width: 1200px) {
+  #menuitem {
+    height: 85vh;
+  }
+}
+
+
+
+  h1 {
+    text-align: center;
+  }
+  .progressbar-container {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    border: 1px solid #FFF;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    .progressbar-complete {
+      position: absolute;
+      left: 0;
+      top: 0px;
+      height: 100%;
+      background-color: #5225bd;
+      border-radius: 10px;
+      animation: g 2500ms infinite ease-in-out;
+      z-index: 2;
+      .progressbar-liquid {
+        z-index: 1;
+        width: 70px;
+        height: 70px;
+        animation: g 2500ms infinite ease-in-out, r 3000ms infinite cubic-bezier(0.5, 0.5, 0.5, 0.5);
+        position: absolute;
+        right: -5px;
+        top: -10px;
+        background-color: #5225bd;
+        border-radius: 40%;
+      }
+    }
+    .progress {
+      z-index: 2;
+    }
+  }
+
+
+@keyframes g {
+  0% { background-color: #5225bd; }
+  50% { background-color: #607e9e; }
+  100% { background-color: #5225bd; }
+}
+
+@keyframes r {
+  from { transform: rotate(0deg); }
+  from { transform: rotate(360deg); }
+}
+
+.filter-menu {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+  margin-bottom: 20px;
+}
+
+.filter-menu::-webkit-scrollbar {
+  height: 3px;
+}
+
+.filter-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.filter-menu::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border-radius: 10px;
+}
+
+.filter-menu::-webkit-scrollbar-thumb:hover {
+  background: #22c55e;
+}
+.custom-gap-check td{
+  width: 50% !important; 
+}
+@media(min-width:992px) and (max-width:1600px){
+  div#menuitem ul li {
+    font-size: 12px;
+    padding: 9px;
+}
+
+div#menuitem ul li {
+    font-size: 15px;
+    padding: 9px;
+}
+
+div#menuitem ul li svg {
+    height: 16px;
+    width: 16px;
+    margin-right: 9px;
+}
+}
+.swal2-container.swal2-center.custom-container.swal2-backdrop-show {
+  background: #000000ed !important;
+}
+div#menuitem ul li:hover svg {
+  color: #fff;
+}
+div#sider_content ul li:hover svg {
+  color: #fff;
+}
+div#menuitem ul li.text-white svg {
+  color: #fff;
+}
+div#sider_content ul li.text-white svg {
+  color: #fff;
+}
+.sliding-container {
+  transition: transform 0.5s ease-in-out;
+}
+
+.sliding-container.active {
+  transform: translateX(0);
+}
+.SelectedServices {
+  max-height: 300px;
+}
+.adharcard ul {
+  padding: 5px;
+  padding-right: 70px;
+  left: 101px;
+  background: #fbfbfb;
+}
+.pancard ul {
+  padding: 5px;
+  padding-right: 70px;
+  left: 101px;
+  background: #fbfbfb;
+}
+.dynamic ul {
+  top: 10px;
+  padding: 5px;
+  padding-right: 80px;
+  left: 113px;
+  background: #fbfbfb;
+}
+.signature ul {
+  top: 40px;
+  padding: 5px;
+  padding-right: 80px;
+  left: 104px;
+  background: #ffffff;
+}
