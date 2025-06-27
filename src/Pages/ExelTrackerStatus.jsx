@@ -1820,14 +1820,21 @@ const exportToExcel = async () => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
                                     }} className='outline-none pe-14 border-gray-300 shadow-md ps-2 w-7/12 md:w-auto text-left rounded-md border'>
-                                        <option value="10">10 Rows</option>
-                                        <option value="20">20 Rows</option>
-                                        <option value="50">50 Rows</option>
-                                        <option value="100">100 Rows</option>
-                                        <option value="200">200 Rows</option>
-                                        <option value="300">300 Rows</option>
-                                        <option value="400">400 Rows</option>
-                                        <option value="500">500 Rows</option>
+                                       <option value="10">10 Rows</option>
+<option value="20">20 Rows</option>
+<option value="50">50 Rows</option>
+<option value="100">100 Rows</option>
+<option value="200">200 Rows</option>
+<option value="300">300 Rows</option>
+<option value="400">400 Rows</option>
+<option value="500">500 Rows</option>
+<option value="600">600 Rows</option>
+<option value="700">700 Rows</option>
+<option value="800">800 Rows</option>
+<option value="900">900 Rows</option>
+<option value="1000">1000 Rows</option>
+
+                                        
                                     </select>
                                     <button
                                         onClick={exportToExcel}
