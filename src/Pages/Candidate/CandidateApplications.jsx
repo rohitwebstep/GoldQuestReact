@@ -96,14 +96,18 @@ const GenerateReport = () => {
     useEffect(() => {
         const currentDate = new Date();
         const monthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+        // console.log(`formData.updated_json.month_year- `, formData.updated_json.month_year);
 
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            updated_json: {
-                ...prevFormData.updated_json,
-                month_year: prevFormData.updated_json.month_year || monthYear,
-            }
-        }));
+        if (!formData.updated_json.month_year) {
+
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                updated_json: {
+                    ...prevFormData.updated_json,
+                    month_year: formData.updated_json.month_year || prevFormData.updated_json.month_year || monthYear,
+                }
+            }));
+        }
     }, []);
 
 
@@ -351,7 +355,7 @@ const GenerateReport = () => {
                 setApplications(result.application)
                 const cmtData = result.CMTData || [];
                 const services = applicationData.services;
-                fetchServicesJson(services, applicationData,cmtDataRaw); // Fetch services JSON
+                fetchServicesJson(services, applicationData, cmtDataRaw); // Fetch services JSON
                 setBranchInfo(result.branchInfo); // Set branch info
                 setCustomerInfo(result.customerInfo); // Set customer info
                 setReportGeneratorAdminNames(result.reportGenerationTeam); // Set admin names
@@ -394,14 +398,15 @@ const GenerateReport = () => {
                 setFormData(prevFormData => {
                     // Check if cmtData.month_year is valid, otherwise use applicationData or fallback
                     const monthYear = cmtData.month_year || applicationData.month_year || prevFormData.updated_json.month_year || '';
+                    // console.log(`monthYear - `, monthYear);
 
                     // If the monthYear is valid, format it; otherwise, skip updating
                     const formattedMonthYear = isValidMonthYear(monthYear) ? formatMonthYear(monthYear, 2025) : prevFormData.updated_json.month_year;
-
+                    // console.log(`formattedMonthYear - `, formattedMonthYear);
                     return {
                         updated_json: {
                             application_id: applicationData.application_id || prevFormData.updated_json.application_id || '',
-                            month_year: formattedMonthYear || prevFormData.updated_json.month_year || '',
+                            month_year: monthYear || prevFormData.updated_json.month_year || '',
                             insta_drug_test: cmtData.insta_drug_test || applicationData.insta_drug_test || prevFormData.updated_json.insta_drug_test || '',
                             organization_name: applicationData.customer_name || prevFormData.updated_json.organization_name || '',
                             verification_purpose: applicationData.purpose_of_application || prevFormData.updated_json.verification_purpose || '',
@@ -541,7 +546,7 @@ const GenerateReport = () => {
     };
 
 
-    const fetchServicesJson = useCallback(async (servicesList, rawApplicationData,cmtDataApp) => {
+    const fetchServicesJson = useCallback(async (servicesList, rawApplicationData, cmtDataApp) => {
         // console.log("rawApplicationData", rawApplicationData);
         const app_id = rawApplicationData.id;
         // console.log("app_id", app_id);
@@ -1055,7 +1060,7 @@ const GenerateReport = () => {
                         <input
                             type={input.type}
                             name={input.name}
-                            value={inputValue  || input.value}
+                            value={inputValue || input.value}
                             className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             onChange={(e) => handleInputChange(e, input, index)}
                             onBlur={(e) => handleFocusOut(e, index)}
@@ -2061,7 +2066,7 @@ const GenerateReport = () => {
                         </div>
 
 
-                           <div className="form-group  rounded-md p-3">
+                        <div className="form-group  rounded-md p-3">
                             <div className="mb-4">
                                 <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">First Level Insufficiency Remarks</label>
                                 <input
