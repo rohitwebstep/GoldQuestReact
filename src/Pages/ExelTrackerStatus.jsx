@@ -1694,7 +1694,7 @@ const exportToExcel = async () => {
                     "APPLICATION ID": data?.application_id || "NIL",
                     "NAME OF THE APPLICANT": data?.name || "NIL",
                     "APPLICANT EMPLOYEE ID": data?.employee_id || "NIL",
-                    "INITIATION DATE": data?.created_at ? new Date(data.created_at).toLocaleDateString() : "NIL",
+                    "INITIATION DATE": data?.initiation_date ? new Date(data.initiation_date).toLocaleDateString() : "NIL",
                     "DOWNLOAD REPORT STATUS": data?.is_report_downloaded ? "Downloaded" : "Not Downloaded",
                     "REPORT TYPE": data?.report_type || "NIL",
                     "REPORT DATE": data?.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
@@ -1939,7 +1939,7 @@ const exportToExcel = async () => {
                                                 </td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.employee_id || 'NIL'}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                    {formatDate(data.created_at)|| "NIL"}
+                                                    {formatDate(data.initiation_date)|| "NIL"}
                                                 </td>
 
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
