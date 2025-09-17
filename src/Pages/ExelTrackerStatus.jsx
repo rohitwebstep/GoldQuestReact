@@ -11,6 +11,8 @@ import Swal from 'sweetalert2';
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import { useApiCall } from '../ApiCallContext';
 import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 import verified from '../Images/verified.webp'
 import isologo from '../Images/iso-logo.jpg'
 const AdminChekin = () => {
@@ -36,7 +38,14 @@ const AdminChekin = () => {
     const clientId = queryParams.get('clientId');
     const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
     const token = localStorage.getItem('_token');
+    const [activeReportId, setActiveReportId] = useState(null); // Track which report's modal is active
 
+    const openModal = (reportId) => {
+        setActiveReportId(reportId); // Set the active report ID to open its modal
+    };
+    const closeModal = () => {
+        setActiveReportId(null); // Reset active report ID to close the modal
+    };
     const fetchData = useCallback((selected) => {
         if (!branch_id || !adminId || !token) {
             return; // Prevent fetch if essential data is missing
@@ -110,7 +119,110 @@ const AdminChekin = () => {
 
     }, [branch_id, adminId, token, setData, setOptions]);
 
+    const handleDownloadAll = async (attachments) => {
+        console.log("Starting handleDownloadAll with attachments:", attachments);
+        const zip = new JSZip();
+        let allUrls = [];
 
+        try {
+            // Show loading indication
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Collecting image URLs...',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Collect all image URLs
+            const urls = attachments.split(',').map(url => url.trim());
+            console.log("Collected URLs:", urls);
+
+            allUrls = urls.map(url => ({ category: "attachments", label: "image", urls: [url] }));
+            console.log("AllUrls array:", allUrls);
+
+            if (allUrls.length === 0) {
+                console.warn("No valid image URLs found");
+                Swal.fire('No valid image URLs found', '', 'warning');
+                return;
+            }
+
+            // Fetch all images as Base64
+            const base64Response = await fetchImageToBase(urls);
+            console.log("Base64 response from API:", base64Response);
+            const base64Images = base64Response || [];
+
+            if (base64Images.length === 0) {
+                console.error("No images received from API");
+                Swal.fire('No images received from API', '', 'error');
+                return;
+            }
+
+            // Process each image and add them to the ZIP file
+            let imageIndex = 0;
+            for (const { category, label, urls } of allUrls) {
+                for (const url of urls) {
+                    console.log(`Processing image URL: ${url}`);
+                    const imageData = base64Images.find(img => img.imageUrl === url);
+                    console.log("Found imageData:", imageData);
+
+                    if (imageData && imageData.base64.startsWith("data:image")) {
+                        const base64Data = imageData.base64.split(",")[1];
+                        console.log("Base64Data for image:", base64Data ? base64Data.substring(0, 30) + "..." : "undefined");
+                        const blob = base64ToBlob(base64Data, imageData.type);
+                        console.log("Created blob:", blob);
+
+                        if (blob) {
+                            const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
+                            console.log("Adding file to zip:", fileName);
+                            zip.file(fileName, blob);
+                        }
+                    } else {
+                        console.warn("Image data not found or invalid for URL:", url);
+                    }
+                    imageIndex++;
+                }
+            }
+
+            // Generate ZIP file content
+            console.log("Generating ZIP file...");
+            const zipContent = await zip.generateAsync({ type: "blob" });
+            console.log("ZIP file generated, saving...");
+
+            // Use FileSaver.js to download the ZIP file
+            saveAs(zipContent, "attachments.zip");
+            console.log("ZIP file saved as attachments.zip");
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'ZIP file downloaded successfully.',
+                icon: 'success'
+            });
+        } catch (error) {
+            console.error("Error in handleDownloadAll:", error);
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while generating the ZIP file.',
+                icon: 'error'
+            });
+        }
+    };
+       const base64ToBlob = (base64) => {
+        try {
+            // Convert Base64 string to binary
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            return new Blob([byteNumbers], { type: "image/png" });
+        } catch (error) {
+            console.error("Error converting base64 to blob:", error);
+            return null;
+        }
+    };
     // const fetchAdminList = useCallback(() => {
     //     setIsApiLoading(true);
     //     setLoading(true); // Start loading before fetching data
@@ -489,7 +601,7 @@ const AdminChekin = () => {
 
         // Right-align page number with respect to the page width
         const pageNumberX = pageWidth - margin - pageNumberWidth;
-        doc.text(pageNumberText, pageNumberX, footerYPosition ); // Adjusted vertical position
+        doc.text(pageNumberText, pageNumberX, footerYPosition); // Adjusted vertical position
 
         // Draw a line above the footer
         doc.setLineWidth(0.3);
@@ -573,7 +685,7 @@ const AdminChekin = () => {
             const pageWidth = doc.internal.pageSize.getWidth();
             let yPosition = 5;
             const backgroundColor = '#f5f5f5';
- const blueBg="#6495ed";
+            const blueBg = "#6495ed";
             doc.addImage("https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1", 'PNG', 10, yPosition, 50, 30);
 
             const rightImageX = pageWidth - 10 - 70; // Page width minus margin (10) and image width (50)
@@ -628,15 +740,15 @@ const AdminChekin = () => {
             // First Table
             const firstTableData = [
                 [
-                    { content: 'Name of the Candidate', styles: { cellWidth: 'auto',  overflow: 'linebreak',   fontStyle: 'bold' } },
+                    { content: 'Name of the Candidate', styles: { cellWidth: 'auto', overflow: 'linebreak', fontStyle: 'bold' } },
                     { content: applicationInfo?.name || 'NA' },
-                    { content: 'Client Name', styles: { cellWidth: 'auto',overflow: 'linebreak', fontStyle: 'bold' } },
+                    { content: 'Client Name', styles: { cellWidth: 'auto', overflow: 'linebreak', fontStyle: 'bold' } },
                     { content: branchData || 'NA' },
                 ],
                 [
-                    { content: 'Application ID', styles: { fontStyle: 'bold',overflow: 'linebreak' } },
+                    { content: 'Application ID', styles: { fontStyle: 'bold', overflow: 'linebreak' } },
                     { content: applicationInfo?.application_id || 'NA' },
-                    { content: 'Report Status', styles: { fontStyle: 'bold',overflow: 'linebreak' } },
+                    { content: 'Report Status', styles: { fontStyle: 'bold', overflow: 'linebreak' } },
                     {
                         content: applicationInfo?.report_status
                             ? applicationInfo.report_status
@@ -644,26 +756,26 @@ const AdminChekin = () => {
                                 .toUpperCase() // Convert entire string to uppercase
                             : 'NA'
                     }
-                    
-  
+
+
                 ],
                 [
                     { content: 'Date of Birth', styles: { fontStyle: 'bold' } },
-                    
+
                     {
                         content: applicationInfo?.dob
                             ? new Date(applicationInfo.dob).toLocaleDateString("en-GB").replace(/\//g, "-")
                             : "NA"
                     },
-  
+
                     { content: 'Application Received', styles: { fontStyle: 'bold' } },
                     {
                         content: applicationInfo?.created_at
                             ? new Date(applicationInfo.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")
                             : "NA"
                     }
-  
-  
+
+
                 ],
                 [
                     { content: 'Candidate Employee ID', styles: { fontStyle: 'bold' } },
@@ -674,7 +786,7 @@ const AdminChekin = () => {
                             ? new Date(applicationInfo.first_insuff_reopened_date).toLocaleDateString("en-GB").replace(/\//g, "-")
                             : 'NA'
                     }
-  
+
                 ],
                 [
                     { content: 'Report Type', styles: { fontStyle: 'bold' } },
@@ -685,7 +797,7 @@ const AdminChekin = () => {
                                 .toUpperCase()
                             : 'NA'
                     },
-  
+
                     { content: 'Final Report Date', styles: { fontStyle: 'bold' } },
                     {
                         content: applicationInfo?.report_date
@@ -703,36 +815,36 @@ const AdminChekin = () => {
                     },
                 ],
             ];
-  
+
             doc.autoTable({
-              head: [],
-              body: firstTableData,
-              styles: {
-                  cellPadding: 2,
-                  fontSize: 10,
-                  valign: 'middle',
-                  lineColor: [62, 118, 165],
-                  lineWidth: 0.3,
-                  textColor: '#000',
-              },
-              columnStyles: {
-                  0: { cellWidth: 45},
-                  1: { cellWidth: 'auto' },
-                  2: { cellWidth: 45 },
-                  3: { cellWidth: 'auto' },
-              },
-              theme: 'grid',
-              margin: { top: 50 },
-              willDrawCell: (data) => {
-                  const statusRow = firstTableData[5];
-                  const statusCell = data.cell.raw?.content;
-          
-                  if (statusCell === statusRow[3].content) {
-                      const { textColor } = getStatusColor(statusCell);
-                      data.cell.styles.textColor = textColor;
-                  }
-              },
-          });
+                head: [],
+                body: firstTableData,
+                styles: {
+                    cellPadding: 2,
+                    fontSize: 10,
+                    valign: 'middle',
+                    lineColor: [62, 118, 165],
+                    lineWidth: 0.3,
+                    textColor: '#000',
+                },
+                columnStyles: {
+                    0: { cellWidth: 45 },
+                    1: { cellWidth: 'auto' },
+                    2: { cellWidth: 45 },
+                    3: { cellWidth: 'auto' },
+                },
+                theme: 'grid',
+                margin: { top: 50 },
+                willDrawCell: (data) => {
+                    const statusRow = firstTableData[5];
+                    const statusCell = data.cell.raw?.content;
+
+                    if (statusCell === statusRow[3].content) {
+                        const { textColor } = getStatusColor(statusCell);
+                        data.cell.styles.textColor = textColor;
+                    }
+                },
+            });
 
 
             addFooter(doc);
@@ -829,7 +941,7 @@ const AdminChekin = () => {
                                 cellWidth: 'auto' // Ensures no wrapping
                             },
                         },
-                    ]                    
+                    ]
                 ],
                 body: filteredSecondTableData.map(row => {
                     let statusColor;
@@ -863,14 +975,14 @@ const AdminChekin = () => {
                             row.source || 'NIL',
                             {
                                 content: row.completedDate || 'NIL',
-                                styles: { overflow: 'hidden'  , cellWidth: 'auto', halign: 'center' }
+                                styles: { overflow: 'hidden', cellWidth: 'auto', halign: 'center' }
                             },
                             {
                                 content: statusText,
-                                styles: { halign: 'center', fontStyle: 'bold',overflow: 'hidden' , cellWidth: 'auto', ...statusColor }
+                                styles: { halign: 'center', fontStyle: 'bold', overflow: 'hidden', cellWidth: 'auto', ...statusColor }
                             },
                         ];
-                        
+
                     }
                 }).filter(Boolean), // Filter out undefined rows from the map (if any)
 
@@ -958,28 +1070,28 @@ const AdminChekin = () => {
             columns.forEach((col, index) => {
                 let columnStartX;
                 let columnWidth;
-            
+
                 if (index === 0) {
                     columnStartX = tableStartX;
                     columnWidth = legendColumnWidth;
                 } else {
                     const isPendingColumn = index === 4;
                     columnWidth = isPendingColumn ? otherColumnWidth + 6 : otherColumnWidth;
-            
+
                     // Adjust startX for previous columns
                     let prevWidthSum = legendColumnWidth;
                     for (let i = 1; i < index; i++) {
-                        prevWidthSum += (i === 4 ? otherColumnWidth + 6: otherColumnWidth);
+                        prevWidthSum += (i === 4 ? otherColumnWidth + 6 : otherColumnWidth);
                     }
-            
+
                     columnStartX = tableStartX + prevWidthSum;
                 }
-            
+
                 // Draw column separators
                 if (index > 0) {
                     doc.line(columnStartX, tableStartY, columnStartX, tableStartY + tableHeight);
                 }
-            
+
                 // Add label text
                 if (col.label) {
                     doc.setFont("helvetica", "bold");
@@ -991,7 +1103,7 @@ const AdminChekin = () => {
                         { baseline: "middle" }
                     );
                 }
-            
+
                 // Add color box
                 if (col.color) {
                     const boxX = columnStartX + 3;
@@ -999,7 +1111,7 @@ const AdminChekin = () => {
                     doc.setFillColor(col.color);
                     doc.rect(boxX, boxY, boxWidth, boxHeight, "F");
                 }
-            
+
                 // Add description text
                 if (col.description) {
                     doc.setFont("helvetica", "normal");
@@ -1009,7 +1121,7 @@ const AdminChekin = () => {
                     doc.text(col.description, textX, textY, { baseline: "middle" });
                 }
             });
-            
+
 
 
 
@@ -1167,7 +1279,7 @@ const AdminChekin = () => {
 
                     doc.setFillColor(backgroundColorHeading);
                     doc.setDrawColor(borderColor);
-                    doc.rect(xsPosition, yPosition,180, rectHeight, "FD");
+                    doc.rect(xsPosition, yPosition, 180, rectHeight, "FD");
 
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
@@ -1245,7 +1357,7 @@ const AdminChekin = () => {
                         yPosition += 7;
                     }
 
-                                    // Utility function to compress a base64 image
+                    // Utility function to compress a base64 image
                     function compressBase64Image(base64Str, maxWidth = 800, quality = 0.7) {
                         return new Promise((resolve) => {
                             const img = new Image();
@@ -1427,7 +1539,7 @@ const AdminChekin = () => {
 
             const disclaimerButtonXPosition = (doc.internal.pageSize.width - disclaimerButtonWidth) / 2;
 
-const whitecolor = "#fff"
+            const whitecolor = "#fff"
             if (disclaimerButtonWidth > 0 && disclaimerButtonHeight > 0 && !isNaN(disclaimerButtonXPosition) && !isNaN(disclaimerY)) {
                 doc.setDrawColor(62, 118, 165);
                 doc.setFillColor(blueBg);
@@ -1643,110 +1755,110 @@ const whitecolor = "#fff"
     const userRole = adminData.role;
 
 
-const exportToExcel = async () => {
-    // Show loader
-    Swal.fire({
-        title: 'Exporting...',
-        text: 'Please wait while the Excel file is being generated.',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
+    const exportToExcel = async () => {
+        // Show loader
+        Swal.fire({
+            title: 'Exporting...',
+            text: 'Please wait while the Excel file is being generated.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const worksheetData = await Promise.all(
+                filteredItems.map(async (data, index) => {
+                    const servicesData = await fetchServicesData(data.main_id, data.services);
+                    const headingsAndStatuses = [];
+
+                    servicesData.forEach((service) => {
+                        if (service.reportFormJson && service.reportFormJson.json) {
+                            const reportJson = JSON.parse(service.reportFormJson.json);
+                            const heading = reportJson?.heading || "NIL";
+
+                            let excelsorting = [];
+                            try {
+                                excelsorting = service?.reportFormJson?.excel_sorting
+                                    ? JSON.parse(service.reportFormJson.excel_sorting)
+                                    : [];
+                                if (!Array.isArray(excelsorting)) excelsorting = [];
+                            } catch (error) {
+                                console.error("Error parsing excel_sorting:", error);
+                                excelsorting = [];
+                            }
+
+                            if (heading) {
+                                let status = service.annexureData?.status || "Initiated";
+                                status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "INITIATED";
+                                headingsAndStatuses.push({ heading, status, sortOrder: excelsorting.indexOf(heading) });
+                            }
+                        }
+                    });
+
+                    headingsAndStatuses.sort((a, b) => (a.sortOrder - b.sortOrder || 0));
+
+                    const row = {
+                        INDEX: index + 1,
+                        "TAT DAYS": data?.tat_days || "NIL",
+                        "LOCATION NAME": data?.location || "NIL",
+                        "BATCH NUMBER": data?.batch_number || "NIL",
+                        "APPLICATION ID": data?.application_id || "NIL",
+                        "NAME OF THE APPLICANT": data?.name || "NIL",
+                        "APPLICANT EMPLOYEE ID": data?.employee_id || "NIL",
+                        "INITIATION DATE": data?.initiation_date ? new Date(data.initiation_date).toLocaleDateString() : "NIL",
+                        "DOWNLOAD REPORT STATUS": data?.is_report_downloaded ? "Downloaded" : "Not Downloaded",
+                        "REPORT TYPE": data?.report_type || "NIL",
+                        "REPORT DATE": data?.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
+                        "OVERALL STATUS": data?.overall_status || "NIL",
+                        ...headingsAndStatuses.reduce((acc, { heading, status }) => {
+                            acc[heading] = status || 'INITIATED';
+                            return acc;
+                        }, {}),
+                        "INSUFF REMARKS": data?.first_insufficiency_marks || "NIL",
+                        "INSUFF DATE": data?.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
+                        "INSUFF CLEARED": data?.first_insuff_reopened_date
+                            ? new Date(data.first_insuff_reopened_date).toLocaleDateString()
+                            : "NIL",
+                        "REMARKS & REASON FOR DELAY": data?.delay_reason || "NIL",
+                        ADDRESS: data?.address || "NIL",
+                        EDUCATION: data?.education || "NIL",
+                        "BASIC ENTRY": data?.basic_entry || "NIL",
+                        "CASE UPLOADED": data?.case_upload || "NIL",
+                        "EMPLOYEMENT SPOC": data?.single_point_of_contact || "NIL",
+                        "REPORT GENERATED BY": data?.report_generated_by_name || "NIL",
+                        "QC DONE BY": data?.qc_done_by_name || "NIL",
+                    };
+
+                    return row;
+                })
+            );
+
+            const ws = XLSX.utils.json_to_sheet(worksheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+            XLSX.writeFile(wb, "Data.xlsx");
+
+            // Close the loader and show success
+            Swal.fire({
+                icon: 'success',
+                title: 'Exported!',
+                text: 'Your Excel file has been downloaded.',
+                timer: 2000,
+                showConfirmButton: false,
+            });
+
+        } catch (error) {
+            // On error, show failure message
+            Swal.fire({
+                icon: 'error',
+                title: 'Export Failed',
+                text: 'Something went wrong during export. Please try again.',
+            });
+            console.error("Export to Excel failed:", error);
         }
-    });
-
-    try {
-        const worksheetData = await Promise.all(
-            filteredItems.map(async (data, index) => {
-                const servicesData = await fetchServicesData(data.main_id, data.services);
-                const headingsAndStatuses = [];
-
-                servicesData.forEach((service) => {
-                    if (service.reportFormJson && service.reportFormJson.json) {
-                        const reportJson = JSON.parse(service.reportFormJson.json);
-                        const heading = reportJson?.heading || "NIL";
-
-                        let excelsorting = [];
-                        try {
-                            excelsorting = service?.reportFormJson?.excel_sorting
-                                ? JSON.parse(service.reportFormJson.excel_sorting)
-                                : [];
-                            if (!Array.isArray(excelsorting)) excelsorting = [];
-                        } catch (error) {
-                            console.error("Error parsing excel_sorting:", error);
-                            excelsorting = [];
-                        }
-
-                        if (heading) {
-                            let status = service.annexureData?.status || "Initiated";
-                            status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "INITIATED";
-                            headingsAndStatuses.push({ heading, status, sortOrder: excelsorting.indexOf(heading) });
-                        }
-                    }
-                });
-
-                headingsAndStatuses.sort((a, b) => (a.sortOrder - b.sortOrder || 0));
-
-                const row = {
-                    INDEX: index + 1,
-                    "TAT DAYS": data?.tat_days || "NIL",
-                    "LOCATION NAME": data?.location || "NIL",
-                    "BATCH NUMBER": data?.batch_number || "NIL",
-                    "APPLICATION ID": data?.application_id || "NIL",
-                    "NAME OF THE APPLICANT": data?.name || "NIL",
-                    "APPLICANT EMPLOYEE ID": data?.employee_id || "NIL",
-                    "INITIATION DATE": data?.initiation_date ? new Date(data.initiation_date).toLocaleDateString() : "NIL",
-                    "DOWNLOAD REPORT STATUS": data?.is_report_downloaded ? "Downloaded" : "Not Downloaded",
-                    "REPORT TYPE": data?.report_type || "NIL",
-                    "REPORT DATE": data?.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
-                    "OVERALL STATUS": data?.overall_status || "NIL",
-                    ...headingsAndStatuses.reduce((acc, { heading, status }) => {
-                        acc[heading] = status || 'INITIATED';
-                        return acc;
-                    }, {}),
-                    "INSUFF REMARKS": data?.first_insufficiency_marks || "NIL",
-                    "INSUFF DATE": data?.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
-                    "INSUFF CLEARED": data?.first_insuff_reopened_date
-                        ? new Date(data.first_insuff_reopened_date).toLocaleDateString()
-                        : "NIL",
-                    "REMARKS & REASON FOR DELAY": data?.delay_reason || "NIL",
-                    ADDRESS: data?.address || "NIL",
-                    EDUCATION: data?.education || "NIL",
-                    "BASIC ENTRY": data?.basic_entry || "NIL",
-                    "CASE UPLOADED": data?.case_upload || "NIL",
-                    "EMPLOYEMENT SPOC": data?.single_point_of_contact || "NIL",
-                    "REPORT GENERATED BY": data?.report_generated_by_name || "NIL",
-                    "QC DONE BY": data?.qc_done_by_name || "NIL",
-                };
-
-                return row;
-            })
-        );
-
-        const ws = XLSX.utils.json_to_sheet(worksheetData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Data");
-
-        XLSX.writeFile(wb, "Data.xlsx");
-
-        // Close the loader and show success
-        Swal.fire({
-            icon: 'success',
-            title: 'Exported!',
-            text: 'Your Excel file has been downloaded.',
-            timer: 2000,
-            showConfirmButton: false,
-        });
-
-    } catch (error) {
-        // On error, show failure message
-        Swal.fire({
-            icon: 'error',
-            title: 'Export Failed',
-            text: 'Something went wrong during export. Please try again.',
-        });
-        console.error("Export to Excel failed:", error);
-    }
-};
+    };
 
 
     const statuses = {
@@ -1771,7 +1883,7 @@ const exportToExcel = async () => {
         "notReadyCount": "NOT READY",
         "downloadReportCount": "DOWNLOAD REPORT"
     };
-   const formatDate = (date) => {
+    const formatDate = (date) => {
         if (!date) return "NOT APPLICABLE"; // Check for null, undefined, or empty
         const dateObj = new Date(date);
         if (isNaN(dateObj.getTime())) return "Nill"; // Check for invalid date
@@ -1820,21 +1932,21 @@ const exportToExcel = async () => {
                                         handleSelectChange(e); // Call the select change handler
                                         setCurrentPage(1); // Reset current page to 1
                                     }} className='outline-none pe-14 border-gray-300 shadow-md ps-2 w-7/12 md:w-auto text-left rounded-md border'>
-                                       <option value="10">10 Rows</option>
-<option value="20">20 Rows</option>
-<option value="50">50 Rows</option>
-<option value="100">100 Rows</option>
-<option value="200">200 Rows</option>
-<option value="300">300 Rows</option>
-<option value="400">400 Rows</option>
-<option value="500">500 Rows</option>
-<option value="600">600 Rows</option>
-<option value="700">700 Rows</option>
-<option value="800">800 Rows</option>
-<option value="900">900 Rows</option>
-<option value="1000">1000 Rows</option>
+                                        <option value="10">10 Rows</option>
+                                        <option value="20">20 Rows</option>
+                                        <option value="50">50 Rows</option>
+                                        <option value="100">100 Rows</option>
+                                        <option value="200">200 Rows</option>
+                                        <option value="300">300 Rows</option>
+                                        <option value="400">400 Rows</option>
+                                        <option value="500">500 Rows</option>
+                                        <option value="600">600 Rows</option>
+                                        <option value="700">700 Rows</option>
+                                        <option value="800">800 Rows</option>
+                                        <option value="900">900 Rows</option>
+                                        <option value="1000">1000 Rows</option>
 
-                                        
+
                                     </select>
                                     <button
                                         onClick={exportToExcel}
@@ -1888,6 +2000,7 @@ const exportToExcel = async () => {
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Initiation Date</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Deadline Date</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Report Data</th>
+                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">View Docs</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Download Status</th>
 
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Overall Status</th>
@@ -1939,7 +2052,7 @@ const exportToExcel = async () => {
                                                 </td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{data.employee_id || 'NIL'}</td>
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                    {formatDate(data.initiation_date)|| "NIL"}
+                                                    {formatDate(data.initiation_date) || "NIL"}
                                                 </td>
 
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
@@ -1957,6 +2070,66 @@ const exportToExcel = async () => {
                                                         Generate Report
                                                     </button>
                                                 </td>
+
+                                                <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
+                                                    {data.attach_documents ? (
+                                                        <>
+
+                                                            {data.attach_documents.split(',').length > 0 ? (
+                                                                <button
+                                                                    disabled={isApiLoading}
+                                                                    className={`w-full rounded-md p-3 text-white ${isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-500'}`}
+
+                                                                    onClick={() => openModal(data.id)}
+                                                                >
+                                                                    View Documents
+                                                                </button>
+                                                            ) : null}
+                                                        </>
+                                                    ) : (
+                                                        'No Image Found'
+                                                    )}
+                                                </td>
+
+
+                                                {activeReportId === data.id && (
+                                                    <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex p-4 justify-center items-center">
+                                                        <div className="bg-white rounded-lg p-6 md:w-6/12 h-[400px] md:h-[500px] overflow-x-auto">
+                                                            <div className='flex flex-wrap justify-between items-center pb-3'> <h2 className="md:text-xl font-semibold mb-4 text-sm">All Documents</h2>
+                                                                <div className='flex gap-2'><button className="modal-download-button text-sm bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(data.attach_documents)}>
+                                                                    Download All
+                                                                </button>
+                                                                    <button
+                                                                        onClick={closeModal}
+                                                                        className=" px-4 py-2 bg-red-500 text-sm text-white rounded"
+                                                                    >
+                                                                        Close
+                                                                    </button></div></div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                {data.attach_documents.split(',').map((doc, index) => (
+                                                                    <div key={index} className="card border p-4 rounded-lg">
+                                                                        {doc.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                                                                            <img
+                                                                                src={doc}
+                                                                                alt={`Document ${index + 1}`}
+                                                                                className="w-full h-40 object-contain rounded-lg"
+                                                                            />
+                                                                        ) : (
+                                                                            <a href={doc} target="_blank" rel="noopener noreferrer">
+                                                                                <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
+                                                                                    View Document {index + 1}
+                                                                                </button>
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+
+
+
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                                                     <button
                                                         onClick={() => {
@@ -2005,7 +2178,7 @@ const exportToExcel = async () => {
                                                 <td className="text-left p-2 border capitalize">{data.report_type || 'NIL'}</td>
 
                                                 <td className="text-left p-2 border capitalize">
-                                                    {formatDate(data.report_date)|| 'NIL'}
+                                                    {formatDate(data.report_date) || 'NIL'}
                                                 </td>
 
                                                 <td className="text-left p-2 border capitalize">{data.report_generated_by_name || 'NIL'}</td>
@@ -2013,12 +2186,12 @@ const exportToExcel = async () => {
                                                 <td className="text-left p-2 border capitalize whitespace-pre-wrap">{sanitizeText(data.first_insufficiency_marks) || 'NIL'}</td>
 
                                                 <td className="text-left p-2 border capitalize whitespace-pre-wrap">
-                                                {formatDate(data.first_insuff_date) || 'NIL'}
-                                              
+                                                    {formatDate(data.first_insuff_date) || 'NIL'}
+
                                                 </td>
 
                                                 <td className="text-left p-2 border capitalize whitespace-pre-wrap">
-                                                    {formatDate(data.first_insuff_reopened_date)|| 'NIL'}
+                                                    {formatDate(data.first_insuff_reopened_date) || 'NIL'}
                                                 </td>
 
                                                 <td className="py-3 px-4 border-b border-r-2  capitalize whitespace-pre-wrap">{data.delay_reason || 'NIL'}</td>
