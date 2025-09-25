@@ -178,7 +178,7 @@ const CallbackAdmin = () => {
     XLSX.writeFile(wb, 'requests.xlsx');
   };
   return (
-    <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
+    <div className="bg-white m-4 md:m-10 shadow-md rounded-md p-3">
       <h2 className='text-center text-2xl font-bold my-5 text-[#3e76a5]'>Callback Request</h2>
 
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4 p-2 md:px-4">

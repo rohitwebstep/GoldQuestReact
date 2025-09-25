@@ -1,12 +1,14 @@
-import React, { useEffect,useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useHoliday } from './HolidayManagementContext';
 import Swal from 'sweetalert2';
 import { useApi } from '../ApiContext';
 import { useApiCall } from '../ApiCallContext';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useSidebar } from '../Sidebar/SidebarContext';
 const HolidayManagementForm = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
+    const { activeTab } = useSidebar();
 
     const API_URL = useApi();
     const { selectedService, updateServiceList, fetchData } = useHoliday();
@@ -60,8 +62,8 @@ const HolidayManagementForm = () => {
             ...prevInput, [name]: value,
         }));
     };
- const handleDateChange = useCallback((date, name) => {
-    setDateInput((prevData) => ({
+    const handleDateChange = useCallback((date, name) => {
+        setDateInput((prevData) => ({
             ...prevData,
             [name]: date,
         }));
@@ -162,6 +164,13 @@ const HolidayManagementForm = () => {
         }
     };
 
+    useEffect(() => {
+        setDateInput({
+            name: "",
+            date: "",
+        }),
+            setIsEdit(false);
+    }, [activeTab]);
 
 
     return (
@@ -179,15 +188,15 @@ const HolidayManagementForm = () => {
             </div>
             <div className="mb-4">
                 <label htmlFor="HoliDayDate" className="block font-bold text-gray-700">Date<span className='text-red-500'>*</span></label>
-                
-                 <DatePicker
-                             selected={dateInput.date}
-                             onChange={(date) => handleDateChange(date, 'date')}
-                             dateFormat="dd-MM-yyyy"
-                             className="outline-none pe-2  ps-2 text-left rounded-md w-full border border-gray-300 shadow-md  p-2 mt-2"
-                             name="date"
-                             id="HoliDayDate"
-                           />
+
+                <DatePicker
+                    selected={dateInput.date}
+                    onChange={(date) => handleDateChange(date, 'date')}
+                    dateFormat="dd-MM-yyyy"
+                    className="outline-none pe-2  ps-2 text-left rounded-md w-full border border-gray-300 shadow-md  p-2 mt-2"
+                    name="date"
+                    id="HoliDayDate"
+                />
                 {error.date && <p className='text-red-500'>{error.date}</p>}
             </div>
             <button

@@ -3,12 +3,14 @@ import { useService } from './ServiceContext';
 import Swal from 'sweetalert2';
 import { useApi } from '../ApiContext';
 import { useApiCall } from '../ApiCallContext'; // Import the hook for ApiCallContext
+import { useSidebar } from '../Sidebar/SidebarContext';
 
 const ServiceForm = () => {
   const API_URL = useApi();
   const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
+  const { activeTab } = useSidebar();
 
-  const { selectedService, updateServiceList, setSelectedService, fetchData } = useService();
+  const { selectedService, updateServiceList, fetchData } = useService();
   const [adminId, setAdminId] = useState(null);
   const [storedToken, setStoredToken] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -19,8 +21,8 @@ const ServiceForm = () => {
     short_code: "",
     sac_code: "",
     group: "",
-    email_description:"",
-    excel_sorting:"",
+    email_description: "",
+    excel_sorting: "",
   });
   const [error, setError] = useState({});
 
@@ -47,8 +49,8 @@ const ServiceForm = () => {
         short_code: "",
         sac_code: "",
         group: "",
-        email_description:"",
-        excel_sorting:""
+        email_description: "",
+        excel_sorting: ""
 
       });
       setIsEdit(false);
@@ -75,7 +77,7 @@ const ServiceForm = () => {
     if (!serviceInput.excel_sorting) {
       newErrors.excel_sorting = 'This Field is Required!';
     }
-    
+
     return newErrors;
   };
 
@@ -156,7 +158,7 @@ const ServiceForm = () => {
           // Success: Handle the response data
           const newToken = result.token || result._token || "";
           if (newToken) {
-              localStorage.setItem("_token", newToken);
+            localStorage.setItem("_token", newToken);
           }
           const successMessage = result?.message || (isEdit ? "Service updated successfully" : "Service added successfully");
           Swal.fire({
@@ -178,7 +180,7 @@ const ServiceForm = () => {
           }
 
           fetchData(); // Refresh data:
-          setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "",email_description:"",excel_sorting:"" });
+          setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "", email_description: "", excel_sorting: "" });
           setIsEdit(false);
         })
         .catch((error) => {
@@ -197,16 +199,20 @@ const ServiceForm = () => {
 
 
   const resetForm = () => {
-    setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "",excel_sorting:"" });
+    setServiceInput({ name: "", d_name: "", sac_code: "", short_code: "", group: "", excel_sorting: "" });
     setError({});
     setIsEdit(null)
 
   }
+  useEffect(() => {
+    resetForm();
+  }, [activeTab]); // 👈 runs whenever tab changes
+
 
   return (
     <form onSubmit={handleSubmit} disabled={loading}>
       <div className="mb-4">
-        <label htmlFor="ServiceName" className="block font-bold text-gray-700 font-bold text-gray-700 text-sm ">Service Name<span className='text-red-500'>*</span></label>
+        <label htmlFor="ServiceName" className="block font-bold text-gray-700 text-sm ">Service Name<span className='text-red-500'>*</span></label>
         <input
           type="text"
           name="name"

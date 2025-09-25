@@ -17,6 +17,7 @@ import verified from '../Images/verified.webp'
 import isologo from '../Images/iso-logo.jpg'
 const AdminChekin = () => {
     const { isApiLoading, setIsApiLoading } = useApiCall();
+    const isExportingRef = useRef(false);
 
     const { handleTabChange } = useSidebar();
     const [options, setOptions] = useState([]);
@@ -209,7 +210,7 @@ const AdminChekin = () => {
             });
         }
     };
-       const base64ToBlob = (base64) => {
+    const base64ToBlob = (base64) => {
         try {
             // Convert Base64 string to binary
             const byteCharacters = atob(base64);
@@ -1123,378 +1124,288 @@ const AdminChekin = () => {
             });
 
 
-
-
             addFooter(doc);
-
-
             yPosition = 20;
             let annexureIndex = 1;
             let pageLoopCount = 0;
             for (const service of servicesData) {
                 pageLoopCount += 1;
-                let reportFormJson;
+                let reportFormJson = {};
                 let rows = [];
 
-                // Only process if report_type is "Final" and status includes "completed"
-                if (applicationInfo?.report_type.toLowerCase().includes('final') || applicationInfo?.report_type.toLowerCase().includes('interim')) {
-                    const serviceStatus = service.annexureData?.status || "";
-                    if (!serviceStatus.toLowerCase().includes("completed")) {
-                        continue; // Skip this service if status does not include "completed"
-                    }
+                // Only process if report_type is "Final" or "Interim" and status includes "completed"
+                const reportType = applicationInfo?.report_type?.toLowerCase() || "";
+                if (reportType.includes("final") || reportType.includes("interim")) {
+                    const serviceStatus = service.annexureData?.status?.toLowerCase() || "";
+                    if (!serviceStatus.includes("completed")) continue;
                 }
 
                 try {
-                    if (!service.reportFormJson || !service.reportFormJson.json) {
-                        // Skip this service if reportFormJson is not found or is empty
-                        console.warn('No reportFormJson found for this service');
-                        continue; // Skip the rest of the loop for this service
-                    }
-
-                    // Attempt to parse the JSON string
+                    if (!service.reportFormJson?.json) continue;
                     reportFormJson = JSON.parse(service.reportFormJson.json);
-
-                    // Only process if rows are present
-                    rows = reportFormJson && Array.isArray(reportFormJson.rows) ? reportFormJson.rows : [];
+                    rows = Array.isArray(reportFormJson.rows) ? reportFormJson.rows : [];
+                    if (rows.length === 0) continue;
                 } catch (error) {
                     console.warn('Failed to parse reportFormJson:', error);
-                    continue; // Skip this service if parsing fails
+                    continue;
                 }
 
-                if (rows.length === 0) {
-                    console.warn('No rows found in reportFormJson for this service');
-                    continue; // Skip if there are no rows
-                }
-
-                // Start adding content for the page if data is valid
                 let yPosition = 20;
                 const serviceData = [];
 
-                // Process the rows as needed
+                // Process rows
                 rows.forEach((row) => {
-                    const inputLabel = row.inputs.length > 0 ? row.inputs[0].label || "Unnamed Label" : "Unnamed Label";
-
+                    const inputLabel = row.inputs.length > 0 ? row.inputs[0].label?.replace(/:/g, "") || "Unnamed Label" : "Unnamed Label";
                     const valuesObj = {};
 
                     row.inputs.forEach((input) => {
                         const inputName = input.name;
+                        const reportDetailsInputName = inputName.includes("report_details_") ? inputName : `report_details_${inputName}`;
+                        const value = service.annexureData?.[inputName] ?? "";
+                        const reportDetailsValue = service.annexureData?.[reportDetailsInputName] ?? "";
 
-                        let reportDetailsInputName = inputName.includes("report_details_") ? inputName : `report_details_${inputName}`;
-
-                        if (input.label && typeof input.label === "string") {
-                            input.label = input.label.replace(/:/g, "");
-                        }
-
-                        if (service.annexureData) {
-                            const value = service.annexureData[inputName] !== undefined && service.annexureData[inputName] !== null
-                                ? service.annexureData[inputName]
-                                : "";
-
-                            const reportDetailsValue = service.annexureData[reportDetailsInputName] !== undefined && service.annexureData[reportDetailsInputName] !== null
-                                ? service.annexureData[reportDetailsInputName]
-                                : "";
-
-                            valuesObj[inputName] = value;
-                            valuesObj["isReportDetailsExist"] = !!reportDetailsValue;
-                            if (reportDetailsValue) {
-                                valuesObj[reportDetailsInputName] = reportDetailsValue;
-                            }
-
-                            valuesObj["name"] = inputName.replace("report_details_", "");
-                        } else {
-                            valuesObj[inputName] = "";
-                            valuesObj["isReportDetailsExist"] = false;
-                            valuesObj[reportDetailsInputName] = "";
-                        }
+                        valuesObj[inputName] = value;
+                        valuesObj["isReportDetailsExist"] = !!reportDetailsValue;
+                        if (reportDetailsValue) valuesObj[reportDetailsInputName] = reportDetailsValue;
+                        valuesObj["name"] = inputName.replace("report_details_", "");
                     });
 
-                    serviceData.push({
-                        label: inputLabel,
-                        values: valuesObj,
-                    });
+                    serviceData.push({ label: inputLabel, values: valuesObj });
                 });
-                const tableData = serviceData.map((data) => {
-                    if (!data || !data.values) {
-                        return null;
-                    }
 
-                    const name = data.values.name;
-
-                    // Check if name starts with 'annexure' or 'additional_fee', and skip those entries
-                    if (!name || name.startsWith("annexure") || name.startsWith("additional_fee")) {
-                        return null;
-                    }
-
-                    const isReportDetailsExist = data.values.isReportDetailsExist;
-                    let value = data.values[name];
-                    let reportDetails = data.values[`report_details_${name}`];
-
-                    if (value === undefined || value === "" || (isReportDetailsExist && !reportDetails)) {
-                        return null;
-                    }
-
-                    if (name.startsWith("verification_status")) {
-                        value = String(value).toUpperCase();
-                    }
-
-                    function parseDate(value) {
-                        if (typeof value !== "string") return value;
-
-                        // Strict check for date-like formats
-                        const isStrictDateFormat =
-                            /^\d{4}-\d{2}-\d{2}$/.test(value) || // YYYY-MM-DD
-                            /^\d{2}\/\d{2}\/\d{4}$/.test(value) || // DD/MM/YYYY or MM/DD/YYYY
-                            /^\d{4}-\d{2}-\d{2}T/.test(value); // ISO 8601
-
-                        if (!isStrictDateFormat) return value;
-
-                        const parsedDate = new Date(value);
-                        return isNaN(parsedDate) ? value : parsedDate.toLocaleDateString('en-GB').replace(/\//g, '-');
-                    }
-
-                    if (isReportDetailsExist && reportDetails) {
-                        return [data.label, parseDate(value), parseDate(reportDetails)];
-                    } else {
-                        return [data.label, parseDate(value)];
-                    }
-                }).filter(Boolean);
-
-                // Skip table rendering if no valid tableData
-                if (tableData.length > 0) {
-                    doc.addPage();
-                    const pageWidth = doc.internal.pageSize.width;
-
-                    let headingText = '';
-                    if (reportFormJson && reportFormJson.heading) {
-                        headingText = reportFormJson.heading.toUpperCase();
-                    } else {
-                        console.warn('Heading is missing or invalid.');
-                    }
-
-                    const backgroundColor = "#f5f5f5";
-                    const backgroundColorHeading = "#6495ed";
-                    const borderColor = "#6495ed";
-                    const xsPosition = 15;
-                    const rectHeight = 10;
-
-                    doc.setFillColor(backgroundColorHeading);
-                    doc.setDrawColor(borderColor);
-                    doc.rect(xsPosition, yPosition, 180, rectHeight, "FD");
-
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-
-                    const textHeight = doc.getTextDimensions(headingText).h;
-                    const verticalCenter = yPosition + rectHeight / 2 + textHeight / 4;
-
-                    doc.setTextColor("#fff");
-                    doc.text(headingText, pageWidth / 2, verticalCenter, { align: "center" });
-
-                    yPosition += rectHeight;
-
-                    // Check if tableData is not empty before generating the table
-                    doc.autoTable({
-                        head: [
-                            [
-                                { content: "PARTICULARS", styles: { halign: "left" } },
-                                { content: "APPLICATION DETAILS", styles: { halign: "center" } },
-                                { content: "REPORT DETAILS", styles: { halign: "center" } },
-                            ]
-                        ],
-                        body: tableData.map((row) => {
-                            if (row.length === 2) {
-                                return [
-                                    { content: row[0], styles: { halign: "left", fontStyle: 'bold' } },
-                                    { content: row[1], colSpan: 2, styles: { halign: "left" } },
-                                ];
-                            } else {
-                                return [
-                                    { content: row[0], styles: { halign: "left", fontStyle: 'bold' } },
-                                    { content: row[1], styles: { halign: "left" } },
-                                    { content: row[2], styles: { halign: "left" } },
-                                ];
-                            }
-                        }),
-                        startY: yPosition,
-                        styles: {
-                            fontSize: 9,
-                            cellPadding: 3,
-                            lineWidth: 0.3,
-                            lineColor: [62, 118, 165],
-                        },
-                        theme: "grid",
-                        headStyles: {
-                            fillColor: backgroundColor,
-                            textColor: [0, 0, 0],
-                            halign: "center",
-                            fontSize: 10,
-                        },
-                        bodyStyles: {
-                            textColor: [0, 0, 0],
-                            halign: "left",
-                            valign: "top", // ensures top-aligned text in taller cells
-                        },
-                        columnStyles: {
-                            0: { cellWidth: 180 / 3 },  // A4 width ~180mm (after margins)
-                            1: { cellWidth: 180 / 3 },
-                            2: { cellWidth: 180 / 3 },
-                        },
-                        margin: { top: 20, bottom: 20, left: 15, right: 15 },
+                // Add Spoc only once
+                if (service.annexureData?.spoc) {
+                    serviceData.push({
+                        label: "Spoc",
+                        values: { spoc: service.annexureData.spoc }
                     });
+                }
 
+                // Add Additional Fee if exists
+                if (service.annexureData?.additional_fee) {
+                    serviceData.push({
+                        label: "Additional Fee",
+                        values: { additional_fee: service.annexureData.additional_fee }
+                    });
+                }
 
+                // Add Remarks if exists
+                if (service.annexureData?.remarks) {
+                    serviceData.push({
+                        label: "Remarks",
+                        values: { remarks: service.annexureData.remarks }
+                    });
+                }
 
+                // Prepare tableData for jsPDF autoTable
+                const tableData = serviceData
+                    .map((data) => {
+                        if (!data?.values) return null;
 
-                    addFooter(doc);
-                    yPosition = doc.lastAutoTable.finalY + 5;
-                    const remarksData = serviceData.find((data) => data.label === "Remarks");
-                    if (remarksData) {
-                        const remarks = service.annexureData[remarksData.values.name] || "No remarks available.";
-                        doc.setFont("helvetica", "italic");
-                        doc.setFontSize(10);
-                        doc.setTextColor(100, 100, 100);
-                        doc.text(`Remarks: ${remarks}`, 10, yPosition);
-                        yPosition += 7;
-                    }
-
-                    // Utility function to compress a base64 image
-                    function compressBase64Image(base64Str, maxWidth = 800, quality = 0.7) {
-                        return new Promise((resolve) => {
-                            const img = new Image();
-                            img.onload = () => {
-                                const canvas = document.createElement("canvas");
-                                const ratio = img.width / img.height;
-
-                                let targetWidth = img.width;
-                                let targetHeight = img.height;
-
-                                if (img.width > maxWidth) {
-                                    targetWidth = maxWidth;
-                                    targetHeight = maxWidth / ratio;
-                                }
-
-                                canvas.width = targetWidth;
-                                canvas.height = targetHeight;
-
-                                const ctx = canvas.getContext("2d");
-                                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-                                const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
-                                resolve({ base64: compressedBase64, width: targetWidth, height: targetHeight, type: "JPEG" });
-                            };
-
-                            img.onerror = () => resolve(null);
-                            img.src = base64Str;
-                        });
-                    }
-
-                    // Main logic
-                    const annexureData = service.annexureData || {}; // Ensure annexureData is an empty object if it's null or undefined
-
-                    const annexureImagesKey = Object.keys(annexureData).find((key) =>
-                        key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
-                    );
-
-                    if (annexureImagesKey) {
-                        doc.addPage();
-
-                        yPosition = 20;
-                        const annexureImagesStr = annexureData[annexureImagesKey];
-                        const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
-
-                        if (annexureImagesSplitArr.length === 0) {
-                            console.warn("⚠️ No annexure images available.");
-                            doc.setFont("helvetica", "italic");
-                            doc.setFontSize(10);
-                            doc.setTextColor(150, 150, 150);
-                            doc.text("No annexure images available.", 10, yPosition);
-                            yPosition += 10;
-                        } else {
-                            const rawImageBases = await fetchImageToBase(annexureImagesStr.trim());
-
-                            const imageBases = [];
-                            for (const image of rawImageBases) {
-                                if (!image.base64 || !image.base64.startsWith("data:image/")) {
-                                    console.warn("❌ Skipping invalid image base64.");
-                                    continue;
-                                }
-
-                                const compressed = await compressBase64Image(image.base64, 800, 0.7);
-                                if (compressed) imageBases.push(compressed);
-                            }
-
-                            if (imageBases.length > 0) {
-                                imageBases.forEach((image, index) => {
-                                    if (!image.base64.startsWith("data:image/")) {
-                                        console.error(`❌ Invalid compressed base64 for image ${index + 1}`);
-                                        return;
-                                    }
-
-                                    if (index > 0 && imageBases.length > 1) {
-                                        doc.addPage();
-                                    }
-
-                                    const pageWidth = doc.internal.pageSize.width - 20;
-                                    const pageHeight = doc.internal.pageSize.height - 40;
-
-                                    let { width, height } = scaleImageForPDF(image.width, image.height, pageWidth, pageHeight);
-
-                                    const centerX = (doc.internal.pageSize.width - width) / 2;
-                                    const centerY = (doc.internal.pageSize.height - height) / 2;
-
-                                    const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
-
-                                    doc.setFont("helvetica", "bold");
-                                    doc.setFontSize(12);
-                                    doc.setTextColor(0, 0, 0);
-                                    doc.text(annexureText, doc.internal.pageSize.width / 2, 15, { align: "center" });
-
-                                    try {
-                                        doc.addImage(image.base64, image.type, centerX, centerY, width, height);
-                                    } catch (error) {
-                                        console.error(`❌ Error adding image ${index + 1}:`, error);
-                                    }
-
-                                    addFooter(doc);
-                                });
-                            } else {
-                                console.warn("⚠️ No valid images found after fetching and compressing.");
-                            }
+                        const name = Object.keys(data.values)[0];
+                        let value = data.values[name];
+                        let reportDetails = data.values[`report_details_${name}`];
+                        const isReportDetailsExist = data.values.isReportDetailsExist || false;
+                        if (!name || name.startsWith("annexure") || name.startsWith("additional_fee")) {
+                            return null;
                         }
-                    } else {
-                        console.warn("⚠️ No annexure images key found.");
+                        if (value === undefined || value === "") return null;
+                        if (name.startsWith("verification_status")) value = String(value).toUpperCase();
+
+                        const parseDate = (val) => {
+                            if (typeof val !== "string") return val;
+                            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                            return dateRegex.test(val) ? new Date(val).toLocaleDateString('en-GB').replace(/\//g, '-') : val;
+                        };
+
+                        return isReportDetailsExist && reportDetails ? [data.label, parseDate(value), parseDate(reportDetails)] : [data.label, parseDate(value)];
+                    })
+                    .filter(Boolean);
+
+                if (tableData.length === 0) continue;
+
+                // Add page and heading
+                doc.addPage();
+                const pageWidth = doc.internal.pageSize.width;
+                const headingText = reportFormJson.heading?.toUpperCase() || "REPORT";
+
+                const backgroundColorHeading = "#6495ed";
+                doc.setFillColor(backgroundColorHeading);
+                doc.setDrawColor(backgroundColorHeading);
+                doc.rect(15, yPosition, 180, 10, "FD");
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.setTextColor("#fff");
+                const verticalCenter = yPosition + 5;
+                doc.text(headingText, pageWidth / 2, verticalCenter, { align: "center" });
+                yPosition += 10;
+
+                // Generate autoTable
+                doc.autoTable({
+                    head: [
+                        [
+                            { content: "PARTICULARS", styles: { halign: "left" } },
+                            { content: "APPLICATION DETAILS", styles: { halign: "center" } },
+                            { content: "REPORT DETAILS", styles: { halign: "center" } },
+                        ]
+                    ],
+                    body: tableData.map((row) => {
+                        if (row.length === 2) return [{ content: row[0], styles: { halign: "left", fontStyle: "bold" } }, { content: row[1], colSpan: 2, styles: { halign: "left" } }];
+                        return [{ content: row[0], styles: { halign: "left", fontStyle: "bold" } }, { content: row[1], styles: { halign: "left" } }, { content: row[2], styles: { halign: "left" } }];
+                    }),
+                    startY: yPosition,
+                    styles: { fontSize: 9, cellPadding: 3, lineWidth: 0.3, lineColor: [62, 118, 165] },
+                    theme: "grid",
+                    headStyles: { fillColor: "#f5f5f5", textColor: [0, 0, 0], halign: "center", fontSize: 10 },
+                    margin: { top: 20, bottom: 20, left: 15, right: 15 },
+                });
+
+                addFooter(doc);
+                yPosition = doc.lastAutoTable.finalY + 5;
+                const remarksData = serviceData.find((data) => data.label === "Remarks");
+                if (remarksData) {
+                    const remarks = service.annexureData[remarksData.values.name] || "No remarks available.";
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(10);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`Remarks: ${remarks}`, 10, yPosition);
+                    yPosition += 7;
+                }
+
+                // Utility function to compress a base64 image
+                function compressBase64Image(base64Str, maxWidth = 800, quality = 0.7) {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement("canvas");
+                            const ratio = img.width / img.height;
+
+                            let targetWidth = img.width;
+                            let targetHeight = img.height;
+
+                            if (img.width > maxWidth) {
+                                targetWidth = maxWidth;
+                                targetHeight = maxWidth / ratio;
+                            }
+
+                            canvas.width = targetWidth;
+                            canvas.height = targetHeight;
+
+                            const ctx = canvas.getContext("2d");
+                            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                            const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+                            resolve({ base64: compressedBase64, width: targetWidth, height: targetHeight, type: "JPEG" });
+                        };
+
+                        img.onerror = () => resolve(null);
+                        img.src = base64Str;
+                    });
+                }
+
+                // Main logic
+                const annexureData = service.annexureData || {}; // Ensure annexureData is an empty object if it's null or undefined
+
+                const annexureImagesKey = Object.keys(annexureData).find((key) =>
+                    key.toLowerCase().startsWith("annexure") && !key.includes("[") && !key.includes("]")
+                );
+
+                if (annexureImagesKey) {
+                    doc.addPage();
+
+                    yPosition = 20;
+                    const annexureImagesStr = annexureData[annexureImagesKey];
+                    const annexureImagesSplitArr = annexureImagesStr ? annexureImagesStr.split(",") : [];
+
+                    if (annexureImagesSplitArr.length === 0) {
+                        console.warn("⚠️ No annexure images available.");
                         doc.setFont("helvetica", "italic");
                         doc.setFontSize(10);
                         doc.setTextColor(150, 150, 150);
                         doc.text("No annexure images available.", 10, yPosition);
-                        yPosition += 15;
-                    }
+                        yPosition += 10;
+                    } else {
+                        const rawImageBases = await fetchImageToBase(annexureImagesStr.trim());
 
+                        const imageBases = [];
+                        for (const image of rawImageBases) {
+                            if (!image.base64 || !image.base64.startsWith("data:image/")) {
+                                console.warn("❌ Skipping invalid image base64.");
+                                continue;
+                            }
 
-                    /**
-                     * Function to scale image properly within the page
-                     */
-                    function scaleImageForPDF(imageWidth, imageHeight, maxWidth, maxHeight) {
-                        let width = imageWidth;
-                        let height = imageHeight;
-
-                        if (width > maxWidth) {
-                            height *= maxWidth / width;
-                            width = maxWidth;
-                        }
-                        if (height > maxHeight) {
-                            width *= maxHeight / height;
-                            height = maxHeight;
+                            const compressed = await compressBase64Image(image.base64, 800, 0.7);
+                            if (compressed) imageBases.push(compressed);
                         }
 
-                        return { width, height };
+                        if (imageBases.length > 0) {
+                            imageBases.forEach((image, index) => {
+                                if (!image.base64.startsWith("data:image/")) {
+                                    console.error(`❌ Invalid compressed base64 for image ${index + 1}`);
+                                    return;
+                                }
+
+                                if (index > 0 && imageBases.length > 1) {
+                                    doc.addPage();
+                                }
+
+                                const pageWidth = doc.internal.pageSize.width - 20;
+                                const pageHeight = doc.internal.pageSize.height - 40;
+
+                                let { width, height } = scaleImageForPDF(image.width, image.height, pageWidth, pageHeight);
+
+                                const centerX = (doc.internal.pageSize.width - width) / 2;
+                                const centerY = (doc.internal.pageSize.height - height) / 2;
+
+                                const annexureText = `Annexure ${annexureIndex} (${String.fromCharCode(97 + index)})`;
+
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(12);
+                                doc.setTextColor(0, 0, 0);
+                                doc.text(annexureText, doc.internal.pageSize.width / 2, 15, { align: "center" });
+
+                                try {
+                                    doc.addImage(image.base64, image.type, centerX, centerY, width, height);
+                                } catch (error) {
+                                    console.error(`❌ Error adding image ${index + 1}:`, error);
+                                }
+
+                                addFooter(doc);
+                            });
+                        } else {
+                            console.warn("⚠️ No valid images found after fetching and compressing.");
+                        }
                     }
+                } else {
+                    console.warn("⚠️ No annexure images key found.");
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(10);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text("No annexure images available.", 10, yPosition);
+                    yPosition += 15;
                 }
-                addFooter(doc);
-                annexureIndex++;
-                yPosition += 20;
-            }
 
+
+                /**
+                 * Function to scale image properly within the page
+                 */
+                function scaleImageForPDF(imageWidth, imageHeight, maxWidth, maxHeight) {
+                    let width = imageWidth;
+                    let height = imageHeight;
+
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+
+                    return { width, height };
+                }
+            }
 
             addFooter(doc);
             doc.addPage();
@@ -1755,110 +1666,120 @@ const AdminChekin = () => {
     const userRole = adminData.role;
 
 
-    const exportToExcel = async () => {
-        // Show loader
-        Swal.fire({
-            title: 'Exporting...',
-            text: 'Please wait while the Excel file is being generated.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+    // put this at component top-level
+    // helper to run async tasks with concurrency limit
+    async function runWithConcurrencyLimit(items, limit, taskFn) {
+        const results = [];
+        let i = 0;
+
+        async function worker() {
+            while (i < items.length) {
+                const currentIndex = i++;
+                try {
+                    results[currentIndex] = await taskFn(items[currentIndex], currentIndex);
+                } catch (err) {
+                    console.error("Error occurred:", err);
+                    results[currentIndex] = null; // or some fallback row
+                }
             }
+        }
+
+        // Start `limit` workers
+        const workers = Array.from({ length: limit }, () => worker());
+        await Promise.all(workers);
+        return results;
+    }
+
+    const exportToExcel = async () => {
+        if (isExportingRef.current) return;
+        isExportingRef.current = true;
+
+        Swal.fire({
+            title: "Exporting...",
+            html: `<div id="export-progress">Preparing 0/${filteredItems.length}</div>`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading(),
         });
 
         try {
-            const worksheetData = await Promise.all(
-                filteredItems.map(async (data, index) => {
+            let completed = 0;
+
+            const worksheetData = await runWithConcurrencyLimit(
+                filteredItems,
+                5, // <= concurrency limit (tweak: 3–10 depending on server capacity)
+                async (data, index) => {
                     const servicesData = await fetchServicesData(data.main_id, data.services);
+
                     const headingsAndStatuses = [];
-
-                    servicesData.forEach((service) => {
-                        if (service.reportFormJson && service.reportFormJson.json) {
-                            const reportJson = JSON.parse(service.reportFormJson.json);
-                            const heading = reportJson?.heading || "NIL";
-
-                            let excelsorting = [];
-                            try {
-                                excelsorting = service?.reportFormJson?.excel_sorting
-                                    ? JSON.parse(service.reportFormJson.excel_sorting)
-                                    : [];
-                                if (!Array.isArray(excelsorting)) excelsorting = [];
-                            } catch (error) {
-                                console.error("Error parsing excel_sorting:", error);
-                                excelsorting = [];
+                    if (Array.isArray(servicesData)) {
+                        servicesData.forEach((service) => {
+                            if (service.reportFormJson?.json) {
+                                let reportJson;
+                                try {
+                                    reportJson = JSON.parse(service.reportFormJson.json);
+                                } catch {
+                                    return;
+                                }
+                                const heading = reportJson?.heading || "NIL";
+                                const sortOrder = Number(service.reportFormJson.excel_sorting) || Infinity;
+                                if (heading) {
+                                    let status = service.annexureData?.status || "Initiated";
+                                    status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "INITIATED";
+                                    headingsAndStatuses.push({ heading, status, sortOrder });
+                                }
                             }
+                        });
+                    }
 
-                            if (heading) {
-                                let status = service.annexureData?.status || "Initiated";
-                                status = (status || "").replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase() || "INITIATED";
-                                headingsAndStatuses.push({ heading, status, sortOrder: excelsorting.indexOf(heading) });
-                            }
-                        }
-                    });
-
-                    headingsAndStatuses.sort((a, b) => (a.sortOrder - b.sortOrder || 0));
+                    headingsAndStatuses.sort((a, b) => a.sortOrder - b.sortOrder);
 
                     const row = {
                         INDEX: index + 1,
-                        "TAT DAYS": data?.tat_days || "NIL",
-                        "LOCATION NAME": data?.location || "NIL",
-                        "BATCH NUMBER": data?.batch_number || "NIL",
                         "APPLICATION ID": data?.application_id || "NIL",
-                        "NAME OF THE APPLICANT": data?.name || "NIL",
-                        "APPLICANT EMPLOYEE ID": data?.employee_id || "NIL",
-                        "INITIATION DATE": data?.initiation_date ? new Date(data.initiation_date).toLocaleDateString() : "NIL",
-                        "DOWNLOAD REPORT STATUS": data?.is_report_downloaded ? "Downloaded" : "Not Downloaded",
-                        "REPORT TYPE": data?.report_type || "NIL",
-                        "REPORT DATE": data?.report_date ? new Date(data.report_date).toLocaleDateString() : "NIL",
-                        "OVERALL STATUS": data?.overall_status || "NIL",
+                        NAME: data?.name || "NIL",
                         ...headingsAndStatuses.reduce((acc, { heading, status }) => {
-                            acc[heading] = status || 'INITIATED';
+                            acc[heading] = status;
                             return acc;
                         }, {}),
-                        "INSUFF REMARKS": data?.first_insufficiency_marks || "NIL",
-                        "INSUFF DATE": data?.first_insuff_date ? new Date(data.first_insuff_date).toLocaleDateString() : "NIL",
-                        "INSUFF CLEARED": data?.first_insuff_reopened_date
-                            ? new Date(data.first_insuff_reopened_date).toLocaleDateString()
-                            : "NIL",
-                        "REMARKS & REASON FOR DELAY": data?.delay_reason || "NIL",
-                        ADDRESS: data?.address || "NIL",
-                        EDUCATION: data?.education || "NIL",
-                        "BASIC ENTRY": data?.basic_entry || "NIL",
-                        "CASE UPLOADED": data?.case_upload || "NIL",
-                        "EMPLOYEMENT SPOC": data?.single_point_of_contact || "NIL",
-                        "REPORT GENERATED BY": data?.report_generated_by_name || "NIL",
-                        "QC DONE BY": data?.qc_done_by_name || "NIL",
                     };
 
+                    completed++;
+                    Swal.update({
+                        html: `<div id="export-progress">Preparing ${completed}/${filteredItems.length}</div>`,
+                    });
+
                     return row;
-                })
+                }
             );
+
+            Swal.close();
 
             const ws = XLSX.utils.json_to_sheet(worksheetData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Data");
-
             XLSX.writeFile(wb, "Data.xlsx");
 
-            // Close the loader and show success
             Swal.fire({
-                icon: 'success',
-                title: 'Exported!',
-                text: 'Your Excel file has been downloaded.',
+                icon: "success",
+                title: "Exported!",
+                text: "Your Excel file has been downloaded.",
                 timer: 2000,
                 showConfirmButton: false,
             });
-
         } catch (error) {
-            // On error, show failure message
+            Swal.close();
             Swal.fire({
-                icon: 'error',
-                title: 'Export Failed',
-                text: 'Something went wrong during export. Please try again.',
+                icon: "error",
+                title: "Export Failed",
+                text: "Something went wrong during export. Please try again.",
             });
             console.error("Export to Excel failed:", error);
+        } finally {
+            isExportingRef.current = false;
         }
     };
+
 
 
     const statuses = {

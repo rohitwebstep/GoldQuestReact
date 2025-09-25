@@ -360,6 +360,7 @@ const GenerateReport = () => {
                 setCustomerInfo(result.customerInfo); // Set customer info
                 setReportGeneratorAdminNames(result.reportGenerationTeam); // Set admin names
                 setQCVerifierAdminNames(result.qcVerificationTeam); // Set admin names
+                setAdminNames(result.admins || []); // Set admin names
 
                 // Set the form data
                 // Helper function to validate and format dates
@@ -1021,7 +1022,7 @@ const GenerateReport = () => {
         });
     }, []);
 
-    // console.log(`ServicesDataInfo - `, servicesDataInfo);
+    console.log(`ServicesDataInfo - `, servicesDataInfo);
 
     const handleTimeChange = useCallback((e, input, type, index, preSelectedTime) => {
         const { name, value } = e.target;
@@ -1042,201 +1043,230 @@ const GenerateReport = () => {
         handleInputChange({ target: { name: input.name, value: formattedTime } }, input, index);
     }, [selectedHour, selectedMinute, selectedPeriod, handleInputChange]);
 
-    const renderInput = (index, dbTable, input, annexureImagesSplitArr) => {
+
+    const renderInput = (index, dbTable, input, annexureImagesSplitArr, rowHasFile) => {
         let inputValue = '';
-        // Check if value exists in servicesDataInfo first
         if (servicesDataInfo[index]?.annexureData?.hasOwnProperty(input.name)) {
             inputValue = servicesDataInfo[index].annexureData[input.name] || '';
         }
 
-        // Render input elements
-        switch (input.type) {
-            case "text":
-            case "email":
-            case "tel":
-                return (
-                    <>
-                        <label className='font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <input
-                            type={input.type}
-                            name={input.name}
-                            value={inputValue || input.value}
-                            className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, input, index)}
-                            onBlur={(e) => handleFocusOut(e, index)}
-                        />
-                    </>
-                );
+        // For all input types except file
+        if (input.type !== "file") {
+            switch (input.type) {
+                case "text":
+                case "email":
+                case "tel":
+                    return (
+                        <>
+                            <label className='font-bold text-gray-700 text-sm'>{input.label}</label>
+                            <input
+                                type={input.type}
+                                name={input.name}
+                                value={inputValue || input.value}
+                                className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleInputChange(e, input, index)}
+                                onBlur={(e) => handleFocusOut(e, index)}
+                            />
+                        </>
+                    );
 
-            case "datepicker":
-                return (
-                    <>
-                        <label className='text-sm font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <DatePicker
-                            selected={inputValue ? new Date(inputValue) : null}
-                            onChange={(date) => {
-                                const fakeEvent = {
-                                    target: {
-                                        name: input.name,
-                                        value: date ? date.toISOString().split("T")[0] : "",
-                                    },
-                                };
-                                handleInputChange(fakeEvent, input, index);
-                            }}
-                            onBlur={(e) => handleFocusOut(e, index)}
-                            dateFormat="dd-MM-yyyy"
-                            className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </>
-                );
+                case "datepicker":
+                    return (
+                        <>
+                            <label className='font-bold text-gray-700 text-sm'>{input.label}</label>
+                            <DatePicker
+                                selected={inputValue ? new Date(inputValue) : null}
+                                onChange={(date) => {
+                                    const fakeEvent = {
+                                        target: {
+                                            name: input.name,
+                                            value: date ? date.toISOString().split("T")[0] : "",
+                                        },
+                                    };
+                                    handleInputChange(fakeEvent, input, index);
+                                }}
+                                onBlur={(e) => handleFocusOut(e, index)}
+                                dateFormat="dd-MM-yyyy"
+                                className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </>
+                    );
 
-            case "monthyearpicker":
-                return (
-                    <>
-                        <label className='text-sm font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <input
-                            type="month"
-                            name={input.name}
-                            value={inputValue}
-                            className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, input, index)}
-                            onBlur={(e) => handleFocusOut(e, index)}
-                        />
-                    </>
-                );
+                case "monthyearpicker":
+                    return (
+                        <>
+                            <label className='text-sm font-bold text-gray-700 '>{input.label}</label>
+                            <input
+                                type="month"
+                                name={input.name}
+                                value={inputValue}
+                                className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleInputChange(e, input, index)}
+                                onBlur={(e) => handleFocusOut(e, index)}
+                            />
+                        </>
+                    );
 
 
-            case "timepicker":
-                let hour = "00", minutes = "00", period = "AM";
-                if (inputValue) {
-                    const [time, timePeriod] = inputValue.trim().split(" ") || ["00:00", "AM"];
-                    [hour, minutes] = time.split(":") || ["00", "00"];
-                    period = timePeriod || "AM";
-                }
-                let preSelectedTime = { hour, minutes, period };
+                case "timepicker":
+                    let hour = "00", minutes = "00", period = "AM";
+                    if (inputValue) {
+                        const [time, timePeriod] = inputValue.trim().split(" ") || ["00:00", "AM"];
+                        [hour, minutes] = time.split(":") || ["00", "00"];
+                        period = timePeriod || "AM";
+                    }
+                    let preSelectedTime = { hour, minutes, period };
 
-                return (
-                    <>
-                        <label className='text-sm font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <div className="flex space-x-2 border border-gray-300 shadow-md rounded-lg p-2 shadow-md  bg-white">
-                            <select
-                                value={hour}
-                                onChange={(e) => handleTimeChange(e, input, 'hour', index, preSelectedTime)}
-                                className="p-2 border border-gray-300 shadow-md rounded-lg focus:ring-blue-500 focus:outline-none"
-                            >
-                                {Array.from({ length: 13 }, (_, i) => i.toString().padStart(2, "0")).map((hour) => (
-                                    <option key={hour} value={hour}>{hour}</option>
-                                ))}
-                            </select>
-
-                            <select
-                                value={minutes}
-                                onChange={(e) => handleTimeChange(e, input, 'minute', index, preSelectedTime)}
-                                className="p-2 border border-gray-300 shadow-md rounded-lg focus:ring-blue-500 focus:outline-none"
-                            >
-                                {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
-                                    <option key={minute} value={minute}>{minute}</option>
-                                ))}
-                            </select>
-
-                            <select
-                                value={period}
-                                onChange={(e) => handleTimeChange(e, input, 'period', index, preSelectedTime)}
-                                className="p-2 border border-gray-300 shadow-md rounded-lg focus:ring-blue-500 focus:outline-none"
-                            >
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                            </select>
-                        </div>
-                    </>
-                );
-
-            case "dropdown":
-                // Check if the current value exists in the options
-                const isValueInOptions = input.options?.some(option => option.value === inputValue);
-
-                // Create a new array of options including the current value if it's missing
-                const updatedOptions = isValueInOptions
-                    ? input.options
-                    : [...(input.options || []), { value: inputValue, showText: inputValue }];
-
-                return (
-                    <>
-                        <label className='text-sm font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <select
-                            name={input.name}
-                            value={inputValue || ""}
-                            className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, input, index)}
-                            onBlur={(e) => handleFocusOut(e, index)}
-                        >
-                            {updatedOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.showText}
-                                </option>
-                            ))}
-                        </select>
-                    </>
-                );
-
-            case "file":
-                return (
-                    <>
-                        <label className='text-sm font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <input
-                            type="file"
-                            name={input.name}
-                            className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            multiple={input.multiple}
-                            onChange={(e) => handleFileChange(index, dbTable, input.name, e)}
-                            onBlur={(e) => handleFocusOut(index, dbTable, input.name, e)}
-                        />
-                        <div className="relative mt-4">
-                            {annexureImagesSplitArr.length > 0 ? (
-                                <div className="grid md:grid-cols-5 grid-cols-1 gap-5 overflow-auto max-h-64">
-                                    {annexureImagesSplitArr.map((image, idx) => (
-                                        image.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                                            <img
-                                                src={image.trim()}
-                                                alt={`Image ${idx + 1}`}
-                                                key={idx}
-                                            />
-                                        ) : (
-                                            <a
-                                                href={image.trim()}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                key={idx}
-                                            >
-                                                <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
-                                                    View Document
-                                                </button>
-                                            </a>
-                                        )
+                    return (
+                        <>
+                            <label className='text-sm font-bold text-gray-700 '>{input.label}</label>
+                            <div className="flex space-x-2 border border-gray-300 shadow-md rounded-lg p-2  bg-white">
+                                <select
+                                    value={hour}
+                                    onChange={(e) => handleTimeChange(e, input, 'hour', index, preSelectedTime)}
+                                    className="p-2 border border-gray-300 shadow-md rounded-lg focus:ring-blue-500 focus:outline-none"
+                                >
+                                    {Array.from({ length: 13 }, (_, i) => i.toString().padStart(2, "0")).map((hour) => (
+                                        <option key={hour} value={hour}>{hour}</option>
                                     ))}
-                                </div>
-                            ) : (
-                                <p>No Image Found</p>
-                            )}
-                        </div>
-                    </>
-                );
+                                </select>
 
-            default:
-                return (
-                    <>
-                        <label className='text-sm font-bold text-gray-700 text-sm'>{input.label}</label>
-                        <input
-                            type="text"
-                            name={input.name}
-                            value={inputValue}
-                            className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => handleInputChange(e, input, index)}
-                            onBlur={(e) => handleFocusOut(e, index)}
-                        />
-                    </>
-                );
+                                <select
+                                    value={minutes}
+                                    onChange={(e) => handleTimeChange(e, input, 'minute', index, preSelectedTime)}
+                                    className="p-2 border border-gray-300 shadow-md rounded-lg focus:ring-blue-500 focus:outline-none"
+                                >
+                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
+                                        <option key={minute} value={minute}>{minute}</option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    value={period}
+                                    onChange={(e) => handleTimeChange(e, input, 'period', index, preSelectedTime)}
+                                    className="p-2 border border-gray-300 shadow-md rounded-lg focus:ring-blue-500 focus:outline-none"
+                                >
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </>
+                    );
+
+                case "dropdown":
+                    // Check if the current value exists in the options
+                    const isValueInOptions = input.options?.some(option => option.value === inputValue);
+
+                    // Create a new array of options including the current value if it's missing
+                    const updatedOptions = isValueInOptions
+                        ? input.options
+                        : [...(input.options || []), { value: inputValue, showText: inputValue }];
+
+                    return (
+                        <>
+                            <label className='text-sm font-bold text-gray-700 '>{input.label}</label>
+                            <select
+                                name={input.name}
+                                value={inputValue || ""}
+                                className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(e) => handleInputChange(e, input, index)}
+                                onBlur={(e) => handleFocusOut(e, index)}
+                            >
+                                {updatedOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.showText}
+                                    </option>
+                                ))}
+                            </select>
+                        </>
+                    );
+
+            }
         }
+
+        // File input case — add select above file input
+        if (input.type === "file") {
+            return (
+                <>
+                    {/* Select dropdown before file input */}
+                    <label className='text-sm font-bold text-gray-700 '>Select Spoc</label>
+
+                    <select
+                        name={`spoc`}
+                         value={servicesDataInfo[index].annexureData['spoc']}
+                        className="w-full mb-2 p-3 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                         onChange={(e) => handleInputChange(e, input, index)}
+                                onBlur={(e) => handleFocusOut(e, index)}
+                    >
+                        <option value="">Select Spoc</option>
+                        {adminNames.map((admin, indx) => (
+                            <option key={indx} value={admin.name}>{admin.name}</option>
+                        ))}
+                    </select>
+
+                    {/* File input */}
+                    <label className='text-sm font-bold text-gray-700 '>{input.label}</label>
+                    <input
+                        type="file"
+                        name={input.name}
+                        className="w-full p-2 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        multiple={input.multiple}
+                        onChange={(e) => handleFileChange(index, dbTable, input.name, e)}
+                        onBlur={(e) => handleFocusOut(index, dbTable, input.name, e)}
+                    />
+
+                    {/* File preview */}
+                    <div className="relative mt-4">
+                        {annexureImagesSplitArr.length > 0 ? (
+                            <div className="grid md:grid-cols-5 grid-cols-1 gap-5 overflow-auto max-h-64">
+                                {annexureImagesSplitArr.map((image, idx) =>
+                                    image.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                                        <img src={image.trim()} alt={`Image ${idx + 1}`} key={idx} />
+                                    ) : (
+                                        <a href={image.trim()} target="_blank" rel="noopener noreferrer" key={idx}>
+                                            <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
+                                                View Document
+                                            </button>
+                                        </a>
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <p>No Image Found</p>
+                        )}
+                    </div>
+                </>
+            );
+        }
+
+        // If no file input in the row, add custom select at the end
+      if (!rowHasFile && input.isLastInput) {
+    const customInputName = `spoc`; // name to store in annexureData
+    const inputValue = servicesDataInfo[index]?.annexureData?.[customInputName] || '';
+
+    return (
+        <select
+            name={customInputName}
+            value={inputValue}
+            className="w-full mt-2 p-3 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => {
+                // Create fake input object
+                const fakeInput = { name: customInputName, type: 'dropdown' };
+                handleInputChange(e, fakeInput, index, dbTable);
+            }}
+            onBlur={(e) => {
+                const fakeInput = { name: customInputName, type: 'dropdown' };
+                handleFocusOut(e, index, dbTable);
+            }}
+        >
+            <option value="">Select Spoc</option>
+            {adminNames.map((admin, indx) => (
+                <option key={indx} value={admin.name}>{admin.name}</option>
+            ))}
+        </select>
+    );
+}
+
     };
 
 
@@ -1316,6 +1346,7 @@ const GenerateReport = () => {
                         if (annexure[category]) {
                             annexure[category].status = status || 'initiated';
                             annexure[category].sorting_order = sorting_order;
+                            annexure[category].spoc = serviceData.annexureData?.spoc;
                         }
 
                         return { annexure };
@@ -1414,7 +1445,7 @@ const GenerateReport = () => {
             }
 
             // Reload the current page
-            window.location.reload();
+            // window.location.reload();
             // fetchApplicationData();
             // fetchServicesJson();
 
@@ -1573,7 +1604,7 @@ const GenerateReport = () => {
                                     </div>
 
                                     <div className="mb-4">
-                                        <label htmlFor="email" className='text-sm font-bold text-gray-700 text-sm' >Purpose of Application</label>
+                                        <label htmlFor="email" className='text-sm font-bold text-gray-700 ' >Purpose of Application</label>
                                         <select
                                             name="verification_purpose"
                                             onChange={handleCustomInputChange}
@@ -1601,7 +1632,7 @@ const GenerateReport = () => {
                                     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
                                         <div className="bg-white rounded-md p-4 max-w-lg w-full">
                                             <div className="mb-4">
-                                                <label htmlFor="customPurpose" className='text-sm font-bold text-gray-700 text-sm'>Please specify the custom purpose</label>
+                                                <label htmlFor="customPurpose" className='text-sm font-bold text-gray-700 '>Please specify the custom purpose</label>
                                                 <input
                                                     type="text"
                                                     name="customPurpose"

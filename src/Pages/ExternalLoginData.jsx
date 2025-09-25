@@ -261,7 +261,7 @@ const ExternalLoginData = () => {
   };
 
   return (
-    <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
+    <div className="bg-white m-4 md:m-10 shadow-md rounded-md p-3">
       <h2 className='text-center md:text-2xl text-xl font-bold py-4 text-[#3e76a5]'>External Login Credentials</h2>
 
       <div className="md:grid grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">

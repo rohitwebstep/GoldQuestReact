@@ -5,8 +5,10 @@ import LoginContext from './InternalLoginContext';
 import SelectSearch from 'react-select-search';
 import 'react-select-search/style.css';
 import { useApiCall } from '../ApiCallContext';
+import { useSidebar } from '../Sidebar/SidebarContext';
 
 const InternalLoginForm = () => {
+    const { activeTab } = useSidebar();
     const { formData, setEditAdmin, setFormData, editAdmin, fetchAdminOptions, roles, group, loading } = useContext(LoginContext)
     const { isApiLoading, setIsApiLoading } = useApiCall();
     const [error, setError] = useState({});
@@ -155,7 +157,7 @@ const InternalLoginForm = () => {
                         status: '',
                         is_report_generator: '',
                         is_qc_verifier: '',
-                        service_ids: "",
+                        service_groups: "",
                     });
                     fetchAdminOptions();
                     setEditAdmin(false)
@@ -188,10 +190,6 @@ const InternalLoginForm = () => {
         }
     };
 
-
-
-
-
     const emptyForm = () => {
         setEditAdmin(false)
         setFormData({
@@ -205,46 +203,76 @@ const InternalLoginForm = () => {
             status: '',
             is_report_generator: '',
             is_qc_verifier: '',
-            service_ids: "",
+            service_groups: "",
         });
         setError({});
         setEditAdmin(false);
     }
+    // Options: show group name, but value = ID
     const options = [
-        { value: 'select_all', name: 'Select All / Deselect All' }, // Add the "Select All" option
-        ...group.map((item) => ({ value: item.id, name: item.title })), // Map groups to SelectSearch options
+        { value: 'select_all', name: 'Select All / Deselect All' },
+        ...group
+            .filter(
+                (item, index, self) =>
+                    index === self.findIndex(
+                        (g) => g.group.toLowerCase() === item.group.toLowerCase()
+                    )
+            )
+            .map((item) => ({
+                value: item.group.toString(),   // store as string ID
+                name: item.group,            // show readable group name
+            })),
     ];
 
-    const handleServiceGroupChange = (selected) => {
-        if (selected.includes('select_all')) {
-            // Toggle Select All / Deselect All
-            if (formData.service_ids?.split(',').length === group.length) {
-                // If all selected, deselect all (clear the string)
-                setFormData((prev) => ({ ...prev, service_ids: "" }));
-            } else {
-                // Otherwise, select all (join all IDs into a comma-separated string)
-                const allIds = group.map(item => item.id).join(',');
-                setFormData((prev) => ({ ...prev, service_ids: allIds }));
-            }
-        } else {
-            // Remove 'select_all' from the selected array and update with selected options as a comma-separated string
-            const updatedSelection = selected.filter(id => id !== 'select_all').join(',');
-            setFormData((prev) => ({ ...prev, service_ids: updatedSelection }));
-        }
-    };
+ const handleServiceGroupChange = (selected) => {
+  // Get all service names from group (not IDs)
+  const allServices = group.map((item) => item.group.toString());
 
+  if (selected.includes("select_all")) {
+    const currentSelected = formData.service_groups
+      ? formData.service_groups.split(",")
+      : [];
+
+    const isAllSelected =
+      currentSelected.length === allServices.length &&
+      allServices.every((service) => currentSelected.includes(service));
+
+    if (isAllSelected) {
+      // Deselect all
+      setFormData((prev) => ({ ...prev, service_groups: "" }));
+    } else {
+      // Select all
+      setFormData((prev) => ({
+        ...prev,
+        service_groups: allServices.join(","),
+      }));
+    }
+  } else {
+    // Remove "select_all" and save only service names
+    const updatedSelection = selected.filter((s) => s !== "select_all");
+    setFormData((prev) => ({
+      ...prev,
+      service_groups: updatedSelection.join(","),
+    }));
+  }
+};
+
+
+    useEffect(() => {
+        emptyForm();
+    }, [activeTab]); // 👈 runs whenever tab changes
 
 
     return (
         <>
             <form action="" onSubmit={handleSubmit}>
                 <div className="mb-4">
-                    <label className="text-gray-700 text-gray-700 font-bold text-sm   " htmlFor="employee_id">Employee ID: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700  font-bold text-sm   " htmlFor="employee_id">Employee ID: <span className='text-red-500'>*</span></label>
                     <input
                         type="text"
                         name="employee_id"
                         id="employee_id"
-                        className="border w-full border-gray-300 s shadow-md border-gray-300 text-sm shadow-md rounded-md p-2 mt-2 uppercase "
+                        className="border w-full border-gray-300  text-sm shadow-md rounded-md p-2 mt-2 uppercase "
                         onChange={handleChange}
                         disabled={editAdmin}
                         value={formData.employee_id.toUpperCase()}
@@ -252,7 +280,7 @@ const InternalLoginForm = () => {
                     {error.employee_id && <p className='text-red-500'>{error.employee_id}</p>}
                 </div>
                 <div className="mb-4">
-                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="Employee-name">Employee Name: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700  font-bold text-sm  " htmlFor="Employee-name">Employee Name: <span className='text-red-500'>*</span></label>
                     <input
                         type="text"
                         name="name"
@@ -264,7 +292,7 @@ const InternalLoginForm = () => {
                     {error.name && <p className='text-red-500'>{error.name}</p>}
                 </div>
                 <div className="mb-4">
-                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="mobile-mobile">Employee Mobile: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700  font-bold text-sm  " htmlFor="mobile-mobile">Employee Mobile: <span className='text-red-500'>*</span></label>
                     <input
                         type="number"
                         name="mobile"
@@ -277,7 +305,7 @@ const InternalLoginForm = () => {
                     {error.mobile && <p className='text-red-500'>{error.mobile}</p>}
                 </div>
                 <div className="mb-4">
-                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="emailid">Email: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700  font-bold text-sm  " htmlFor="emailid">Email: <span className='text-red-500'>*</span></label>
                     <input
                         type="email"
                         name="email"
@@ -290,7 +318,7 @@ const InternalLoginForm = () => {
                 </div>
                 {!editAdmin && (
                     <div className="mb-4">
-                        <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="password">Password: <span className='text-red-500'>*</span></label>
+                        <label className="text-gray-700  font-bold text-sm  " htmlFor="password">Password: <span className='text-red-500'>*</span></label>
                         <input
                             type="password"
                             name="password"
@@ -304,7 +332,7 @@ const InternalLoginForm = () => {
                 )}
                 {editAdmin && (
                     <div className="mb-4">
-                        <label className="text-gray-700 text-gray-700 font-bold text-sm  ">Status</label>
+                        <label className="text-gray-700  font-bold text-sm  ">Status</label>
                         <div className="flex items-center space-x-4 mt-3">
                             <div className="flex items-center">
                                 <input
@@ -338,7 +366,7 @@ const InternalLoginForm = () => {
 
 
                 <div className="mb-4">
-                    <label className="text-gray-700 text-gray-700 font-bold text-sm  " htmlFor="role">Role: <span className='text-red-500'>*</span></label>
+                    <label className="text-gray-700  font-bold text-sm  " htmlFor="role">Role: <span className='text-red-500'>*</span></label>
 
                     <div className="relative">
                         <select
@@ -372,10 +400,10 @@ const InternalLoginForm = () => {
                         <SelectSearch
                             multiple
                             options={options}
-                            value={formData.service_ids ? formData.service_ids.split(',') : []}  // Convert string to array for value
-                            name="service_ids"
+                            value={formData.service_groups ? formData.service_groups.split(',') : []}
+                            name="service_groups"
                             placeholder="Select Services"
-                            onChange={(value) => handleServiceGroupChange(value)}
+                            onChange={handleServiceGroupChange}
                             search
                             disabled={loading}
                         />

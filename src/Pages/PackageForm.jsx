@@ -3,10 +3,10 @@ import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
 import { useApi } from '../ApiContext';
 import { useApiCall } from '../ApiCallContext'; // Import the hook for ApiCallContext
-
+import { useSidebar } from '../Sidebar/SidebarContext';
 const PackageForm = ({ onSuccess }) => {
-      const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
-    
+    const { isApiLoading, setIsApiLoading } = useApiCall(); // Access isApiLoading from ApiCallContext
+    const { activeTab} = useSidebar();
     const API_URL = useApi();
     const { fetchData } = usePackage();
     const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
@@ -20,10 +20,7 @@ const PackageForm = ({ onSuccess }) => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [formMessage, setFormMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false); // New state for loading indicator
-    const [initialPackageInput, setInitialPackageInput] = useState({
-        name: "",
-        message: "",
-    });
+
 
     useEffect(() => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
@@ -37,20 +34,14 @@ const PackageForm = ({ onSuccess }) => {
                 name: selectedPackage.title || "",
                 message: selectedPackage.description || "",
             });
-            setInitialPackageInput({
-                name: selectedPackage.title || "",
-                message: selectedPackage.description || "",
-            });
+
             setIsEditMode(true);
         } else {
             setPackageInput({
                 name: "",
                 message: "",
             });
-            setInitialPackageInput({
-                name: "",
-                message: "",
-            });
+
             setIsEditMode(false);
         }
 
@@ -219,7 +210,7 @@ const PackageForm = ({ onSuccess }) => {
         } else {
             // Show validation errors
             setError(validationErrors);
-            setIsLoading(false); 
+            setIsLoading(false);
             setIsApiLoading(false);
             // Stop loading if there are validation errors
         }
@@ -235,6 +226,9 @@ const PackageForm = ({ onSuccess }) => {
         setError({});
         setIsEditMode(false);
     };
+    useEffect(() => {
+        resetForm();
+    }, [activeTab]); // 👈 runs whenever tab changes
 
     return (
         <>
@@ -267,7 +261,7 @@ const PackageForm = ({ onSuccess }) => {
                     ></textarea>
                     {error.message && <p className="text-red-500">{error.message}</p>}
                 </div>
-               
+
                 <button
                     className={`w-full rounded-md p-3 text-white ${isLoading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3e76a5] hover:bg-[#3e76a5]'}`}
                     type="submit"

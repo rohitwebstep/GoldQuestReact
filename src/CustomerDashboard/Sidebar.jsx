@@ -22,6 +22,7 @@ import DeletionRequest from "./DeletionRequest";
 import SubUserCredentials from "./SubuserCredentials";
 import { CiUser } from "react-icons/ci";
 import CustomerUpdatePassword from "./CustomerUpdatePassword";
+import { useSidebar } from "./SidebarContext";
 
 const tabComponents = {
   dashboard: <DashBoard />,
@@ -56,13 +57,15 @@ const tabNames = {
 
 const Sidebar = () => {
   const [toggle, setToggle] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { activeTab, setActiveTab, handleTabChange } = useSidebar();
   const { isBranchApiLoading } = useApiCall();
   const handleToggle = () => {
     setToggle(!toggle);
   };
 
   const onTabChange = (tab) => {
+    handleTabChange(tab);
+
     setActiveTab(tab);
     setToggle(false); // Close sidebar on mobile after selecting a tab
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -80,7 +83,7 @@ const Sidebar = () => {
           <div className='flex justify-between items-center'>  <div><span className="block w-8 h-1 bg-white mb-1"></span>
             <span className="block w-8 h-1 bg-white mb-1"></span>
             <span className="block w-8 h-1 bg-white"></span></div>
-            <div><Logout/></div></div>
+            <div><Logout /></div></div>
 
         </button>
 

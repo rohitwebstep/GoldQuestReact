@@ -82,7 +82,7 @@ const Sidebar = () => {
     setToggle(false); // Close sidebar on mobile after selection
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
+console.log("Active Tab in Sidebar:", activeTab);
   const handleExpand = (tab) => setExpandedTab(expandedTab === tab ? null : tab);
 
   return (

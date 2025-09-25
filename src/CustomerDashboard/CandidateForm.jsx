@@ -1,12 +1,15 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
 import { useApi } from '../ApiContext';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 import { useNavigate } from 'react-router-dom';
+import { useSidebar } from './SidebarContext';
 
 const CandidateForm = () => {
+    const { activeTab } = useSidebar();
+
     const navigate = useNavigate();
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -314,6 +317,9 @@ const CandidateForm = () => {
     const bulkUpload = () => {
         navigate('/CandidateBulkUpload')
     }
+    useEffect(() => {
+        emptyForm();
+    }, [activeTab])
 
     return (
         <>

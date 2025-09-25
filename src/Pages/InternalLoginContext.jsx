@@ -20,7 +20,7 @@ export const LoginProvider = ({ children }) => {
         role: "",
         is_report_generator:'',
         is_qc_verifier:'',
-        service_ids: "", // This will store the selected groups in an array
+        service_groups: "", // This will store the selected groups in an array
 
     });
     const [data, setData] = useState([]); // State to store the response data
@@ -31,16 +31,16 @@ export const LoginProvider = ({ children }) => {
     const handleEditAdmin = (selectedAdmin) => {
         setEditAdmin(true);
 
-        // Check if service_ids exists and is a string, then parse it into an array
+        // Check if service_groups exists and is a string, then parse it into an array
         const parsedServiceGroups = (() => {
             try {
-                // Check if service_ids is a comma-separated string
-                if (selectedAdmin.service_ids && typeof selectedAdmin.service_ids === 'string') {
-                    return selectedAdmin.service_ids.split(',').map(id => id.trim()).filter(Boolean); // Ensure it's an array of strings
+                // Check if service_groups is a comma-separated string
+                if (selectedAdmin.service_groups && typeof selectedAdmin.service_groups === 'string') {
+                    return selectedAdmin.service_groups.split(',').map(id => id.trim()).filter(Boolean); // Ensure it's an array of strings
                 }
                 return [];
             } catch (error) {
-                console.error("Failed to parse service_ids:", error);
+                console.error("Failed to parse service_groups:", error);
                 return [];
             }
         })();
@@ -56,7 +56,7 @@ export const LoginProvider = ({ children }) => {
             is_report_generator: selectedAdmin.is_report_generator || '',
             is_qc_verifier: selectedAdmin.is_qc_verifier || '',
             status: selectedAdmin.status || '',
-            service_ids: selectedAdmin.role !== "admin" ? parsedServiceGroups.join(',') : '', // Store as a comma-separated string for the service_ids
+            service_groups: selectedAdmin.role !== "admin" ? parsedServiceGroups.join(',') : '', // Store as a comma-separated string for the service_groups
         });
     };
 

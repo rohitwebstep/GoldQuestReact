@@ -302,50 +302,45 @@ const InternalLoginList = () => {
                         </thead>
                         <tbody>
                             {currentItems.map((item, index) => {
-                                const serviceIds = item.service_ids ? item.service_ids.split(',').map(id => parseInt(id.trim(), 10)) : [];
-                                const servicesToShow = group.filter(g => serviceIds.includes(g.id));
+                                const servicesToShow = item.service_groups
+                                    ? item.service_groups.split(",").map(s => s.trim())
+                                    : [];
 
-                                // Set a flag for showing the first service only by default
                                 const showMoreButton = servicesToShow.length > 1;
-                                const showAllServices = false; // flag to control visibility of all services
 
                                 return (
                                     <tr key={index}>
                                         <td className="py-2 px-4 border-b border-r border-l text-center whitespace-nowrap">
                                             {index + 1 + (currentPage - 1) * itemsPerPage}
                                         </td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.emp_id || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.mobile || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.email}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.role || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.status || 'NIL'}</td>
-                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap ">
-                                            <div className='flex gap-3'>
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.emp_id || "NIL"}</td>
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name || "NIL"}</td>
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.mobile || "NIL"}</td>
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.email || "NIL"}</td>
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.role || "NIL"}</td>
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.status || "NIL"}</td>
+
+                                        <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">
+                                            <div className="flex gap-3">
                                                 {item.role !== "admin" ? (
                                                     <>
                                                         {servicesToShow.length > 0 ? (
                                                             <div>
                                                                 {/* Show only the first service by default */}
-                                                                {showAllServices ? (
-                                                                    servicesToShow.map((service) => (
-                                                                        <span key={service.id} className="px-4 py-2  border border-[#3e76a5] rounded-lg text-sm">
-                                                                            {service.title || 'NIL'}
-                                                                        </span>
-                                                                    ))
-                                                                ) : (
-                                                                    <span key={servicesToShow[0].id} className="px-4 py-2  border border-[#3e76a5] rounded-lg text-sm">
-                                                                        {servicesToShow[0].title || 'NIL'}
-                                                                    </span>
-                                                                )}
+                                                                <span
+                                                                    key={servicesToShow[0]}
+                                                                    className="px-4 py-2 border border-[#3e76a5] rounded-lg text-sm"
+                                                                >
+                                                                    {servicesToShow[0]}
+                                                                </span>
                                                             </div>
                                                         ) : (
-                                                            "Nil"
+                                                            "NIL"
                                                         )}
 
                                                         {showMoreButton && (
                                                             <button
-                                                                className="ms-3"
+                                                                className="ms-3 text-blue-600 underline"
                                                                 onClick={() => handleViewMore(item.id, servicesToShow)}
                                                             >
                                                                 View More
@@ -353,20 +348,37 @@ const InternalLoginList = () => {
                                                         )}
                                                     </>
                                                 ) : (
-                                                    'NIL'
+                                                    "NIL"
                                                 )}
                                             </div>
                                         </td>
 
                                         <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">
-                                            <button className='bg-[#3e76a5] hover:bg-[#3e76a5] rounded-md me-3 p-2 text-white' onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); editAdmin(item) }}>Edit</button>
-                                            <button className={`rounded-md p-3 text-white ${loading || isApiLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-200'}`}
-                                                disabled={isApiLoading || loading} onClick={() => deleteAdmin(item.id)}>Delete</button>
+                                            <button
+                                                className="bg-[#3e76a5] hover:bg-[#3e76a5] rounded-md me-3 p-2 text-white"
+                                                onClick={() => {
+                                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                                    editAdmin(item);
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className={`rounded-md p-3 text-white ${loading || isApiLoading
+                                                    ? "bg-gray-400 cursor-not-allowed"
+                                                    : "bg-red-500 hover:bg-red-200"
+                                                    }`}
+                                                disabled={isApiLoading || loading}
+                                                onClick={() => deleteAdmin(item.id)}
+                                            >
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 );
                             })}
                         </tbody>
+
                     </table>
                 ) : (
                     <div className="text-center py-6">
@@ -375,10 +387,10 @@ const InternalLoginList = () => {
                 )}
 
                 {isModalOpen && (
-                    <div className="fixed inset-0 bg-black  bg-opacity-50 p-3 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 p-3 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg shadow-lg p-4 md:w-6/12 max-h-[80vh] overflow-y-auto">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-bold">Services Groups</h2>
+                                <h2 className="text-lg font-bold">Service Groups</h2>
                                 <button
                                     className="text-red-500 text-2xl"
                                     onClick={handleCloseModal}
@@ -386,20 +398,29 @@ const InternalLoginList = () => {
                                     &times;
                                 </button>
                             </div>
+
                             <div className="mt-4 flex flex-wrap gap-2 w-full m-auto h-auto">
                                 <ul className="flex flex-wrap gap-3">
                                     {modalServices.length > 0 ? (
                                         modalServices.map((service, idx) => (
-                                            <li key={idx} className="px-4 py-2 border text-center border-[#3e76a5] rounded-lg text-sm">{service.title}</li>
+                                            <li
+                                                key={idx}
+                                                className="px-4 py-2 border text-center border-[#3e76a5] rounded-lg text-sm"
+                                            >
+                                                {service}
+                                            </li>
                                         ))
                                     ) : (
-                                        <li className="px-4 py-2 bg-gray-100 border text-center border-gray-500 rounded-lg text-sm">No services available</li>
+                                        <li className="px-4 py-2 bg-gray-100 border text-center border-gray-500 rounded-lg text-sm">
+                                            No services available
+                                        </li>
                                     )}
                                 </ul>
                             </div>
                         </div>
                     </div>
                 )}
+
             </div>
 
 

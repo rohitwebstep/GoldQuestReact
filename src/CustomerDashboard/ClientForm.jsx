@@ -6,9 +6,10 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
-
+import { useSidebar } from './SidebarContext';
 const ClientForm = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
+    const { activeTab} = useSidebar();
 
     const [formLoading, setFormLoading] = useState(false);
     const branch_name = JSON.parse(localStorage.getItem("branch"));
@@ -20,9 +21,9 @@ const ClientForm = () => {
     const [files, setFiles] = useState({});
 
     const navigate = useNavigate();
-    const GotoBulk = () => {
-        navigate('/ClientBulkUpload')
-    }
+    // const GotoBulk = () => {
+    //     navigate('/ClientBulkUpload')
+    // }
     const { isEditClient, setIsEditClient, inputError, setInputError, fetchClientDrop, setClientInput, services, uniquePackages, clientInput, loading } = useContext(DropBoxContext);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -60,7 +61,7 @@ const ClientForm = () => {
         });
 
         // Validate required text fields
-        ['name',"nationality"].forEach((field) => {
+        ['name', "nationality"].forEach((field) => {
             if (!clientInput[field] || clientInput[field].trim() === "") {
                 newErrors[field] = "This Field is Required";
             }
@@ -339,7 +340,7 @@ const ClientForm = () => {
                         services: [],
                         package: "",
                         client_application_id: "",
-                        nationality:"",
+                        nationality: "",
                     });
 
                     setFiles({});
@@ -360,8 +361,6 @@ const ClientForm = () => {
             setInputError(errors); // Set the input errors if validation fails
         }
     };
-
-
 
     const handlePackageChange = (e) => {
         const selectedValue = e.target.value; // The selected package ID
@@ -422,8 +421,6 @@ const ClientForm = () => {
         }
     };
 
-
-
     const emptyForm = () => {
         setClientInput({
             name: "",
@@ -435,11 +432,17 @@ const ClientForm = () => {
             services: [],
             package: "",
             client_application_id: "",
-            nationality:"",
+            nationality: "",
         });
         setInputError({});
         setIsEditClient(false);
     };
+
+    useEffect(() => {
+        emptyForm();
+    }, [activeTab]);
+
+
     return (
         <>
             {formLoading ? (
@@ -467,18 +470,18 @@ const ClientForm = () => {
                                     accept=".jpg,.jpeg,.png,.pdf,.docx,.xlsx" // Restrict to specific file types
                                     onChange={(e) => handleFileChange('attach_documents', e)} />
                                 {inputError.attach_documents && <p className='text-red-500'>{inputError.attach_documents}</p>}
-                                
+
                             </div>
                             <div className="md:flex gap-5">
                                 <div className="mb-4 md:w-6/12">
                                     <label htmlFor="employee_id" className='text-sm font-bold text-gray-700 '>Employee ID</label>
                                     <input type="text" name="employee_id" disabled={isEditClient} id="EmployeeId" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.employee_id.toUpperCase()} />
-                                    
+
                                 </div>
                                 <div className="mb-4 md:w-6/12">
                                     <label htmlFor="spoc" className='text-sm font-bold text-gray-700 '>Name of the SPOC</label>
                                     <input type="text" name="spoc" id="spoc" className="border w-full border-gray-300 shadow-md capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
-                                    
+
                                 </div>
                             </div>
                             <div className="mb-4">

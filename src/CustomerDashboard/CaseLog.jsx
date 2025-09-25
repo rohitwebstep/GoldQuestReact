@@ -733,7 +733,7 @@ const CaseLog = () => {
 
                     <form className='mt-4' onSubmit={handleSubmit}>
 
-                        <div className="mb-6 text-left">
+                        <div className="mb-2 text-left">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">Case-Log Title<span className='text-red-500 font-bold'>*</span></label>
                             <input
                                 type="text"
@@ -745,7 +745,7 @@ const CaseLog = () => {
                             />
                             {passError.title && <p className='text-red-500'>{passError.title}</p>}
                         </div>
-                        <div className="mb-6 text-left">
+                        <div className="mb-2 text-left">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">Case-Log Description<span className='text-red-500 font-bold'>*</span></label>
                             <input
                                 type="text"

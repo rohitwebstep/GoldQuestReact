@@ -5,10 +5,11 @@ import { useApi } from "../ApiContext";
 import PulseLoader from "react-spinners/PulseLoader";
 import "jspdf-autotable";
 import * as XLSX from 'xlsx';
+import { useSidebar } from './SidebarContext';
 
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 const SubUserCredentials = () => {
-  const { isBranchApiLoading, setIsBranchApiLoading ,checkBranchAuthentication} = useApiCall();
+  const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
   const [data, setData] = useState([]);
   const API_URL = useApi();
   const [isEditEmail, setIsEditEmail] = useState(false);
@@ -18,6 +19,7 @@ const SubUserCredentials = () => {
     confirmPassword: '',
     id: '',
   });
+  const { activeTab } = useSidebar();
 
   const editUser = (data) => {
 
@@ -245,16 +247,16 @@ const SubUserCredentials = () => {
 
 
   const [itemsPerPage, setItemPerPage] = useState(10);
- useEffect(() => {
-     const fetchDataMain = async () => {
-       if (!isBranchApiLoading) {
-         await checkBranchAuthentication();
-         await fetchData();
-       }
-     };
- 
-     fetchDataMain();
-   }, [fetchData]);
+  useEffect(() => {
+    const fetchDataMain = async () => {
+      if (!isBranchApiLoading) {
+        await checkBranchAuthentication();
+        await fetchData();
+      }
+    };
+
+    fetchDataMain();
+  }, [fetchData]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -386,6 +388,17 @@ const SubUserCredentials = () => {
     // Export the workbook to Excel
     XLSX.writeFile(wb, 'Subusers.xlsx');
   };
+
+
+  useEffect(() => {
+    setFormData({
+      email: '',
+      password: '',
+      confirmPassword: '',
+      id: '',
+    });
+    setIsEditEmail(null)
+  }, [activeTab])
 
   return (
     <>
