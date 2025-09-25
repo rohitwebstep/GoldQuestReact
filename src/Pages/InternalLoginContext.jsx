@@ -18,8 +18,8 @@ export const LoginProvider = ({ children }) => {
         email: "",
         password: "",
         role: "",
-        is_report_generator:'',
-        is_qc_verifier:'',
+        is_report_generator: '',
+        is_qc_verifier: '',
         service_groups: "", // This will store the selected groups in an array
 
     });
@@ -31,12 +31,14 @@ export const LoginProvider = ({ children }) => {
     const handleEditAdmin = (selectedAdmin) => {
         setEditAdmin(true);
 
-        // Check if service_groups exists and is a string, then parse it into an array
+        // Safely parse service_groups into an array
         const parsedServiceGroups = (() => {
             try {
-                // Check if service_groups is a comma-separated string
-                if (selectedAdmin.service_groups && typeof selectedAdmin.service_groups === 'string') {
-                    return selectedAdmin.service_groups.split(',').map(id => id.trim()).filter(Boolean); // Ensure it's an array of strings
+                if (typeof selectedAdmin?.service_groups === "string" && selectedAdmin.service_groups.trim() !== "") {
+                    return selectedAdmin.service_groups
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean); // remove empty values
                 }
                 return [];
             } catch (error) {
@@ -66,21 +68,21 @@ export const LoginProvider = ({ children }) => {
         try {
             const storedAdminData = localStorage.getItem("admin");
             const storedToken = localStorage.getItem("_token");
-    
+
             if (!storedAdminData || !storedToken) {
                 handleSessionExpiry();
                 return;
             }
-    
+
             const adminData = JSON.parse(storedAdminData);
             const admin_id = adminData?.id;
-    
+
             // Prepare request parameters
             const params = new URLSearchParams({
                 admin_id,
                 _token: storedToken,
             });
-    
+
             // Fetch admin roles and permissions using fetch API
             const response = await fetch(`${API_URL}/admin/create-listing?${params.toString()}`, {
                 method: 'GET', // GET request
@@ -88,51 +90,51 @@ export const LoginProvider = ({ children }) => {
                     'Content-Type': 'application/json',
                 },
             });
-    
+
             // Check if response is successful (status 200)
             if (!response.ok) {
                 const errorData = await response.json(); // Get the error message from the response
-    
+
                 // Show error message from the response
                 const errorMessage = errorData?.message || 'An unexpected error occurred';
                 const errorDetail = errorData?.err?.message || errorMessage;  // Check for specific error details
-    
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: errorDetail,
                 });
-    
+
                 return; // Stop execution if there's an error
             }
-    
+
             // If response is successful, parse the data
             const data = await response.json();
-            
+
             // If the response has a status of false, show the error message
             if (data.status === false) {
                 const errorMessage = data?.message || 'An unexpected error occurred';
                 const errorDetail = data?.err?.message || errorMessage;
-    
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: errorDetail,
                 });
-    
+
                 return;
             }
-    
+
             // Handle successful response
             const adminRoles = data.data;
             setRoles(adminRoles.roles.roles || []);
             setGroup(adminRoles.services?.filter(Boolean) || []);
             setData(adminRoles?.admins || []); // Set the admin data
-    
+
             // Update token if provided
             const newToken = data?._token || data?.token;
             if (newToken) localStorage.setItem("_token", newToken);
-    
+
         } catch (error) {
             console.error("Error fetching data:", error);
             Swal.fire({
@@ -145,7 +147,7 @@ export const LoginProvider = ({ children }) => {
             setLoading(false);
         }
     };
-    
+
 
     const handleSessionExpiry = () => {
         Swal.fire({
