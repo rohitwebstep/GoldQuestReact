@@ -1253,7 +1253,7 @@ const ReportCaseTable = () => {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
         doc.setTextColor("#fff");
-        const verticalCenter = yPosition + 5;
+        const verticalCenter = yPosition + 7;
         doc.text(headingText, pageWidth / 2, verticalCenter, { align: "center" });
         yPosition += 10;
 
@@ -1279,15 +1279,7 @@ const ReportCaseTable = () => {
 
         addFooter(doc);
         yPosition = doc.lastAutoTable.finalY + 5;
-        const remarksData = serviceData.find((data) => data.label === "Remarks");
-        if (remarksData) {
-          const remarks = service.annexureData[remarksData.values.name] || "No remarks available.";
-          doc.setFont("helvetica", "italic");
-          doc.setFontSize(10);
-          doc.setTextColor(100, 100, 100);
-          doc.text(`Remarks: ${remarks}`, 10, yPosition);
-          yPosition += 7;
-        }
+
 
         // Utility function to compress a base64 image
         function compressBase64Image(base64Str, maxWidth = 800, quality = 0.7) {

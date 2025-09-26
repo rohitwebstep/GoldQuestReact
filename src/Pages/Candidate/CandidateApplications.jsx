@@ -1353,12 +1353,7 @@ const GenerateReport = () => {
                     })
                     .filter(Boolean); // Remove null values
 
-                if (!submissionData.length) {
-                    console.warn("No valid submission data found.");
-                    Swal.fire("Error", "No data to submit. Please check your inputs.", "error");
-                    setLoading(false);
-                    return;
-                }
+              
 
                 // Flatten and clean up annexure data
                 filteredSubmissionData = submissionData.reduce(
