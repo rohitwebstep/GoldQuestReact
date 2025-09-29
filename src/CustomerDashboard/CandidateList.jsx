@@ -259,7 +259,7 @@ const CandidateList = () => {
     const filteredOptions = filteredItems.filter(item =>
         item?.cef_submitted?.toString().toLowerCase().includes(statusChange?.toString().toLowerCase() || "")
     );
-    
+
 
     const totalPages = Math.ceil(filteredOptions.length / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -493,7 +493,7 @@ const CandidateList = () => {
             "Current(Pincode,Landmark)": `${report.current_address_pin_code || 'NIL'}, ${report.current_prominent_landmark || 'NIL'}`,
             "Permanent(Pincode,Landmark)": `${report.permanent_pin_code || 'NIL'}, ${report.permanent_prominent_landmark || 'NIL'}`,
         }));
-        
+
 
         // Create a worksheet and workbook
         const ws = XLSX.utils.json_to_sheet(formattedData);
@@ -715,6 +715,7 @@ const CandidateList = () => {
                                             <th className="md:py-3 p-2 text-left border-r text-white md:px-4 border-b whitespace-nowrap uppercase">Is Form Opened</th>
                                             <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Employment Gap</th>
                                             <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is Education Gap</th>
+                                            <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Is DAV Form Open</th>
                                             <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">Gap Check</th>
 
                                             <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase text-white">
@@ -891,6 +892,33 @@ const CandidateList = () => {
                                                 >
                                                     {report.is_education_gap || "NIL"}
                                                 </td>
+                                                <td
+                                                    className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_dav_form_opened === 1 ||
+                                                            report.is_dav_form_opened === "1" ||
+                                                            report.is_dav_form_opened === "yes" ||
+                                                            report.is_dav_form_opened === true
+                                                            ? "text-green-500" // Opened
+                                                            : report.is_dav_form_opened === 0 ||
+                                                                report.is_dav_form_opened === "0" ||
+                                                                report.is_dav_form_opened === "no" ||
+                                                                report.is_dav_form_opened === false
+                                                                ? "text-[#3e76a5]" // Not opened
+                                                                : "text-black" // Unknown/fallback
+                                                        }`}
+                                                >
+                                                    {report.is_dav_form_opened === 1 ||
+                                                        report.is_dav_form_opened === "1" ||
+                                                        report.is_dav_form_opened === "yes" ||
+                                                        report.is_dav_form_opened === true
+                                                        ? "YES"
+                                                        : report.is_dav_form_opened === 0 ||
+                                                            report.is_dav_form_opened === "0" ||
+                                                            report.is_dav_form_opened === "no" ||
+                                                            report.is_dav_form_opened === false
+                                                            ? "NO"
+                                                            : "NIL"}
+                                                </td>
+
                                                 <td
                                                     className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_employment_gap === "no"
                                                         ? "text-[#3e76a5]"

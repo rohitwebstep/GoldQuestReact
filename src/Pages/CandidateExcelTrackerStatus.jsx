@@ -287,7 +287,7 @@ const CandidateExcelTrackerStatus = () => {
 
 
         // Construct the URL dynamically with query parameters
-          const url = `${API_URL}/candidate-master-tracker/send?application_id=${applicationID}&branch_id=${branch_id}&customer_id=${customer_id}&admin_id=${adminId}&_token=${token}`;
+        const url = `${API_URL}/candidate-master-tracker/send?application_id=${applicationID}&branch_id=${branch_id}&customer_id=${customer_id}&admin_id=${adminId}&_token=${token}`;
         // const url = `https://api.goldquestglobal.in/candidate-master-tracker/bgv-application-by-id?application_id=${applicationID}&branch_id=${branch_id}&admin_id=${adminId}&_token=${token}`;
         const requestOptions = {
             method: "GET",
@@ -388,8 +388,8 @@ const CandidateExcelTrackerStatus = () => {
             'Check GAP Status',
             'CEF Filled Date',
             'DAV Filled Date',
-            
-            
+
+
         ];
 
         // Prepare data rows
@@ -423,7 +423,7 @@ const CandidateExcelTrackerStatus = () => {
                     day: '2-digit',
                 }).format(new Date(data.dav_filled_date))
                 : 'NIL',
-             
+
         ]);
 
         // Create a worksheet from the data
@@ -606,26 +606,26 @@ const CandidateExcelTrackerStatus = () => {
                 "PAN No": data.CEFData?.pan_card_number || 'NA', // Assuming PAN is under application
                 "UAN No": uanNumber || 'NA', // Assuming UAN is under application
                 "USE": matchedServices || 'NA', // Added default fallback
-                "(PERMANENT) Flat/House No":data.CEFData?.permanent_address,
-                "(PERMANENT) Street/Road, Locality Area":data.CEFData?.permanent_street_locality,
-                "(PERMANENT) Sector, Village":data.CEFData?.permanent_sector_village,
-                "(PERMANENT) Landmark ":data.CEFData?.permanent_prominent_landmark,
-                "(PERMANENT) City  ":data.CEFData?.permanent_city,
-                "(PERMANENT) State   ":data.CEFData?.permanent_address_state,
-                "(PERMANENT) Pin Code  ":data.CEFData?.permanent_pin_code,
-                "(PERMANENT) Mobile Number":data.CEFData?.permanent_address_landline_number,
-                "(PERMANENT) Alternate Mobile No":data.CEFData?.permanent_address_stay_to,
-                "(PERMANENT) Nearest Police Station":data.CEFData?.permanent_address_nearest_police_station,
-                "(CURRENT) Flat/House No":data.CEFData?.current_address,
-                "(CURRENT) Street/Road, Locality Area":data.CEFData?.current_street_locality,
-                "(CURRENT) Sector, Village":data.CEFData?.current_sector_village,
-                "(CURRENT) Landmark ":data.CEFData?.current_prominent_landmark,
-                "(CURRENT) City  ":data.CEFData?.current_city,
-                "(CURRENT) State   ":data.CEFData?.current_address_state,
-                "(CURRENT) Pin Code  ":data.CEFData?.current_pin_code,
-                "(CURRENT) Mobile Number":data.CEFData?.current_address_landline_number,
-                "(CURRENT) Alternate Mobile No":data.CEFData?.current_address_stay_to,
-                "(CURRENT) Nearest Police Station":data.CEFData?.current_address_nearest_police_station,
+                "(PERMANENT) Flat/House No": data.CEFData?.permanent_address,
+                "(PERMANENT) Street/Road, Locality Area": data.CEFData?.permanent_street_locality,
+                "(PERMANENT) Sector, Village": data.CEFData?.permanent_sector_village,
+                "(PERMANENT) Landmark ": data.CEFData?.permanent_prominent_landmark,
+                "(PERMANENT) City  ": data.CEFData?.permanent_city,
+                "(PERMANENT) State   ": data.CEFData?.permanent_address_state,
+                "(PERMANENT) Pin Code  ": data.CEFData?.permanent_pin_code,
+                "(PERMANENT) Mobile Number": data.CEFData?.permanent_address_landline_number,
+                "(PERMANENT) Alternate Mobile No": data.CEFData?.permanent_address_stay_to,
+                "(PERMANENT) Nearest Police Station": data.CEFData?.permanent_address_nearest_police_station,
+                "(CURRENT) Flat/House No": data.CEFData?.current_address,
+                "(CURRENT) Street/Road, Locality Area": data.CEFData?.current_street_locality,
+                "(CURRENT) Sector, Village": data.CEFData?.current_sector_village,
+                "(CURRENT) Landmark ": data.CEFData?.current_prominent_landmark,
+                "(CURRENT) City  ": data.CEFData?.current_city,
+                "(CURRENT) State   ": data.CEFData?.current_address_state,
+                "(CURRENT) Pin Code  ": data.CEFData?.current_pin_code,
+                "(CURRENT) Mobile Number": data.CEFData?.current_address_landline_number,
+                "(CURRENT) Alternate Mobile No": data.CEFData?.current_address_stay_to,
+                "(CURRENT) Nearest Police Station": data.CEFData?.current_address_nearest_police_station,
             };
 
             allData.push(filteredData);
@@ -686,26 +686,26 @@ const CandidateExcelTrackerStatus = () => {
                     "PAN No": mainData.CEFData?.pan_card_number || "NA",
                     "UAN No": uanNumber,
                     "USE": matchedServices,
-                    "(PERMANENT) Flat/House No":mainData.CEFData?.permanent_address,
-                    "(PERMANENT) Street/Road, Locality Area":mainData.CEFData?.permanent_street_locality,
-                    "(PERMANENT) Sector, Village":mainData.CEFData?.permanent_sector_village,
-                    "(PERMANENT) Landmark ":mainData.CEFData?.permanent_prominent_landmark,
-                    "(PERMANENT) City  ":mainData.CEFData?.permanent_city,
-                    "(PERMANENT) State   ":mainData.CEFData?.permanent_address_state,
-                    "(PERMANENT) Pin Code  ":mainData.CEFData?.permanent_pin_code,
-                    "(PERMANENT) Mobile Number":mainData.CEFData?.permanent_address_landline_number,
-                    "(PERMANENT) Alternate Mobile No":mainData.CEFData?.permanent_address_stay_to,
-                    "(PERMANENT) Nearest Police Station":mainData.CEFData?.permanent_address_nearest_police_station,
-                    "(CURRENT) Flat/House No":mainData.CEFData?.current_address,
-                    "(CURRENT) Street/Road, Locality Area":mainData.CEFData?.current_street_locality,
-                    "(CURRENT) Sector, Village":mainData.CEFData?.current_sector_village,
-                    "(CURRENT) Landmark ":mainData.CEFData?.current_prominent_landmark,
-                    "(CURRENT) City  ":mainData.CEFData?.current_city,
-                    "(CURRENT) State   ":mainData.CEFData?.current_address_state,
-                    "(CURRENT) Pin Code  ":mainData.CEFData?.current_pin_code,
-                    "(CURRENT) Mobile Number":mainData.CEFData?.current_address_landline_number,
-                    "(CURRENT) Alternate Mobile No":mainData.CEFData?.current_address_stay_to,
-                    "(CURRENT) Nearest Police Station":mainData.CEFData?.current_address_nearest_police_station,
+                    "(PERMANENT) Flat/House No": mainData.CEFData?.permanent_address,
+                    "(PERMANENT) Street/Road, Locality Area": mainData.CEFData?.permanent_street_locality,
+                    "(PERMANENT) Sector, Village": mainData.CEFData?.permanent_sector_village,
+                    "(PERMANENT) Landmark ": mainData.CEFData?.permanent_prominent_landmark,
+                    "(PERMANENT) City  ": mainData.CEFData?.permanent_city,
+                    "(PERMANENT) State   ": mainData.CEFData?.permanent_address_state,
+                    "(PERMANENT) Pin Code  ": mainData.CEFData?.permanent_pin_code,
+                    "(PERMANENT) Mobile Number": mainData.CEFData?.permanent_address_landline_number,
+                    "(PERMANENT) Alternate Mobile No": mainData.CEFData?.permanent_address_stay_to,
+                    "(PERMANENT) Nearest Police Station": mainData.CEFData?.permanent_address_nearest_police_station,
+                    "(CURRENT) Flat/House No": mainData.CEFData?.current_address,
+                    "(CURRENT) Street/Road, Locality Area": mainData.CEFData?.current_street_locality,
+                    "(CURRENT) Sector, Village": mainData.CEFData?.current_sector_village,
+                    "(CURRENT) Landmark ": mainData.CEFData?.current_prominent_landmark,
+                    "(CURRENT) City  ": mainData.CEFData?.current_city,
+                    "(CURRENT) State   ": mainData.CEFData?.current_address_state,
+                    "(CURRENT) Pin Code  ": mainData.CEFData?.current_pin_code,
+                    "(CURRENT) Mobile Number": mainData.CEFData?.current_address_landline_number,
+                    "(CURRENT) Alternate Mobile No": mainData.CEFData?.current_address_stay_to,
+                    "(CURRENT) Nearest Police Station": mainData.CEFData?.current_address_nearest_police_station,
                 };
 
                 allData.push(rowData);
@@ -869,6 +869,7 @@ const CandidateExcelTrackerStatus = () => {
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">View Documents</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is Employment Gap</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is Education Gap</th>
+                                    <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Is DAV Form Open</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Gap Check</th>
 
                                     {currentItems.some(item => item.cef_id) ? (
@@ -975,6 +976,32 @@ const CandidateExcelTrackerStatus = () => {
                                                 {data.is_education_gap || "NIL"}
                                             </td>
                                             <td
+                                                className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_dav_form_opened === 1 ||
+                                                    data.is_dav_form_opened === "1" ||
+                                                    data.is_dav_form_opened === "yes" ||
+                                                    data.is_dav_form_opened === true
+                                                    ? "text-green-500" // Opened
+                                                    : data.is_dav_form_opened === 0 ||
+                                                        data.is_dav_form_opened === "0" ||
+                                                        data.is_dav_form_opened === "no" ||
+                                                        data.is_dav_form_opened === false
+                                                        ? "text-[#3e76a5]" // Not opened
+                                                        : "text-black" // Unknown/fallback
+                                                    }`}
+                                            >
+                                                {data.is_dav_form_opened === 1 ||
+                                                    data.is_dav_form_opened === "1" ||
+                                                    data.is_dav_form_opened === "yes" ||
+                                                    data.is_dav_form_opened === true
+                                                    ? "YES"
+                                                    : data.is_dav_form_opened === 0 ||
+                                                        data.is_dav_form_opened === "0" ||
+                                                        data.is_dav_form_opened === "no" ||
+                                                        data.is_dav_form_opened === false
+                                                        ? "NO"
+                                                        : "NIL"}
+                                            </td>
+                                            <td
                                                 className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${data.is_employment_gap === "no"
                                                     ? "text-[#3e76a5]"
                                                     : data.is_employment_gap === "yes"
@@ -1039,8 +1066,8 @@ const CandidateExcelTrackerStatus = () => {
                                             )}
                                             {currentItems.some(item => item.dav_filled_date) ? (
                                                 <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                                
-                                                        {data.dav_filled_date
+
+                                                    {data.dav_filled_date
                                                         ? (new Date(data.dav_filled_date))
                                                             .toLocaleDateString('en-GB') // Format as DD/MM/YYYY
                                                             .split('/')
