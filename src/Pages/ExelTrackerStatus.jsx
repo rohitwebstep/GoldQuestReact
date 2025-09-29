@@ -771,10 +771,13 @@ const AdminChekin = () => {
 
                     { content: 'Application Received', styles: { fontStyle: 'bold' } },
                     {
-                        content: applicationInfo?.created_at
-                            ? new Date(applicationInfo.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")
+                        content: (applicationInfo?.initiation_date || applicationInfo?.created_at)
+                            ? new Date(applicationInfo.initiation_date || applicationInfo.created_at)
+                                .toLocaleDateString("en-GB")
+                                .replace(/\//g, "-")
                             : "NA"
                     }
+
 
 
                 ],
@@ -1263,7 +1266,7 @@ const AdminChekin = () => {
 
                 addFooter(doc);
                 yPosition = doc.lastAutoTable.finalY + 5;
-              
+
 
                 // Utility function to compress a base64 image
                 function compressBase64Image(base64Str, maxWidth = 800, quality = 0.7) {

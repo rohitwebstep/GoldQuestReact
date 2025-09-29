@@ -787,11 +787,12 @@ const ReportCaseTable = () => {
 
           { content: 'Application Received', styles: { fontStyle: 'bold' } },
           {
-            content: applicationInfo?.created_at
-              ? new Date(applicationInfo.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")
+            content: (applicationInfo?.initiation_date || applicationInfo?.created_at)
+              ? new Date(applicationInfo.initiation_date || applicationInfo.created_at)
+                .toLocaleDateString("en-GB")
+                .replace(/\//g, "-")
               : "NA"
           }
-
 
         ],
         [

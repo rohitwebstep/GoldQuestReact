@@ -93,6 +93,9 @@ const GenerateReport = () => {
             }
         }));
     }, []);
+
+
+
     useEffect(() => {
         const currentDate = new Date();
         const monthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -109,6 +112,7 @@ const GenerateReport = () => {
             }));
         }
     }, []);
+
 
 
     const handleSortingOrderChange = (e, serviceIndex, index) => {
@@ -141,6 +145,8 @@ const GenerateReport = () => {
             return updatedServicesDataInfo;
         });
     };
+
+
     // Compute `showInstaDrugTest` OUTSIDE useEffect to avoid multiple triggers
     const showInstaDrugTest = useMemo(() => {
         const isInstaEnabled = ['1', 1, 'true', true].includes(
@@ -243,9 +249,6 @@ const GenerateReport = () => {
             return updatedStatuses;
         });
     };
-
-
-
 
 
     let allCompleted = false;
@@ -417,9 +420,7 @@ const GenerateReport = () => {
                             contact_number: cmtData.contact_number || prevFormData.updated_json.contact_number || '',
                             contact_number2: cmtData.contact_number2 || prevFormData.updated_json.contact_number2 || '',
                             father_name: cmtData.father_name || prevFormData.updated_json.father_name || '',
-                            initiation_date: cmtData.initiation_date || prevFormData.updated_json.initiation_date,
-
-
+                            initiation_date: cmtData.initiation_date || applicationData.created_at || prevFormData.updated_json.initiation_date,
                             gender: cmtData.gender || prevFormData.updated_json.gender || '',
                             dob: (cmtData.dob && !isNaN(new Date(cmtData.dob).getTime()))
                                 ? new Date(cmtData.dob).toISOString().split('T')[0] // Format as dd-MM-yyyy
@@ -1022,27 +1023,6 @@ const GenerateReport = () => {
         });
     }, []);
 
-    console.log(`ServicesDataInfo - `, servicesDataInfo);
-
-    const handleTimeChange = useCallback((e, input, type, index, preSelectedTime) => {
-        const { name, value } = e.target;
-        let rawSelectedHour = selectedHour || preSelectedTime.hour;
-        let rawSelectedMinute = selectedMinute || preSelectedTime.minutes;
-        let rawSelectedPeriod = selectedPeriod || preSelectedTime.period;
-        if (type == 'hour') {
-            setSelectedHour(value);
-            rawSelectedHour = value;
-        } else if (type == 'minute') {
-            setSelectedMinute(value);
-            rawSelectedMinute = value;
-        } else if (type == 'period') {
-            setSelectedPeriod(value);
-            rawSelectedPeriod = value;
-        }
-        const formattedTime = `${rawSelectedHour}:${rawSelectedMinute} ${rawSelectedPeriod}`;
-        handleInputChange({ target: { name: input.name, value: formattedTime } }, input, index);
-    }, [selectedHour, selectedMinute, selectedPeriod, handleInputChange]);
-
 
     const renderInput = (index, dbTable, input, annexureImagesSplitArr, rowHasFile) => {
         let inputValue = '';
@@ -1077,10 +1057,14 @@ const GenerateReport = () => {
                             <DatePicker
                                 selected={inputValue ? new Date(inputValue) : null}
                                 onChange={(date) => {
+                                    const formattedDate = date
+                                        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+                                        : "";
+
                                     const fakeEvent = {
                                         target: {
                                             name: input.name,
-                                            value: date ? date.toISOString().split("T")[0] : "",
+                                            value: formattedDate,
                                         },
                                     };
                                     handleInputChange(fakeEvent, input, index);
@@ -1193,10 +1177,10 @@ const GenerateReport = () => {
 
                     <select
                         name={`spoc`}
-                         value={servicesDataInfo[index].annexureData['spoc']}
+                        value={servicesDataInfo[index].annexureData['spoc']}
                         className="w-full mb-2 p-3 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                         onChange={(e) => handleInputChange(e, input, index)}
-                                onBlur={(e) => handleFocusOut(e, index)}
+                        onChange={(e) => handleInputChange(e, input, index)}
+                        onBlur={(e) => handleFocusOut(e, index)}
                     >
                         <option value="">Select Spoc</option>
                         {adminNames.map((admin, indx) => (
@@ -1240,34 +1224,55 @@ const GenerateReport = () => {
         }
 
         // If no file input in the row, add custom select at the end
-      if (!rowHasFile && input.isLastInput) {
-    const customInputName = `spoc`; // name to store in annexureData
-    const inputValue = servicesDataInfo[index]?.annexureData?.[customInputName] || '';
+        if (!rowHasFile && input.isLastInput) {
+            const customInputName = `spoc`; // name to store in annexureData
+            const inputValue = servicesDataInfo[index]?.annexureData?.[customInputName] || '';
 
-    return (
-        <select
-            name={customInputName}
-            value={inputValue}
-            className="w-full mt-2 p-3 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) => {
-                // Create fake input object
-                const fakeInput = { name: customInputName, type: 'dropdown' };
-                handleInputChange(e, fakeInput, index, dbTable);
-            }}
-            onBlur={(e) => {
-                const fakeInput = { name: customInputName, type: 'dropdown' };
-                handleFocusOut(e, index, dbTable);
-            }}
-        >
-            <option value="">Select Spoc</option>
-            {adminNames.map((admin, indx) => (
-                <option key={indx} value={admin.name}>{admin.name}</option>
-            ))}
-        </select>
-    );
-}
+            return (
+                <select
+                    name={customInputName}
+                    value={inputValue}
+                    className="w-full mt-2 p-3 border border-gray-300 shadow-md rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                        // Create fake input object
+                        const fakeInput = { name: customInputName, type: 'dropdown' };
+                        handleInputChange(e, fakeInput, index, dbTable);
+                    }}
+                    onBlur={(e) => {
+                        const fakeInput = { name: customInputName, type: 'dropdown' };
+                        handleFocusOut(e, index, dbTable);
+                    }}
+                >
+                    <option value="">Select Spoc</option>
+                    {adminNames.map((admin, indx) => (
+                        <option key={indx} value={admin.name}>{admin.name}</option>
+                    ))}
+                </select>
+            );
+        }
 
     };
+
+    console.log(`ServicesDataInfo - `, servicesDataInfo);
+
+    const handleTimeChange = useCallback((e, input, type, index, preSelectedTime) => {
+        const { name, value } = e.target;
+        let rawSelectedHour = selectedHour || preSelectedTime.hour;
+        let rawSelectedMinute = selectedMinute || preSelectedTime.minutes;
+        let rawSelectedPeriod = selectedPeriod || preSelectedTime.period;
+        if (type == 'hour') {
+            setSelectedHour(value);
+            rawSelectedHour = value;
+        } else if (type == 'minute') {
+            setSelectedMinute(value);
+            rawSelectedMinute = value;
+        } else if (type == 'period') {
+            setSelectedPeriod(value);
+            rawSelectedPeriod = value;
+        }
+        const formattedTime = `${rawSelectedHour}:${rawSelectedMinute} ${rawSelectedPeriod}`;
+        handleInputChange({ target: { name: input.name, value: formattedTime } }, input, index);
+    }, [selectedHour, selectedMinute, selectedPeriod, handleInputChange]);
 
 
 
@@ -1353,7 +1358,7 @@ const GenerateReport = () => {
                     })
                     .filter(Boolean); // Remove null values
 
-              
+
 
                 // Flatten and clean up annexure data
                 filteredSubmissionData = submissionData.reduce(
