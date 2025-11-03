@@ -120,96 +120,87 @@ const AdminChekin = () => {
 
     }, [branch_id, adminId, token, setData, setOptions]);
 
-    const handleDownloadAll = async (attachments) => {
-        console.log("Starting handleDownloadAll with attachments:", attachments);
-        const zip = new JSZip();
-        let allUrls = [];
+  const handleDownloadAll = async (attachments) => {
+  console.log("Starting handleDownloadAll with attachments:", attachments);
 
-        try {
-            // Show loading indication
-            Swal.fire({
-                title: 'Processing...',
-                text: 'Collecting image URLs...',
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+  const zip = new JSZip();
 
-            // Collect all image URLs
-            const urls = attachments.split(',').map(url => url.trim());
-            console.log("Collected URLs:", urls);
+  try {
+    // Show loading indication
+    Swal.fire({
+      title: 'Processing...',
+      text: 'Collecting files...',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
-            allUrls = urls.map(url => ({ category: "attachments", label: "image", urls: [url] }));
-            console.log("AllUrls array:", allUrls);
+    // Handle empty attachments
+    if (!attachments || attachments.trim() === "") {
+      Swal.fire('No attachments found', '', 'warning');
+      return;
+    }
 
-            if (allUrls.length === 0) {
-                console.warn("No valid image URLs found");
-                Swal.fire('No valid image URLs found', '', 'warning');
-                return;
-            }
+    // Split and sanitize URLs
+    const urls = attachments
+      .split(',')
+      .map((url) => url.trim())
+      .filter((url) => url !== "");
 
-            // Fetch all images as Base64
-            const base64Response = await fetchImageToBase(urls);
-            console.log("Base64 response from API:", base64Response);
-            const base64Images = base64Response || [];
+    console.log("Collected URLs:", urls);
 
-            if (base64Images.length === 0) {
-                console.error("No images received from API");
-                Swal.fire('No images received from API', '', 'error');
-                return;
-            }
+    if (urls.length === 0) {
+      Swal.fire('No valid URLs found', '', 'warning');
+      return;
+    }
 
-            // Process each image and add them to the ZIP file
-            let imageIndex = 0;
-            for (const { category, label, urls } of allUrls) {
-                for (const url of urls) {
-                    console.log(`Processing image URL: ${url}`);
-                    const imageData = base64Images.find(img => img.imageUrl === url);
-                    console.log("Found imageData:", imageData);
+    // Fetch all files as base64 from your API
+    const base64Response = await fetchImageToBase(urls);
+    console.log("Base64 response:", base64Response);
 
-                    if (imageData && imageData.base64.startsWith("data:image")) {
-                        const base64Data = imageData.base64.split(",")[1];
-                        console.log("Base64Data for image:", base64Data ? base64Data.substring(0, 30) + "..." : "undefined");
-                        const blob = base64ToBlob(base64Data, imageData.type);
-                        console.log("Created blob:", blob);
+    if (!base64Response || base64Response.length === 0) {
+      Swal.fire('No files received from API', '', 'error');
+      return;
+    }
 
-                        if (blob) {
-                            const fileName = `${category}/${label}/image_${imageIndex + 1}.${imageData.type}`;
-                            console.log("Adding file to zip:", fileName);
-                            zip.file(fileName, blob);
-                        }
-                    } else {
-                        console.warn("Image data not found or invalid for URL:", url);
-                    }
-                    imageIndex++;
-                }
-            }
+    // Add each file to the ZIP
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      const fileData = base64Response.find((f) => f.imageUrl === url);
 
-            // Generate ZIP file content
-            console.log("Generating ZIP file...");
-            const zipContent = await zip.generateAsync({ type: "blob" });
-            console.log("ZIP file generated, saving...");
+      if (fileData && fileData.base64) {
+        const [meta, base64Body] = fileData.base64.split(",");
+        const mimeType = meta.match(/data:(.*?);base64/)[1] || "application/octet-stream";
+        const ext = mimeType.split("/")[1] || "bin";
 
-            // Use FileSaver.js to download the ZIP file
-            saveAs(zipContent, "attachments.zip");
-            console.log("ZIP file saved as attachments.zip");
+        const blob = base64ToBlob(base64Body, mimeType);
+        zip.file(`file_${i + 1}.${ext}`, blob);
+      } else {
+        console.warn("No valid base64 found for:", url);
+      }
+    }
 
-            Swal.fire({
-                title: 'Success!',
-                text: 'ZIP file downloaded successfully.',
-                icon: 'success'
-            });
-        } catch (error) {
-            console.error("Error in handleDownloadAll:", error);
-            Swal.fire({
-                title: 'Error!',
-                text: 'An error occurred while generating the ZIP file.',
-                icon: 'error'
-            });
-        }
-    };
+    // Generate and download ZIP
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    saveAs(zipBlob, "attachments.zip");
+
+    Swal.fire({
+      title: 'Success!',
+      text: 'ZIP file downloaded successfully.',
+      icon: 'success'
+    });
+  } catch (error) {
+    console.error("Error in handleDownloadAll:", error);
+    Swal.fire({
+      title: 'Error!',
+      text: 'An error occurred while generating the ZIP file.',
+      icon: 'error'
+    });
+  }
+};
+
     const base64ToBlob = (base64) => {
         try {
             // Convert Base64 string to binary

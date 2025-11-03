@@ -7,6 +7,7 @@ import React, {
 import * as XLSX from 'xlsx';
 import verified from '../Images/verified.webp'
 import isologo from '../Images/iso-logo.jpg'
+import JSZip from 'jszip';
 
 import { useApiCall } from '../ApiCallContext';
 import { useNavigate, useLocation } from "react-router-dom";
@@ -18,6 +19,8 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 const ReportCaseTable = () => {
+  const [activeReportId, setActiveReportId] = useState(null); // Track which report's modal is active
+
   const [servicesLoading, setServicesLoading] = useState(false);
   const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
   const [loadingStates, setLoadingStates] = useState({}); // To track loading state for each button
@@ -31,6 +34,12 @@ const ReportCaseTable = () => {
     headingsAndStatuses: [],
   });
   const navigate = useNavigate();
+  const openModal = (reportId) => {
+    setActiveReportId(reportId); // Set the active report ID to open its modal
+  };
+  const closeModal = () => {
+    setActiveReportId(null); // Reset active report ID to close the modal
+  };
   const [branchData, setBranchData] = useState([]);
   const location = useLocation();
   const [itemsPerPage, setItemPerPage] = useState(10);
@@ -51,6 +60,102 @@ const ReportCaseTable = () => {
   const handleOutsideClick = (event) => {
     if (tableRef.current && !tableRef.current.contains(event.target)) {
       setExpandedRow({}); // Reset to empty object instead of null
+    }
+  };
+
+  const handleDownloadAll = async (attachments) => {
+    console.log("Starting handleDownloadAll with attachments:", attachments);
+
+    const zip = new JSZip();
+
+    try {
+      // Show loading indication
+      Swal.fire({
+        title: 'Processing...',
+        text: 'Collecting files...',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Handle empty attachments
+      if (!attachments || attachments.trim() === "") {
+        Swal.fire('No attachments found', '', 'warning');
+        return;
+      }
+
+      // Split and sanitize URLs
+      const urls = attachments
+        .split(',')
+        .map((url) => url.trim())
+        .filter((url) => url !== "");
+
+      console.log("Collected URLs:", urls);
+
+      if (urls.length === 0) {
+        Swal.fire('No valid URLs found', '', 'warning');
+        return;
+      }
+
+      // Fetch all files as base64 from your API
+      const base64Response = await fetchImageToBase(urls);
+      console.log("Base64 response:", base64Response);
+
+      if (!base64Response || base64Response.length === 0) {
+        Swal.fire('No files received from API', '', 'error');
+        return;
+      }
+
+      // Add each file to the ZIP
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        const fileData = base64Response.find((f) => f.imageUrl === url);
+
+        if (fileData && fileData.base64) {
+          const [meta, base64Body] = fileData.base64.split(",");
+          const mimeType = meta.match(/data:(.*?);base64/)[1] || "application/octet-stream";
+          const ext = mimeType.split("/")[1] || "bin";
+
+          const blob = base64ToBlob(base64Body, mimeType);
+          zip.file(`file_${i + 1}.${ext}`, blob);
+        } else {
+          console.warn("No valid base64 found for:", url);
+        }
+      }
+
+      // Generate and download ZIP
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      saveAs(zipBlob, "attachments.zip");
+
+      Swal.fire({
+        title: 'Success!',
+        text: 'ZIP file downloaded successfully.',
+        icon: 'success'
+      });
+    } catch (error) {
+      console.error("Error in handleDownloadAll:", error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'An error occurred while generating the ZIP file.',
+        icon: 'error'
+      });
+    }
+  };
+
+  const base64ToBlob = (base64) => {
+    try {
+      // Convert Base64 string to binary
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      return new Blob([byteNumbers], { type: "image/png" });
+    } catch (error) {
+      console.error("Error converting base64 to blob:", error);
+      return null;
     }
   };
 
@@ -1854,6 +1959,8 @@ const ReportCaseTable = () => {
                   <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                     Reference Id
                   </th>
+                  <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">View Docs</th>
+
                   <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                     Generate PDF
                   </th>
@@ -1909,6 +2016,63 @@ const ReportCaseTable = () => {
                             <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                               {data.application_id || "NIL"}
                             </td>
+                            <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
+                              {data.attach_documents ? (
+                                <>
+
+                                  {data.attach_documents.split(',').length > 0 ? (
+                                    <button
+
+                                      className={`w-full rounded-md p-3 text-white bg-orange-500 hover:bg-orange-500`}
+
+                                      onClick={() => openModal(data.id)}
+                                    >
+                                      View Documents
+                                    </button>
+                                  ) : null}
+                                </>
+                              ) : (
+                                'No Image Found'
+                              )}
+                            </td>
+                            {activeReportId === data.id && (
+                              <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex p-4 justify-center items-center">
+                                <div className="bg-white rounded-lg p-6 md:w-6/12 h-[400px] md:h-[500px] overflow-x-auto">
+                                  <div className='flex flex-wrap justify-between items-center pb-3'> <h2 className="md:text-xl font-semibold mb-4 text-sm">All Documents</h2>
+                                    <div className='flex gap-2'><button className="modal-download-button text-sm bg-blue-500 p-3 text-white rounded-md px-4 ms-3" onClick={() => handleDownloadAll(data.attach_documents)}>
+                                      Download All
+                                    </button>
+                                      <button
+                                        onClick={closeModal}
+                                        className=" px-4 py-2 bg-red-500 text-sm text-white rounded"
+                                      >
+                                        Close
+                                      </button></div></div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {data.attach_documents.split(',').map((doc, index) => (
+                                      <div key={index} className="card border p-4 rounded-lg">
+                                        {doc.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                                          <img
+                                            src={doc}
+                                            alt={`Document ${index + 1}`}
+                                            className="w-full h-40 object-contain rounded-lg"
+                                          />
+                                        ) : (
+                                          <a href={doc} target="_blank" rel="noopener noreferrer">
+                                            <button type="button" className="px-4 py-2 bg-[#3e76a5] text-white rounded">
+                                              View Document {index + 1}
+                                            </button>
+                                          </a>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+
+
+
+                                </div>
+                              </div>
+                            )}
                             <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                               <button
                                 onClick={() => {
