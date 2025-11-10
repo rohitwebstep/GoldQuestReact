@@ -370,6 +370,7 @@ const CandidateList = () => {
             send_mail: 1, // File uploaded, so we don't send mail initially
             _token: branch_token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
             customer_id: customer_id,
             candidate_application_id: report?.main_id,
         });
@@ -547,6 +548,7 @@ const CandidateList = () => {
                     branch_id: branchId,
                     _token: branch_token,
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                    ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
                 };
 
                 // Zet het object om naar een query string
@@ -894,16 +896,16 @@ const CandidateList = () => {
                                                 </td>
                                                 <td
                                                     className={`px-4 border-b border-r-2 whitespace-nowrap uppercase ${report.is_dav_form_opened === 1 ||
-                                                            report.is_dav_form_opened === "1" ||
-                                                            report.is_dav_form_opened === "yes" ||
-                                                            report.is_dav_form_opened === true
-                                                            ? "text-green-500" // Opened
-                                                            : report.is_dav_form_opened === 0 ||
-                                                                report.is_dav_form_opened === "0" ||
-                                                                report.is_dav_form_opened === "no" ||
-                                                                report.is_dav_form_opened === false
-                                                                ? "text-[#3e76a5]" // Not opened
-                                                                : "text-black" // Unknown/fallback
+                                                        report.is_dav_form_opened === "1" ||
+                                                        report.is_dav_form_opened === "yes" ||
+                                                        report.is_dav_form_opened === true
+                                                        ? "text-green-500" // Opened
+                                                        : report.is_dav_form_opened === 0 ||
+                                                            report.is_dav_form_opened === "0" ||
+                                                            report.is_dav_form_opened === "no" ||
+                                                            report.is_dav_form_opened === false
+                                                            ? "text-[#3e76a5]" // Not opened
+                                                            : "text-black" // Unknown/fallback
                                                         }`}
                                                 >
                                                     {report.is_dav_form_opened === 1 ||

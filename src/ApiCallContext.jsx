@@ -105,53 +105,72 @@ export const ApiCallProvider = ({ children }) => {
 
 
     const checkBranchAuthentication = async () => {
-    
+        console.log("🔍 Starting branch authentication check...");
+
         const branchData = localStorage.getItem("branch");
         const storedToken = localStorage.getItem("branch_token");
-    
-    
+
+        console.log("📦 Raw branch data from localStorage:", branchData);
+        console.log("🔑 Stored token:", storedToken);
+
         setIsBranchApiLoading(true);
-    
+
         let adminData;
         try {
             adminData = JSON.parse(branchData);
+            console.log("✅ Parsed branch data:", adminData);
         } catch (error) {
-            redirectBranchToLogin();
-            return;
+            console.error("❌ Failed to parse branch data:", error);
+            setIsBranchApiLoading(false);
+            return; // stop here — no redirect
         }
-    
+
         const payLoad = {
             branch_id: adminData?.branch_id,
             _token: storedToken,
+            ...(adminData?.type === "additional_user" && { additional_customer_id: adminData.customer_id }),
             ...(adminData?.type === "sub_user" && { sub_user_id: adminData.id }),
         };
-    
-    
+
+        console.log("📤 Final payload being sent to API:", payLoad);
+
         try {
-            const response = await axios.post(`https://api.goldquestglobal.in/branch/verify-branch-login`, payLoad);
-    
-    
+            const response = await axios.post(
+                `https://api.goldquestglobal.in/branch/verify-branch-login`,
+                payLoad
+            );
+
+            console.log("📩 API Response:", response.data);
+
             if (response.data.status) {
-                // Check if there's a new token and update localStorage if it exists
+                console.log("✅ Authentication successful!");
+
+                // Check for new token
                 const newToken = response.data._token || response.data.token;
                 if (newToken) {
-                    localStorage.setItem("branch_token", newToken); // Update the token in localStorage
+                    console.log("🔁 New token found, updating localStorage...");
+                    localStorage.setItem("branch_token", newToken);
+                } else {
+                    console.log("ℹ️ No new token in response — keeping existing one.");
                 }
             } else {
-                console.warn("⚠ Session expired or invalid token:", response.data.message);
-                handleSessionExpired(response.data.message);
+                console.warn("⚠️ Authentication failed:", response.data.message);
+                // Removed: handleSessionExpired(response.data.message)
             }
         } catch (error) {
-            handleLoginError();
+            console.error("🚨 API request failed:", error);
+            // Removed: handleLoginError()
         } finally {
             setIsBranchApiLoading(false);
+            console.log("🏁 Authentication check finished.\n");
         }
     };
-    
+
+
 
     const redirectBranchToLogin = () => {
-         window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
-        
+        window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
+
     };
 
     const handleSessionExpired = (message) => {

@@ -6,7 +6,7 @@ import { useApiCall } from '../ApiCallContext';
 
 const ScopeOfServices = () => {
     const branchEmail = JSON.parse(localStorage.getItem("branch"))?.email;
-    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
 
     const storedBranchData = JSON.parse(localStorage.getItem("branch"));
     const branch_token = localStorage.getItem("branch_token");
@@ -39,15 +39,17 @@ const ScopeOfServices = () => {
             customer_id: customer_id,
             branch_token: branch_token,
             ...(branch?.type === "sub_user" && { sub_user_id: branch.id }),
-          };
-          
-          // Zet het object om naar een query string
-          const queryString = new URLSearchParams(payLoad).toString();
-          
-          try {
+            ...(branch?.type === "additional_user" && { additional_customer_id: branch.customer_id }),
+
+        };
+
+        // Zet het object om naar een query string
+        const queryString = new URLSearchParams(payLoad).toString();
+
+        try {
             const response = await fetch(`${API_URL}/branch/customer-info?${queryString}`, {
-              method: "GET",
-              redirect: "follow",
+                method: "GET",
+                redirect: "follow",
             });
             // Check if response is not ok (non-2xx status code)
             if (!response.ok) {
@@ -113,16 +115,16 @@ const ScopeOfServices = () => {
         }
     }, [API_URL, customer_id, branch?.id, branch_token]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!isBranchApiLoading) {
-        await checkBranchAuthentication();
-        await fetchServicePackage();
-      }
-    };
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!isBranchApiLoading) {
+                await checkBranchAuthentication();
+                await fetchServicePackage();
+            }
+        };
 
-    fetchData();
-  }, [fetchServicePackage]);
+        fetchData();
+    }, [fetchServicePackage]);
 
 
     return (
@@ -191,37 +193,37 @@ const ScopeOfServices = () => {
                     {error && <p className="text-center text-red-500 p-6">{error}</p>}
                     {!loading && !error && (
                         <div className='max-h-[300px] overflow-auto'>
-                        <table className="min-w-full ">
-                            <thead>
-                                <tr className='bg-[#3e76a5]'>
-                                    <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">SL NO</th>
-                                    <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">SERVICES</th>
-                                    <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">PRICING</th>
-                                    <th className="py-3 px-4 border-b text-center text-white uppercase whitespace-nowrap">SERVICE PACKAGE</th>
-                                </tr>
-                            </thead>
-                            {services.length > 0 ? (
-                                <tbody>
-                                    {services.map((item, index) => (
-                                        <tr>
-                                            <td className="py-2 px-4 border-b text-center border-r-2 whitespace-nowrap">{index + 1}</td>
-                                            <td className="py-2 px-4 border-b border-r-2 whitespace-nowrap">{item.serviceTitle}</td>
-                                            <td className="py-2 px-4 border-b border-r-2 text-center whitespace-nowrap">{item.price} RS</td>
-                                            <td className="py-2 px-4 border-b whitespace-nowrap text-center">
-                                                {Object.values(item.packages).join(', ')}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            ) : (
-                                <tbody>
-                                    <tr>
-                                        <td colSpan={4} className='text-center py-5 text-lg'>No data found</td>
+                            <table className="min-w-full ">
+                                <thead>
+                                    <tr className='bg-[#3e76a5]'>
+                                        <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">SL NO</th>
+                                        <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">SERVICES</th>
+                                        <th className="py-3 px-4 border-b text-center border-r-2 text-white uppercase whitespace-nowrap">PRICING</th>
+                                        <th className="py-3 px-4 border-b text-center text-white uppercase whitespace-nowrap">SERVICE PACKAGE</th>
                                     </tr>
-                                </tbody>
-                            )}
+                                </thead>
+                                {services.length > 0 ? (
+                                    <tbody>
+                                        {services.map((item, index) => (
+                                            <tr>
+                                                <td className="py-2 px-4 border-b text-center border-r-2 whitespace-nowrap">{index + 1}</td>
+                                                <td className="py-2 px-4 border-b border-r-2 whitespace-nowrap">{item.serviceTitle}</td>
+                                                <td className="py-2 px-4 border-b border-r-2 text-center whitespace-nowrap">{item.price} RS</td>
+                                                <td className="py-2 px-4 border-b whitespace-nowrap text-center">
+                                                    {Object.values(item.packages).join(', ')}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                ) : (
+                                    <tbody>
+                                        <tr>
+                                            <td colSpan={4} className='text-center py-5 text-lg'>No data found</td>
+                                        </tr>
+                                    </tbody>
+                                )}
 
-                        </table>
+                            </table>
                         </div>
                     )}
                 </div>

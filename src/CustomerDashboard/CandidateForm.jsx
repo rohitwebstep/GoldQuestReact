@@ -198,6 +198,7 @@ const CandidateForm = () => {
                 nationality: input.nationality,
                 purpose_of_application: input.purpose_of_application,
                 ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
             });
 

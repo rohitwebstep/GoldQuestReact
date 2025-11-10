@@ -57,6 +57,7 @@ const CustomerUpdatePassword = () => {
                 branch_id: storedBranchData,
                 _token: branch_token,
                 ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
             });
 

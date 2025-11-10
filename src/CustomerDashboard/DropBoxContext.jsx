@@ -221,6 +221,7 @@ export const DropBoxProvider = ({ children }) => {
             _token: token,
             customer_id: customerId,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Convert the object to a query string
@@ -275,12 +276,12 @@ export const DropBoxProvider = ({ children }) => {
                 services: [],
                 package: "",
                 candidate_application_id: "",
-                purpose_of_application:"",
-                customPurpose:""
+                purpose_of_application: "",
+                customPurpose: ""
 
             });
             setIsEditCandidate(false)
-                        setCandidateListData(result.data?.candidateApplications || []);
+            setCandidateListData(result.data?.candidateApplications || []);
             if (result.data?.customerInfo) {
                 const customer = result.data.customerInfo;
                 const customerCode = customer.client_unique_id;
@@ -342,6 +343,7 @@ export const DropBoxProvider = ({ children }) => {
             _token: _token,
             customer_id: customer_id,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Create query string from the payload
@@ -443,7 +445,7 @@ export const DropBoxProvider = ({ children }) => {
             clientInput,
             servicesLoading,
             candidateListData,
-            isEditClient, setIsEditClient, input, setInput, isEditCandidate, setIsEditCandidate, inputError, setInputError,preSelectedClient
+            isEditClient, setIsEditClient, input, setInput, isEditCandidate, setIsEditCandidate, inputError, setInputError, preSelectedClient
         }}>
             {children}
         </DropBoxContext.Provider>

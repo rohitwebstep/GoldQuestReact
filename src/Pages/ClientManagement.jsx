@@ -66,6 +66,7 @@ const ClientManagement = () => {
     custom_template: "",
     custom_address: "",
     username: "",
+    password: "",
     industry_classification: '',
     director_email: '',
   });
@@ -1038,15 +1039,26 @@ const ClientManagement = () => {
                   </div>
                 </div>
                 {input.additional_login === "yes" && (
-                  <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    placeholder="username2"
-                    value={input.username}
-                    className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
-                    onChange={handleChange}
-                  />
+                  <>
+                    <input
+                      type="text"
+                      name="username"
+                      id="username"
+                      placeholder="username"
+                      value={input.username}
+                      className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none text-sm"
+                      onChange={handleChange}
+                    />
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      placeholder="password"
+                      value={input.password}
+                      className="border w-full mt-3 border-gray-300 shadow-md  rounded-md p-2  outline-none text-sm"
+                      onChange={handleChange}
+                    />
+                  </>
                 )}
               </div>
 

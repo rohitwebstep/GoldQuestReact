@@ -28,14 +28,16 @@ const Logout = () => {
                 });
 
                 const payLoad = {
-                    branch_id:branch_id,
+                    branch_id: branch_id,
                     _token: storedToken,
-                    ...(storedBranchData?.type === "sub_user" && { sub_user_id: sub_user_id }),
-                  };
-                  
-                  // Zet het object om naar een query string
-                  const queryString = new URLSearchParams(payLoad).toString();
-                  
+
+                    ...(storedBranchData?.type === "sub_user" && { sub_user_id: storedBranchData.id }),
+                    ...(storedBranchData?.type === "additional_user" && { additional_customer_id: storedBranchData.customer_id }),
+                };
+
+                // Zet het object om naar een query string
+                const queryString = new URLSearchParams(payLoad).toString();
+
                 if (confirmation.isConfirmed) {
                     // Send a request to your API to log out the user
                     const response = await fetch(`${API_URL}/branch/logout?${queryString}`, {

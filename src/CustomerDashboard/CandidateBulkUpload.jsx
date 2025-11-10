@@ -95,6 +95,8 @@ const CandidateBulkUpload = () => {
             _token: token,
             customer_id: customerId,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
+
         };
 
         const queryString = new URLSearchParams(payLoad).toString();
@@ -218,6 +220,8 @@ const CandidateBulkUpload = () => {
                 services: clientInput.services,
                 package: clientInput.package,
                 ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
+
             };
 
 

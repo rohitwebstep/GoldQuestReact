@@ -18,6 +18,9 @@ const CustomerLoginForm = () => {
     const emailFromQuery = query.get('email') || '';
     const navigate = useNavigate();
     const [otp, setOtp] = useState('');
+    const [openAdditionalOptions, setOpenAdditionalOptions] = useState(null);
+    const [additionalData, setAdditionalData] = useState([]);
+    const [selectedBranch, setSelectedBranch] = useState([]);
     const [showOtpModal, setShowOtpModal] = useState(false); // State for OTP modal
     const [isOtpLoading, setIsOtpLoading] = useState(false);
     const [input, setInput] = useState({
@@ -26,7 +29,8 @@ const CustomerLoginForm = () => {
     });
     const [error, setError] = useState({});
     const [rememberMe, setRememberMe] = useState(false);
-
+    
+    console.log('additionalData', additionalData)
     useEffect(() => {
         setInput(prev => ({
             ...prev,
@@ -142,6 +146,7 @@ const CustomerLoginForm = () => {
             // Handle the case where input.email is invalid or API is loading
         }
     }, []);
+     
 
 
     const validations = () => {
@@ -158,7 +163,7 @@ const CustomerLoginForm = () => {
         }));
     };
 
-    const handleSubmitForm = async (e) => {
+    const handleSubmitForm = async (e, selectedBranch) => {
         e.preventDefault();
         setIsBranchApiLoading(true);
 
@@ -167,100 +172,125 @@ const CustomerLoginForm = () => {
         const storedToken = localStorage.getItem("_token");
         const adminNewToken = localStorage.getItem("adminNewToken");
 
-        if (Object.keys(validateError).length === 0) {
-            setLoading(true);
+        if (Object.keys(validateError).length > 0) {
+            setError(validateError);
+            setIsBranchApiLoading(false);
+            return;
+        }
 
-            const myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
+        setLoading(true);
 
-            const payload = {
-                username: input.email,
-                password: input.password,
-            };
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        const payload = {
+            username: input.email,
+            password: input.password,
+            ...(selectedBranch ? { branch_id: Number(selectedBranch) } : {}),
+        };
 
-            if (admin_id) {
-                payload.admin_id = admin_id;
+        if (admin_id) payload.admin_id = admin_id;
+        payload.admin_token = adminNewToken || storedToken;
+
+        try {
+            const response = await fetch(`${API_URL}/branch/login`, {
+                method: "POST",
+                headers: myHeaders,
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+            setLoading(false);
+
+            // 🔴 Handle unsuccessful login
+
+            console.log('result', result)
+            if (result.loginOptions && result.loginOptions.length > 0) {
+
+                Swal.close();
+                const additionalData = result.loginOptions.flatMap(option =>
+                    option.branchDetails
+                );
+                setAdditionalData(additionalData);
+                setOpenAdditionalOptions(true);
+                return;
             }
-
-            if (adminNewToken) {
-                payload.admin_token = adminNewToken;
-            } else if (storedToken) {
-                payload.admin_token = storedToken;
-            }
-
-            try {
-                const response = await fetch(`${API_URL}/branch/login`, {
-                    method: "POST",
-                    headers: myHeaders,
-                    body: JSON.stringify(payload),
-                });
-
-
-                const result = await response.json();
-                setLoading(false);
-
-                if (!result.status) {
-                    Swal.fire({
-                        title: "Error!",
-                        text: `${result.message || result.error}`,
-                        icon: "error",
-                        confirmButtonText: "Ok",
-                    });
-                } else {
-                    const branchData = result.branchData;
-                    const branch_token = result.token;
-
-                    localStorage.setItem("branch", JSON.stringify(branchData));
-                    localStorage.setItem("branch_token", branch_token);
-
-                    Swal.fire({
-                        title: "Success",
-                        text: "OTP SENT SUCCESSFULLY",
-                        icon: "success",
-                        confirmButtonText: "Ok",
-                    });
-
-                    if (
-                        result.message.toLowerCase().includes("otp") &&
-                        result.message.toLowerCase().includes("sent")
-                    ) {
-                        const branchRawData = { email: input.email }
-                        localStorage.setItem("branch", JSON.stringify(branchRawData));
-                        setShowOtpModal(true);
-                    } else {
-                        handleLoginSuccess(result);
-                    }
-
-                    setError({});
-
-                    // "Remember Me" functionality
-                    if (rememberMe) {
-                        localStorage.setItem("email", input.email);
-                        localStorage.setItem("password", input.password);
-                        localStorage.setItem("rememberMe", "true");
-                    } else {
-                        localStorage.removeItem("email");
-                        localStorage.removeItem("password");
-                        localStorage.setItem("rememberMe", "false");
-                    }
-                }
-            } catch (error) {
-                setLoading(false);
+            if (!result.status && !result.loginOptions) {
                 Swal.fire({
                     title: "Error!",
-                    text: `Error: ${error.message}`,
+                    text: result.message || result.error || "Login failed.",
                     icon: "error",
                     confirmButtonText: "Ok",
                 });
-                console.error("Login failed:", error);
-            } finally {
-                setIsBranchApiLoading(false);
+                return;
             }
-        } else {
-            setError(validateError);
+
+            // 🟢 Handle successful login
+            const branchData = result.branchData;
+            const branch_token = result.token;
+
+            if (branchData && branch_token) {
+                localStorage.setItem("branch", JSON.stringify(branchData));
+                localStorage.setItem("branch_token", branch_token);
+            }
+
+            // 🔹 Handle OTP-based login
+            if (
+                result.message?.toLowerCase().includes("otp") &&
+                result.message?.toLowerCase().includes("sent")
+            ) {
+                localStorage.setItem("branch", JSON.stringify({ email: input.email }));
+                Swal.fire({
+                    title: "Success",
+                    text: "OTP sent successfully",
+                    icon: "success",
+                    confirmButtonText: "Ok",
+                });
+                setShowOtpModal(true);
+            } else {
+                // 🔹 Normal login success
+                handleLoginSuccess(result);
+                Swal.fire({
+                    title: "Success",
+                    text: "Login successful",
+                    icon: "success",
+                    confirmButtonText: "Ok",
+                });
+            }
+
+            // 🔹 Handle additional login options
+
+
+
+
+            // 🔹 Remember Me feature
+            if (rememberMe) {
+                localStorage.setItem("email", input.email);
+                localStorage.setItem("password", input.password);
+                localStorage.setItem("rememberMe", "true");
+            } else {
+                localStorage.removeItem("email");
+                localStorage.removeItem("password");
+                localStorage.setItem("rememberMe", "false");
+            }
+
+            setAdditionalData('');
+            setOpenAdditionalOptions(null)
+
+            setError({});
+        } catch (error) {
+            console.error("Login failed:", error);
+            Swal.fire({
+                title: "Error!",
+                text: `Error: ${error.message}`,
+                icon: "error",
+                confirmButtonText: "Ok",
+            });
+        } finally {
+            setLoading(false);
             setIsBranchApiLoading(false);
         }
     };
+
 
 
     const handleLoginSuccess = (result) => {
@@ -326,11 +356,11 @@ const CustomerLoginForm = () => {
 
     return (
         <div className="w-full md:max-w-7xl md:mx-auto xl:p-4">
-            <form onSubmit={handleSubmitForm} aria-live="polite">
+            <form onSubmit={(e) => handleSubmitForm(e, null)} aria-live="polite">
                 <div className="mb-3">
                     <label htmlFor="email" className='d-block'>Enter Your Email:</label>
                     <input
-                        type="email"
+                        type="text"
                         name="email"
                         id="EmailId"
                         onChange={handleChange}
@@ -427,6 +457,66 @@ const CustomerLoginForm = () => {
                     </div>
                 </div>
             )}
+            {openAdditionalOptions && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 md:w-3/12 relative shadow-lg">
+
+                        {/* Close Button */}
+                        <button
+                            type="button"
+                            className="absolute top-2 right-2 text-gray-700 hover:text-gray-800"
+                            onClick={() => {
+                                setOpenAdditionalOptions(false);
+                                setSelectedBranch('');
+                            }}
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-6 h-6"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {/* Title */}
+                        <h3 className="text-xl font-bold mb-4 text-center">
+                            Select Additional User To Login
+                        </h3>
+
+                        {/* Dropdown */}
+                        <select
+                            className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                            value={selectedBranch || ""}
+                            onChange={(e) => setSelectedBranch(e.target.value)}
+                        >
+                            <option value="" disabled>
+                                -- Select Branch --
+                            </option>
+                            {additionalData.map((option, indx) => (
+                                <option value={option.branch_id} key={indx}>
+                                    {option.name} ({option.email})
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Submit Button */}
+                        <button
+                            type="button"
+                            className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline ${isOtpLoading ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                            onClick={(e) => handleSubmitForm(e, selectedBranch)}
+                            disabled={isOtpLoading || !selectedBranch}
+                        >
+                            {isOtpLoading ? "Verifying..." : "Verify"}
+                        </button>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

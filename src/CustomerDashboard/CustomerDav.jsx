@@ -4,7 +4,7 @@ import PulseLoader from 'react-spinners/PulseLoader';
 import { useApiCall } from '../ApiCallContext';
 
 const CandidiateDav = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
 
     const [davData, setDAVData] = useState([]);
 
@@ -56,7 +56,7 @@ const CandidiateDav = () => {
         const token = localStorage.getItem("branch_token");
         const applicationId = urlParams.get('applicationId');
         const branchId2 = urlParams.get('branch_id');
-     
+
 
         if (!token || !branchId || !applicationId) {
             setLoading(false);
@@ -69,6 +69,7 @@ const CandidiateDav = () => {
             branch_id: branchId,
             _token: token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Zet het object om naar een query string
@@ -134,15 +135,15 @@ const CandidiateDav = () => {
 
 
     useEffect(() => {
-             const fetchDataMain = async () => {
-                 if (!isBranchApiLoading) {
-                     await checkBranchAuthentication();
-                     await isApplicationExists();
-                 }
-             };
-     
-             fetchDataMain();
-         }, [isApplicationExists]);
+        const fetchDataMain = async () => {
+            if (!isBranchApiLoading) {
+                await checkBranchAuthentication();
+                await isApplicationExists();
+            }
+        };
+
+        fetchDataMain();
+    }, [isApplicationExists]);
 
 
 

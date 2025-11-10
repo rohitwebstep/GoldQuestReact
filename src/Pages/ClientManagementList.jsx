@@ -650,7 +650,10 @@ const ClientManagementList = () => {
 
 
   const handleEditForm = (item) => {
-    setClientData(item)
+    setClientData({
+      ...item,
+      password:item.raw_password,
+    })
     handleTabChange('edit');
   };
 

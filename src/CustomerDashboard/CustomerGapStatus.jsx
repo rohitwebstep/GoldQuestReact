@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'; import { useApi
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 const GapStatus = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading ,checkBranchAuthentication} = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
     const [initialAnnexureData, setInitialAnnexureData] = useState({
         gap_validation: {
             phd_institute_name_gap: '',
@@ -64,6 +64,7 @@ const GapStatus = () => {
             branch_id: branchId,
             _token: token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Zet het object om naar een query string

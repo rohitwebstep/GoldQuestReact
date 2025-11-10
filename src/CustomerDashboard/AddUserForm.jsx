@@ -53,7 +53,7 @@ const AddUserForm = () => {
     return (
         <form className='mt-4' onSubmit={handleSubmit}>
             <div className="mb-6 text-left">
-                <label className="block text-gray-700 text-sm font-bold mb-2 font-bold text-gray-700 " htmlFor="AddUserEmail">User Email</label>
+                <label className="block text-gray-700 text-sm font-bold mb-2 " htmlFor="AddUserEmail">User Email</label>
                 <input
                     type="email"
                     name="email"
@@ -66,7 +66,7 @@ const AddUserForm = () => {
                 {passError.email && <p className='text-red-500'>{passError.email}</p>}
             </div>
             <div className="mb-6 text-left">
-                <label className="block text-gray-700 text-sm font-bold mb-2 font-bold text-gray-700 " htmlFor="AddUserPassword">Password</label>
+                <label className="block text-gray-700 text-sm font-bold mb-2 " htmlFor="AddUserPassword">Password</label>
                 <input
                     type="password"
                     name="pass"
@@ -79,7 +79,7 @@ const AddUserForm = () => {
                 {passError.pass && <p className='text-red-500'>{passError.pass}</p>}
             </div>
             <div className="mb-6 text-left">
-                <label className="block text-gray-700 text-sm font-bold mb-2 font-bold text-gray-700 " htmlFor="AddUserConfirmPassword">Confirm Password</label>
+                <label className="block text-gray-700 text-sm font-bold mb-2 " htmlFor="AddUserConfirmPassword">Confirm Password</label>
                 <input
                     type="password"
                     name="c_pass"

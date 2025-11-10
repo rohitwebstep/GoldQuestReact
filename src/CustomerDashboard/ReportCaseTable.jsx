@@ -174,7 +174,8 @@ const ReportCaseTable = () => {
 
       const branchData = JSON.parse(localStorage.getItem("branch"));
       const branch_id = branchData?.branch_id;
-      const sub_user_id = branchData?.type === "sub_user" ? branchData.id : null;
+
+
       const _token = localStorage.getItem("branch_token");
 
       const myHeaders = new Headers();
@@ -182,9 +183,10 @@ const ReportCaseTable = () => {
 
       const raw = JSON.stringify({
         branch_id,
-        sub_user_id,
         _token,
         client_application_id,
+        ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
       });
 
       const requestOptions = {
@@ -255,6 +257,8 @@ const ReportCaseTable = () => {
       _token: _token,
       filter_status: status,
       ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+      ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
+
     };
 
     // Zet het object om naar een query string
@@ -410,6 +414,8 @@ const ReportCaseTable = () => {
       branch_id: branch_id,
       _token: _token,
       ...(branchData1?.type === "sub_user" && { sub_user_id: branchData1.id }),
+      ...(branchData1?.type === "additional_user" && { additional_customer_id: branchData1.customer_id }),
+
       service_ids: servicesList,
       application_id: applicationId,
     };
@@ -625,6 +631,8 @@ const ReportCaseTable = () => {
           _token: _token,
           customer_id: data.customer_id,
           ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+          ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
+
         };
 
         // Convert the object to a query string

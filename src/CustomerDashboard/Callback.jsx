@@ -52,6 +52,7 @@ const Callback = () => {
         const raw = JSON.stringify({
             "branch_id": branch_id,
             "_token": branch_token,
+            ...(parsedBranchData?.type === "additional_user" && { additional_customer_id: parsedBranchData.customer_id }),
             ...(parsedBranchData?.type === "sub_user" && { sub_user_id: parsedBranchData.id }),
 
         });

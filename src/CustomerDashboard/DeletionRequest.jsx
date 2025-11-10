@@ -7,7 +7,7 @@ import { useApiCall } from '../ApiCallContext';
 import * as XLSX from 'xlsx';
 
 const DeletionRequest = () => {
-    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall(); // Access isBranchApiLoading from ApiCallContext
+    const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall(); // Access isBranchApiLoading from ApiCallContext
     const branchData = JSON.parse(localStorage.getItem("branch"));
 
     const [listData, setListData] = useState([])
@@ -39,6 +39,7 @@ const DeletionRequest = () => {
             branch_id: branchId,
             _token: token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Zet het object om naar een query string
@@ -97,16 +98,16 @@ const DeletionRequest = () => {
     }, []);
 
 
-      useEffect(() => {
-             const fetchDataMain = async () => {
-               if (!isBranchApiLoading) {
-                 await checkBranchAuthentication();
-                 await fetchClientDrop();
-               }
-             };
-         
-             fetchDataMain();
-           }, [fetchClientDrop]);
+    useEffect(() => {
+        const fetchDataMain = async () => {
+            if (!isBranchApiLoading) {
+                await checkBranchAuthentication();
+                await fetchClientDrop();
+            }
+        };
+
+        fetchDataMain();
+    }, [fetchClientDrop]);
 
 
     const filteredItems = listData.filter(item => {
@@ -207,6 +208,7 @@ const DeletionRequest = () => {
                     "sub_user_id": '',
                     "_token": _token,
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                    ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
                 });
 
@@ -294,6 +296,7 @@ const DeletionRequest = () => {
                     "sub_user_id": '',
                     "_token": _token,
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                    ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
                 });
 
@@ -390,7 +393,7 @@ const DeletionRequest = () => {
                 <h2 className=' text-2xl font-bold pb-8 md:pb-4 text-center text-[#3e76a5] '>Deletion Requests</h2>
 
                 <div className="overflow-x-auto py-6 px-4 bg-white shadow-md rounded-md md:m-10 m-3">
-                <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
+                    <div className="md:grid md:grid-cols-2 justify-between items-center md:my-4 border-b-2 pb-4">
                         <div className="col">
                             <form action="">
                                 <div className="flex gap-2">
@@ -426,10 +429,10 @@ const DeletionRequest = () => {
                                         className='outline-none border-2 p-2 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here'
                                         value={searchTerm}
-                                          onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
                                     />
                                 </div>
                             </form>
@@ -487,7 +490,7 @@ const DeletionRequest = () => {
                                             </td>
 
                                             <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm">{report.status || 'NIL'}</td>
-                                            <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm"><button className='bg-[#3e76a5] text-white p-3 rounded-md' disabled={report.status !=="pending"} onClick={() => handleDelete(report.id)}>Click</button></td>
+                                            <td className="py-3 px-4 border-b border-r whitespace-nowrap text-sm"><button className='bg-[#3e76a5] text-white p-3 rounded-md' disabled={report.status !== "pending"} onClick={() => handleDelete(report.id)}>Click</button></td>
 
                                         </tr>
                                     ))}

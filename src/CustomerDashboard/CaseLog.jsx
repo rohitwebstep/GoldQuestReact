@@ -7,7 +7,7 @@ import { useApiCall } from '../ApiCallContext';
 import Swal from 'sweetalert2';
 const CaseLog = () => {
     const [conversationMsg, setConversationMsg] = useState([]);
-    const { isBranchApiLoading, setIsBranchApiLoading,checkBranchAuthentication } = useApiCall();
+    const { isBranchApiLoading, setIsBranchApiLoading, checkBranchAuthentication } = useApiCall();
 
     const [showPopup, setShowPopup] = useState(false);
     const [data, setData] = useState([]);
@@ -50,6 +50,7 @@ const CaseLog = () => {
             _token: branch_token,
             ticket_number: ticket_number,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Zet het object om naar een query string
@@ -169,6 +170,7 @@ const CaseLog = () => {
             "branch_id": branch_id,
             "_token": branch_token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
         });
 
@@ -231,7 +233,7 @@ const CaseLog = () => {
                     });
                 } else {
                     // Refresh the conversation with updated messages
-                    replyTickets(ticket,conversationMsg);
+                    replyTickets(ticket, conversationMsg);
 
                     // Optionally, update token if received in response
                     const newToken = result._token || result.token;
@@ -388,6 +390,7 @@ const CaseLog = () => {
             branch_id: branch_id,
             _token: branch_token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
         };
 
         // Zet het object om naar een query string
@@ -452,16 +455,16 @@ const CaseLog = () => {
 
 
     // Make sure branch_id and branch_token are available
-   useEffect(() => {
-         const fetchDataMain = async () => {
-           if (!isBranchApiLoading) {
-             await checkBranchAuthentication();
-             await fetchTickets();
-           }
-         };
-     
-         fetchDataMain();
-       }, []);
+    useEffect(() => {
+        const fetchDataMain = async () => {
+            if (!isBranchApiLoading) {
+                await checkBranchAuthentication();
+                await fetchTickets();
+            }
+        };
+
+        fetchDataMain();
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent form submission from reloading the page
@@ -486,6 +489,7 @@ const CaseLog = () => {
             "branch_id": branch_id,
             "_token": branch_token,
             ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+            ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
         };
 
@@ -630,6 +634,7 @@ const CaseLog = () => {
                     _token: branch_token,
                     ticket_number: ticket_number,
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                    ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
                 };
 
                 // Zet het object om naar een query string
@@ -801,10 +806,10 @@ const CaseLog = () => {
                                         className='outline-none border-2 p-2 text-sm border-gray-300 shadow-md  rounded-md w-full my-4 md:my-0'
                                         placeholder='Search Here'
                                         value={searchTerm}
-                                          onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
                                     />
                                 </div>
                             </form>

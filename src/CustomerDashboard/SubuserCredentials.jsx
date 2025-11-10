@@ -71,6 +71,7 @@ const SubUserCredentials = () => {
         _token,
         email: formData.email,
         ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
       };
 
       const rawData1 = {
@@ -79,6 +80,7 @@ const SubUserCredentials = () => {
         email: formData.email,
         id: formData.id,
         ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+        ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
       };
 
       if (!isEditEmail) {
@@ -87,6 +89,9 @@ const SubUserCredentials = () => {
 
       if (branchData?.type === "sub_user" && branchData.id) {
         rawData.sub_user_id = `${branchData.id}`;
+      }
+      if (branchData?.type === "additional_user" && branchData.id) {
+        rawData.additional_customer_id = `${branchData.customer_id}`;
       }
 
       const requestOptions = {
@@ -186,6 +191,7 @@ const SubUserCredentials = () => {
       branch_id: branch_id,
       _token: _token,
       ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+      ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
     };
 
     // Zet het object om naar een query string

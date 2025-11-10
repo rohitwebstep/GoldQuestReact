@@ -40,7 +40,7 @@ export const ClientEditForm = () => {
             [name]: date,
         }));
     }, []);
-    
+
     const handleFileChange = (fileName, e) => {
         const selectedFiles = Array.from(e.target.files); // Convert FileList to an array
 
@@ -433,7 +433,7 @@ export const ClientEditForm = () => {
                                             </a>
                                         )
                                     ) : (
-                                       ''
+                                        ''
                                     )}
 
                                 </div>
@@ -555,15 +555,27 @@ export const ClientEditForm = () => {
                                     </div>
                                 </div>
                                 {parseInt(clientData.additional_login, 10) === 1 && (
-                                    <input
-                                        type="text"
-                                        name="username"
-                                        id="username"
-                                        placeholder="username2"
-                                        value={clientData.username}
-                                        className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none"
-                                        onChange={handleClientChange}
-                                    />
+                                    <>
+
+                                        <input
+                                            type="text"
+                                            name="username"
+                                            id="username"
+                                            placeholder="username"
+                                            value={clientData.username}
+                                            className="border w-full border-gray-300 shadow-md  rounded-md p-2 mt-2 outline-none"
+                                            onChange={handleClientChange}
+                                        />
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            id="password"
+                                            placeholder="password"
+                                            value={clientData.password}
+                                            className="border w-full mt-3 border-gray-300 shadow-md  rounded-md p-2  outline-none text-sm"
+                                            onChange={handleClientChange}
+                                        />
+                                    </>
                                 )}
                             </div>
 

@@ -9,7 +9,7 @@ import { useApiCall } from '../ApiCallContext';
 import { useSidebar } from './SidebarContext';
 const ClientForm = () => {
     const { isBranchApiLoading, setIsBranchApiLoading } = useApiCall();
-    const { activeTab} = useSidebar();
+    const { activeTab } = useSidebar();
 
     const [formLoading, setFormLoading] = useState(false);
     const branch_name = JSON.parse(localStorage.getItem("branch"));
@@ -209,6 +209,7 @@ const ClientForm = () => {
                     _token: branch_token,
                     ...finalData, // Spread the remaining data
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                    ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
                 };
             } else {
@@ -219,6 +220,7 @@ const ClientForm = () => {
                     _token: branch_token,
                     ...finalData, // Spread the remaining data
                     ...(branchData?.type === "sub_user" && { sub_user_id: branchData.id }),
+                    ...(branchData?.type === "additional_user" && { additional_customer_id: branchData.customer_id }),
 
                 };
             }
