@@ -1050,7 +1050,7 @@ const ClientManagement = () => {
                       onChange={handleChange}
                     />
                     <input
-                      type="password"
+                      type="text"
                       name="password"
                       id="password"
                       placeholder="password"

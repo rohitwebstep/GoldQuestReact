@@ -567,7 +567,7 @@ export const ClientEditForm = () => {
                                             onChange={handleClientChange}
                                         />
                                         <input
-                                            type="password"
+                                            type="text"
                                             name="password"
                                             id="password"
                                             placeholder="password"
