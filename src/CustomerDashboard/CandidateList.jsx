@@ -27,7 +27,18 @@ const CandidateList = () => {
     });
     // Function to open the modal
 
+    const [dateRange, setDateRange] = useState({
+        startDate: "",
+        endDate: "",
+    });
 
+    const handleDateRangeChange = (e) => {
+        const { name, value } = e.target;
+        setDateRange((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
     // Function to close the modal
     const closeModal = () => {
         setIsFormModalOpen(false);
@@ -60,7 +71,7 @@ const CandidateList = () => {
     const [statusChange, setStatusChange] = useState('');
     const [itemsPerPage, setItemPerPage] = useState(10)
     const [currentPage, setCurrentPage] = useState(1);
-    const { handleEditCandidate, candidateListData, fetchClient, candidateLoading, setUniqueBgv, UniqueBgv, } = useContext(DropBoxContext);
+    const { handleEditCandidate, summaryData, setSummaryData,candidateListData, fetchClient, candidateLoading, setUniqueBgv, UniqueBgv, } = useContext(DropBoxContext);
     const API_URL = useApi();
 
 
@@ -74,6 +85,9 @@ const CandidateList = () => {
 
         fetchDataMain();
     }, [fetchClient]);
+    const handleApplyFilters = async () => {
+        await fetchClient(dateRange.startDate, dateRange.endDate);
+    }
 
 
     const handleBGVClick = (cef_id, branch_id, applicationId) => {
@@ -656,23 +670,47 @@ const CandidateList = () => {
 
                         </div>
                         <div className="col md:flex justify-end ">
-                            <form action="">
-                                <div className="flex md:items-stretch items-center gap-3">
+                            <div className="flex flex-col md:flex-row items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                                <div className="flex flex-col w-full md:w-1/2">
+                                    <label className="text-sm font-semibold text-gray-700 mb-1">Start Date</label>
                                     <input
-                                        type="search"
-                                        className='outline-none border-2 p-3 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
-                                        placeholder='Search Here...'
-                                        value={searchTerm}
-                                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                        type="date"
+                                        name="startDate"
+                                        value={dateRange.startDate}
+                                        onChange={handleDateRangeChange}
+                                        className="border border-gray-300 rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
-                            </form>
+
+                                <div className="flex flex-col w-full md:w-1/2">
+                                    <label className="text-sm font-semibold text-gray-700 mb-1">End Date</label>
+                                    <input
+                                        type="date"
+                                        name="endDate"
+                                        value={dateRange.endDate}
+                                        onChange={handleDateRangeChange}
+                                        className="border border-gray-300 rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={handleApplyFilters}
+                                    className="mt-2 md:mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+
+
+
+
                         </div>
 
                     </div>
 
-                    <div className='border'>
-                        <select className='w-full p-3' onChange={handleStatusChange} name='is_bgv_submitted' id='is_bgv_submitted'>
+                    <div className='gap-4 flex justify-between items-center p-4'>
+                        <select className='outline-none border-2 p-3 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
+                            onChange={handleStatusChange} name='is_bgv_submitted' id='is_bgv_submitted'>
                             <option value="">BGV Submitted</option>
                             {UniqueBgv.map((item, index) => {
                                 return (
@@ -686,11 +724,23 @@ const CandidateList = () => {
                             })}
 
                         </select>
+
+                        <form action="">
+                            <div className="flex md:items-stretch items-center gap-3">
+                                <input
+                                    type="search"
+                                    className='outline-none border-2 p-3 border-gray-300 shadow-md text-sm rounded-md w-full my-4 md:my-0'
+                                    placeholder='Search Here...'
+                                    value={searchTerm}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                />
+                            </div>
+                        </form>
                     </div>
                     <div className='bg-blue-600 p-4 text-white min-w-full'>
                         <marquee scrollamount="10">
                             <span className='text-xl font-bold uppercase tracking-[1px]'>
-                                Filled BGV Applications: {counts.filled} || Not Filled BGV Applications: {counts.notFilled} || Expired Applications:{counts.expired}
+                                Filled BGV Applications: {summaryData?.cefFilled} || Not Filled BGV Applications: {summaryData?.pendingCEF} || Expired Applications:{summaryData?.expired}
                             </span>
                         </marquee>
 
