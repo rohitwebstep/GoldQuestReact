@@ -1943,6 +1943,7 @@ const AdminChekin = () => {
                                     <th className="text-left p-2 border uppercase ">Insuff Date</th>
                                     <th className="text-left p-2 border uppercase ">Insuff Reopen Date</th>
                                     <th className="text-left p-2 border uppercase ">Reason For Delay</th>
+                                    <th className="text-left p-2 border uppercase ">Expiry Date</th>
                                     <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">Actions</th>
                                 </tr>
                             </thead>
@@ -2126,6 +2127,8 @@ const AdminChekin = () => {
                                                 </td>
 
                                                 <td className="py-3 px-4 border-b border-r-2  capitalize whitespace-pre-wrap">{data.delay_reason || 'NIL'}</td>
+                                                <td className="py-3 px-4 border-b border-r-2  capitalize whitespace-pre-wrap">{formatDate(data.expired_at) || "NIL"}</td>
+                                                
                                                 <td className="border px-4 py-2">
                                                     <button
                                                         disabled={isApiLoading}

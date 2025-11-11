@@ -332,8 +332,15 @@ const ReportCaseTable = () => {
     );
   });
 
-
-
+    const formatDate = (date) => {
+        if (!date) return "NOT APPLICABLE"; // Check for null, undefined, or empty
+        const dateObj = new Date(date);
+        if (isNaN(dateObj.getTime())) return "Nill"; // Check for invalid date
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const year = dateObj.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -1987,6 +1994,8 @@ const ReportCaseTable = () => {
                   <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                     Overall Status
                   </th>
+                                    <th className="text-left p-2 border uppercase ">Expiry Date</th>
+
                   <th className="py-3 px-4 border-b border-r-2 whitespace-nowrap uppercase">
                     Actions
                   </th>
@@ -2174,6 +2183,8 @@ const ReportCaseTable = () => {
                             <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                               {data.overall_status || "WIP"}
                             </td>
+                           <td className="py-3 px-4 border-b border-r-2  capitalize whitespace-pre-wrap">{formatDate(data.expired_at) || "NIL"}</td>
+
                             <td className="border px-4  py-2">
                               <button
                                 disabled={isBranchApiLoading}
