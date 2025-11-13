@@ -1311,12 +1311,12 @@ const ReportCaseTable = () => {
         });
 
         // Add Spoc only once
-        if (service.annexureData?.spoc) {
-          serviceData.push({
-            label: "Spoc",
-            values: { spoc: service.annexureData.spoc }
-          });
-        }
+        // if (service.annexureData?.spoc) {
+        //   serviceData.push({
+        //     label: "Spoc",
+        //     values: { spoc: service.annexureData.spoc }
+        //   });
+        // }
 
         // Add Additional Fee if exists
         if (service.annexureData?.additional_fee) {

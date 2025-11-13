@@ -115,7 +115,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{host}}/branch/api/services?access_token=2716fc00ba3179fc4f592d84c0b7f1bd.dc9ddff93c8084eb30f4b50c73293b13",
+					"raw": "{{host}}/branch/api/services?access_token=<ACCESS_TOKEN>",
 					"host": [
 						"{{host}}"
 					],
@@ -127,7 +127,7 @@
 					"query": [
 						{
 							"key": "access_token",
-							"value": "2716fc00ba3179fc4f592d84c0b7f1bd.dc9ddff93c8084eb30f4b50c73293b13"
+							"value": "<ACCESS_TOKEN>"
 						}
 					]
 				}
