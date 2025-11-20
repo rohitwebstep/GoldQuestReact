@@ -1030,7 +1030,8 @@ const CandidateExcelTrackerStatus = () => {
                                                         className="bg-blue-500 uppercase border border-white hover:border-blue-500 text-white px-4 py-2 rounded hover:bg-white hover:text-blue-500"
                                                         onClick={() => handleBGVClick(data.cef_id, data.branch_id, data.main_id)}
                                                     >
-                                                        BGV
+                                                        {data?.cef_id && Number(data?.cef_submitted) === 0 ? "PARTIAL BGV" : "BGV"}
+
                                                     </button>
                                                 </td>
                                             ) : (

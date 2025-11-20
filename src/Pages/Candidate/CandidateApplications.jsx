@@ -1036,6 +1036,7 @@ const GenerateReport = () => {
                 case "text":
                 case "email":
                 case "tel":
+                case "number":
                     return (
                         <>
                             <label className='font-bold text-gray-700 text-sm'>{input.label}</label>

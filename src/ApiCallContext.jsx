@@ -105,13 +105,14 @@ export const ApiCallProvider = ({ children }) => {
 
 
     const checkBranchAuthentication = async () => {
-        console.log("🔍 Starting branch authentication check...");
-
         const branchData = localStorage.getItem("branch");
         const storedToken = localStorage.getItem("branch_token");
 
-        console.log("📦 Raw branch data from localStorage:", branchData);
-        console.log("🔑 Stored token:", storedToken);
+        // If no branch data → redirect immediately
+        if (!branchData) {
+            redirectBranchToLogin();
+            return;
+        }
 
         setIsBranchApiLoading(true);
 
@@ -120,19 +121,24 @@ export const ApiCallProvider = ({ children }) => {
             adminData = JSON.parse(branchData);
             console.log("✅ Parsed branch data:", adminData);
         } catch (error) {
-            console.error("❌ Failed to parse branch data:", error);
+            console.error("❌ Failed to parse branch data", error);
             setIsBranchApiLoading(false);
-            return; // stop here — no redirect
+            redirectBranchToLogin();
+            return;
         }
 
         const payLoad = {
             branch_id: adminData?.branch_id,
             _token: storedToken,
-            ...(adminData?.type === "additional_user" && { additional_customer_id: adminData.customer_id }),
-            ...(adminData?.type === "sub_user" && { sub_user_id: adminData.id }),
-        };
 
-        console.log("📤 Final payload being sent to API:", payLoad);
+            ...(adminData?.type === "additional_user" && {
+                additional_customer_id: adminData.customer_id,
+            }),
+
+            ...(adminData?.type === "sub_user" && {
+                sub_user_id: adminData.id,
+            }),
+        };
 
         try {
             const response = await axios.post(
@@ -142,24 +148,30 @@ export const ApiCallProvider = ({ children }) => {
 
             console.log("📩 API Response:", response.data);
 
-            if (response.data.status) {
-                console.log("✅ Authentication successful!");
-
-                // Check for new token
-                const newToken = response.data._token || response.data.token;
-                if (newToken) {
-                    console.log("🔁 New token found, updating localStorage...");
-                    localStorage.setItem("branch_token", newToken);
-                } else {
-                    console.log("ℹ️ No new token in response — keeping existing one.");
-                }
-            } else {
+            // If API returns status FALSE → redirect
+            if (!response.data.status) {
                 console.warn("⚠️ Authentication failed:", response.data.message);
-                // Removed: handleSessionExpired(response.data.message)
+                redirectBranchToLogin();
+                handleSessionExpired(response.data.message);
+                localStorage.removeItem("branch");
+                localStorage.removeItem("branch_token");
+                return;
             }
+
+            // If login success → update token if provided
+            const newToken = response.data._token || response.data.token;
+            if (newToken) {
+                localStorage.setItem("branch_token", newToken);
+            }
+
         } catch (error) {
             console.error("🚨 API request failed:", error);
-            // Removed: handleLoginError()
+
+            // If API itself fails → redirect (token expired/server error);
+            localStorage.removeItem("branch");
+            localStorage.removeItem("branch_token");
+            redirectBranchToLogin()
+
         } finally {
             setIsBranchApiLoading(false);
             console.log("🏁 Authentication check finished.\n");
@@ -168,8 +180,13 @@ export const ApiCallProvider = ({ children }) => {
 
 
 
+
     const redirectBranchToLogin = () => {
-        window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
+        if (branchEmail) {
+
+            window.location.href = `/customer-login?email=${encodeURIComponent(branchEmail)}`;
+        }
+        window.location.href = `/customer-login`;
 
     };
 

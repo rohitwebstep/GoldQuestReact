@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
+
 import PulseLoader from 'react-spinners/PulseLoader'; // Import the PulseLoader
 import { MdOutlineArrowRightAlt } from "react-icons/md";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -14,16 +15,25 @@ import { FaUser, FaCog, FaCheckCircle } from 'react-icons/fa'
 import { parseISO, isValid } from 'date-fns';
 import { format } from 'date-fns';
 import { State } from "country-state-city";
+import { jsPDF } from 'jspdf';
 
 const states = State.getStatesOfCountry('IN');
 const optionState = states.map(state => ({ value: state.isoCode, label: state.name }));
 
 const BackgroundForm = () => {
+
     const [isSameAsPermanent, setIsSameAsPermanent] = useState(false);
     const [gaps, setGaps] = useState({});
     const [employGaps, setEmployGaps] = useState({});
     const refs = useRef({});
     const [loading, setLoading] = useState(false);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleOpenModal = () => setIsModalOpen(true);
+    const handleCloseModal = () => setIsModalOpen(false);
+    const [customerInfo, setCustomerInfo] = useState([]);
+
     const [loadingData, setLoadingData] = useState(false)
     const [conditionHtml, setConditionHtml] = useState("");
     const [applicationData, setApplicationData] = useState([]);
@@ -651,68 +661,71 @@ const BackgroundForm = () => {
                     setNationality(result.data?.application?.nationality || '');
                     setPurpose(result.data?.application?.purpose_of_application || '');
 
-                    const cefData = result.data?.cefApplication || [];
+                    const cefDataApp = result.data?.cefApplication || [];
                     const applicationData = result.data?.application || [];
                     setApplicationData(result.data?.applicationData)
-                    setCefDataApp(cefData);
+                    setCefDataApp(cefDataApp);
+                    setCustomerInfo(result.data.customer || []);
+
+
                     const currentDate = new Date().toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
                     setFormData({
                         ...formData,
                         personal_information: {
-                            full_name: cefData?.full_name || formData.full_name,
-                            former_name: cefData?.former_name || formData.former_name,
-                            mb_no: cefData?.mb_no || formData.mb_no,
-                            father_name: cefData?.father_name || formData.father_name,
-                            husband_name: cefData?.husband_name || formData.husband_name,
-                            dob: cefData?.dob || formData.dob,
-                            age: cefData?.age || formData.age,
-                            gender: cefData?.gender || formData.gender,
-                            alternative_mobile_number: cefData?.alternative_mobile_number || formData.alternative_mobile_number,
-                            permanent_address: cefData?.permanent_address || formData.permanent_address,
-                            current_address_pin_code: cefData?.current_address_pin_code || formData.current_address_pin_code,
-                            permanent_pin_code: cefData?.permanent_pin_code || formData.permanent_pin_code,
-                            permanent_street_locality: cefData?.permanent_street_locality || formData.permanent_street_locality,
-                            permanent_sector_village: cefData?.permanent_sector_village || formData.permanent_sector_village,
+                            full_name: cefDataApp?.full_name || formData.full_name,
+                            former_name: cefDataApp?.former_name || formData.former_name,
+                            mb_no: cefDataApp?.mb_no || formData.mb_no,
+                            father_name: cefDataApp?.father_name || formData.father_name,
+                            husband_name: cefDataApp?.husband_name || formData.husband_name,
+                            dob: cefDataApp?.dob || formData.dob,
+                            age: cefDataApp?.age || formData.age,
+                            gender: cefDataApp?.gender || formData.gender,
+                            alternative_mobile_number: cefDataApp?.alternative_mobile_number || formData.alternative_mobile_number,
+                            permanent_address: cefDataApp?.permanent_address || formData.permanent_address,
+                            current_address_pin_code: cefDataApp?.current_address_pin_code || formData.current_address_pin_code,
+                            permanent_pin_code: cefDataApp?.permanent_pin_code || formData.permanent_pin_code,
+                            permanent_street_locality: cefDataApp?.permanent_street_locality || formData.permanent_street_locality,
+                            permanent_sector_village: cefDataApp?.permanent_sector_village || formData.permanent_sector_village,
 
-                            current_sector_village: cefData?.current_sector_village || formData.current_sector_village,
-                            permanent_city: cefData?.permanent_city || formData.permanent_city,
-                            current_street_locality: cefData?.current_street_locality || formData.current_street_locality,
-                            current_pin_code: cefData?.current_pin_code || formData.current_pin_code,
-                            current_city: cefData?.current_city || formData.current_city,
-                            declaration_date: cefData?.declaration_date || currentDate,
-                            current_address: cefData?.current_address || formData.current_address,
-                            current_address_landline_number: cefData?.current_address_landline_number || formData.current_address_landline_number,
-                            permanent_address_landline_number: cefData?.permanent_address_landline_number || formData.permanent_address_landline_number,
-                            current_address_state: cefData?.current_address_state || formData.current_address_state,
-                            permanent_address_state: cefData?.permanent_address_state || formData.permanent_address_state,
-                            current_prominent_landmark: cefData?.current_prominent_landmark || formData.current_prominent_landmark,
-                            permanent_prominent_landmark: cefData?.permanent_prominent_landmark || formData.permanent_prominent_landmark,
-                            current_address_stay_to: cefData?.current_address_stay_to || formData.current_address_stay_to,
-                            permanent_address_stay_to: cefData?.permanent_address_stay_to || formData.permanent_address_stay_to,
-                            current_address_nearest_police_station: cefData?.current_address_nearest_police_station || formData.current_address_nearest_police_station,
-                            permanent_address_nearest_police_station: cefData?.permanent_address_nearest_police_station || formData.permanent_address_nearest_police_station,
-                            nationality: cefData?.nationality || formData.nationality,
-                            insurance_details_name: cefData?.insurance_details_name || formData.insurance_details_name,
-                            insurance_details_contact_number: cefData.insurance_details_contact_number || formData.insurance_details_contact_number,
-                            insurance_details_nominee_dob: cefData.insurance_details_nominee_dob || formData.insurance_details_nominee_dob,
-                            insurance_details_nominee_relation: cefData.insurance_details_nominee_relation || formData.insurance_details_nominee_relation,
-                            marital_status: cefData?.marital_status || formData.marital_status,
+                            current_sector_village: cefDataApp?.current_sector_village || formData.current_sector_village,
+                            permanent_city: cefDataApp?.permanent_city || formData.permanent_city,
+                            current_street_locality: cefDataApp?.current_street_locality || formData.current_street_locality,
+                            current_pin_code: cefDataApp?.current_pin_code || formData.current_pin_code,
+                            current_city: cefDataApp?.current_city || formData.current_city,
+                            declaration_date: cefDataApp?.declaration_date || currentDate,
+                            current_address: cefDataApp?.current_address || formData.current_address,
+                            current_address_landline_number: cefDataApp?.current_address_landline_number || formData.current_address_landline_number,
+                            permanent_address_landline_number: cefDataApp?.permanent_address_landline_number || formData.permanent_address_landline_number,
+                            current_address_state: cefDataApp?.current_address_state || formData.current_address_state,
+                            permanent_address_state: cefDataApp?.permanent_address_state || formData.permanent_address_state,
+                            current_prominent_landmark: cefDataApp?.current_prominent_landmark || formData.current_prominent_landmark,
+                            permanent_prominent_landmark: cefDataApp?.permanent_prominent_landmark || formData.permanent_prominent_landmark,
+                            current_address_stay_to: cefDataApp?.current_address_stay_to || formData.current_address_stay_to,
+                            permanent_address_stay_to: cefDataApp?.permanent_address_stay_to || formData.permanent_address_stay_to,
+                            current_address_nearest_police_station: cefDataApp?.current_address_nearest_police_station || formData.current_address_nearest_police_station,
+                            permanent_address_nearest_police_station: cefDataApp?.permanent_address_nearest_police_station || formData.permanent_address_nearest_police_station,
+                            nationality: cefDataApp?.nationality || formData.nationality,
+                            insurance_details_name: cefDataApp?.insurance_details_name || formData.insurance_details_name,
+                            insurance_details_contact_number: cefDataApp.insurance_details_contact_number || formData.insurance_details_contact_number,
+                            insurance_details_nominee_dob: cefDataApp.insurance_details_nominee_dob || formData.insurance_details_nominee_dob,
+                            insurance_details_nominee_relation: cefDataApp.insurance_details_nominee_relation || formData.insurance_details_nominee_relation,
+                            marital_status: cefDataApp?.marital_status || formData.marital_status,
                             name_declaration: applicationData?.name || formData.name_declaration,
-                            blood_group: cefData?.blood_group || formData.blood_group,
-                            pan_card_name: cefData?.pan_card_name || formData.pan_card_name,
-                            aadhar_card_name: cefData?.aadhar_card_name || formData.aadhar_card_name,
-                            aadhar_card_number: cefData?.aadhar_card_number || formData.aadhar_card_number,
-                            aadhar_card_linked_mobile_number: cefData?.aadhar_card_linked_mobile_number || formData.aadhar_card_linked_mobile_number,
-                            emergency_details_name: cefData?.emergency_details_name || formData.emergency_details_name,
-                            emergency_details_relation: cefData?.emergency_details_relation || formData.emergency_details_relation,
-                            emergency_details_contact_number: cefData?.emergency_details_contact_number || formData.emergency_details_contact_number,
-                            icc_bank_acc: cefData?.icc_bank_acc || formData.icc_bank_acc,
-                            food_coupon: cefData?.food_coupon || formData.food_coupon,
-                            ssn_number: cefData?.ssn_number || formData.ssn_number,
-                            passport_no: cefData?.passport_no || formData.passport_no,
-                            dme_no: cefData?.dme_no || formData.dme_no,
-                            tax_no: cefData?.tax_no || formData.tax_no,
-                            pan_card_number: cefData?.pan_card_number || formData.pan_card_number,
+                            blood_group: cefDataApp?.blood_group || formData.blood_group,
+                            pan_card_name: cefDataApp?.pan_card_name || formData.pan_card_name,
+                            aadhar_card_name: cefDataApp?.aadhar_card_name || formData.aadhar_card_name,
+                            aadhar_card_number: cefDataApp?.aadhar_card_number || formData.aadhar_card_number,
+                            aadhar_card_linked_mobile_number: cefDataApp?.aadhar_card_linked_mobile_number || formData.aadhar_card_linked_mobile_number,
+                            emergency_details_name: cefDataApp?.emergency_details_name || formData.emergency_details_name,
+                            emergency_details_relation: cefDataApp?.emergency_details_relation || formData.emergency_details_relation,
+                            emergency_details_contact_number: cefDataApp?.emergency_details_contact_number || formData.emergency_details_contact_number,
+                            icc_bank_acc: cefDataApp?.icc_bank_acc || formData.icc_bank_acc,
+                            food_coupon: cefDataApp?.food_coupon || formData.food_coupon,
+                            ssn_number: cefDataApp?.ssn_number || formData.ssn_number,
+                            passport_no: cefDataApp?.passport_no || formData.passport_no,
+                            dme_no: cefDataApp?.dme_no || formData.dme_no,
+                            tax_no: cefDataApp?.tax_no || formData.tax_no,
+                            pan_card_number: cefDataApp?.pan_card_number || formData.pan_card_number,
                         },
                     });
 
@@ -753,41 +766,65 @@ const BackgroundForm = () => {
 
                     // Constructing the annexureData object
                     allJsonData.forEach(service => {
+
                         if (service.db_table !== 'gap_validation') {
-                            service?.rows?.forEach(row => {  // Check if rows exist before iterating
+
+                            service?.rows?.forEach(row => {
                                 row?.inputs?.forEach(input => {
-                                    // Fetch the static inputs dynamically from annexureData
 
-                                    // Fetch the dynamic field value from allJsonDataValue
-                                    let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty(input.name)); // Check for null or undefined before accessing `hasOwnProperty`
-                                    // If fieldValue exists, we set it, otherwise, static value should remain
-                                    if (fieldValue && fieldValue.hasOwnProperty(input.name)) {
-
-                                        // Set dynamic value in the correct field in annexureData
-                                        if (!annexureData[service.db_table]) {
-                                            annexureData[service.db_table] = {}; // Initialize the service table if it doesn't exist
-                                        }
-
-                                        // Set the dynamic value in the service table under the input's name
-                                        annexureData[service.db_table][input.name] = fieldValue[input.name] || "  ";
-
-
-                                    } else {
-
+                                    // Ensure the table object exists before setting values
+                                    if (!annexureData[service.db_table]) {
+                                        annexureData[service.db_table] = {};
                                     }
+
+                                    // Find the matching field value
+                                    let fieldValue = allJsonDataValue.find(
+                                        data => data && data.hasOwnProperty(input.name)
+                                    );
+
+
+                                    const value =
+                                        fieldValue && fieldValue[input.name] !== undefined
+                                            ? String(fieldValue[input.name]).trim()
+                                            : ""; // Treat undefined or null as empty
+
+                                    if (
+                                        input.name === `hr_email_id_${service.db_table}` &&
+                                        value === ""
+                                    ) {
+                                        annexureData[service.db_table][input.name] = "hr@companyname.com";
+                                        console.log("Added default HR email");
+                                    }
+
+
+                                    // Dynamic value assignment
+                                    if (fieldValue && fieldValue.hasOwnProperty(input.name)) {
+                                        annexureData[service.db_table][input.name] = fieldValue[input.name] || "";
+                                    }
+
                                 });
                             });
+
                         } else {
-                            let fieldValue = allJsonDataValue.find(data => data && data.hasOwnProperty('no_of_employment')); // Check for null or undefined before accessing `hasOwnProperty`
+                            let fieldValue = allJsonDataValue.find(
+                                data => data && data.hasOwnProperty('no_of_employment')
+                            );
                             let initialAnnexureDataNew = initialAnnexureData;
+
                             if (fieldValue && fieldValue.hasOwnProperty('no_of_employment')) {
-                                initialAnnexureDataNew = updateEmploymentFields(fieldValue.no_of_employment, fieldValue); // Call function to handle employment fields
-                            } else {
+                                initialAnnexureDataNew = updateEmploymentFields(fieldValue.no_of_employment, fieldValue);
                             }
-                            annexureData[service.db_table].employment_fields = initialAnnexureDataNew.gap_validation.employment_fields;
+
+                            if (!annexureData[service.db_table]) {
+                                annexureData[service.db_table] = {};
+                            }
+
+                            annexureData[service.db_table].employment_fields =
+                                initialAnnexureDataNew.gap_validation.employment_fields;
                         }
 
                     });
+
 
                     calculateGaps();
                     setAnnexureData(annexureData);
@@ -1009,7 +1046,56 @@ const BackgroundForm = () => {
         });
     };
 
+    const fetchImageToBase = async (imageUrls) => {
+        try {
+            // Define headers for the POST request
+            const headers = {
+                "Content-Type": "application/json",
+            };
 
+            // Prepare the body payload for the POST request
+            const raw = {
+                image_urls: imageUrls,
+            };
+
+            // Send the POST request to the API and wait for the response
+            const response = await axios.post(
+                "https://api.goldquestglobal.in/test/image-to-base",
+                raw,
+                { headers }
+            );
+
+            // Assuming the response data contains an array of images
+            return response.data.images || [];  // Return images or an empty array if no images are found
+        } catch (error) {
+            console.error("Error fetching images:", error);
+
+            // If the error contains a response, log the detailed response error
+            if (error.response) {
+                console.error("Response error:", error.response.data);
+            } else {
+                // If no response, it means the error occurred before the server could respond
+                console.error("Request error:", error.message);
+            }
+
+            return null; // Return null if an error occurs
+        } finally {
+            // Reset the loading state after the API request finishes (success or failure)
+        }
+    };
+
+    function isImage(fileUrl) {
+        const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        return validImageExtensions.some(ext => fileUrl.toLowerCase().endsWith(ext));
+    }
+    const formatDate = (dateStr) => {
+        const d = new Date(dateStr);
+        if (isNaN(d)) return "Invalid Date";
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
 
     const validate = () => {
 
@@ -1686,6 +1772,1351 @@ const BackgroundForm = () => {
         });
 
     };
+
+
+    const handleDownloadPDF = async () => {
+        const swalLoading = Swal.fire({
+            title: 'Generating PDF...',
+            text: 'Please wait a moment.',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        try {
+            calculateGaps();
+            const doc = new jsPDF();
+            let yPosition = 10;  // Initial y position
+
+            // Add the form title
+
+            if (status === 1) {
+                doc.addImage(LogoBgv, 'PNG', 75, yPosition, 60, 10);
+            }
+            // Set font size for the title
+            doc.setFontSize(20);  // Sets the font size to 20
+            doc.setFont("helvetica", "bold");  // Sets the font to Helvetica and makes it bold
+            // Calculate the width of the text
+            const title = 'Background Verification Form';
+            const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+            const xPosition = (doc.internal.pageSize.width - titleWidth) / 2;
+            // Calculate the x-coordinate for centering
+
+
+            // Add the text in the center of the page
+            doc.text(title, xPosition, status === 1 ? yPosition + 20 : yPosition + 10);
+
+            // Move yPosition down for the next content
+            yPosition += 20; // Adjust spacing as needed
+
+            // Add Company Name
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            // Set the left position for "Company name"
+            doc.text(`Company name: ${companyName}`, 10, yPosition + 10);
+
+            // Set the right position for "Purpose of Application"
+            const pageWidth = doc.internal.pageSize.width; // Get the page width
+            const marginRight = 10; // Right margin
+            const purposeXPosition = pageWidth - marginRight - doc.getTextWidth(`Purpose of Application: ${purpose || 'NIL'}`);
+
+            doc.text(`Purpose of Application: ${purpose || 'NIL'}`, purposeXPosition, yPosition + 10);
+
+            yPosition += 20; // Move yPosition down for the next section
+
+            const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
+            const imageHeight = 80; // Fixed height of 500px for the image
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            // if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
+            //     // Add a form group with Applicant's CV label
+            //     doc.setFontSize(12);
+            //     doc.text("Applicant’s CV", doc.internal.pageSize.width / 2, yPosition, {
+            //         align: 'center'
+            //     });
+
+            //     if (cefDataApp && cefDataApp.resume_file) {
+            //         // Check if the file is an image (this can be enhanced with MIME type checks, e.g., 'image/png', 'image/jpeg')
+            //         const resumeFile = cefDataApp.resume_file.trim();
+
+            //         if (isImage(resumeFile)) {
+            //             // If the resume file is an image, fetch and add it to the document
+            //             const imageBases = await fetchImageToBase([resumeFile]);
+
+            //             if (imageBases?.[0]?.base64) {
+            //                 doc.addImage(imageBases?.[0]?.base64, 'PNG', 5, yPosition + 10, imageWidth, imageHeight);
+            //             } else {
+            //                 doc.text("Unable to load image.", 10, 40);
+            //             }
+            //         } else {
+            //             const doctext = 'View Document';
+            //             const doctextWidth = doc.getTextWidth(doctext);
+            //             const noCVTextX = (doc.internal.pageSize.width - doctextWidth) / 2;
+            //             const resumeUrl = resumeFile;
+            //             doc.setTextColor(255, 0, 0); // Set the text color to blue (like a link)
+            //             doc.textWithLink(doctext, noCVTextX, 60, { url: resumeUrl });  // Opens the document in a new tab
+            //         }
+            //     } else {
+            //         // If no resume file is available, center the text for "No CV uploaded."
+            //         const noCVText = "No CV uploaded.";
+            //         const noCVTextWidth = doc.getTextWidth(noCVText);
+            //         const noCVTextX = (doc.internal.pageSize.width - noCVTextWidth) / 2;
+
+            //         doc.text(noCVText, noCVTextX + 40, 40);
+            //     }
+
+
+            //     // Helper function to determine if the file is an image (you can improve this with more MIME type checks)
+            //     function isImage(fileName) {
+            //         const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
+            //         return imageExtensions.some(extension => fileName.toLowerCase().endsWith(extension));
+            //     }
+
+            // }
+            doc.setTextColor(0, 0, 0);
+            // if (purpose === 'NORMAL BGV(EMPLOYMENT)') {
+            //     yPosition += imageHeight + 10;
+            // }
+            yPosition += 5;
+            // if (cefDataApp && cefDataApp.govt_id) {
+            //     // Split the comma-separated string into an array of image URLs
+            //     const govtIdUrls = cefDataApp.govt_id.split(',').map(url => url.trim());
+
+            //     // Check if there are any URLs in the array
+            //     if (govtIdUrls.length > 0) {
+            //         for (let i = 0; i < govtIdUrls.length; i++) {
+            //             const govtIdUrl = govtIdUrls[i];
+
+            //             // Fetch the image as base64
+            //             const imageBases = await fetchImageToBase([govtIdUrl]);
+
+            //             // Check if the image is valid
+            //             if (imageBases?.[0]?.base64) {
+            //                 // Set font size and add the label for each image
+            //                 doc.setFontSize(12);
+            //                 const labelText = "Govt ID #" + (i + 1);
+            //                 const labelTextWidth = doc.getTextWidth(labelText);
+            //                 const labelCenterX = (doc.internal.pageSize.width - labelTextWidth) / 2;
+
+            //                 // Add label at the center for each image
+            //                 doc.text(labelText, labelCenterX, yPosition);
+
+            //                 // Add image to the document (ensure image fits properly)
+            //                 const imageWidth = doc.internal.pageSize.width - 10; // 20px padding for margins
+            //                 let imageHeight = 100; // Adjust according to your requirements
+            //                 if (yPosition > doc.internal.pageSize.height - 40) {
+            //                     doc.addPage(); // Add a new page
+            //                     imageHeight = 150;
+            //                     yPosition = 20; // Reset yPosition for new page
+            //                 }
+            //                 // doc.addImage(imageBases[0].base64, 'PNG', 5, yPosition + 5, imageWidth, imageHeight);
+
+            //                 // Update yPosition after adding the image
+            //                 yPosition += imageHeight + 10; // Adjust for image height + some margin
+
+            //                 // Check if the yPosition exceeds the page height, and if so, add a new page
+
+            //             } else {
+            //                 // If no image is found for this govt_id, center the message
+            //                 const messageText = "Image #" + (i + 1) + " not found.";
+            //                 const messageTextWidth = doc.getTextWidth(messageText);
+            //                 const messageCenterX = (doc.internal.pageSize.width - messageTextWidth) / 2;
+
+            //                 doc.text(messageText, messageCenterX, yPosition);
+
+            //                 // Update yPosition after showing the message
+            //                 yPosition += 20 + 30; // Adjust for message height + margin
+
+            //                 // Check if the yPosition exceeds the page height, and if so, add a new page
+            //                 if (yPosition > doc.internal.pageSize.height - 40) {
+            //                     doc.addPage();
+            //                     imageHeight = 150;// Add a new page
+            //                     yPosition = 20; // Reset yPosition for new page
+            //                 }
+            //             }
+            //         }
+            //     } else {
+            //         // If no government ID images are available in the string, center the message
+            //         const noImagesText = "No Government ID images uploaded.";
+            //         const noImagesTextWidth = doc.getTextWidth(noImagesText);
+            //         const noImagesCenterX = (doc.internal.pageSize.width - noImagesTextWidth) / 2;
+
+            //         doc.text(noImagesText, noImagesCenterX, 40);
+            //     }
+            // } else {
+            //     // If govt_id is not present in cefDataApp, center the message
+            //     const noGovtIdText = "No Government ID uploaded.";
+            //     const noGovtIdTextWidth = doc.getTextWidth(noGovtIdText);
+            //     const noGovtIdCenterX = (doc.internal.pageSize.width - noGovtIdTextWidth) / 2;
+
+            //     doc.text(noGovtIdText, noGovtIdCenterX, 40);
+            // }
+
+
+
+
+
+            // if (status === 1) {
+            //     doc.addPage();
+            // }
+            // const passport_photoHeight = 62;
+            // yPosition = 10;
+
+            // if (status === 1) {
+            //     // Center the "Passport Photo" header
+            //     const headerText = "Passport Photo.";
+            //     doc.text(headerText, doc.internal.pageSize.width / 2, yPosition, { align: 'center' });
+
+            //     if (cefDataApp && cefDataApp.passport_photo) {
+            //         // Split the comma-separated image URLs into an array
+            //         const imageUrls = cefDataApp.passport_photo.trim().split(',').map(url => url.trim());
+
+            //         // Filter valid image URLs based on file extensions
+            //         const validImageUrls = imageUrls.filter(url => {
+            //             const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            //             return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+            //         });
+
+            //         if (validImageUrls.length > 0) {
+            //             // Constants for grid layout
+            //             const cols = validImageUrls.length > 3 ? 3 : validImageUrls.length;  // Limit to 3 columns at most
+            //             const margin = 5;  // Space between images
+            //             const xStart = 5;  // Starting x position
+            //             const yStart = yPosition + 10;  // Starting y position (below the header)
+            //             const pageWidth = doc.internal.pageSize.width; // Get the page width
+
+            //             let xPos = xStart;
+            //             yPosition = yStart;
+
+            //             // Dynamically calculate the image width based on the number of images
+            //             const imageWidth = validImageUrls.length === 1 ? pageWidth - 2 * margin :
+            //                 validImageUrls.length === 2 ? (pageWidth / 2) - margin :
+            //                     validImageUrls.length === 3 ? (pageWidth / 3) - margin :
+            //                         (pageWidth / 3) - margin; // Use 3 columns for more than 3 images
+
+            //             // Loop through each valid image URL and process it
+            //             // for (let i = 0; i < validImageUrls.length; i++) {
+            //             //     const imageUrl = validImageUrls[i];
+            //             //     try {
+            //             //         // Fetch the base64 image for each URL
+            //             //         // const imageBases = await fetchImageToBase([imageUrl]);
+
+            //             //         // if (imageBases && imageBases[0]?.base64) {
+            //             //         //     // Add image to the PDF at the correct xPos and yPosition (grid layout)
+            //             //         //     doc.addImage(imageBases[0].base64, imageBases[0].type, xPos, yPosition, imageWidth, passport_photoHeight);
+
+            //             //         //     // Update xPos for the next image (move horizontally)
+            //             //         //     xPos += imageWidth + margin;
+
+            //             //         //     // If we have reached the end of the row (3 columns), reset xPos and move to the next row
+            //             //         //     if ((i + 1) % cols === 0) {
+            //             //         //         xPos = xStart;
+            //             //         //         yPosition += passport_photoHeight + margin;  // Move to the next row
+            //             //         //     }
+            //             //         // } else {
+            //             //         //     console.error(`Image at index ${i} could not be loaded.`);
+            //             //         //     const imageNotFoundText = `Image #${i + 1} not found.`;
+            //             //         //     const imageNotFoundTextWidth = doc.getTextWidth(imageNotFoundText);
+            //             //         //     const imageNotFoundCenterX = (doc.internal.pageSize.width - imageNotFoundTextWidth) / 2;
+            //             //         //     doc.text(imageNotFoundText, imageNotFoundCenterX, yPosition + 10);
+            //             //         //     yPosition += 10;  // Update yPos for the error message
+            //             //         // }
+            //             //     } catch (error) {
+            //             //         console.error(`Error loading image at index ${i}:`, error);
+            //             //         const errorMessage = `Error loading image #${i + 1}.`;
+            //             //         const errorTextWidth = doc.getTextWidth(errorMessage);
+            //             //         const errorTextCenterX = (doc.internal.pageSize.width - errorTextWidth) / 2;
+            //             //         doc.text(errorMessage, errorTextCenterX, yPosition + 10);
+            //             //         yPosition += 20;  // Update yPos for the error message
+            //             //     }
+            //             // }
+            //         } else {
+            //             // If no valid image URLs are found, display a message
+            //             const noImagesText = "No valid Passport Photo images found.";
+            //             const noImagesTextWidth = doc.getTextWidth(noImagesText);
+            //             const noImagesCenterX = (doc.internal.pageSize.width - noImagesTextWidth) / 2;
+            //             doc.text(noImagesText, noImagesCenterX, yPosition + 10);
+            //             yPosition += 20; // Adjust for the message
+            //         }
+
+            //     } else {
+            //         // If no passport photo is available, display a message
+            //         const noPhotoText = "No Passport Photo uploaded.";
+            //         const noPhotoTextWidth = doc.getTextWidth(noPhotoText);
+            //         const noPhotoCenterX = (doc.internal.pageSize.width - noPhotoTextWidth) / 2;
+            //         doc.text(noPhotoText, noPhotoCenterX, yPosition + 10);
+            //         yPosition += 20; // Adjust position for the message
+            //     }
+            // }
+
+
+            const tableData = [
+                { title: "Full Name", value: cefDataApp.full_name || "N/A" },
+                { title: "Former Name / Maiden Name", value: cefDataApp.former_name || "N/A" },
+                { title: "Mobile Number", value: cefDataApp.mb_no || "N/A" },
+                { title: "Father's Name", value: cefDataApp.father_name || "N/A" },
+                { title: "Spouse's Name", value: cefDataApp.husband_name || "N/A" },
+                { title: "Date of Birth", value: formatDate(cefDataApp.dob) || "N/A" },
+                {
+                    title: "Age",
+                    value: getFormattedAge(cefDataApp.dob) || "N/A"
+                },
+                { title: "Gender", value: cefDataApp.gender || "N/A" },
+                { title: "Alternative Mobile Number", value: cefDataApp.alternative_mobile_number || "N/A" },
+                // Add conditional fields based on status and nationality
+            ];
+
+            function getFormattedAge(dob) {
+                const birthDate = new Date(dob);
+                const today = new Date();
+
+                let years = today.getFullYear() - birthDate.getFullYear();
+                let months = today.getMonth() - birthDate.getMonth();
+
+                if (today.getDate() < birthDate.getDate()) {
+                    months -= 1;
+                }
+
+                if (months < 0) {
+                    years -= 1;
+                    months += 12;
+                }
+
+                if (years < 1 && months >= 0) {
+                    return `${months} month${months !== 1 ? 's' : ''}`;
+                }
+
+                return `${years} year${years !== 1 ? 's' : ''} ${months} month${months !== 1 ? 's' : ''}`;
+            }
+
+            // Conditionally add fields
+            if (status === 1 && nationality === "Indian") {
+                tableData.push(
+                    { title: "Name as per Aadhar", value: cefDataApp.aadhar_card_name || "N/A" },
+                    { title: "Name as per Pan Card", value: cefDataApp.pan_card_name || "N/A" }
+                );
+            }
+
+            if (nationality === "Other") {
+                tableData.push(
+                    { title: "Passport No", value: cefDataApp.passport_no || "N/A" },
+                    { title: "Driving License / Resident Card / ID No", value: cefDataApp.dme_no || "N/A" },
+                    { title: "Tax No", value: cefDataApp.tax_no || "N/A" }
+                );
+            }
+            if (status == 0 && nationality === "Other") {
+                tableData.push(
+                    { title: "Social Security Number", value: cefDataApp.ssn_number || "N/A" },
+                );
+            }
+
+            tableData.push(
+                { title: "Aadhar Card Number", value: cefDataApp.aadhar_card_number || "N/A" },
+                { title: "Aadhar Card Number", value: cefDataApp.aadhar_card_linked_mobile_number || "N/A" },
+                { title: "Pan Card Number", value: cefDataApp.pan_card_number || "N/A" },
+                { title: "Nationality", value: cefDataApp.nationality || "N/A" },
+                { title: "Marital Status", value: cefDataApp.marital_status || "N/A" }
+            );
+
+
+
+            // doc.addPage();
+
+
+            doc.autoTable({
+                startY: yPosition + 5, // Start the table just below the last added entry
+                head: [[{ content: 'Personal Information', colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
+                ],
+                body: tableData.map(row => {
+                    return [row.title, row.value];
+                }),
+                theme: 'grid',
+                margin: { top: 10 },
+                styles: {
+                    cellPadding: 3,        // Padding around text for a cleaner look
+                    fontSize: 10,          // Font size for better readability
+                    halign: 'left',        // Align text to the left for better structure
+                    valign: 'middle',      // Align vertically to the middle of the cells
+                    lineWidth: 0.2,        // Increase line width for better visibility
+                    font: 'helvetica'      // Use Helvetica for better font rendering
+                },
+                headStyles: {
+                    textColor: 255,        // White text for header for contrast
+                    fontStyle: 'bold',     // Make header text bold
+                },
+                columnStyles: {
+                    0: { cellWidth: 'auto' },  // Auto width for the first column (Field)
+                    1: { cellWidth: 'auto' }   // The second column (Value) should adjust width automatically
+                }
+            });
+
+
+
+
+            const aadharcardimageHeight = 100;
+            yPosition = doc.autoTable.previous.finalY + 10;
+
+            // if (status === 1 && nationality === "Indian") {
+            //     // Add Aadhaar card image if available
+            //     if (cefDataApp.aadhar_card_image) {
+            //         doc.addPage();
+            //         let yPosition = 10; // Reset yPosition for a new page
+            //         doc.setTextColor(0, 0, 0);
+            //         // Center the "Aadhar Card Image" header
+            //         doc.text('Aadhar Card Image', doc.internal.pageSize.width / 2, yPosition + 10, {
+            //             align: 'center'
+            //         });
+
+            //         // Process Aadhaar card image
+            //         const imageUrls = [cefDataApp.aadhar_card_image.trim()];
+            //         const imageUrlsToProcess = imageUrls.filter(url => {
+            //             const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            //             return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+            //         });
+
+            //         // If it's an image, add to PDF
+            //         if (imageUrlsToProcess.length > 0) {
+            //             const imageBases = await fetchImageToBase(imageUrlsToProcess);
+            //             doc.addImage(imageBases[0]?.base64, imageBases[0]?.type, 5, yPosition + 20, imageWidth, aadharcardimageHeight);
+            //             yPosition += aadharcardimageHeight;
+            //         } else {
+            //             // If not an image (e.g., PDF or XLS), show a clickable link centered
+            //             const fileUrl = cefDataApp.aadhar_card_image.trim();
+            //             const buttonText = `Click to open Aadhar Card File`;
+            //             const textWidth = doc.getTextWidth(buttonText);
+            //             const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+            //             doc.setFont("helvetica", "normal");
+            //             doc.setFontSize(10);
+            //             doc.setTextColor(255, 0, 0);
+            //             doc.text(buttonText, centerX, yPosition + 20);
+
+            //             // Create clickable link to open the file
+            //             doc.link(centerX, yPosition + 10, textWidth, 10, { url: fileUrl });
+
+            //             yPosition += 20;
+            //         }
+            //     }
+
+            //     yPosition = aadharcardimageHeight + 40;
+            //     if (cefDataApp.pan_card_image) {
+            //         // Center the "Pan Card Image" header
+            //         doc.setTextColor(0, 0, 0);
+            //         doc.text('Pan Card Image', doc.internal.pageSize.width / 2, yPosition + 10, {
+            //             align: 'center'
+            //         });
+
+            //         const imageUrls = [cefDataApp.pan_card_image.trim()];
+            //         const imageUrlsToProcess = imageUrls.filter(url => {
+            //             const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            //             return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+            //         });
+
+            //         // If it's an image, add to PDF
+            //         if (imageUrlsToProcess.length > 0) {
+            //             const imageBases = await fetchImageToBase(imageUrlsToProcess);
+            //             doc.addImage(imageBases[0]?.base64, imageBases[0]?.type, 5, yPosition + 20, imageWidth, aadharcardimageHeight);
+            //             yPosition += aadharcardimageHeight + 20;
+            //         } else {
+            //             // If not an image (e.g., PDF or XLS), show a clickable link centered
+            //             const fileUrl = cefDataApp.pan_card_image.trim();
+            //             const buttonText = `Click to open Pan Card File`;
+            //             const textWidth = doc.getTextWidth(buttonText);
+            //             const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+            //             doc.setFont("helvetica", "normal");
+            //             doc.setFontSize(10);
+            //             doc.setTextColor(255, 0, 0);
+            //             doc.text(buttonText, centerX, yPosition + 20);
+
+            //             // Create clickable link to open the file
+            //             doc.link(centerX, yPosition + 10, textWidth, 10, { url: fileUrl });
+
+            //             yPosition += 20;
+            //         }
+            //     }
+            // }
+
+
+            // else {
+            //     yPosition = doc.autoTable.previous.finalY + 10;
+            // }
+
+            // if (status === 1 && nationality === "Indian") {
+            //     doc.addPage();
+            //     yPosition = 10;
+            // }
+
+            doc.setFontSize(14);
+            yPosition += 10; // Move yPosition down for the next section
+
+            // Table for Permanent Address
+            doc.autoTable({
+                startY: yPosition,
+                head: [[
+                    { content: 'Permanent Address', colSpan: 2, styles: { halign: 'center', fontSize: 16, fontStyle: 'bold' } }
+                ]],
+                body: [
+                    ['House no', cefDataApp.permanent_address || 'N/A'],
+                    ['Street', cefDataApp.permanent_street_locality || 'N/A'],
+                    ['District', cefDataApp.permanent_sector_village || 'N/A'],
+                    ['City', cefDataApp.permanent_city || 'N/A'],
+                    ['State', cefDataApp.permanent_address_state || 'N/A'],
+                    ['Pincode', cefDataApp.permanent_pin_code || 'N/A'],
+                ],
+                theme: 'grid',
+                margin: { top: 10 },
+                styles: { fontSize: 10, cellPadding: 3 },
+                pageBreak: 'avoid'  // Prevent breaking table across pages
+            });
+
+
+            // Update yPosition after the permanent address table
+            yPosition = doc.autoTable.previous.finalY + 20; // Add a small margin after the table
+
+            // Check if current address is different from permanent address
+            if (!isSameAsPermanent) {
+                // Table for Current Address if not same as Permanent Address
+                doc.autoTable({
+                    startY: yPosition,
+                    head: [[{ content: 'Current Address', colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }],
+                    ],
+                    body: [
+                        ['House no', cefDataApp.current_address || 'N/A'],
+                        ['Street', cefDataApp.current_street_locality || 'N/A'],
+                        ['District', cefDataApp.current_sector_village || 'N/A'],
+                        ['City', cefDataApp.current_city || 'N/A'],
+                        ['State', cefDataApp.current_address_state || 'N/A'],
+                        ['Pincode', cefDataApp.current_pin_code || 'N/A'],
+                    ],
+                    theme: 'grid',
+                    margin: { top: 10 },
+                    styles: { fontSize: 10, cellPadding: 3 }
+                });
+
+                // Update yPosition after the current address table
+                yPosition = doc.autoTable.previous.finalY + 10; // Add a small margin after the table
+            }
+
+
+            yPosition = doc.autoTable.previous.finalY + 10;
+
+
+
+
+            doc.addPage();
+            (async () => {
+                if (serviceDataMain || !serviceDataMain.length === 0) {
+                    for (let i = 0; i < serviceDataMain.length; i++) {
+                        const service = serviceDataMain[i];
+                        const tableData = [];
+                        if (serviceDataMain.length > 1) {
+
+                            yPosition = 20;
+                        }
+                        // Reset yPosition before each service
+
+                        function renderGapMessageNew(gap) {
+                            if (!gap) {
+                                return 'No Gap'; // Return 'N/A' if gap is undefined or null
+                            }
+                            const { years, months } = gap; // Safely destructure if gap is valid
+                            return `${years} years and ${months} months`;
+                        }
+
+                        if (service.db_table === "gap_validation") {
+
+
+                            doc.setFontSize(12);
+                            doc.setTextColor(0, 0, 0);
+                            if (annexureData?.gap_validation?.highest_education_gap === 'phd') {
+
+
+                                // Table for PhD information
+                                yPosition += 10;
+                                doc.autoTable({
+                                    startY: yPosition,
+                                    head: [[{ content: 'PHD', colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                    ],
+                                    body: [
+                                        ['Institute Name', annexureData?.gap_validation?.education_fields?.phd_1?.phd_institute_name_gap || 'N/A'],
+                                        ['School Name', annexureData?.gap_validation?.education_fields?.phd_1?.phd_school_name_gap || 'N/A'],
+                                        ['Start Date', formatDate(annexureData?.gap_validation?.education_fields?.phd_1?.phd_start_date_gap) || 'N/A'],
+                                        ['End Date', formatDate(annexureData?.gap_validation?.education_fields?.phd_1?.phd_end_date_gap) || 'N/A'],
+                                        ['Specialization', annexureData?.gap_validation?.education_fields?.phd_1?.phd_specialization_gap || 'N/A'],
+                                        ["Gap Status", renderGapMessageNew(gaps?.gapPostGradToPhd) || 'N/A']
+                                    ],
+                                    theme: 'grid',
+                                    margin: { top: 10 },
+                                    styles: { fontSize: 10, cellPadding: 3 }
+                                });
+
+                                let index = 1;
+                                let phdSections = [];
+
+                                while (true) {
+                                    const key = `phd_corespondence_${index}`;
+
+                                    // Check if the key exists in annexureData
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const phdSection = annexureData.gap_validation.education_fields[key];
+
+                                    // Log the current phdSection to ensure data is being read correctly
+
+                                    phdSections.push([
+                                        `Correspondence Phd ${index}`,
+                                        phdSection?.phd_institute_name_gap || 'N/A',
+                                        phdSection?.phd_school_name_gap || 'N/A',
+                                        phdSection?.phd_start_date_gap || 'N/A',
+                                        phdSection?.phd_end_date_gap || 'N/A',
+                                        phdSection?.phd_specialization_gap || 'N/A'
+                                    ]);
+
+                                    index++; // Move to the next phd_corespondence_*
+                                }
+
+                                // Check if phdSections is populated before attempting to render
+
+                                if (phdSections.length > 0) {
+                                    doc.setFontSize(16);
+                                    const textWidth = doc.internal.pageSize.width;
+                                    doc.text("Correspondence Phd Details", doc.internal.pageSize.width / 2, doc.autoTable.previous.finalY + 10, {
+                                        align: 'center'
+                                    });
+                                    // Add the table data
+                                    doc.autoTable({
+                                        head: [['Correspondence', 'Institute Name', 'School Name', 'Start Date', 'End Date', 'Specialization']],
+                                        body: phdSections,
+                                        startY: doc.autoTable.previous.finalY + 20, // Start below the title
+                                        theme: 'grid',
+                                        styles: {
+                                            cellPadding: 4,
+                                            fontSize: 10
+                                        }
+                                    });
+                                } else {
+                                }
+
+                            }
+                            yPosition = doc.autoTable.previous.finalY + 10;
+                            // Post Graduation
+                            if (annexureData?.gap_validation?.highest_education_gap === 'post_graduation' || annexureData?.gap_validation?.highest_education_gap === 'phd') {
+                                // doc.addPage();
+                                yPosition = 20;
+
+                                const postGradData = [
+                                    ["University / Institute Name", annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_university_institute_name_gap || 'N/A'],
+                                    ["Course", annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_course_gap || 'N/A'],
+                                    ["Specialization Major", annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_specialization_major_gap || 'N/A'],
+                                    ["Start Date", annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_start_date_gap || 'N/A'],
+                                    ["End Date", annexureData?.gap_validation?.education_fields?.post_graduation_1?.post_graduation_end_date_gap || 'N/A'],
+                                    ["Gap Status", renderGapMessageNew(gaps?.gapGradToPostGrad) || 'N/A']
+                                ];
+
+
+                                doc.autoTable({
+                                    head: [[{ content: 'POST GRADUATION', colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                    ],
+                                    body: postGradData,
+                                    startY: yPosition + 5,
+                                    theme: 'grid',
+                                    styles: {
+                                        cellPadding: 4,
+                                        fontSize: 10
+                                    }
+                                });
+
+                                let index = 1;
+                                let postGradSections = [];
+                                while (true) {
+                                    const key = `post_graduation_corespondence_${index}`;
+
+                                    // Check if the key exists in the annexureData
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const postGradSection = annexureData.gap_validation.education_fields[key];
+
+                                    // Push the section data into postGradSections array
+                                    postGradSections.push([
+                                        `Correspondence Post Graduation ${index}`,
+                                        postGradSection?.post_graduation_university_institute_name_gap || 'N/A',
+                                        postGradSection?.post_graduation_course_gap || 'N/A',
+                                        postGradSection?.post_graduation_specialization_major_gap || 'N/A',
+                                        postGradSection?.post_graduation_start_date_gap || 'N/A',
+                                        postGradSection?.post_graduation_end_date_gap || 'N/A'
+                                    ]);
+
+                                    index++; // Move to the next post_graduation_corespondence_*
+                                }
+
+                                // Add a title for the table
+                                yPosition += 20;
+
+                                if (postGradSections.length > 0) {
+                                    doc.setFontSize(16);
+                                    doc.text("Correspondence Post Graduation Details", doc.internal.pageSize.width / 2, doc.autoTable.previous.finalY + 10, {
+                                        align: 'center'
+                                    });
+
+                                    doc.autoTable({
+                                        head: [['Correspondence', 'University/Institute Name', 'Course', 'Specialization Major', 'Start Date', 'End Date']],
+                                        body: postGradSections,
+                                        startY: doc.autoTable.previous.finalY + 20, // Start below the title
+                                        theme: 'grid',
+                                        styles: {
+                                            cellPadding: 4,
+                                            fontSize: 10
+                                        }
+                                    });
+                                }
+
+                            }
+
+                            // Graduation
+                            yPosition = yPosition += 30;
+                            if (annexureData?.gap_validation?.highest_education_gap === 'graduation' || annexureData?.gap_validation?.highest_education_gap === 'post_graduation' || annexureData?.gap_validation?.highest_education_gap === 'phd') {
+
+
+                                const gradData = [
+                                    ["University / Institute Name", annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_university_institute_name_gap || 'N/A'],
+                                    ["Course", annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_course_gap || 'N/A'],
+                                    ["Specialization Major", annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_specialization_major_gap || 'N/A'],
+                                    ["Start Date", annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_start_date_gap || 'N/A'],
+                                    ["End Date", annexureData?.gap_validation?.education_fields?.graduation_1?.graduation_end_date_gap || 'N/A'],
+                                    ["Gap Status", renderGapMessageNew(gaps?.gapSrSecToGrad) || 'N/A']
+
+                                ];
+
+                                doc.autoTable({
+                                    head: [[{ content: 'GRADUATION', colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                    ],
+                                    body: gradData,
+                                    startY: doc.autoTable.previous.finalY + 10,
+                                    theme: 'grid',
+                                    styles: {
+                                        cellPadding: 4,
+                                        fontSize: 10
+                                    }
+                                });
+
+                                let index = 1;
+                                let Graduation = [];
+                                while (true) {
+                                    const key = `graduation_corespondence_${index}`;
+
+                                    // Check if the key exists in the annexureData
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const GradSec = annexureData.gap_validation.education_fields[key];
+
+                                    // Push the section data into Graduation array
+                                    Graduation.push([
+                                        `Correspondence Graduation ${index}`,
+                                        GradSec?.graduation_university_institute_name_gap || 'N/A',
+                                        GradSec?.graduation_course_gap || 'N/A',
+                                        GradSec?.graduation_specialization_major_gap || 'N/A',
+                                        GradSec?.graduation_start_date_gap || 'N/A',
+                                        GradSec?.graduation_end_date_gap || 'N/A'
+                                    ]);
+
+                                    index++; // Move to the next post_graduation_corespondence_*
+                                }
+
+                                if (Graduation.length > 0) {
+                                    // Add a title for the table
+                                    doc.setFontSize(16);
+                                    doc.text("Correspondence Graduation Details", doc.internal.pageSize.width / 2, doc.autoTable.previous.finalY + 10, {
+                                        align: 'center'
+                                    });
+                                    // Add the table data
+                                    doc.autoTable({
+                                        head: [['Correspondence', 'University/Institute Name', 'Course', 'Specialization Major', 'Start Date', 'End Date']],
+                                        body: Graduation,
+                                        startY: doc.autoTable.previous.finalY + 30, // Start below the title
+                                        theme: 'grid',
+                                        styles: {
+                                            cellPadding: 4,
+                                            fontSize: 10
+                                        }
+                                    });
+
+                                }
+
+                                // Call this function separately if required for gap message
+                            }
+
+                            if (annexureData?.gap_validation?.highest_education_gap === 'senior_secondary' || annexureData?.gap_validation?.highest_education_gap === 'graduation' || annexureData?.gap_validation?.highest_education_gap === 'phd' || annexureData?.gap_validation?.highest_education_gap === 'post_graduation') {
+
+                                const seniorSecondaryData = [
+                                    ["School Name", annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_school_name_gap || 'N/A'],
+                                    ["Start Date", annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_start_date_gap || 'N/A'],
+                                    ["End Date", annexureData?.gap_validation?.education_fields?.senior_secondary?.senior_secondary_end_date_gap || 'N/A'],
+                                    ["Gap Status", renderGapMessageNew(gaps?.gapSecToSrSec) || 'N/A']
+                                ];
+
+                                doc.autoTable({
+                                    head: [[{ content: 'SENIOR SECONDARY', colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                    ],
+                                    body: seniorSecondaryData,
+                                    startY: doc.autoTable.previous.finalY + 30,
+                                    theme: 'grid',
+                                    styles: {
+                                        cellPadding: 4,
+                                        fontSize: 10
+                                    }
+                                });
+
+                                let index = 1;
+                                let seniorSecondarySections = [];
+
+                                while (true) {
+                                    const key = `senior_secondary_corespondence_${index}`;
+
+                                    // Check if the key exists in annexureData
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const seniorSecondarySection = annexureData.gap_validation.education_fields[key];
+
+                                    // Push the section data into seniorSecondarySections array
+                                    seniorSecondarySections.push([
+                                        `Correspondence SENIOR SECONDARY ${index}`,
+                                        seniorSecondarySection?.senior_secondary_school_name_gap || 'N/A',
+                                        seniorSecondarySection?.senior_secondary_start_date_gap || 'N/A',
+                                        seniorSecondarySection?.senior_secondary_end_date_gap || 'N/A'
+                                    ]);
+
+                                    index++; // Move to the next senior_secondary_corespondence_*
+                                }
+
+                                // Add a title for the table
+                                if (seniorSecondarySections.length > 0) {
+                                    doc.setFontSize(16);
+                                    doc.text("Correspondence Senior Secondary Details", doc.internal.pageSize.width / 2, doc.autoTable.previous.finalY + 10, {
+                                        align: 'center'
+                                    });
+                                    // Add the table data
+                                    doc.autoTable({
+                                        head: [['Correspondence', 'School Name', 'Start Date', 'End Date']],
+                                        body: seniorSecondarySections,
+                                        startY: doc.autoTable.previous.finalY + 20, // Start below the title
+                                        theme: 'grid',
+                                        styles: {
+                                            cellPadding: 4,
+                                            fontSize: 10
+                                        }
+                                    });
+
+                                }
+
+                                ;  // Call this function separately if required for gap message
+                            }
+
+                            // doc.addPage();
+                            yPosition = 10;
+                            // Secondary Education Section
+                            if (
+                                annexureData["gap_validation"].highest_education_gap === 'secondary' ||
+                                annexureData["gap_validation"].highest_education_gap === 'senior_secondary' ||
+                                annexureData["gap_validation"].highest_education_gap === 'graduation' ||
+                                annexureData["gap_validation"].highest_education_gap === 'phd' ||
+                                annexureData["gap_validation"].highest_education_gap === 'post_graduation'
+                            ) {
+
+                                const secondaryData = [
+                                    ["School Name", annexureData?.gap_validation?.education_fields?.secondary?.secondary_school_name_gap || 'N/A'],
+                                    ["Start Date", annexureData?.gap_validation?.education_fields?.secondary?.secondary_start_date_gap || 'N/A'],
+                                    ["End Date", annexureData?.gap_validation?.education_fields?.secondary?.secondary_end_date_gap || 'N/A']
+                                ];
+
+                                // Generate the table for secondary education
+                                doc.autoTable({
+                                    head: [[{ content: 'SECONDARY', colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                    ],
+                                    body: secondaryData,
+                                    startY: yPosition,
+                                    theme: 'grid',
+                                    styles: {
+                                        cellPadding: 4,
+                                        fontSize: 10
+                                    }
+                                });
+
+                                let index = 1;
+                                let SecondarySections = [];
+
+                                // Loop through to find any "secondary_corespondence_*" sections and add them
+                                while (true) {
+                                    const key = `secondary_corespondence_${index}`;
+
+                                    // Check if the key exists in annexureData
+                                    if (!annexureData?.gap_validation?.education_fields?.[key]) {
+                                        break; // Exit loop if the key is missing
+                                    }
+
+                                    const secondarySection = annexureData.gap_validation.education_fields[key];
+
+                                    // Push the section data into SecondarySections array
+                                    SecondarySections.push([
+                                        `Correspondence SECONDARY ${index}`,
+                                        secondarySection?.secondary_school_name_gap || 'N/A',
+                                        secondarySection?.secondary_start_date_gap || 'N/A',
+                                        secondarySection?.secondary_end_date_gap || 'N/A'
+                                    ]);
+
+                                    index++; // Move to the next secondary_corespondence_*
+                                }
+
+                                // Add a title for the table if there are any secondary sections
+                                if (SecondarySections.length > 0) {
+                                    doc.setFontSize(16);
+                                    doc.text("Correspondence Secondary Education Details", doc.internal.pageSize.width / 2, doc.autoTable.previous.finalY + 10, {
+                                        align: 'center'
+                                    });
+                                    // Add the table data
+                                    doc.autoTable({
+                                        head: [['Secondary No.', 'School Name', 'Start Date', 'End Date']],
+                                        body: SecondarySections,
+                                        startY: doc.autoTable.previous.finalY + 20, // Start below the title
+                                        theme: 'grid',
+                                        styles: {
+                                            cellPadding: 4,
+                                            fontSize: 10
+                                        }
+                                    });
+
+
+                                }
+                            }
+
+
+                            yPosition = doc.autoTable.previous.finalY + 10;
+
+                            // Employment Section
+                            doc.setFontSize(18);
+                            const employmentData = [
+                                ["Years of Experience", annexureData["gap_validation"].years_of_experience_gap || ''],
+                                ["No of Employment", annexureData["gap_validation"].no_of_employment || '']
+                            ];
+
+                            doc.autoTable({
+                                head: [[{ content: `Employment Deails`, colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                ],
+                                body: employmentData,
+                                startY: doc.autoTable.previous.finalY + 10,
+                                theme: 'grid',
+                                styles: {
+                                    cellPadding: 4,
+                                    fontSize: 10
+                                }
+                            });
+
+                            doc.setFontSize(12);
+                            // Dynamically render Employment Forms
+                            if (annexureData["gap_validation"].no_of_employment > 0) {
+                                let yPosition = doc.autoTable.previous.finalY + 10;
+
+                                Array.from({ length: annexureData["gap_validation"].no_of_employment || 0 }, (_, index) => {
+                                    const employmentFormData = [
+                                        ["Employment Type", annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_type_gap`] || ''],
+                                        ["Start Date", annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_start_date_gap`] || ''],
+                                        ["End Date", annexureData["gap_validation"]?.employment_fields?.[`employment_${index + 1}`]?.[`employment_end_date_gap`] || '']
+                                    ];
+
+                                    doc.autoTable({
+                                        head: [[{ content: `Employment (${index + 1})`, colSpan: 2, styles: { halign: 'center', fontSize: 12, bold: true } }],
+                                        ],
+                                        body: employmentFormData,
+                                        startY: yPosition,
+                                        theme: 'grid',
+                                        styles: {
+                                            cellPadding: 4,
+                                            fontSize: 10
+                                        }
+                                    });
+
+                                    yPosition = doc.autoTable.previous.finalY + 10;
+                                    for (let idx = 0; idx < employGaps.length; idx++) {
+                                        const item = employGaps[idx];  // Fix: Use idx directly, not idx - 1
+
+
+                                        if (item) {
+                                            const isNoGap = item.difference.toLowerCase().includes("no") && item.difference.toLowerCase().includes("gap");
+
+                                            const isMatchingEndDate = item.endValue === annexureData["gap_validation"]?.employment_fields?.[`employment_${index}`]?.[`employment_end_date_gap`];
+
+                                            if (isMatchingEndDate) {
+                                                // Prepare the text to be shown in the document
+                                                const textToDisplay = `${isNoGap ? item.difference : `GAP:${item.difference || 'No gap Found'}`}`;
+
+                                                // Log the text that will be displayed
+
+                                                // Display the text in the document
+                                                doc.text(
+                                                    textToDisplay,
+                                                    14,
+                                                    doc.autoTable.previous.finalY + 7
+                                                );
+
+                                                // Update yPosition for next table or text
+                                                yPosition = doc.autoTable.previous.finalY + 10;
+
+                                            }
+                                        }
+                                    }
+
+
+                                });
+                            }
+
+
+
+                        }
+                        else {
+                            let shouldSkipTable = false;
+                            let tableData = [];
+
+                            // First pass to check if any checkbox is checked
+                            service.rows.forEach((row, rowIndex) => {
+                                if (hiddenRows[`${i}-${rowIndex}`]) return;
+
+                                row.inputs.forEach((input) => {
+                                    const isCheckbox = input.type === 'checkbox';
+                                    const isDoneCheckbox = isCheckbox && (input.name.startsWith('done_or_not') || input.name.startsWith('has_not_done'));
+                                    const isChecked = ["1", 1, true, "true"].includes(annexureData[service.db_table]?.[input.name] ?? false);
+
+                                    if (isDoneCheckbox && isChecked) {
+                                        shouldSkipTable = true;
+                                    }
+                                });
+                            });
+
+                            // ✅ Skip the entire block (table + images) if checkbox is ticked
+                            if (!shouldSkipTable) {
+                                // Build table data
+                                service.rows.forEach((row, rowIndex) => {
+                                    if (hiddenRows[`${i}-${rowIndex}`]) return;
+
+                                    row.inputs.forEach((input) => {
+                                        if (input.type === 'file') return;
+
+                                        let inputValue = annexureData[service.db_table]?.[input.name] || "NIL";
+
+                                        // Format ISO date to dd-mm-yyyy
+                                        const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                                        if (isoDateRegex.test(inputValue)) {
+                                            const [year, month, day] = inputValue.split("-");
+                                            inputValue = `${day}-${month}-${year}`;
+                                        }
+
+                                        tableData.push([input.label, inputValue]);
+                                    });
+                                });
+
+                                if (tableData.length > 0) {
+                                    doc.setFontSize(16);
+                                    yPosition += 10;
+                                    doc.autoTable({
+                                        startY: yPosition,
+                                        head: [[{ content: service.heading, colSpan: 2, styles: { halign: 'center', fontSize: 16, bold: true } }]],
+                                        body: tableData,
+                                        theme: 'grid',
+                                        margin: { horizontal: 10 },
+                                        styles: { fontSize: 10 },
+                                    });
+                                    yPosition = doc.previousAutoTable.finalY + 10;
+                                }
+
+                                // ✅ Process and add images/files for this service
+                                const fileInputs = service.rows.flatMap(row =>
+                                    row.inputs.filter(({ type }) => type === "file").map(input => input.name)
+                                );
+
+                                if (fileInputs.length > 0) {
+                                    const filePromises = fileInputs.map(async (inputName) => {
+                                        const annexureFilesStr = annexureData[service.db_table]?.[inputName];
+                                        let annexureDataImageHeight = 220;
+
+                                        if (annexureFilesStr) {
+                                            const fileUrls = annexureFilesStr.split(",").map(url => url.trim());
+
+                                            const imageUrlsToProcess = fileUrls.filter(url => {
+                                                const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                                                return validImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                                            });
+
+                                            const nonImageUrlsToProcess = fileUrls.filter(url => {
+                                                const validNonImageExtensions = ['pdf', 'xls', 'xlsx'];
+                                                return validNonImageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+                                            });
+
+                                            // Handle image files
+                                            if (imageUrlsToProcess.length > 0) {
+                                                const imageBases = await fetchImageToBase(imageUrlsToProcess);
+                                                // for (const image of imageBases) {
+                                                //     if (!image.base64.startsWith('data:image/')) continue;
+
+                                                //     doc.addPage();
+                                                //     yPosition = 20;
+
+                                                //     try {
+                                                //         const imageWidth = doc.internal.pageSize.width - 10;
+                                                //         doc.addImage(image.base64, image.type, 5, yPosition + 20, imageWidth, annexureDataImageHeight);
+                                                //         yPosition += (annexureDataImageHeight + 30);
+                                                //     } catch (error) {
+                                                //         console.error(`Error adding image:`, error);
+                                                //     }
+                                                // }
+                                            }
+
+                                            // Handle non-image files (PDF, XLS, etc.)
+                                            const pageHeight = doc.internal.pageSize.height;
+                                            const margin = 10;
+                                            let lineHeight = 10;
+
+                                            if (nonImageUrlsToProcess.length > 0) {
+                                                nonImageUrlsToProcess.forEach(url => {
+                                                    if (yPosition + lineHeight > pageHeight - margin) {
+                                                        doc.addPage();
+                                                        yPosition = margin;
+                                                    }
+
+                                                    doc.setFont("helvetica", "normal");
+                                                    doc.setFontSize(10);
+                                                    doc.setTextColor(255, 0, 0);
+                                                    const buttonText = `Click to open the file`;
+                                                    const textWidth = doc.getTextWidth(buttonText);
+                                                    const centerX = (doc.internal.pageSize.width - textWidth) / 2;
+
+                                                    doc.text(buttonText, centerX, yPosition + 10);
+                                                    doc.link(centerX, yPosition + 10, textWidth, 10, { url: url });
+
+                                                    yPosition += lineHeight + 2;
+                                                });
+                                            }
+                                        }
+                                    });
+
+                                    await Promise.all(filePromises);
+                                }
+                                if (tableData.length > 0 && fileInputs.length > 0) {
+                                    doc.addPage();
+
+                                }
+
+                            }
+                        }
+
+                        const fileInputs = service?.rows?.flatMap(row =>
+                            row.inputs.filter(({ type }) => type === "file").map(input => input.name)
+                        );
+                        if (!fileInputs.length > 0) {
+                            doc.addPage();
+                        }
+                    }
+                }
+
+                // const selectedServices = serviceDataMain.slice(0, 2); // Get only the first 2 services
+                console.log('service', serviceDataMain)
+
+
+                let newYPosition = 20;
+
+                // Upper Table: Declaration & Authorization
+                doc.autoTable({
+                    head: [[
+                        {
+                            content: 'Declaration & Authorization',
+                            colSpan: 3,
+                            styles: {
+                                halign: 'left',
+                                fontSize: 12,
+                                textColor: 255,
+                            }
+                        }
+                    ]],
+                    body: [[
+                        {
+                            content: `I hereby authorize GoldQuest Global HR Services Pvt Ltd and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion. I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative. I release all persons from liability on account of such disclosure.\n\nI confirm that the above information is correct to the best of my knowledge. I agree that in the event of my obtaining employment, my probationary appointment, confirmation as well as continued employment in the services of the company are subject to clearance of medical test and background verification check done by the company.`,
+                            colSpan: 3,
+                            styles: {
+                                fontSize: 10,
+                                cellPadding: { top: 2, bottom: 2, left: 2, right: 2 },
+                                valign: 'top'
+                            }
+                        }
+                    ]],
+                    startY: newYPosition,
+                    theme: 'grid',
+                    margin: { left: 10, right: 9 },
+                    styles: { fontSize: 9 },
+                    tableWidth: 'wrap',
+                    columnStyles: {
+                        0: { cellWidth: 70 },
+                        1: { cellWidth: 70 },
+                        2: { cellWidth: 50 }
+                    }
+                });
+
+                newYPosition = doc.autoTable.previous.finalY;
+
+                // Lower Table: Candidate Info and Signature
+                const colWidths = [70, 70, 50]; // match upper table width
+                const imageWidth = 65;
+                let imageHeight = 40;
+
+                const name = cefDataApp?.name_declaration || 'N/A';
+                const dateFilled = formatDate(cefDataApp?.declaration_date) || 'N/A';
+
+                doc.autoTable({
+                    body: [[
+                        { content: name, styles: { halign: 'center', valign: 'top', fontSize: 10 } },
+                        { content: '', styles: { halign: 'center', valign: 'top', minCellHeight: 44 } },
+                        { content: dateFilled, styles: { halign: 'center', valign: 'top', fontSize: 0 } }
+                    ], [
+                        { content: 'Full name of the candidate', styles: { halign: 'center', fontSize: 10, fontStyle: "bold" } },
+                        { content: 'Signature', styles: { halign: 'center', fontSize: 10, fontStyle: "bold" } },
+                        { content: 'Date of form filled', styles: { halign: 'center', fontSize: 10, fontStyle: "bold" } }
+                    ]],
+                    columnStyles: {
+                        0: { cellWidth: colWidths[0] },
+                        1: { cellWidth: colWidths[1] },
+                        2: { cellWidth: colWidths[2] }
+                    },
+                    startY: newYPosition,
+                    theme: 'grid',
+                    margin: { left: 10, right: 10 },
+                    tableWidth: 'wrap'
+                });
+                const tableY = doc.autoTable.previous.finalY - 40;
+                const cellStartX = 10 + colWidths[0]; // X of signature cell
+                const colWidth = colWidths[1]; // width of signature cell
+
+                // Handle Signature
+                if (cefDataApp?.signature) {
+                    const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+                    const isImage = validImageExtensions.some(ext => cefDataApp.signature.toLowerCase().endsWith(ext));
+
+                    if (isImage) {
+                        const imageBases = await fetchImageToBase([cefDataApp.signature]);
+                        if (imageBases && imageBases[0]?.base64) {
+                            const imageX = cellStartX + (colWidth - imageWidth) / 2;
+                            const imageY = tableY + (22 - imageHeight) / 2;
+
+                            doc.addImage(
+                                imageBases[0].base64,
+                                'PNG',
+                                imageX,
+                                imageY,
+                                imageWidth,
+                                imageHeight
+                            );
+                        }
+                    } else {
+                        const buttonText = "Click to view attached document";
+                        const textWidth = doc.getTextWidth(buttonText);
+                        const centerX = cellStartX + ((colWidth - textWidth) / 2);
+                        const centerY = tableY + 25;
+
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(10);
+                        doc.setTextColor(255, 0, 0);
+                        doc.text(buttonText, centerX, centerY);
+                        doc.link(centerX, centerY - 5, textWidth, 10, { url: cefDataApp.signature });
+                    }
+                } else {
+                    doc.setFontSize(10);
+                    doc.text("No Signature uploaded.", cellStartX + 5, tableY + 25);
+                }
+
+                doc.addPage();
+
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                const pageWidth = doc.internal.pageSize.width; // Get the page width
+                const textWidth = doc.getTextWidth("Documents (Mandatory)"); // Get the width of the text
+
+                doc.text("Documents (Mandatory)", (pageWidth - textWidth) / 2, 15); // Center-align text
+
+                // Define table columns
+                const columns = [
+                    { content: "Education", styles: { fontStyle: "bold" } },
+                    { content: "Employment", styles: { fontStyle: "bold" } },
+                    { content: "Government ID / Address Proof", styles: { fontStyle: "bold" } }
+                ];
+
+                // Define table rows
+                const rows = [
+                    [
+                        "Photocopy of degree certificate and final mark sheet of all examinations.",
+                        "Photocopy of relieving / experience letter for each employer mentioned in the form.",
+                        "Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID."
+                    ]
+                ];
+
+                // Generate table
+                doc.autoTable({
+                    startY: 20,
+                    head: [columns],
+                    headStyles: {
+                        lineWidth: 0.3,
+                    },
+                    body: rows,
+                    styles: { fontSize: 10, cellPadding: 4 },
+                    theme: "grid",
+                    columnStyles: {
+                        0: { halign: "center", minCellWidth: 60 },
+                        1: { halign: "center", minCellWidth: 60 },
+                        2: { halign: "center", minCellWidth: 60 }
+                    }
+                });
+                // Footer Note
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont("helvetica", "normal");
+                doc.text(
+                    "NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to onboarding@goldquestglobal.in. Additionally, you can reach out to us at onboarding@goldquestglobal.in.",
+                    14,
+                    doc.lastAutoTable.finalY + 10,
+                    { maxWidth: 180 }
+                );
+                doc.save(`${customerInfo?.client_unique_id}-${customerInfo?.name}`);
+
+                swalLoading.close();
+
+                // Optionally, show a success message
+                Swal.fire({
+                    title: 'PDF Generated!',
+                    text: 'Your PDF has been successfully generated.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            })();
+
+        }
+
+
+        catch (error) {
+            // In case of error, close the Swal loading and show an error message
+            swalLoading.close();
+            Swal.fire({
+                title: 'Error!',
+                text: 'Something went wrong while generating the PDF.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+
+    }
     const renderFileNames = (inputName) => {
         const files = selectedFilesMap[inputName];
         if (!files || files.length === 0) return null;
@@ -2285,7 +3716,7 @@ const BackgroundForm = () => {
                                                                 </div>
                                                             )}
                                                             < div className="form-group col-span-2 relative" >
-                                                                <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span> (Please attach only masked aadhar card , if don't have masked aadhar card then attach pan card/passowrd/voter ID/DL)</label >
+                                                                <label className='text-sm' > Attach Govt.ID Proof: <span className="text-red-500 text-lg" >* </span> (Please attach only masked aadhar card , if don't have masked aadhar card then attach pan card/passport/voter ID/DL)</label >
                                                                 <input
                                                                     type="file"
                                                                     accept=".jpg,.jpeg,.png" // Restrict to image files
@@ -2299,7 +3730,7 @@ const BackgroundForm = () => {
 
                                                                 {errors.govt_id && <p className="text-red-500 text-sm" > {errors.govt_id} </p>}
 
-                                                                <div className='md:flex overflow-scroll gap-3'>
+                                                                <div className='md:flex overflow-auto gap-3'>
 
                                                                     {cefDataApp.govt_id ? (
                                                                         cefDataApp.govt_id.split(',').map((item, index) => {
@@ -2425,7 +3856,7 @@ const BackgroundForm = () => {
                                                                     {errors.mb_no && <p className="text-red-500 text-sm" > {errors.mb_no} </p>}
                                                                 </div>
                                                             </div>
-                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+                                                            < div className={`grid grid-cols-1 ${formData.personal_information.marital_status == "Married" ? "md:grid-cols-3" : "md:grid-cols-2"}  gap-4`}>
 
                                                                 <div className="form-group" >
                                                                     <label className='text-sm' htmlFor="father_name">Father's Name: <span className="text-red-500 text-lg">*</span></label>
@@ -2442,17 +3873,42 @@ const BackgroundForm = () => {
                                                                     {errors.father_name && <p className="text-red-500 text-sm" > {errors.father_name} </p>}
                                                                 </div>
                                                                 < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="husband_name" > Spouse's Name</label>
-                                                                    < input
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.husband_name}
-                                                                        type="text"
+                                                                    <label className='text-sm' htmlFor="marital_status"> Marital Status: <span className="text-red-500 text-lg" >*</span></label >
+                                                                    <select
                                                                         className="form-control border rounded w-full p-2 mt-2"
-                                                                        id="husband_name"
-                                                                        ref={(el) => (refs.current["husband_name"] = el)} // Attach ref here
-                                                                        name="husband_name"
-                                                                    />
+                                                                        name="marital_status"
+                                                                        id="marital_status"
+                                                                        onChange={handleChange}
+                                                                        value={formData.personal_information.marital_status}
+
+                                                                    >
+                                                                        <option value="" selected> SELECT MARITAL STATUS </option>
+                                                                        < option value="Don't wish to disclose"> Don't wish to disclose</option>
+                                                                        < option value="Single"> Single </option>
+                                                                        < option value="Married"> Married </option>
+                                                                        < option value="Widowed"> Widowed </option>
+                                                                        < option value="Divorced"> Divorced </option>
+                                                                        < option value="Separated"> Separated </option>
+                                                                    </select>
+                                                                    {errors.marital_status && <p className="text-red-500 text-sm" > {errors.marital_status} </p>}
                                                                 </div>
+                                                                {
+                                                                    formData.personal_information.marital_status == "Married" && (
+
+                                                                        < div className="form-group" >
+                                                                            <label className='text-sm' htmlFor="husband_name" > Spouse's Name</label>
+                                                                            < input
+                                                                                onChange={handleChange}
+                                                                                value={formData.personal_information.husband_name}
+                                                                                type="text"
+                                                                                className="form-control border rounded w-full p-2 mt-2"
+                                                                                id="husband_name"
+                                                                                ref={(el) => (refs.current["husband_name"] = el)} // Attach ref here
+                                                                                name="husband_name"
+                                                                            />
+                                                                        </div>
+                                                                    )
+                                                                }
                                                             </div>
                                                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                                                 < div className="form-group" >
@@ -2789,7 +4245,7 @@ const BackgroundForm = () => {
 
                                                                 </>
                                                             )}
-                                                            < div className="grid grid-cols-1 md:grid-cols-2 gap-4 " >
+                                                            < div className="grid grid-cols-1  gap-4 " >
                                                                 <div className="form-group" >
                                                                     <label className='text-sm' htmlFor="nationality" > Nationality: <span className="text-red-500 text-lg" >* </span></label >
                                                                     <input
@@ -2804,26 +4260,7 @@ const BackgroundForm = () => {
                                                                     />
                                                                     {errors.nationality && <p className="text-red-500 text-sm" > {errors.nationality} </p>}
                                                                 </div>
-                                                                < div className="form-group" >
-                                                                    <label className='text-sm' htmlFor="marital_status"> Marital Status: <span className="text-red-500 text-lg" >*</span></label >
-                                                                    <select
-                                                                        className="form-control border rounded w-full p-2 mt-2"
-                                                                        name="marital_status"
-                                                                        id="marital_status"
-                                                                        onChange={handleChange}
-                                                                        value={formData.personal_information.marital_status}
 
-                                                                    >
-                                                                        <option value="" selected> SELECT MARITAL STATUS </option>
-                                                                        < option value="Don't wish to disclose"> Don't wish to disclose</option>
-                                                                        < option value="Single"> Single </option>
-                                                                        < option value="Married"> Married </option>
-                                                                        < option value="Widowed"> Widowed </option>
-                                                                        < option value="Divorced"> Divorced </option>
-                                                                        < option value="Separated"> Separated </option>
-                                                                    </select>
-                                                                    {errors.marital_status && <p className="text-red-500 text-sm" > {errors.marital_status} </p>}
-                                                                </div>
                                                             </div>
 
                                                         </div>
@@ -4450,7 +5887,9 @@ const BackgroundForm = () => {
                                                                 </div>
                                                             </div>
                                                             <div className="form-group relative" >
-                                                                <label className='text-sm' > Attach signature: <span className="text-red-500 text-lg" >* </span></label >
+                                                                <label className='text-sm' > Attach signature: (Please sign on blank paper with date and comment – For BGV Purpose and
+                                                                    upload  ) <span className="text-red-500 text-lg" >* </span><b onClick={handleOpenModal}
+                                                                        className="text-blue-500 cursor-pointer">Check Sample here.</b></label >
                                                                 <input
                                                                     onChange={(e) => handleFileChange("applications_signature", "signature", e)}
                                                                     type="file"
@@ -4566,6 +6005,14 @@ const BackgroundForm = () => {
                                                         Go Back
                                                     </button>
                                                 )}
+                                                {activeTab === serviceDataMain.length + 2 && (
+                                                    <button
+                                                        type='button'
+                                                        onClick={handleDownloadPDF} // Call the handleBack function when the button is clicked
+                                                        className="px-6 py-2 text-blue-700 bg-blue-200 rounded-md hover:bg-blue-300"
+                                                    >
+                                                        Download my PDF Form without document                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
@@ -4578,6 +6025,39 @@ const BackgroundForm = () => {
                             }
                         </div >
                     )}
+
+            {isModalOpen && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                    onClick={handleCloseModal}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow w-[600px] max-h-[700px] overflow-auto p-6 relative"
+                        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside modal
+                    >
+                        {/* Close Button */}
+                        <button
+                            onClick={handleCloseModal}
+                            className="absolute top-3 right-3 text-gray-600 hover:text-black text-xl"
+                        >
+                            ×
+                        </button>
+
+                        {/* Modal Content */}
+                        <h2 className="text-lg font-semibold mb-4">Sample BGV Signed Paper</h2>
+
+                        {/* Example: Show Image */}
+                        <img
+                            src="/signature.png"
+                            alt="Sample Signed Paper"
+                            className="max-w-[500px] m-auto rounded border h-[550px]"
+                        />
+
+                        {/* OR If PDF instead: */}
+                        {/* <iframe src="/assets/sample_bgv_form.pdf" className="w-full h-96"></iframe> */}
+                    </div>
+                </div>
+            )}
         </>
 
     );

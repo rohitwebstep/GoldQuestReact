@@ -755,6 +755,7 @@ const GenerateReport = () => {
         switch (input.type) {
             case "text":
             case "email":
+            case "phone":
             case "tel":
                 return (
                     <>
