@@ -1780,9 +1780,7 @@ const BackgroundForm = () => {
             text: 'Please wait a moment.',
             showConfirmButton: false,
             allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+          
         });
         try {
             calculateGaps();
@@ -2306,6 +2304,8 @@ const BackgroundForm = () => {
 
 
             doc.addPage();
+            yPosition = 20;
+
             (async () => {
                 if (serviceDataMain || !serviceDataMain.length === 0) {
                     for (let i = 0; i < serviceDataMain.length; i++) {
@@ -3098,7 +3098,6 @@ const BackgroundForm = () => {
                     title: 'PDF Generated!',
                     text: 'Your PDF has been successfully generated.',
                     icon: 'success',
-                    confirmButtonText: 'OK'
                 });
             })();
 
@@ -4511,6 +4510,7 @@ const BackgroundForm = () => {
                                                                                 className="form-control border rounded w-full p-2 mt-1" id="permanent_address_state"
                                                                                 name="permanent_address_state" ref={(el) => (refs.current["permanent_address_state"] = el)}
                                                                             >
+                                                                             <option value="">Select State</option>
                                                                                 {options.map((option) => (
                                                                                     <option key={option.value} value={option.value}>
                                                                                         {option.label}
